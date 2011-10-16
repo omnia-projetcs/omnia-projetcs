@@ -1,0 +1,142 @@
+# depslib dependency file v1.0
+1318689430 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\resource.rc
+	"resource.h"
+
+1318690403 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\resource.h
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<windows.h>
+	<commctrl.h>
+	<shlobj.h>
+	<Psapi.h>
+	<iphlpapi.h>
+	<tlhelp32.h>
+
+1303228584 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\main.cpp
+	<windows.h>
+	"resource.h"
+
+1318690218 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc.c
+	"resource.h"
+
+1318689448 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\main.c
+	"resource.h"
+
+1318673573 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\export.c
+	"resource.h"
+
+1318362564 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_logs.c
+	"resource.h"
+
+1318681728 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry.c
+	"resource.h"
+	"d3des.h"
+
+1318688932 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_files.c
+	"resource.h"
+
+1317238233 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry_bin.c
+	"resource.h"
+
+1316552929 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry_files.c
+	"resource.h"
+
+1318681726 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry_search.c
+	"resource.h"
+
+1315080408 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\d3des.c
+	"d3des.h"
+
+1142625718 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\d3des.h
+
+1315730405 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\process.c
+	"resource.h"
+
+1317673009 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_process.c
+	"resource.h"
+
+1317465025 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\syskeyextract.c
+	"resource.h"
+	"rc4.h"
+	"md5.h"
+
+1317551187 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\local_user_extract.c
+	"resource.h"
+
+1062995910 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\rc4.h
+	"opensslconf.h"
+
+1050004034 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\opensslconf.h
+
+1062996458 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\md5.h
+	"e_os2.h"
+
+1062996454 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\e_os2.h
+	"opensslconf.h"
+
+1062996422 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\md5_dgst.c
+	<stdio.h>
+	"opensslv.h"
+	"md5_locl.h"
+
+1050002948 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\opensslv.h
+
+1062996434 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\md5_locl.h
+	<stdlib.h>
+	<string.h>
+	"e_os2.h"
+	"md5.h"
+	"md32_common.h"
+
+1039895132 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\md32_common.h
+
+1062995996 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\rc4_enc.c
+	"rc4.h"
+
+1062996162 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\rc4_skey.c
+	"rc4.h"
+	"opensslv.h"
+
+1317325036 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry_wce_bin.c
+	"resource.h"
+
+1317667323 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_registry_bin2.c
+	"resource.h"
+
+1317458762 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\shadown_copy.c
+	"resource.h"
+	"vss.h"
+	"vswriter.h"
+	"vsbackup.h"
+	<stdio.h>
+	<windows.h>
+	<winbase.h>
+	<Vss.h>
+	<VsWriter.h>
+	<VsBackup.h>
+
+1121341242 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\vss.h
+	"rpc.h"
+	"rpcndr.h"
+	"windows.h"
+	"ole2.h"
+	"oaidl.h"
+	"ocidl.h"
+
+1317458884 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\vswriter.h
+
+1317458892 c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\vsbackup.h
+
+1317668769 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\info.rc
+	"resource.h"
+
+1318362658 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_logs_evt.c
+	"resource.h"
+
+1317970030 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_logs_log.c
+	"resource.h"
+
+1318627255 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_logs_evtx.c
+	"resource.h"
+
