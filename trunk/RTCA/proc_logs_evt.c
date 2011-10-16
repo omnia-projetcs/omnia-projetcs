@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -141,24 +141,6 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
               //ID
               EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
 
-              //description
-              /*memset(lv_line[5].c, 0, MAX_LINE_SIZE);
-              taille_tmp = (pevlr->Length) * sizeof(char) - sizeof(EVENTLOGRECORD) - strlen(lv_line[4].c)*2;
-              if (taille_tmp  > 0)
-              {
-                char *pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-                if (pStrings != NULL)
-                {
-                  memset(pStrings, 0, taille_tmp);
-                  memcpy(pStrings, (LPBYTE)pevlr+sizeof(EVENTLOGRECORD)+strlen(lv_line[4].c), taille_tmp);
-                  TraiterDescriptionLog(pStrings,taille_tmp-1,lv_line[5].c,MAX_LINE_SIZE);
-
-                  if (strlen(pStrings)>3)strncpy(lv_line[5].c,pStrings,MAX_LINE_SIZE);
-                  HeapFree(GetProcessHeap(), 0, pStrings);
-                }
-              }*/
-
-
               //Description + infos
               //NumStrings, StringOffset
               memset(lv_line[5].c, 0, MAX_LINE_SIZE);
@@ -250,7 +232,6 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
               strncat(lv_line[7].c,"\0",MAX_LINE_SIZE);
 
               AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
-              //SB_add(SB_ONGLET_LOGS, "LOG : Add item", c, taille_fic);
             }
             c+= pevlr->Length;
             pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);

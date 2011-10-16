@@ -1,148 +1,9 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
-// Ressources :
-//    - format du fichier SAM : http://chntpw.sourcearchive.com/documentation/0.99.5/sam_8h-source.html
-//      http://www.hotline-pc.org/registre-securite.htm
-//      http://webcache.googleusercontent.com/search?q=cache:pnxWpMqWISEJ:www.beginningtoseethelight.org/ntsecurity/+\SAM\Domains\Account\Users+F+V+account+logon+count&cd=2&hl=fr&ct=clnk&gl=fr&source=www.google.fr
-//      http://msdn.microsoft.com/en-us/library/aa379649%28v=vs.85%29.aspx
-//      différents types de data : http://msdn.microsoft.com/en-us/library/windows/desktop/ms724884%28v=vs.85%29.aspx
-//    - exemple d'utilisation des API pour les journaux  : http://msdn.microsoft.com/en-us/library/aa363680%28v=vs.85%29.aspx
-//    - format des fichiers evt : http://msdn.microsoft.com/en-us/library/bb309022%28v=vs.85%29.aspx
-//    - BinXML (evtx) :  http://msdn.microsoft.com/en-us/library/cc231334%28v=prot.10%29.aspx (p65,134,142)
-//    - BinXML (evtx) :  http://computer.forensikblog.de/en/2007/07/evtx_event_record.html
-//    - BinXML (evtx) :  http://msdn.microsoft.com/en-us/library/cc231287%28v=prot.10%29.aspx
-//    - BinXML (evtx) :  http://download.microsoft.com/download/9/5/e/95ef66af-9026-4bb0-a41d-a4f81802d92c/%5BMS-EVEN6%5D.pdf
-//    - évènements code id (NT) : http://support.microsoft.com/kb/299475/en-us  et http://support.microsoft.com/kb/301677/en-us
-//    - conversion des Sessions ID : http://www.eventid.net/display.asp?eventid=115&source= et http://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx?i=j
-//      http://www.ultimatewindowssecurity.com/securitylog/quickref/download.aspx http://www.myeventlog.com/
-//      http://kb.monitorware.com/kbeventdb-top50.html
-//      http://searchenterprisedesktop.techtarget.com/definition/Error-messages-for-Windows-XP-Pro?Offer=WCMlbscript
-//    - outil de gestion des eventlogs :http://ctxadmtools.musumeci.com.ar/SearchEvent/SearchEvent11.html
-// outils Citrix: http://ctxadmtools.musumeci.com.ar/CtxAdmTools/CtxAdmTools_Pack.html
-
-//   doc ms : http://www.microsoft.com/technet/support/ee/ee_advanced.aspx
-
-/*
-PRIORITES !!!!
-  - listeview complémentaire avec déclencheur  d'utilisation !!! : AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
-  - revoir la lstv avec la durée par jour par déclencheur ^^
-  - dans la partie state :  Toutes les catégories de registre !!!
-  - gestion de state avec l'import de fichiers ^^
-
-Forensic urls :
-http://isc.sans.edu/diary.html?storyid=6961
-http://www.cert.org/forensics/tools/include/all_announcements.html
-http://code.google.com/p/winforensicaanalysis/downloads/list
-http://code.google.com/p/creddump/
-outil pour copier le registre : http://www.larshederer.homepage.t-online.de/erunt/
-http://www.e-fense.com/h3-enterprise.php
-
-
-      * onglet : process :
-        - liste des fonctions utilisés
-        - décortication des drivers chargés dans les dlls kernels ^^
-        - hook possible sur son fonctionnement : registre, file, réseau, pipe
-        - non compatible Wine !!!!
-        - ajout d'une console type DOS (inspirer de LUS !!!)
-        - ajouter un open path process !! (avec gestion des début chaotiques et variables ^^
-
-      * onglet : state :
-        - mise à jour lors de l'ajout de journaux,userassits et éléments de base de registre ! : AddToLV_log (user assist faire une fonction complémentaire)
-        - horaires d'utilisation par périodes, onglets :
-          * revoir la gestion par déclencheur et non dates!! (id, etc..)
-          * durée prenant en compte l'année + nb de jours/mois, etc..
-
-      * onglet : registry :
-        * Ajout de la configuration Wifi : même ligne que le réseau
-        * revoir la gestion du Wifi (bug !!!)
-        * ajouter la date de création/update des comptes et groupes avec la date de création du répertoire ^^
-        * update pour la partie réseau aussi
-        * user : vérifier si le même mot de passe !!!
-        * treeviewajouter au popup : suppression/modification de valeur/ajout (local ou fichier)
-        * ajout du secret dans l'onglet configuration + option de déchiffrement à partir de syskey externe
-        * revoir le test des shadow copy pour ne pas prendre en compte les groupes ^^
-        * export des certificats
-
-        * prise en charge des fichiers de registre windowsmobile
-        * export des clées lue au format REG
-        * import de fichier reg pour vérification locale
-        * import des hahs et compte de fichier et ad windows !!! : %SystemRoot%\ntds\NTDS.DIT  << base pour AD Windows 2000
-        * évolution des relevés de configuration : précision si une variable n'existe pas !!!
-        - possibilité d'importer une syskey (en binaire ou ascii) et de décoder les hash en md5
-        - base de 1000 hash standard pour deviner le mot de passe !!!
-        -----
-        * lecture de fichier hv
-        * recherche + ajout de fichier hv
-
-      .???? nouvel onglet ?
-        * manque historique de navigation : IE/Firefox/Chrome/Safari/Opera
-        * manque mails : outlook/express/ThunHKEY_CURRENT_USER\Software\Microsoft\MediaPlayer\Player\RecentFileListderbird/LotusNotes
-        * identification de logiciels de peer to peer ?
-
-        gestion des fichiers .vol pour windows mobile
-
-        "DirsToExclude"=multi_sz:"\\mxip_initdb.vol",
-"\\mxip_system.vol",
-"\\mxip_notify.vol",
-"\\mxip_lang.vol",
-"\\cemail.vol",
-"\\pim.vol",
-"\\Documents and Settings\\default\\user.hv",
-"\\Documents and Settings\\system.hv",
-"\\Windows\\Profiles\\guest\\Temporary Internet Files\\",
-"\\Windows\\Profiles\\guest\\Cookies\\",
-"\\Windows\\Profiles\\guest\\History\\",
-"\\Windows\\Activesync\\"
-
-      * onglet : logs :
-        * ajouter de nouveaux ID !!!!
-          http://www.eventlogxp.com
-          http://blogs.technet.com/b/askperf/archive/2007/10/12/windows-vista-and-exported-event-log-files.aspx
-          http://computer.forensikblog.de/en/2011/06/evtx_parser_1_0_8.html#more
-          http://www.net-security.org/dl/insecure/INSECURE-Mag-18.pdf
-          http://support.microsoft.com/kb/299475/en-us
-          http://support.microsoft.com/kb/301677/en-us
-          le type d'event peut êtr exploité comme suit : http://msdn.microsoft.com/en-gb/library/aa363651.aspx
-          revoir tous les EventID : http://computer.forensikblog.de/en/2011/06/mac_os_x_memory_analysis_with_volafox.html#mo
-        * utilisation d'une base externe fichier csv ?
-
-      * onglet files : ajout d'autres types d'extension
-        - ajouter en option la lecture des méta datas dans le popup/option de configuration (option)
-        - acl complètes (option)
-        - hash des fichiers (option)
-        - récupération de certains fichiers systèmes automatiquement (applications en cours d'exécution + drivers + services)
-        - ajout import + décodage des
-
-      * Configuration :
-        * utiliser des threads pour les parties sauvegarde et supprimer !! (surtout en cas de grand nombre d'item !)
-        * export multi format (docx)
-        * sauvegarde en contenanaire zip + possible mdp + de tous les exe + base SAM importants ^^
-        * icone de l'application de grande qualité !!!
-        * ajouter en mode console l'import de fichier SAM+SYSTEM
-        * compilation en bas64
-
-        - multi sélection pour suppression (liste de fichiers-treeview)
-        - ajout de l'import de fichier log standards Windows
-        - revérifier les zones de copie de data !!! (plantage potentiel)
----------------------------------------------------------------------------------------------
-ABANDONNEES :
-        - ajouter la possibiliter de faire un dd d'un disque sans redémarre
-        - possibilité de faire un dd de la mémoire ^^  : \\.\PhysicalMemory
-        - possibilité de faire un dd d'un support externe (type usb, disk, etc...)
-        http://www.chrysocome.net/dd
-        //building pe image :http://technet.microsoft.com/en-us/library/cc766066%28WS.10%29.aspx
-      FileName := '\\.\' + Drive + ':';
-      h := CreateFile(PChar(FileName), GENERIC_READ, FILE_SHARE_READ, nil, OPEN_EXISTING, 0, 0);
----------------------------------------------------------------------------------------------
-
-char tmp_t[MAX_PATH];
-sprintf(tmp_t,"pevlr->Length: %d",pevlr->Length);
-MessageBox(0,tmp_t,"TEST!",MB_OK|MB_TOPMOST);
-*/
 //------------------------------------------------------------------------------
 #define _WIN32_WINNT			0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE         0x0501  //fonctionne avec ie5 min pour utilisation LVS_EX_FULLROWSELECT
@@ -158,7 +19,7 @@ MessageBox(0,tmp_t,"TEST!",MB_OK|MB_TOPMOST);
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.26 - http:\\\\omni.a.free.fr"
+#define NOM_APPLI             "RtCA v0.1 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256

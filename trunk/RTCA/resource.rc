@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -55,7 +55,8 @@ BEGIN
   CONTROL "Read to Catch All :\n"
           "Licensed under the terms of the GNU\n"
           "General Public License version 3.\n\n"
-          "Home : http:\\\\omni.a.free.fr"
+          "Author: nicolas.hanteville@gmail.com\n"
+          "http://code.google.com/p/omnia-projetcs/"
                           ,ST_CONF_ABOUT        ,"Static",0x50000000,244,80,128,102
 
   CONTROL "Start"         ,BT_CONF_START        ,"Button",0x50010000| WS_TABSTOP,312,196,72,22

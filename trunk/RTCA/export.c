@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -127,26 +127,6 @@ void ExportLVSelecttoCSV(char *path, unsigned int id_tabl, int lv, unsigned shor
   }
 }
 //------------------------------------------------------------------------------
-/*DWORD WINAPI TExportLVtoCSV(LPVOID lParam)
-{
-   typedef struct ThreadExport
-  {
-    char path[MAX_PATH];
-    unsigned int id_tabl;
-    int lv;
-    unsigned short nb_colonne;
-  }THREADEXPORT;
-
-  THREADEXPORT *exp = (THREADEXPORT*)lParam;
-
-  char path[MAX_PATH];
-  unsigned int id_tabl = exp->id_tabl;
-  int lv = exp->lv;
-  unsigned short nb_colonne = exp->nb_colonne;
-  strcpy(path,exp->path);
-
-
-}*/
 void ExportLVtoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
 {
   //test si des enregistrements
@@ -232,7 +212,7 @@ void ExportLVtoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_
         DWORD copiee;
 
         //start
-        char head[]="<html>\r\n<head><title>RtCA report [http://omni.a.free.fr]</title></head>\r\n<table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n<tr bgcolor=\"#C0C0C0\">";
+        char head[]="<html>\r\n<head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n<table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n<tr bgcolor=\"#C0C0C0\">";
         WriteFile(MyhFile,head,strlen(head),&copiee,0);
 
         //création de la première ligne de titre
@@ -310,7 +290,7 @@ void ExportLVSelecttoHTML(char *path, unsigned int id_tabl, int lv, unsigned sho
         DWORD copiee;
 
         //start
-        char head[]="<html>\r\n<head><title>RtCA report [http://omni.a.free.fr]</title></head>\r\n<table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n<tr bgcolor=\"#C0C0C0\">";
+        char head[]="<html>\r\n<head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n<table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n<tr bgcolor=\"#C0C0C0\">";
         WriteFile(MyhFile,head,strlen(head),&copiee,0);
 
         //création de la première ligne de titre
@@ -384,7 +364,7 @@ void ExportLVtoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_c
         LINE_ITEM lv_line[SIZE_UTIL_ITEM+1];
 
         //start
-        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://omni.a.free.fr]]]></Description>\r\n";
+        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
         WriteFile(MyhFile,head,strlen(head),&copiee,0);
 
         //création de la première ligne de titre
@@ -446,7 +426,7 @@ void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned shor
         LINE_ITEM lv_line[SIZE_UTIL_ITEM];
 
         //start
-        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://omni.a.free.fr]]]></Description>\r\n";
+        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
         WriteFile(MyhFile,head,strlen(head),&copiee,0);
 
         //création de la première ligne de titre
@@ -495,18 +475,6 @@ void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned shor
     }
   }
 }
-//------------------------------------------------------------------------------
-/*void ExportLVtoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
-{
-  THREADEXPORT exp;
-  strncpy(exp.path,path,MAX_PATH);
-  exp.id_tabl = id_tabl;
-  exp.lv = lv;
-  exp.nb_colonne = nb_colonne;
-
-  //thread
-  CreateThread(NULL,0,TExportLVtoCSV,(LPVOID)&exp,0,0);
-}*/
 //------------------------------------------------------------------------------
 void ExportLVColto(char *path, unsigned int id_tabl, int lv, unsigned short col)
 {

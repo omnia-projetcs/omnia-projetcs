@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -426,8 +426,8 @@ void AnalyseFichierRegBin2(char *fic)
             case 0xA9B8 :
             case 0x65E0 :
             case 0x0000 :
-            case 0x0388 ://sans : 57054, 830454
-            case 0x0518 ://avec : 56455, 492508*/
+            case 0x0388 :
+            case 0x0518 :*/
             //position+=0xF;break;
             default : position++; break;
           }
