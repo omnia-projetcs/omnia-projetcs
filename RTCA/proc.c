@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -2680,7 +2680,7 @@ void InitConfig(HWND hwnd)
        case 'h': printf( "Read to Catch All :\n"
                         "Licensed under the terms of the GNU\n"
                         "General Public License version 3.\n\n"
-                        "Home : http:\\\\omni.a.free.fr\n"
+                        "Home : http://code.google.com/p/omnia-projetcs/\n"
                         "----------------------------------\n"
                         "Uses :\n"
                         "h : Display this help.\n\n"

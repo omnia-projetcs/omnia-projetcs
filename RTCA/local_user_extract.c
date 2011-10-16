@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"

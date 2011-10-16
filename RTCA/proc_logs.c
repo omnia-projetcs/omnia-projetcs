@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -1051,6 +1051,5 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
   }
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_LOGS,FALSE);
-//  SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETTEXT,(WPARAM)SB_ONGLET_LOGS, (LPARAM)"");
   return 0;
 }

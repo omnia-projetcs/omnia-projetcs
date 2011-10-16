@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -35,7 +35,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,155,80,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,210,230,100,TRUE);
-        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,230,210,70,TRUE);
+        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,225,210,80,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,315,110,40,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,315,110,40,TRUE);
@@ -1066,7 +1066,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       case 'h': MessageBox(0,"Read to Catch All :\n"
                         "Licensed under the terms of the GNU\n"
                         "General Public License version 3.\n\n"
-                        "Home : http:\\\\omni.a.free.fr\n"
+                        "Home : http://code.google.com/p/omnia-projetcs/\n"
                         "----------------------------------\n"
                         "Uses:\n\n"
                         "h : Display this help.\n\n"

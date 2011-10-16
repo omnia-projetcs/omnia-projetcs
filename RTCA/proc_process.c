@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RTCA          : READ TO CATCH ALL
 // Auteur               : Nicolas Hanteville
-// Site                 : http:\\omni.a.free.fr
+// Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
@@ -34,88 +34,6 @@ void ReadProcessInfo(DWORD pid, HANDLE hlv)
     }
     CloseHandle(hProcess);
   }
-
-
-
-
-/*
-   //test autre méthode d'affichage
-    DWORD aProcesses[TAILLE_TMP_DB], cbNeeded, cProcesses;
-    unsigned int i,j;
-    char NomProcessus[MAX_PATH];
-    char Emplacement[MAX_PATH];
-    HANDLE hProcess;
-    HMODULE hMod[TAILLE_TMP_DB];
-    char tmp[TAILLE_TMP_DB];
-    char TNom[TAILLE_TMP];
-    char TEmplacement[TAILLE_TMP_DB];
-    char TPID[16];
-    int taille;
-    unsigned short Err=0;
-
-    //implémentation de chargement des fonctions
-    HMODULE hDLL;
-    typedef int (WINAPI *ENUMPROC)(DWORD*,DWORD,DWORD*);
-    ENUMPROC EnumProcesses;
-    typedef int (WINAPI *ENUMPROCMOD)(HANDLE,HMODULE*,DWORD,LPDWORD);
-    ENUMPROCMOD EnumProcessModules;
-    typedef DWORD (WINAPI *GETMODBN)(HANDLE,HMODULE,LPTSTR,DWORD);
-    GETMODBN GetModuleBaseName;
-    typedef DWORD (WINAPI *GETMODFNEX)(HANDLE,HMODULE,LPTSTR,DWORD);
-    GETMODFNEX GetModuleFileNameEx;
-
-    XML_Debut_Rubrique(xml,"Processus en cours (API)",rubrique);
-
-
-    //chargement de la dll
-    if ((hDLL = LoadLibrary( "PSAPI.DLL" ))!=NULL)
-    {
-        //chargement des fonctions (attention utilisation d eleurs noms ANSI !!!)
-        EnumProcesses = (ENUMPROC) GetProcAddress(hDLL,"EnumProcesses");
-        EnumProcessModules = (ENUMPROCMOD) GetProcAddress(hDLL,"EnumProcessModules");
-        GetModuleBaseName = (GETMODBN) GetProcAddress(hDLL,"GetModuleBaseNameA");
-        GetModuleFileNameEx = (GETMODFNEX) GetProcAddress(hDLL,"GetModuleFileNameExA");
-
-        if((EnumProcesses)||(EnumProcessModules)||(GetModuleBaseName)||(GetModuleFileNameEx) )
-        {
-            //recupération de la liste des pid
-            if ( !EnumProcesses( aProcesses, sizeof(aProcesses), &cProcesses ))
-              Err=1;
-            else
-            {
-                // calcul du nombre de processus retournés.
-                // récupère le nom + emplacement + pid de chaque processus.
-                for ( i = 0; i < cProcesses; i++ )
-                {
-                    // récupère le handle du processus.
-                    if ((hProcess = OpenProcess( PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0, aProcesses[i] ))!=NULL)
-                    {
-                        if ( EnumProcessModules( hProcess, hMod, sizeof(hMod),&cbNeeded) )
-                        {
-                            XML_Donnee(xml,T_TBL,TNom,"",TEmplacement,"",TPID,"","DLL liées au processus:","","","","");
-                            // permet la récupération des dll liés aux processus
-                            for ( j = 1; j < (cbNeeded / sizeof(HMODULE)); j++)
-                            {
-                                //emplacement de la dll
-                                if (GetModuleFileNameEx(hProcess,hMod[j],Emplacement,sizeof(Emplacement))>0)
-                                {
-                                  //transformation du résultat en chaine
-                                  //et implémentation pour mise en page
-                                  snprintf(TEmplacement,TAILLE_TMP_DB,"Emplacement: %s",Emplacement);
-                                  XML_Donnee(xml,T_LST,"","",TEmplacement,"","","","","","","","");
-                                }else
-                                  XML_Donnee(xml,T_LST,"","","Erreur de chargement!!!",T_R,"","","","","","","");
-                            }
-                        }
-                    }
-                    CloseHandle( hProcess );
-                }
-            }
-
-*/
-
-
-
 }
 //------------------------------------------------------------------------------
 DWORD GetPortsFromPID(DWORD pid, LINE_ITEM *port_line, unsigned int nb_item_max,unsigned int taille_max_line)
