@@ -487,7 +487,7 @@ void TraiterGroupDataFromSAM_C(LINE_ITEM *item, HANDLE hlv)
         case 1: strncat(item[3].c," (Dialup)\0",MAX_PATH);break;
         case 2: strncat(item[3].c," (Network)\0",MAX_PATH);break;
         case 3: strncat(item[3].c," (Batch)\0",MAX_PATH);break;
-        case 4: strncat(item[3].c," (Intercative)\0",MAX_PATH);break;
+        case 4: strncat(item[3].c," (Interative)\0",MAX_PATH);break;
         case 5: strncat(item[3].c," (Driver)\0",MAX_PATH);break;
         case 6: strncat(item[3].c," (Service)\0",MAX_PATH);break;
         case 7: strncat(item[3].c," (Anonymous logon)\0",MAX_PATH);break;
@@ -771,7 +771,7 @@ int TraiterUserDataFromSAM_V(LINE_ITEM *item)
     case 1: strncat(item[4].c," Rights : Dialup\0",MAX_PATH);
     case 2: strncat(item[4].c," Rights : Network\0",MAX_PATH);
     case 3: strncat(item[4].c," Rights : Batch\0",MAX_PATH);
-    case 4: strncat(item[4].c," Rights : Intercative\0",MAX_PATH);
+    case 4: strncat(item[4].c," Rights : Interative\0",MAX_PATH);
     case 5: strncat(item[4].c," Rights : Driver\0",MAX_PATH);
     case 6: strncat(item[4].c," Rights : Service\0",MAX_PATH);
     case 7: strncat(item[4].c," Rights : Anonymous logon\0",MAX_PATH);
