@@ -826,106 +826,109 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
   while (ReadEventLog(Heventlog,EVENTLOG_BACKWARDS_READ |EVENTLOG_SEQUENTIAL_READ,0,&bBuffer,cbBuffer,&dwRead,&dwNeeded) && i < cRecords)
   {
     pevlr = (EVENTLOGRECORD *) &bBuffer;
-    while (dwRead > 0 && i < cRecords)
+    if (pevlr!=NULL && pevlr->Length>0)
     {
-      snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",r++);
-      i++;
-
-      //Type
-      inconnu = FALSE;
-      switch(pevlr->EventType)
+      while (dwRead > 0 && i < cRecords)
       {
-        case 0x01 : strcpy(lv_line[6].c,"ERROR"); break;
-        case 0x02 : strcpy(lv_line[6].c,"WARNING"); break;
-        case 0x04 : strcpy(lv_line[6].c,"INFORMATION"); break;
-        case 0x08 : strcpy(lv_line[6].c,"AUDIT_SUCCESS"); break;
-        case 0x10 : strcpy(lv_line[6].c,"AUDIT_FAILURE"); break;
-        default :
-          inconnu = TRUE;
-          lv_line[6].c[0]=0;
-        break;
-      }
+        snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",r++);
+        i++;
 
-      if (!inconnu)
-      {
-        //traitement de la date
-        lgTemp = Int32x32To64(pevlr->TimeGenerated,10000000) + 116444736000000000;
-        FileTime.dwLowDateTime = (DWORD) lgTemp;
-        FileTime.dwHighDateTime = (DWORD)(lgTemp >> 32);
-        if (FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
+        //Type
+        inconnu = FALSE;
+        switch(pevlr->EventType)
         {
-          if (FileTimeToSystemTime(&LocalFileTime, &SysTime))
-            snprintf(lv_line[3].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-          else lv_line[3].c[0]=0;
-
-        }else lv_line[3].c[0]=0;
-
-        //source
-        lv_line[4].c[0]=0;
-        if (sizeof(EVENTLOGRECORD) < pevlr->Length)
-          strncpy(lv_line[4].c,(char *)pevlr+sizeof(EVENTLOGRECORD),MAX_LINE_SIZE);
-
-        //ID
-        EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
-
-        //description
-        memset(lv_line[5].c, 0, MAX_LINE_SIZE);
-        taille_tmp = (pevlr->Length) * sizeof(char) - sizeof(EVENTLOGRECORD) - strlen(lv_line[4].c);
-        if (taille_tmp  > 0)
-        {
-          pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-          if (pStrings != NULL)
-          {
-            memset(pStrings, 0, taille_tmp);
-            memcpy(pStrings, (LPBYTE)pevlr+sizeof(EVENTLOGRECORD)+strlen(lv_line[4].c), taille_tmp);
-            TraiterDescriptionLog(pStrings,taille_tmp-1,lv_line[5].c,MAX_LINE_SIZE);
-
-            if (strlen(pStrings)>3)strncpy(lv_line[5].c,pStrings,MAX_LINE_SIZE);
-            HeapFree(GetProcessHeap(), 0, pStrings);
-          }
+          case 0x01 : strcpy(lv_line[6].c,"ERROR"); break;
+          case 0x02 : strcpy(lv_line[6].c,"WARNING"); break;
+          case 0x04 : strcpy(lv_line[6].c,"INFORMATION"); break;
+          case 0x08 : strcpy(lv_line[6].c,"AUDIT_SUCCESS"); break;
+          case 0x10 : strcpy(lv_line[6].c,"AUDIT_FAILURE"); break;
+          default :
+            inconnu = TRUE;
+            lv_line[6].c[0]=0;
+          break;
         }
 
-        //Utilisateur + SID
-        //récupération du nom d'utilisateur  associés a l'évenement
-        lpSid = (PSID)((LPBYTE) pevlr + pevlr->UserSidOffset);
-        szName[0]=0;
-        szDomain[0]=0;
-        cbName = MAX_PATH;
-        cbDomain = MAX_PATH;
-        if (LookupAccountSid(0, lpSid, szName, &cbName, szDomain, &cbDomain, &snu))
+        if (!inconnu)
         {
-          if (cbName>0)
+          //traitement de la date
+          lgTemp = Int32x32To64(pevlr->TimeGenerated,10000000) + 116444736000000000;
+          FileTime.dwLowDateTime = (DWORD) lgTemp;
+          FileTime.dwHighDateTime = (DWORD)(lgTemp >> 32);
+          if (FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
           {
-            strncpy(lv_line[7].c,szDomain,MAX_LINE_SIZE);
-            strncat(lv_line[7].c,"\\",MAX_LINE_SIZE);
-            strncat(lv_line[7].c,szName,MAX_LINE_SIZE);
-          }
-          else lv_line[7].c[0]=0;
-        }else lv_line[7].c[0]=0;
+            if (FileTimeToSystemTime(&LocalFileTime, &SysTime))
+              snprintf(lv_line[3].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+            else lv_line[3].c[0]=0;
 
-        //ajout du SID
-        if (IsValidSid(lpSid))
-        {
-          PUCHAR pcSubAuth = GetSidSubAuthorityCount(lpSid);
-          unsigned char ucMax = *pcSubAuth;
-          DWORD *SidP;
-          strncat(lv_line[7].c," SID:S-1-5",MAX_LINE_SIZE);
+          }else lv_line[3].c[0]=0;
 
-          //récupération des éléments un par un
-          szName[0] = 0;
-          for (i=0;i<ucMax;++i)
+          //source
+          lv_line[4].c[0]=0;
+          if (sizeof(EVENTLOGRECORD) < pevlr->Length)
+            strncpy(lv_line[4].c,(char *)pevlr+sizeof(EVENTLOGRECORD),MAX_LINE_SIZE);
+
+          //ID
+          EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+
+          //description
+          memset(lv_line[5].c, 0, MAX_LINE_SIZE);
+          taille_tmp = (pevlr->Length) * sizeof(char) - sizeof(EVENTLOGRECORD) - strlen(lv_line[4].c);
+          if (taille_tmp  > 0)
           {
-           SidP=GetSidSubAuthority(lpSid,i);
-           snprintf(szName,MAX_PATH,"-%d",(int)*SidP);
-           strncat(lv_line[7].c,szName,MAX_LINE_SIZE);
+            pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
+            if (pStrings != NULL)
+            {
+              memset(pStrings, 0, taille_tmp);
+              memcpy(pStrings, (LPBYTE)pevlr+sizeof(EVENTLOGRECORD)+strlen(lv_line[4].c), taille_tmp);
+              TraiterDescriptionLog(pStrings,taille_tmp-1,lv_line[5].c,MAX_LINE_SIZE);
+
+              if (strlen(pStrings)>3)strncpy(lv_line[5].c,pStrings,MAX_LINE_SIZE);
+              HeapFree(GetProcessHeap(), 0, pStrings);
+            }
           }
+
+          //Utilisateur + SID
+          //récupération du nom d'utilisateur  associés a l'évenement
+          lpSid = (PSID)((LPBYTE) pevlr + pevlr->UserSidOffset);
+          szName[0]=0;
+          szDomain[0]=0;
+          cbName = MAX_PATH;
+          cbDomain = MAX_PATH;
+          if (LookupAccountSid(0, lpSid, szName, &cbName, szDomain, &cbDomain, &snu))
+          {
+            if (cbName>0)
+            {
+              strncpy(lv_line[7].c,szDomain,MAX_LINE_SIZE);
+              strncat(lv_line[7].c,"\\",MAX_LINE_SIZE);
+              strncat(lv_line[7].c,szName,MAX_LINE_SIZE);
+            }
+            else lv_line[7].c[0]=0;
+          }else lv_line[7].c[0]=0;
+
+          //ajout du SID
+          if (IsValidSid(lpSid))
+          {
+            PUCHAR pcSubAuth = GetSidSubAuthorityCount(lpSid);
+            unsigned char ucMax = *pcSubAuth;
+            DWORD *SidP;
+            strncat(lv_line[7].c," SID:S-1-5",MAX_LINE_SIZE);
+
+            //récupération des éléments un par un
+            szName[0] = 0;
+            for (i=0;i<ucMax;++i)
+            {
+             SidP=GetSidSubAuthority(lpSid,i);
+             snprintf(szName,MAX_PATH,"-%d",(int)*SidP);
+             strncat(lv_line[7].c,szName,MAX_LINE_SIZE);
+            }
+          }
+          strncat(lv_line[7].c,"\0",MAX_LINE_SIZE);
+
+          AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
         }
-        strncat(lv_line[7].c,"\0",MAX_LINE_SIZE);
-
-        AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+        pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
+        dwRead = dwRead-pevlr->Length;
       }
-      pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
-      dwRead = dwRead-pevlr->Length;
     }
     break;
   }
