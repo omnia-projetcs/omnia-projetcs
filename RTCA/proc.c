@@ -6,6 +6,18 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+//test si nous somme sous l'environnement Wine
+BOOL isWine()
+{
+  HKEY CleTmp=0;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"Software\\Wine\\",&CleTmp)==ERROR_SUCCESS)
+  {
+    RegCloseKey(CleTmp);
+    return TRUE;
+  }
+  return FALSE;
+}
+
 //------------------------------------------------------------------------------
 int LireTreeTxt(HANDLE hparent, DWORD treeview, HTREEITEM hitem, char *txt, DWORD max_size)
 {
@@ -1858,6 +1870,13 @@ void InitConfig(HWND hwnd)
   ShowWindow(Tabl[TABL_STATE], SW_HIDE);
   ShowWindow(Tabl[TABL_CONF], SW_SHOW);
   TABL_ID_VISIBLE = TABL_CONF;
+
+  //test si nous sommes sur un environnement émulé (wine)
+  if (isWine())
+  {
+    //on masque le bouton process qui n'est pas compatible wine !!
+    ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_PROCESS) ,SW_HIDE);
+  }
 
   //chargement de la liste d'image pour les treeview
   HIMAGELIST hImageList=ImageList_Create(16,16,ILC_COLORDDB | ILC_MASK,6,0);

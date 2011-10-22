@@ -286,3 +286,13 @@ BEGIN
       END
     END
 END
+//------------------------------------------------------------------------------
+POPUPEXPORT MENU DISCARDABLE
+BEGIN
+  POPUP "Export"
+    BEGIN
+    MENUITEM "Export to *.csv"  ,POPUP_E_CSV
+    MENUITEM "Export to *.html" ,POPUP_E_HTML
+    MENUITEM "Export to *.xml"  ,POPUP_E_XML
+    END
+END
