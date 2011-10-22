@@ -677,6 +677,8 @@ void TreeExport(HANDLE htree)
 //export global des résultats
 DWORD WINAPI Export(LPVOID lParam)
 {
+  int type = (int)lParam;
+
   //emplacement de la sauvegarde répertoire
   BROWSEINFO browser;
   ITEMIDLIST *lip;
@@ -711,61 +713,183 @@ DWORD WINAPI Export(LPVOID lParam)
       strncat(path,tmp,MAX_PATH);
       strncat(path,"]\0",MAX_PATH);
 
-     //création des rapports
-     strcpy(tmp,path);
-     strncat(tmp,"_AUDIT.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_FILES.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LOGICIEL, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_UPDATE.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MAJ, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_SERVICES_DRIVERS.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_SERVICES, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_USERASSIST.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_HISTORIQUE, NB_COLONNE_LV[LV_REGISTRY_HISTORIQUE_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_USB.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USB, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_START.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_START, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_NETWORK.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LAN, NB_COLONNE_LV[LV_REGISTRY_LAN_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_USERS.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_PASSWORD.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PASSWORD, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_MRU.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MRU, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_REG_Path.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_PROCESS.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_ALL_STATE.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
-     strcpy(tmp,path);
-     strncat(tmp,"_DAY_STATE.csv",MAX_PATH);
-     ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+
+      switch(type)
+      {
+        case HTML_TYPE :
+           //création des rapports
+           strcpy(tmp,path);
+           strncat(tmp,"_AUDIT.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_FILES.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_REGISTRY.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_CONGIGURATION.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SOFTWARE.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_LOGICIEL, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_UPDATE.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_MAJ, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SERVICES_DRIVERS.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_SERVICES, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERASSIST.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_HISTORIQUE, NB_COLONNE_LV[LV_REGISTRY_HISTORIQUE_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USB.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_USB, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_START.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_START, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_NETWORK.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_LAN, NB_COLONNE_LV[LV_REGISTRY_LAN_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERS.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_PASSWORD.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_PASSWORD, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_MRU.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_MRU, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_Path.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_PROCESS.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_ALL_STATE.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_DAY_STATE.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+        break;
+        case XML_TYPE :
+           //création des rapports
+           strcpy(tmp,path);
+           strncat(tmp,"_AUDIT.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_FILES.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_REGISTRY.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_CONGIGURATION.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SOFTWARE.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_LOGICIEL, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_UPDATE.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_MAJ, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SERVICES_DRIVERS.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_SERVICES, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERASSIST.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_HISTORIQUE, NB_COLONNE_LV[LV_REGISTRY_HISTORIQUE_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USB.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_USB, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_START.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_START, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_NETWORK.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_LAN, NB_COLONNE_LV[LV_REGISTRY_LAN_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERS.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_PASSWORD.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_PASSWORD, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_MRU.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_MRU, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_Path.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_PROCESS.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_ALL_STATE.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_DAY_STATE.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+        break;
+        case CSV_TYPE :
+        default:
+           //création des rapports
+           strcpy(tmp,path);
+           strncat(tmp,"_AUDIT.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_FILES.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LOGICIEL, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_UPDATE.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MAJ, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_SERVICES_DRIVERS.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_SERVICES, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERASSIST.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_HISTORIQUE, NB_COLONNE_LV[LV_REGISTRY_HISTORIQUE_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USB.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USB, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_START.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_START, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_NETWORK.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LAN, NB_COLONNE_LV[LV_REGISTRY_LAN_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_USERS.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_PASSWORD.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PASSWORD, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_MRU.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MRU, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_REG_Path.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_PROCESS.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_ALL_STATE.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_DAY_STATE.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+        break;
+      }
+
      }
    }
 

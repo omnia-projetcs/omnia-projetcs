@@ -4,7 +4,6 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
-//------------------------------------------------------------------------------
 #define _WIN32_WINNT			0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE         0x0501  //fonctionne avec ie5 min pour utilisation LVS_EX_FULLROWSELECT
 //------------------------------------------------------------------------------
@@ -167,6 +166,17 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_TV_R           11047
 
 #define POPUP_LV_INFO        11100
+
+#define POPUPEXPORT          11101
+#define POPUP_E_CSV          11102
+#define POPUP_E_HTML         11103
+#define POPUP_E_XML          11104
+
+//type d'export
+#define CSV_TYPE             0
+#define HTML_TYPE            1
+#define XML_TYPE             2
+
 //------------------------------------------------------------------------------
 #define SB_ONGLET_INFO           0
 #define SB_ONGLET_LOGS           1
@@ -606,6 +616,8 @@ void ExportLVSelecttoCSV(char *path, unsigned int id_tabl, int lv, unsigned shor
 void ExportLVtoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVSelecttoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVtoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
+void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
+void ExportLVtoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void LVSaveAll(unsigned int id_tabl, int lv, unsigned short nb_colonne, BOOL selection_only,BOOL pwdump);
 void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_col);
 

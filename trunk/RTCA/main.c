@@ -76,6 +76,60 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
           break;
           case BT_CONF_EXPORT:
+
+
+
+            /*
+                           case BT_COUPER:
+                    {
+                      HMENU hmenu = LoadMenu(GetModuleHandle(0),"POPUPMSGCOUPER");
+                      RECT rect;
+                      //récupération des coordonnées du bouton appelé
+                      GetWindowRect(GetDlgItem(hwnd,BT_COUPER), &rect);
+
+                      //maj du champ du treeview
+                      if (DEstDEfault[0] == 0)
+                      {
+                       EnableMenuItem(hmenu,POPUP_MSG_COUPER_DEFAULT,MF_BYCOMMAND|MF_GRAYED);
+                      }else
+                      {
+                       tmp = malloc(TAILLE_MAX_FIC_PATH);
+                       if (tmp == 0)break;
+
+                       strcpy(tmp,"Déplacer vers ");
+                       strncat(tmp,DEstDEfault,TAILLE_MAX_FIC_PATH);
+                       strncat(tmp,"\0",TAILLE_MAX_FIC_PATH);
+
+                       ModifyMenu(hmenu,POPUP_MSG_COUPER_DEFAULT,MF_BYCOMMAND,POPUP_MSG_COUPER_DEFAULT,tmp);
+                       free(tmp);
+                      }
+
+                      //test type de fichier
+                      //test si le répertoire par défaut a été choisi (par type de fichiers)
+                      tmp2= malloc(TAILLE_MAX_FIC_PATH);
+                      GetWindowText(H_URL_FIC_ADD,tmp2,TAILLE_MAX_FIC_PATH);
+
+                      switch(Extension(tmp2))
+                      {
+                        case TYPE_EXT_SON: if (type_retour.r_son[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
+                        case TYPE_EXT_IMAGE: if (type_retour.r_img[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
+                        case TYPE_EXT_VIDEO: if (type_retour.r_vid[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
+                        default : if (type_retour.r_def[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
+                      }
+                      free(tmp2);
+
+                      //affichage du popup
+                      TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0,rect.left, rect.bottom, hwnd, NULL);
+
+                      DestroyMenu(hmenu);
+                    }
+               break;
+
+
+            */
+
+
+
             if (ExportStart)
             {
               //on arrête le scan
@@ -86,11 +140,37 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Export");
             }else
             {
-              ExportStart = TRUE;
-              h_Export = CreateThread(NULL,0,Export,0,0,0);
-              SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
+              //on affiche le popup
+              RECT rect;
+              //récupération des coordonnées du bouton appelé
+              GetWindowRect(GetDlgItem(hwnd,BT_CONF_EXPORT), &rect);
+
+              //afficher la popup
+              HMENU hmenu = LoadMenu(hInst,MAKEINTRESOURCE(POPUPEXPORT));
+              if (hmenu != NULL)
+              {
+                //affichage du popup
+                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0,rect.left, rect.bottom, hwnd, NULL);
+                DestroyMenu(hmenu);
+              }
             }
           break;
+          case POPUP_E_CSV:
+              ExportStart = TRUE;
+              h_Export = CreateThread(NULL,0,Export,CSV_TYPE,0,0);
+              SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
+          break;
+          case POPUP_E_HTML:
+              ExportStart = TRUE;
+              h_Export = CreateThread(NULL,0,Export,HTML_TYPE,0,0);
+              SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
+          break;
+          case POPUP_E_XML:
+              ExportStart = TRUE;
+              h_Export = CreateThread(NULL,0,Export,XML_TYPE,0,0);
+              SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
+          break;
+
           case POPUP_TRV_CONF_ADD_FILE: AddFile();break;
           case POPUP_TRV_CONF_ADD_PATH: AddRep();break;
           case POPUP_TRV_CONF_REMOVE:SendDlgItemMessage(hwnd,TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)hitem);break;

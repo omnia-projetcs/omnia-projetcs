@@ -817,7 +817,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
 
   LINE_ITEM lv_line[NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]];
 
-  unsigned long int i=0,r=0;
+  unsigned long int i=1,r=0;
   unsigned int taille_tmp;
   char *pStrings;
 
@@ -831,7 +831,6 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
       while (dwRead > 0 && i < cRecords)
       {
         snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",r++);
-        i++;
 
         //Type
         inconnu = FALSE;
@@ -859,7 +858,6 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
             if (FileTimeToSystemTime(&LocalFileTime, &SysTime))
               snprintf(lv_line[3].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
             else lv_line[3].c[0]=0;
-
           }else lv_line[3].c[0]=0;
 
           //source
@@ -928,6 +926,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
         }
         pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
         dwRead = dwRead-pevlr->Length;
+        i++;
       }
     }
     break;
