@@ -712,8 +712,8 @@ void registry_software(HANDLE hlv)
             if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
              || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
              || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
-             || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"YES");
-            else strcpy(lv_line[6].c,"NO");
+             || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"OK");
+            else lv_line[6].c[0]=0;
 
             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
           }
@@ -2386,6 +2386,7 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
   ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH));
 
   SendDlgItemMessage(Tabl[TABL_REGISTRY],TV_VIEW,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
+  char tmp[MAX_PATH];
 
   item_ref_current_key_test=-1;
   BOOL cong_reg_global = FALSE;
@@ -2401,6 +2402,9 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
       EnumKeyAndValue(HKEY_LOCAL_MACHINE, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_LOCAL_MACHINE",TVI_ROOT,ICON_FILE_DOSSIER), "");   //ajouter la gestion des privilèges ^^
       EnumKeyAndValue(HKEY_USERS, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_USERS",TVI_ROOT,ICON_FILE_DOSSIER), "");
       EnumKeyAndValue(HKEY_CURRENT_CONFIG, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_CURRENT_CONFIG",TVI_ROOT,ICON_FILE_DOSSIER), "");
+
+      snprintf(tmp,MAX_PATH,"load %u values",ListView_GetItemCount(hlv));
+      SB_add_T(SB_ONGLET_REGISTRY, tmp);
     }else
     {
       registry_configuration(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF));
@@ -2414,6 +2418,8 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
       registry_users(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS));
       registry_password(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD));
       registry_mru(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU));
+
+      SB_add_T(SB_ONGLET_REGISTRY, "");
     }
   }else
   {
@@ -2432,7 +2438,6 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
     SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETTEXT,(WPARAM)SB_ONGLET_REGISTRY, (LPARAM)"");
     nb_items = 0;
 
-    char tmp[MAX_PATH];
     unsigned int size = 0;
 
     BOOL rescup = FALSE;
@@ -2475,9 +2480,6 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
 
     if (nb_items)
     {
-      snprintf(tmp,MAX_LINE_SIZE,"load %lu values",nb_items);
-      SB_add_T(SB_ONGLET_REGISTRY, tmp);
-
       //test si les hash users ont été déchiffrés
       HANDLE hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS);
       DWORD i, k = ListView_GetItemCount(hlv);
@@ -2512,6 +2514,9 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
         }
       }
     }else SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETTEXT,(WPARAM)SB_ONGLET_REGISTRY, (LPARAM)"");
+
+    snprintf(tmp,MAX_PATH,"load %u values",ListView_GetItemCount(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW)));
+    SB_add_T(SB_ONGLET_REGISTRY, tmp);
   }
 
   h_scan_registry = NULL;

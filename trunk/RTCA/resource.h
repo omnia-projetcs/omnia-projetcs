@@ -17,6 +17,7 @@
 #include <Psapi.h>      //GESTION DES PROCESSUS
 #include <iphlpapi.h>
 #include <tlhelp32.h>
+
 //------------------------------------------------------------------------------
 #define NOM_APPLI             "RtCA v0.1 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
@@ -77,7 +78,9 @@ char console_cmd[MAX_LINE_SIZE];
 #define CHK_CONF_ENABLE_STATE            1015
 #define CHK_CONF_NO_ACL                  1016
 #define CHK_CONF_NO_TYPE                 1017
+#define CHK_CONF_MD5                     1018
 BOOL State_Enable;
+BOOL MD5_Enable;
 BOOL ACL_Enable;
 BOOL Type_Enable;
 CRITICAL_SECTION Sync;
@@ -564,6 +567,28 @@ typedef struct s_item_ls
     char sid[1];      //par defaut découpé en section de 2octet *nb_part
   }DATA_USER;
   */
+
+
+//------------------------------------------------------------------------------
+//MD5
+typedef unsigned char md5_byte_t; /* 8-bit byte */
+typedef unsigned int md5_word_t; /* 32-bit word */
+
+/* Define the state of the MD5 Algorithm. */
+typedef struct md5_state_s {
+    md5_word_t count[2];	/* message length in bits, lsw first */
+    md5_word_t abcd[4];		/* digest buffer */
+    md5_byte_t buf[64];		/* accumulate block */
+} md5_state_t;
+
+/* Initialize the algorithm. */
+void md5_init(md5_state_t *pms);
+
+/* Append a string to the message. */
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+
+/* Finish the message and return the digest. */
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 //------------------------------------------------------------------------------
 BOOL syskey_;
 char sk_c[MAX_LINE_SIZE];
@@ -618,6 +643,7 @@ void ExportLVSelecttoHTML(char *path, unsigned int id_tabl, int lv, unsigned sho
 void ExportLVtoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVtoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
+void ExportLVColto(char *path, unsigned int id_tabl, int lv, unsigned short col); //pwdump ou col spécifique !!
 void LVSaveAll(unsigned int id_tabl, int lv, unsigned short nb_colonne, BOOL selection_only,BOOL pwdump);
 void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_col);
 

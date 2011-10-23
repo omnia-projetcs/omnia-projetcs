@@ -5,6 +5,53 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
+//------------------------------------------------------------------------------
+void FileToMd5(char *path, char *md5)
+{
+  //ouverture du fichier en lecture partagé
+  md5[0]=0;
+  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (Hfic != INVALID_HANDLE_VALUE)
+  {
+    DWORD taille_fic = GetFileSize(Hfic,NULL);
+    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
+    {
+      unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      if (buffer == NULL)
+      {
+        CloseHandle(Hfic);
+        return;
+      }
+
+      //lecture du fichier
+      DWORD copiee, position = 0, increm = 0;
+      if (taille_fic > DIXM)increm = DIXM;
+      else increm = taille_fic;
+
+      while (position<taille_fic && increm!=0)//gestion pour éviter les bug de sync permet une ouverture de fichiers énormes ^^
+      {
+        copiee = 0;
+        ReadFile(Hfic, buffer+position, increm,&copiee,0);
+        position +=copiee;
+        if (taille_fic-position < increm)increm = taille_fic-position ;
+      }
+
+      //traitement en MD5
+      md5_state_t     state;
+      md5_byte_t      digest[16];
+      md5_init(&state);
+      md5_append(&state,(const md5_byte_t  *)buffer,taille_fic);
+      md5_finish(&state,digest);
+
+      //génération du md5 en chaine
+      unsigned short i;
+      for(i=0;i<16;i++)snprintf(md5+i*2,3,"%02X",digest[i]);
+      md5[32]=0;
+      HeapFree(GetProcessHeap(), 0,buffer);
+    }
+    CloseHandle(Hfic);
+  }
+}
 //-----------------------------------------------------------------------------
 void SidtoUser(PSID psid, char *user, char *sid, unsigned int taille_user,unsigned int taille_sid, BOOL onlySID)
 {
@@ -225,6 +272,7 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
   DWORD FileAttributes;
 
   LINE_ITEM lv_line[NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]];
+  lv_line[10].c[0]=0;
 
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -282,6 +330,7 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
             if (ACL_Enable)GetACLS(Rep, lv_line[7].c, MAX_LINE_SIZE, lv_line[3].c, MAX_LINE_SIZE);
           }
           //ajout à la listeview
+          lv_line[10].c[0]=0;
           AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
 
           //on traite les autres répertoires
@@ -294,6 +343,9 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           strcpy(lv_line[0].c,Rep);
           strcpy(lv_line[1].c,data.cFileName);
 
+          strncat(Rep,data.cFileName,MAX_PATH);
+          strncat(Rep,"\0",MAX_PATH);
+
           AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,data.cFileName,hparent,ICON_FILE);
 
           //file type
@@ -304,6 +356,11 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           FileAttributes = GetFileAttributes(Rep);
           if ((FileAttributes&0x2) == 0x2)strcpy(lv_line[8].c,"H"); else lv_line[8].c[0] = 0;//fichier caché
           if ((FileAttributes&0x4) == 0x4)strcpy(lv_line[9].c,"S"); else lv_line[9].c[0] = 0;//fichier système
+
+          if (MD5_Enable)
+          {
+            FileToMd5(Rep, lv_line[10].c);
+          }
 
           //ACLS
           lv_line[3].c[0] = 0;
@@ -333,12 +390,13 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   char lettre[4]="";
   unsigned long FileMaxLen=10,FileFlags;
   char FileSysName[11];
+  char tmp[MAX_PATH];
   BOOL bACL = TRUE;
   HTREEITEM hitem;
 
   if ((BOOL)lParam)
   {
-    char tmp[MAX_PATH], tmp_path[8];
+    char tmp_path[8];
     int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
     if (nblecteurs>0)
     {
@@ -377,7 +435,6 @@ DWORD WINAPI Scan_files(LPVOID lParam)
     HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM[TRV_FILES]);
 
     //on énumère tous les items fils du treeview
-    char tmp[MAX_PATH];
     do
     {
       //récupération du texte de l'item
@@ -414,6 +471,9 @@ DWORD WINAPI Scan_files(LPVOID lParam)
     }while((hitem = (HTREEITEM)SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)) && ScanStart);
   }
 
+  snprintf(tmp,MAX_PATH,"load %u files/dirs",ListView_GetItemCount(hlv));
+  SB_add_T(SB_ONGLET_FILES, tmp);
+
   h_scan_files = NULL;
   if (!h_scan_logs && !h_scan_files && !h_scan_registry)
   {
@@ -423,6 +483,6 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   }
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_FILES,FALSE);
   SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TVI_ROOT);
-//  SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETTEXT,(WPARAM)SB_ONGLET_FILES, (LPARAM)"");
+
   return 0;
 }

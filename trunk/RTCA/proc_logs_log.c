@@ -161,7 +161,7 @@ void TraiterlogFile(char *path, HANDLE hlv)
               k++;
             }
             *lv = 0;
-            snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",j++);
+            snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",j++);
 
             //ajout
             AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);

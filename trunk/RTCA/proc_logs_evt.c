@@ -103,7 +103,7 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
           for (;i<nb_events && c<taille_fic ;i++)
           {
             //init
-            snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",r++/*pevlr->RecordNumber*/);
+            snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",r++/*pevlr->RecordNumber*/);
 
             //Type
             inconnu = FALSE;
