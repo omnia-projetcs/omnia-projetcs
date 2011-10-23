@@ -50,6 +50,7 @@ BEGIN
   CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
+  CONTROL "MD5 files hash"                      ,CHK_CONF_MD5                       ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
   CONTROL "About"         ,GRP_CONF_ABOUT       ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
   CONTROL "Read to Catch All :\n"

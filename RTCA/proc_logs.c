@@ -830,7 +830,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
     {
       while (dwRead > 0 && i < cRecords)
       {
-        snprintf(lv_line[1].c,MAX_LINE_SIZE,"%lu",r++);
+        snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",r++);
 
         //Type
         inconnu = FALSE;
@@ -971,6 +971,7 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
   //on vide les listeview
   HANDLE hlv        = GetDlgItem(Tabl[TABL_LOGS],LV_LOGS_VIEW);
   ListView_DeleteAllItems(hlv);
+  char tmp[MAX_PATH];
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_LOGS,TRUE);
 
@@ -1010,13 +1011,15 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
       OpenDirectEventLog("Internet Explorer", hlv); //Internet Explorer
       OpenDirectEventLog("OSession", hlv);          //session Office
     }
+
+    snprintf(tmp,MAX_PATH,"load %u events",ListView_GetItemCount(hlv));
+    SB_add_T(SB_ONGLET_LOGS, tmp);
   }else
   {
     //récupération du 1er fils dans le treeview
     HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM[TRV_LOGS]);
 
     //on énumère tous les items fils du treeview
-    char tmp[MAX_PATH];
     do
     {
       //récupération du texte de l'item

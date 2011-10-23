@@ -1080,8 +1080,8 @@ void FiltreRegData(LINE_ITEM *item)
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
                || (item[3].c[0] == 'C' && item[3].c[8] == 'f')||(item[3].c[0] == 'H' && item[3].c[5] == 'x')||(item[3].c[0] == 'S' && item[3].c[9] == 'U')
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
-               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,6,"YES")
-              else ListView_SetItemText(hlv,l,6,"NO");
+               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,6,"OK")
+
             }else if (j==2)//date formatage
             {
               tmp[0]=0;
@@ -1110,8 +1110,8 @@ void FiltreRegData(LINE_ITEM *item)
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
                || (item[3].c[0] == 'C' && item[3].c[8] == 'f')||(item[3].c[0] == 'H' && item[3].c[5] == 'x')||(item[3].c[0] == 'S' && item[3].c[9] == 'U')
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
-               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) strcpy(item[6].c,"YES");
-              else strcpy(item[6].c,"NO");
+               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) strcpy(item[6].c,"OK");
+
             }else if (j==2)//date formatage
             {
               tmp[4]='/';
@@ -1863,21 +1863,23 @@ void FiltreRegData(LINE_ITEM *item)
               if (l == j)continue;
 
               tmp[0]=0;
-              ListView_GetItemText(hlv,l,11,tmp,MAX_LINE_SIZE);
-              if (!strcmp(tmp,item[11].c) && tmp[0]!=0 && item[11].c[0]!=0)
+              ListView_GetItemText(hlv,l,5,tmp,MAX_LINE_SIZE); //vérif si pas un group
+              if (tmp[0]==0)
               {
-                ListView_SetItemText(hlv,l,10,"YES");
-                ListView_SetItemText(hlv,j,10,"YES");
-                //break;
-              }else
-              {
-                tmp[0]=0;
-                ListView_GetItemText(hlv,l,3,tmp,MAX_LINE_SIZE);
-                if (!strcmp(tmp,item[3].c) && tmp[0]!=0 && item[3].c[0]!=0)
+                ListView_GetItemText(hlv,l,11,tmp,MAX_LINE_SIZE);
+                if (!strcmp(tmp,item[11].c) && tmp[0]!=0 && item[11].c[0]!=0)
                 {
                   ListView_SetItemText(hlv,l,10,"YES");
                   ListView_SetItemText(hlv,j,10,"YES");
-                  //break;
+                }else
+                {
+                  tmp[0]=0;
+                  ListView_GetItemText(hlv,l,3,tmp,MAX_LINE_SIZE);
+                  if (!strcmp(tmp,item[3].c) && tmp[0]!=0 && item[3].c[0]!=0)
+                  {
+                    ListView_SetItemText(hlv,l,10,"YES");
+                    ListView_SetItemText(hlv,j,10,"YES");
+                  }
                 }
               }
             }
@@ -1900,21 +1902,23 @@ void FiltreRegData(LINE_ITEM *item)
             for (l=0;l<k;l++)
             {
               tmp[0]=0;
-              ListView_GetItemText(hlv,l,11,tmp,MAX_LINE_SIZE);
-              if (!strcmp(tmp,item[11].c) && tmp[0]!=0 && item[11].c[0]!=0)
+              ListView_GetItemText(hlv,l,5,tmp,MAX_LINE_SIZE); //vérif si pas un group
+              if (tmp[0]==0)
               {
-                ListView_SetItemText(hlv,l,10,"YES");
-                strcpy(item[10].c,"YES");
-                break;
-              }else
-              {
-                tmp[0]=0;
-                ListView_GetItemText(hlv,l,3,tmp,MAX_LINE_SIZE);
-                if (!strcmp(tmp,item[3].c) && tmp[0]!=0 && item[3].c[0]!=0)
+                ListView_GetItemText(hlv,l,11,tmp,MAX_LINE_SIZE);
+                if (!strcmp(tmp,item[11].c) && tmp[0]!=0 && item[11].c[0]!=0)
                 {
                   ListView_SetItemText(hlv,l,10,"YES");
                   strcpy(item[10].c,"YES");
-                  break;
+                }else
+                {
+                  tmp[0]=0;
+                  ListView_GetItemText(hlv,l,3,tmp,MAX_LINE_SIZE);
+                  if (!strcmp(tmp,item[3].c) && tmp[0]!=0 && item[3].c[0]!=0)
+                  {
+                    ListView_SetItemText(hlv,l,10,"YES");
+                    strcpy(item[10].c,"YES");
+                  }
                 }
               }
             }

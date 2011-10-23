@@ -939,7 +939,7 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
 }
 
 //------------------------------------------------------------------------------
-void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
+/*void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
 {
   DWORD i,min=0,max = ListView_GetItemCount(hListView);
   DWORD ref_min, ref_max;
@@ -976,7 +976,45 @@ void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colo
       if (ref_max!=max)DeplacerLignes(max,ref_max,hListView,nb_colonne);
     }while(++min<=--max);
   }
+}*/
+
+//2ème technique plus lente et prend plus de ressource (moins bugué) !!!
+void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
+{
+  DWORD i,j,max = ListView_GetItemCount(hListView);
+  if (max > 0)
+  {
+    //allocation de la mémoire
+    LINE_ITEM *lv_line;
+    lv_line = malloc(sizeof(LINE_ITEM)*max);
+    if (lv_line == NULL)return;
+
+    //copie dans la zone mémoire
+    for (i=0;i<max;i++)
+    {
+      ListView_GetItemText(hListView,i,colonne_ref,lv_line[i].c,MAX_LINE_SIZE);
+    }
+
+    //tri + copie
+    DWORD ref_min;
+    for (i=0;i<max;i++)
+    {
+      ref_min = i;
+      for (j=i;j<max;j++)
+      {
+        if (strcmp(lv_line[ref_min].c,lv_line[j].c)>0)
+          ref_min = j;
+      }
+
+      //copie de l'item ^^
+      DeplacerLignes(i,ref_min,hListView,nb_colonne);
+      //copie de la zone mémoire pour test
+      strcpy(lv_line[ref_min].c,lv_line[i].c);
+    }
+    free(lv_line);
+  }
 }
+
 //------------------------------------------------------------------------------
 DWORD WINAPI Tc_Tri(LPVOID lParam)
 {
@@ -1829,6 +1867,7 @@ void InitConfig(HWND hwnd)
   AutoSearchFilesStart = FALSE;
   h_AutoSearchFiles = NULL;
   State_Enable = FALSE;
+  MD5_Enable = FALSE;
 
   ExportStart = FALSE;
   h_Export = NULL;
@@ -1925,7 +1964,7 @@ void InitConfig(HWND hwnd)
   lvc.mask = LVCF_TEXT|LVCF_WIDTH|LVCF_FMT;
   lvc.fmt = LVCFMT_LEFT;
   lvc.cx = 40;       //taille colonne
-  lvc.pszText = "File"; //texte de la colonne
+  lvc.pszText = "File/Event"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
   lvc.pszText = "Index"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
@@ -1977,8 +2016,11 @@ void InitConfig(HWND hwnd)
   lvc.cx = 20;       //taille colonne
   lvc.pszText = "System"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)9, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "MD5"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 10;
+  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 11;
 
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW), SW_SHOW);
@@ -2011,7 +2053,7 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL] = 6;
+  NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL] = 7;
 
   lvc.cx = 50;       //taille colonne
   lvc.pszText = "File"; //texte de la colonne
@@ -2679,6 +2721,7 @@ void InitConfig(HWND hwnd)
   {
     //on masque la fenêtre pincipale
     ShowWindow(hwnd, SW_HIDE);
+    ScanStart = TRUE;
 
     //lecture du 1er path (suppression des ")
     char path_f[MAX_LINE_SIZE];
@@ -2696,31 +2739,36 @@ void InitConfig(HWND hwnd)
     *c =0;
 
  /*
-       case 'h': printf( "Read to Catch All :\n"
+      case 'h': MessageBox(0,"Read to Catch All :\n"
                         "Licensed under the terms of the GNU\n"
                         "General Public License version 3.\n\n"
-                        "Home : http://code.google.com/p/omnia-projetcs/\n"
+                        "Author: Nicolas Hanteville\n"
+                        "Home: http://code.google.com/p/omnia-projetcs/\n"
                         "----------------------------------\n"
-                        "Uses :\n"
+                        "Uses:\n\n"
                         "h : Display this help.\n\n"
 
-                        "r : Read recursively all files and ACL from all system directory and export to CSV.\n"
-                        "    example : r \"c:\\file_to_save.csv\"\n"
-                        "e : Read recursively all files and ACL from directory and export to CSV.\n"
-                        "    example : e \"c:\\directory_to_read\\\" \"c:\\file_to_save.csv\"\n\n"
+                        "r : Read recursively all files and ACL from all system directory and export to CSV/XML/HTML.\n"
+                        "    example: r \"c:\\file_to_save.csv\"\n\n"
+                        "e : Read recursively all files and ACL from directory and export to CSV/XML/HTML.\n"
+                        "    example: e \"c:\\directory_to_read\" \"c:\\file_to_save.csv\"\n\n"
 
-                        "p : Read all process and informations and export to CSV.\n"
-                        "    example : p \"c:\\file_to_save.csv\"\n\n"
+                        "p : Read all process and informations and export to CSV/XML/HTML.\n"
+                        "    example: p \"c:\\file_to_save.csv\"\n\n"
 
-                        "a : Read all audit logs and export to CSV.\n"
-                        "    example : a \"c:\\file_to_save.csv\"\n"
-                        "l : Read audit file (evt, evtx) and export to CSV.\n"
-                        "    example : l \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
+                        "a : Read all audit logs and export to CSV/XML/HTML.\n"
+                        "    example: a \"c:\\file_to_save.csv\"\n\n"
+                        "l : Read audit file (evt, evtx) and export to CSV/XML/HTML.\n"
+                        "    example: l \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
 
-                        "g : Read local registry and export to CSV.\n"
-                        "    example : g \"c:\\directory_to_save\\\"\n"
+                        "g : Read local registry and export to CSV/XML/HTML.\n"
+                        "    example: g \"c:\\directory_to_save\\\"\n\n"
                         "f : Read registry file (reg, binary registry) and export to CSV.\n"
-                        "    example : f \"c:\\file_to_read.*\" \"c:\\directory_to_save\\\"");
+                        "    example: f \"c:\\file_to_read.reg\" \"c:\\directory_to_save\\\"\n\n"
+                        "s : Read SAM+SYTEM binary registry from directory and export to CSV.\n"
+                        "    example: f \"c:\\SAM_end_SYSTEM_directory\\\" \"c:\\directory_to_save\\\""
+
+                        ,"HELP",MB_OK|MB_TOPMOST);
  */
 
     switch(console_cmd[0])
@@ -2730,8 +2778,14 @@ void InitConfig(HWND hwnd)
         //lire toutes les ACLs de tous les fichiers
         Scan_files((LPVOID)TRUE);
         //export
-        ExportLVtoCSV(path_f, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
-        //MessageBox(0,path_f,"[Files] results save to :",MB_OK|MB_TOPMOST);
+        switch(path_f[strlen(path_f)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_f, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_f, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+          default:ExportLVtoCSV(path_f, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+        }
       break;
       case 'e':
         //ajout de répertoire ^^
@@ -2739,8 +2793,14 @@ void InitConfig(HWND hwnd)
         //lire les ACLS
         Scan_files(FALSE);
         //export
-        ExportLVtoCSV(path_s, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
-        //MessageBox(0,path_s,"[Files] results save to :",MB_OK|MB_TOPMOST);
+        switch(path_s[strlen(path_s)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_s, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_s, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+          default:ExportLVtoCSV(path_s, TABL_FILES, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);break;
+        }
       break;
 
       //Process
@@ -2748,8 +2808,14 @@ void InitConfig(HWND hwnd)
         //énumération des process
         EnumProcess(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
         //export
-        ExportLVtoCSV(path_f, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
-        //MessageBox(0,path_f,"[Process] results save to :",MB_OK|MB_TOPMOST);
+        switch(path_f[strlen(path_f)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_f, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_f, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);break;
+          default:ExportLVtoCSV(path_f, TABL_PROCESS, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);break;
+        }
       break;
 
       //audit log
@@ -2757,8 +2823,14 @@ void InitConfig(HWND hwnd)
         //audit
         Scan_logs((LPVOID)TRUE);
         //export
-        ExportLVtoCSV(path_f, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
-        //MessageBox(0,path_f,"[Audit logs] results save to :",MB_OK|MB_TOPMOST);
+        switch(path_f[strlen(path_f)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_f, TABL_LOGS, LV_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_f, TABL_LOGS, LV_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+          default:ExportLVtoCSV(path_f, TABL_LOGS, LV_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+        }
       break;
       case 'l':
         //ajout de fichiers ^^
@@ -2766,8 +2838,14 @@ void InitConfig(HWND hwnd)
         //audit
         Scan_logs(FALSE);
         //export
-        ExportLVtoCSV(path_s, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
-        //MessageBox(0,path_s,"[Audit logs] results save to :",MB_OK|MB_TOPMOST);
+        switch(path_s[strlen(path_s)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_s, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_s, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+          default:ExportLVtoCSV(path_s, TABL_LOGS, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+        }
       break;
 
       //registry
@@ -2835,7 +2913,6 @@ void InitConfig(HWND hwnd)
         strcpy(tmp,path);
         strncat(tmp,"_REG_Path.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
-        //MessageBox(0,path_f,"[Registry] results save to :",MB_OK|MB_TOPMOST);
       }
       break;
       case 'f':
@@ -2904,7 +2981,85 @@ void InitConfig(HWND hwnd)
         strcpy(tmp,path);
         strncat(tmp,"_REG_Path.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
-        //MessageBox(0,path_s,"[Registry] results save to :",MB_OK|MB_TOPMOST);
+      }
+      break;
+      case 's':
+      {
+        char *c,tmp[MAX_PATH]="",path[MAX_PATH]="";
+        strcpy(path,path_s);
+
+        //ajout de fichiers ^^
+        snprintf(tmp,MAX_PATH,"%sSYSTEM",path_f);
+        FileToTreeView(tmp);
+        snprintf(tmp,MAX_PATH,"%sSAM",path_f);
+        FileToTreeView(tmp);
+
+        //registry
+        Scan_registry(FALSE);
+
+        //export
+        //création du path initial + date
+        strncat(path,"RTCA[\0",MAX_PATH);
+        time_t dateEtHMs;
+        time(&dateEtHMs);
+        //on supprime les caractères incompatibles avec le nom d'un fichier
+        strncpy(tmp,(char *)ctime(&dateEtHMs),MAX_PATH);
+        tmp[strlen(tmp)-1]=0;
+        c = tmp;
+        *(c+=3) = '_';
+        *(c+=4) = '_';
+        *(c+=3) = '_';
+        *(c+=3) = 'h';
+        *(c+=3) = 'm';
+        *(c+=3) = '_';
+        strncat(path,tmp,MAX_PATH);
+        strncat(path,"]\0",MAX_PATH);
+
+        //création des rapports
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LOGICIEL, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_UPDATE.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MAJ, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_SERVICES_DRIVERS.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_SERVICES, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_USERASSIST.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_HISTORIQUE, NB_COLONNE_LV[LV_REGISTRY_HISTORIQUE_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_USB.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USB, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_START.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_START, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_NETWORK.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_LAN, NB_COLONNE_LV[LV_REGISTRY_LAN_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_USERS.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_PASSWORD.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PASSWORD, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_MRU.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_MRU, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_Path.csv",MAX_PATH);
+        ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_PATH, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+
+        //export de la base SAM :
+        strcpy(tmp,path);
+        strncat(tmp,"_REG_ACCOUNT.pwdump",MAX_PATH);
+        ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 9);
       }
       break;
     }

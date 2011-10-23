@@ -33,6 +33,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,125,80,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,140,80,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,155,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)              ,mWidth-225,170,100,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,210,230,100,TRUE);
         MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,225,210,80,TRUE);
@@ -64,6 +65,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               if (IsDlgButtonChecked(hwnd,CHK_CONF_ENABLE_STATE) ==BST_CHECKED)State_Enable = TRUE;
               else State_Enable = FALSE;
 
+              if (IsDlgButtonChecked(hwnd,CHK_CONF_MD5) ==BST_CHECKED)MD5_Enable = TRUE;
+              else MD5_Enable = FALSE;
+
               if (IsDlgButtonChecked(hwnd,CHK_CONF_NO_ACL) ==BST_CHECKED)ACL_Enable = TRUE;
               else ACL_Enable = FALSE;
 
@@ -76,60 +80,6 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             }
           break;
           case BT_CONF_EXPORT:
-
-
-
-            /*
-                           case BT_COUPER:
-                    {
-                      HMENU hmenu = LoadMenu(GetModuleHandle(0),"POPUPMSGCOUPER");
-                      RECT rect;
-                      //récupération des coordonnées du bouton appelé
-                      GetWindowRect(GetDlgItem(hwnd,BT_COUPER), &rect);
-
-                      //maj du champ du treeview
-                      if (DEstDEfault[0] == 0)
-                      {
-                       EnableMenuItem(hmenu,POPUP_MSG_COUPER_DEFAULT,MF_BYCOMMAND|MF_GRAYED);
-                      }else
-                      {
-                       tmp = malloc(TAILLE_MAX_FIC_PATH);
-                       if (tmp == 0)break;
-
-                       strcpy(tmp,"Déplacer vers ");
-                       strncat(tmp,DEstDEfault,TAILLE_MAX_FIC_PATH);
-                       strncat(tmp,"\0",TAILLE_MAX_FIC_PATH);
-
-                       ModifyMenu(hmenu,POPUP_MSG_COUPER_DEFAULT,MF_BYCOMMAND,POPUP_MSG_COUPER_DEFAULT,tmp);
-                       free(tmp);
-                      }
-
-                      //test type de fichier
-                      //test si le répertoire par défaut a été choisi (par type de fichiers)
-                      tmp2= malloc(TAILLE_MAX_FIC_PATH);
-                      GetWindowText(H_URL_FIC_ADD,tmp2,TAILLE_MAX_FIC_PATH);
-
-                      switch(Extension(tmp2))
-                      {
-                        case TYPE_EXT_SON: if (type_retour.r_son[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
-                        case TYPE_EXT_IMAGE: if (type_retour.r_img[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
-                        case TYPE_EXT_VIDEO: if (type_retour.r_vid[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
-                        default : if (type_retour.r_def[0] == 0) EnableMenuItem(hmenu,POPUP_MSG_COUPER_FORMAT,MF_BYCOMMAND|MF_GRAYED);break;
-                      }
-                      free(tmp2);
-
-                      //affichage du popup
-                      TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0,rect.left, rect.bottom, hwnd, NULL);
-
-                      DestroyMenu(hmenu);
-                    }
-               break;
-
-
-            */
-
-
-
             if (ExportStart)
             {
               //on arrête le scan
@@ -157,17 +107,17 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           break;
           case POPUP_E_CSV:
               ExportStart = TRUE;
-              h_Export = CreateThread(NULL,0,Export,CSV_TYPE,0,0);
+              h_Export = CreateThread(NULL,0,Export,(PVOID)CSV_TYPE,0,0);
               SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
           break;
           case POPUP_E_HTML:
               ExportStart = TRUE;
-              h_Export = CreateThread(NULL,0,Export,HTML_TYPE,0,0);
+              h_Export = CreateThread(NULL,0,Export,(PVOID)HTML_TYPE,0,0);
               SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
           break;
           case POPUP_E_XML:
               ExportStart = TRUE;
-              h_Export = CreateThread(NULL,0,Export,XML_TYPE,0,0);
+              h_Export = CreateThread(NULL,0,Export,(PVOID)XML_TYPE,0,0);
               SetWindowText(GetDlgItem(hwnd,BT_CONF_EXPORT),"Stop Export");
           break;
 
@@ -406,13 +356,13 @@ BOOL CALLBACK DialogProc_logs(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
-        c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+        c_Tri(GetDlgItem(hwnd,LV_LOGS_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
       }else if (((LPNMHDR)lParam)->code == NM_DBLCLK)
       {
         switch(LOWORD(wParam))
         {
           case LV_LOGS_VIEW:
-            LVtoMessage(((LPNMHDR)lParam)->hwndFrom, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+            LVtoMessage(GetDlgItem(hwnd,LV_LOGS_VIEW), NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
           break;
         }
       }else if (((LPNMHDR)lParam)->code == EN_CHANGE)
@@ -466,10 +416,14 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
               TV_FILES_VISBLE = FALSE;
               ShowWindow(GetDlgItem(hwnd,TV_VIEW), SW_HIDE);
               ShowWindow(GetDlgItem(hwnd,LV_FILES_VIEW), SW_SHOW);
+              ShowWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH), SW_SHOW);
+              ShowWindow(GetDlgItem(hwnd,ED_SEARCH), SW_SHOW);
             }else
             {
               TV_FILES_VISBLE = TRUE;
               ShowWindow(GetDlgItem(hwnd,LV_FILES_VIEW), SW_HIDE);
+              ShowWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH), SW_HIDE);
+              ShowWindow(GetDlgItem(hwnd,ED_SEARCH), SW_HIDE);
               ShowWindow(GetDlgItem(hwnd,TV_VIEW), SW_SHOW);
             }
           break;
@@ -612,7 +566,7 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
-        c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+        c_Tri(GetDlgItem(hwnd,LV_FILES_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
       }else if (((LPNMHDR)lParam)->code == EN_CHANGE)
       {
         if (LOWORD(wParam) == ED_SEARCH)pos_search_files = 0;
@@ -711,11 +665,15 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
               ShowWindow(GetDlgItem(hwnd,TV_VIEW), SW_HIDE);
               ShowWindow(GetDlgItem(hwnd,LV_REGISTRY_VIEW), SW_SHOW);
               ShowWindow(GetDlgItem(hwnd,CB_REGISTRY_VIEW), SW_SHOW);
+              ShowWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH), SW_SHOW);
+              ShowWindow(GetDlgItem(hwnd,ED_SEARCH), SW_SHOW);
             }else
             {
               TV_REGISTRY_VISIBLE = TRUE;
               ShowWindow(GetDlgItem(hwnd,LV_REGISTRY_VIEW), SW_HIDE);
               ShowWindow(GetDlgItem(hwnd,CB_REGISTRY_VIEW), SW_HIDE);
+              ShowWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH), SW_HIDE);
+              ShowWindow(GetDlgItem(hwnd,ED_SEARCH), SW_HIDE);
               ShowWindow(GetDlgItem(hwnd,TV_VIEW), SW_SHOW);
             }
           break;
@@ -886,7 +844,7 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+      c_Tri(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
     }if ((LOWORD(wParam) == LV_VIEW) && (((LPNMHDR)lParam)->code == NM_DBLCLK))
     {
       //double click sur un processus ^^
@@ -895,7 +853,7 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
 
       //récupération de l'id ^^
       char tmp[MAX_PATH]="";
-      ListView_GetItemText(((LPNMHDR)lParam)->hwndFrom,SendMessage(((LPNMHDR)lParam)->hwndFrom,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,tmp,MAX_PATH);
+      ListView_GetItemText(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),SendMessage(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,tmp,MAX_PATH);
 
       //chargement des infos du processus
       ReadProcessInfo(atoi(tmp),GetDlgItem(Tabl[TABL_INFO],LV_VIEW));
@@ -965,7 +923,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
+      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
     }
   }
   return FALSE;
@@ -1034,7 +992,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
-        c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_INFO_VIEW_NB_COL]);
+        c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_INFO_VIEW_NB_COL]);
       }
     }else if (uMsg == WM_CLOSE)ShowWindow(hwnd, SW_HIDE);
 
@@ -1139,6 +1097,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       case 'l':
       case 'g':
       case 'f':
+      case 's':
         consol_mode=TRUE;
         snprintf(console_cmd,MAX_LINE_SIZE,"%s",lpCmdLine);
       break;
@@ -1146,28 +1105,33 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       case 'h': MessageBox(0,"Read to Catch All :\n"
                         "Licensed under the terms of the GNU\n"
                         "General Public License version 3.\n\n"
-                        "Home : http://code.google.com/p/omnia-projetcs/\n"
+                        "Author: Nicolas Hanteville\n"
+                        "Home: http://code.google.com/p/omnia-projetcs/\n"
                         "----------------------------------\n"
                         "Uses:\n\n"
                         "h : Display this help.\n\n"
 
-                        "r : Read recursively all files and ACL from all system directory and export to CSV.\n"
+                        "r : Read recursively all files and ACL from all system directory and export to CSV/XML/HTML.\n"
                         "    example: r \"c:\\file_to_save.csv\"\n\n"
-                        "e : Read recursively all files and ACL from directory and export to CSV.\n"
+                        "e : Read recursively all files and ACL from directory and export to CSV/XML/HTML.\n"
                         "    example: e \"c:\\directory_to_read\" \"c:\\file_to_save.csv\"\n\n"
 
-                        "p : Read all process and informations and export to CSV.\n"
+                        "p : Read all process and informations and export to CSV/XML/HTML.\n"
                         "    example: p \"c:\\file_to_save.csv\"\n\n"
 
-                        "a : Read all audit logs and export to CSV.\n"
+                        "a : Read all audit logs and export to CSV/XML/HTML.\n"
                         "    example: a \"c:\\file_to_save.csv\"\n\n"
-                        "l : Read audit file (evt, evtx) and export to CSV.\n"
+                        "l : Read audit file (evt, evtx) and export to CSV/XML/HTML.\n"
                         "    example: l \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
 
-                        "g : Read local registry and export to CSV.\n"
+                        "g : Read local registry and export to CSV/XML/HTML.\n"
                         "    example: g \"c:\\directory_to_save\\\"\n\n"
                         "f : Read registry file (reg, binary registry) and export to CSV.\n"
-                        "    example: f \"c:\\file_to_read.*\" \"c:\\directory_to_save\\\"","HELP",MB_OK|MB_TOPMOST);
+                        "    example: f \"c:\\file_to_read.reg\" \"c:\\directory_to_save\\\"\n\n"
+                        "s : Read SAM+SYTEM binary registry from directory and export to CSV.\n"
+                        "    example: f \"c:\\SAM_end_SYSTEM_directory\\\" \"c:\\directory_to_save\\\""
+
+                        ,"HELP",MB_OK|MB_TOPMOST);
       break;
     }
   }

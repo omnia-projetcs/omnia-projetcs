@@ -46,6 +46,9 @@
 		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="md5_dgst.c">
 			<Option compilerVar="CC" />
 		</Unit>

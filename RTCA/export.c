@@ -568,12 +568,12 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
       else ExportLVtoCSV(path, id_tabl, lv, nb_colonne);
     }else if (ofn.nFilterIndex == 2) //html
     {
-      if (selection_only)ExportLVSelecttoHTML(path, id_tabl, lv, 9);
-      else ExportLVtoHTML(path, id_tabl, lv, 9);
+      if (selection_only)ExportLVSelecttoHTML(path, id_tabl, lv, nb_colonne);
+      else ExportLVtoHTML(path, id_tabl, lv, nb_colonne);
     }else if (ofn.nFilterIndex == 3) //XML
     {
-      if (selection_only)ExportLVSelecttoXML(path, id_tabl, lv, 9);
-      else ExportLVtoXML(path, id_tabl, lv, 9);
+      if (selection_only)ExportLVSelecttoXML(path, id_tabl, lv, nb_colonne);
+      else ExportLVtoXML(path, id_tabl, lv, nb_colonne);
     }else if (ofn.nFilterIndex == 4) //pwdump
     {
       if (selection_only)ExportLVSelectColto(path, id_tabl, lv, 9);

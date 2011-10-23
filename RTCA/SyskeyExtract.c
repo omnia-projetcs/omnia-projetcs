@@ -196,7 +196,6 @@ BOOL SearchNKtoClassname(char *buffer, DWORD taille_fic, DWORD position, DWORD p
 void AddLvSyskey(char *path, char *cJD, char *cSkew1, char *cGBG, char *cData, char *sk)
 {
   //traitement et commutation des données pour générer la syskey
-  //ajout de la syskey/bootkey
   LINE_ITEM lv_line[SIZE_UTIL_ITEM];
 
   if (path[0]==0)lv_line[0].c[0]=0;
