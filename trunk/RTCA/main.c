@@ -18,22 +18,23 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,TRV_CONF_TESTS),5,0,mWidth-245,mHeight-5,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth-235,0,230,100,TRUE);
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth-235,0,230,160,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOGS),mWidth-225,15,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_FILES),mWidth-225,35,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-145,35,130,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-145,50,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-145,65,100,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REGISTRY),mWidth-225,65,60,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-145,65,135,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-145,80,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REGISTRY),mWidth-225,95,60,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-145,95,135,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-145,110,130,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF),mWidth-235,105,230,100,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,125,80,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,140,80,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,155,80,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)              ,mWidth-225,170,100,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,140,80,15,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF)             ,mWidth-235,160,230,50,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,175,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,190,80,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,210,230,100,TRUE);
         MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,225,210,80,TRUE);
@@ -258,6 +259,10 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               }
             }
           }
+          break;
+          case CHK_CONF_ENABLE_STATE:
+            if (IsDlgButtonChecked(hwnd,CHK_CONF_ENABLE_STATE) ==BST_CHECKED)ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_SHOW);
+            else ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_HIDE);
           break;
         }
       }
