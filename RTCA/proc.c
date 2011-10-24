@@ -1886,6 +1886,9 @@ void InitConfig(HWND hwnd)
   TV_REGISTRY_VISIBLE = FALSE;
   TV_FILES_VISBLE = FALSE;
 
+  //par défaut le bouton state est masqué
+  ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_HIDE);
+
   PoliceGras = (HFONT)SendMessage(hwnd,WM_GETFONT,(WPARAM)0,(LPARAM)1);
 
   //icon sur sur la fenêtre
