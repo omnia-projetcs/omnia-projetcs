@@ -7,6 +7,31 @@
 #include "resource.h"
 #include "d3des.h"
 //------------------------------------------------------------------------------
+// il faut modifier la clé last Key !
+//[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit]
+//"LastKey"="\\HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion"
+void OpenRegeditKey(char *key)
+{
+  //write last key to use
+  char tmp[MAX_PATH];
+  BOOL ok = FALSE;
+  snprintf(tmp,MAX_PATH,"\\%s",key);
+  HKEY CleTmp=0;
+  DWORD cbData=strlen(tmp)+1;
+
+  // on ouvre la cle
+  if (RegOpenKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit",&CleTmp)!=ERROR_SUCCESS)
+     return;
+
+ if (RegSetValueEx(CleTmp,"LastKey",0,REG_SZ,(const BYTE *)tmp,cbData)==ERROR_SUCCESS)ok = TRUE;
+
+  //On ferme la cle
+  RegCloseKey(CleTmp);
+
+  //Open regedit
+  if(ok)ShellExecute(Tabl[TABL_MAIN], "open","regedit","",NULL,SW_SHOW);
+}
+//------------------------------------------------------------------------------
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur)
 {
     //variables
@@ -2330,6 +2355,16 @@ void registry_mru(HANDLE hlv)
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Foxit Software\\Foxit Reader 6.0\\Recent File List\\","","Foxit reader history",hlv);
 
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Morpheus\\GUI\\SearchRecent\\","","P2P - Morpheus search history",hlv);
+
+  //historique : dernière clée de registre ouverte
+  LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+  lv_line[0].c[0]=0;
+  lv_line[3].c[0]=0;
+  LireGValeur(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\","LastKey",lv_line[3].c);
+  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\");
+  strcpy(lv_line[2].c,"LastKey");
+  strcpy(lv_line[4].c,"Last open registry key");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
 }
 //------------------------------------------------------------------------------
 void registry_syskey(HANDLE hlv, char*sk)

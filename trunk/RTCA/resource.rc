@@ -159,8 +159,9 @@ BEGIN
     MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
     MENUITEM "Save view"      ,POPUP_LV_S_VIEW
     MENUITEM "Import file"    ,POPUP_LV_I_VIEW
-    MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
+    MENUITEM "Open registry path" ,POPUP_LV_P_VIEW
     MENUITEM SEPARATOR
+    MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
     MENUITEM "Select all search" ,POPUP_LV_AS_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
@@ -189,6 +190,7 @@ BEGIN
     MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
     MENUITEM "Save view"      ,POPUP_LV_S_VIEW
     MENUITEM "Refresh view"   ,POPUP_LV_C_VIEW
+    MENUITEM "Open process path" ,POPUP_LV_P_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
     POPUP "Copy"

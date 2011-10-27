@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.10 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -158,6 +158,7 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_LV_CP_COL13    11022
 
 #define POPUP_TV_EXPAND_ALL  11030
+#define POPUP_LV_P_VIEW      11031
 
 #define POPUP_TV_F           11040
 #define POPUP_TV_CP_COMPLET_PATH 11041
@@ -671,6 +672,7 @@ int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
 void ReadProcessInfo(DWORD pid, HANDLE hlv);
 
 //fonction d'extractions syskey + hash
+void OpenRegeditKey(char *key);
 DWORD WINAPI BackupRegFile(LPVOID lParam);
 char HexaToDecS(char *hexa);
 int TraiterUserDataFromSAM_V(LINE_ITEM *item);
