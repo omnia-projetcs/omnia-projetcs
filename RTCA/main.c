@@ -564,6 +564,15 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             }
           }
           break;
+          case POPUP_LV_P_VIEW: //open registry path
+          {
+            HANDLE hlv = GetDlgItem(hwnd,LV_FILES_VIEW);
+            char path[MAX_PATH];
+
+            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,path,MAX_PATH);
+            ShellExecute(Tabl[TABL_MAIN], "open","explorer",path,NULL,SW_SHOW);
+          }
+          break;
         }
       }
     }else if (uMsg == WM_CONTEXTMENU)TraiterPopupSave(wParam, lParam, hwnd,LV_FILES_VIEW_NB_COL);
@@ -654,6 +663,17 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
               if (TABL_ID_REG_VISIBLE==0)LVAllSearch(GetDlgItem(hwnd,LV_REGISTRY_VIEW), NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], tmp);
               else LVAllSearch(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE+LV_FILES_VIEW), NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], tmp);
             }
+          break;
+          case POPUP_LV_P_VIEW: //open registry path
+          {
+            HANDLE hlv;
+            if (TABL_ID_REG_VISIBLE==0)hlv = GetDlgItem(hwnd,LV_REGISTRY_VIEW);
+            else hlv = GetDlgItem(hwnd,TABL_ID_REG_VISIBLE+LV_FILES_VIEW);
+
+            char path[MAX_PATH];
+            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,path,MAX_PATH);
+            OpenRegeditKey(path);
+          }
           break;
           case BT_VIEW_SEARCH:
             {
@@ -805,6 +825,48 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           case POPUP_LV_CP_COL5:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),4);break;
           case POPUP_LV_CP_COL6:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),5);break;
           case POPUP_LV_CP_COL7:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),6);break;        }
+          case POPUP_LV_P_VIEW: //open registry path
+          {
+            HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
+            char path[MAX_PATH];
+
+            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,path,MAX_PATH);
+
+            //test du path
+            if (strlen(path)>0)
+            {
+              if (path[0]=='\\')
+              {
+                if (path[1]=='?' && path[4]!='\\')
+                {
+                  //on supprime les 4 premiers données ^^
+                  char ext_path[MAX_PATH];
+                  strcpy(ext_path,path+4);
+
+                  //suppression du nom de fichier ^^
+                  char *c = ext_path;
+                  while(*c++);
+                  while(*c!='\\')c--;
+                  *c =0;
+
+                  ShellExecute(Tabl[TABL_MAIN], "open","explorer",ext_path,NULL,SW_SHOW);
+                }
+              }else
+              {
+                  //suppression du nom de fichier ^^
+                  char *c = path;
+                  while(*c++);
+                  while(*c!='\\')c--;
+                  *c =0;
+
+                  ShellExecute(Tabl[TABL_MAIN], "open","explorer",path,NULL,SW_SHOW);
+              }
+            }
+          }
+          break;
+
+
+
       break;
     }
   }else if (uMsg == WM_CONTEXTMENU)

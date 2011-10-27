@@ -2032,6 +2032,14 @@ void FiltreRegData(LINE_ITEM *item)
       return;
     }
   }
+  if (Contient(item[1].c,"CurrentVersion\\Applets\\Regedit") && !strcmp(item[2].c,"LastKey"))
+  {
+    hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU);
+    strcpy(item[4].c,"Last open registry key");
+    AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+    return;
+  }
+
   //Wildstring
   for (i=0;i<NB_MAX_REF_SEARCH_MRU_WILD;i++)
   {
