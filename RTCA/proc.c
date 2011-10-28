@@ -6,6 +6,43 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size)
+{
+  //loading DLL
+  HMODULE hDLL;
+  BOOL ret = FALSE;
+  typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
+  NETAPIBUFFERFREE NetApiBufferFree;
+
+  typedef NET_API_STATUS (WINAPI *NETGROUPENUM)(LPCWSTR servername, DWORD level, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
+  NETGROUPENUM NetLocalGroupEnum;
+
+  if ((hDLL = LoadLibrary( "NETAPI32.dll"))!=NULL)
+  {
+    NetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL,"NetApiBufferFree");
+    NetLocalGroupEnum = (NETGROUPENUM) GetProcAddress(hDLL,"NetLocalGroupEnum");
+
+    if (NetApiBufferFree && NetLocalGroupEnum)
+    {
+      //Enumerate group to find Administrator group
+      LPLOCALGROUP_INFO_0 pBuf = 0;
+      DWORD nb = 0, total=0;
+
+      NET_API_STATUS nStatus = NetLocalGroupEnum(0,0,(LPBYTE*)&pBuf,2048,&nb,&total,0);
+      if (((nStatus == NERR_Success) || (nStatus == ERROR_MORE_DATA)) && (pBuf) != 0 && nb>0)
+      {
+          //le 1er compte est toujour l'administrateur, ils sont chargés dans l'ordre de rid!
+          sprintf(group_name,"%S",pBuf->lgrpi0_name);
+          ret = TRUE;
+      }
+      NetApiBufferFree(pBuf);
+    }
+    FreeLibrary(hDLL);
+  }
+
+  return ret;
+}
+//------------------------------------------------------------------------------
 //test si nous somme sous l'environnement Wine
 BOOL isWine()
 {
@@ -1960,7 +1997,7 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Network");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Users & groups");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Accounts & passwords");
-  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"MRU & history");
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"MRU & MUICache & history");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All Path (only offline)");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_SETCURSEL,(WPARAM)0, (LPARAM)0);
 
@@ -2639,6 +2676,10 @@ void InitConfig(HWND hwnd)
   strcpy(ref_mru_search[i++].v,"Foxit Software\\Foxit Reader 5.0\\Recent File List");
   strcpy(ref_mru_search[i++].v,"Foxit Software\\Foxit Reader 6.0\\Recent File List");
   strcpy(ref_mru_search[i++].v,"Morpheus\\GUI\\SearchRecent");
+  strcpy(ref_mru_search[i++].v,"Foxit Software\\Foxit Reader 5.0\\Recent File List");
+  strcpy(ref_mru_search[i++].v,"ShellNoRoam\\MUICache");
+  strcpy(ref_mru_search[i++].v,"Shell\\MuiCache");
+  strcpy(ref_mru_search[i++].v,"Shell\\LocalizedResourceName");
 
   i=0;
   strcpy(ref_mru_var_search[i++].v,"MRUList");
@@ -2695,14 +2736,17 @@ void InitConfig(HWND hwnd)
   strcpy(ref_mru_var_search[i++].v,"Foxit reader history");
   strcpy(ref_mru_var_search[i++].v,"");
   strcpy(ref_mru_var_search[i++].v,"P2P - Morpheus search history");
+  strcpy(ref_mru_var_search[i++].v,"");
+  strcpy(ref_mru_var_search[i++].v,"MUICache");
+  strcpy(ref_mru_var_search[i++].v,"");
+  strcpy(ref_mru_var_search[i++].v,"MUICache");
+  strcpy(ref_mru_var_search[i++].v,"");
+  strcpy(ref_mru_var_search[i++].v,"MUICache");
 
 //FireWall configuration
 //HKLM\SYSTEM\ControlSet001\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\AuthorizedApplications\List
 
 //R. Desktop – Connect 	Software\Microsoft\Terminal Server Client\Default [MRUnumber]
-
-//HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Applets\Regedit
-//last access key :LastKey
 
   //Unicode/Wildstring
   i=0;

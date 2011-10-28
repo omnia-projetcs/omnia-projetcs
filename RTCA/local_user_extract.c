@@ -174,11 +174,21 @@ int restore_sam_tree_access(HKEY start, char *pth)
 
   strcpy(path,pth);
 	admin_mask = WRITE_DAC | READ_CONTROL;
-	if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
-    if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
-      if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
-        if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
-      return -1;
+
+  char group_name[256];
+  if (AdministratorGroupName(group_name, 255))
+  {
+      if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,group_name, admin_mask) == FALSE)       //local
+        if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
+          if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
+            if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
+              if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
+            return -1;
+  }else if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
+          if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
+            if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
+              if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
+            return -1;
 
 	/* Remove the security on the user keys first. */
 	if(set_userkeys_security( start, path, &sd, 0) != 0)return -1;
@@ -214,11 +224,21 @@ int set_sam_tree_access( HKEY start, char *pth)
 	strcpy(path,pth);
 	admin_mask = WRITE_DAC | READ_CONTROL | KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS;
 
-	if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
-    if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
-      if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
-        if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
-      return -1;
+  //lecture du group d'administrateur
+  char group_name[256];
+  if (AdministratorGroupName(group_name, 255))
+  {
+      if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,group_name, admin_mask) == FALSE)       //local
+        if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
+          if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
+            if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
+              if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
+                return -1;
+  }else if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrators", admin_mask) == FALSE)       //english
+          if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administrateurs", admin_mask) == FALSE)    //french
+            if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administradores", admin_mask) == FALSE)  //spanish
+              if(create_sd_from_list( &sd, 2, "SYSTEM", GENERIC_ALL,"Administratoren", admin_mask) == FALSE)//dutch
+                return -1;
 
 	p = strchr(path, '\\');
 
