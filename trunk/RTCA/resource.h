@@ -17,9 +17,10 @@
 #include <Psapi.h>      //GESTION DES PROCESSUS
 #include <iphlpapi.h>
 #include <tlhelp32.h>
+#include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.10 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.11 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -384,7 +385,7 @@ REG_REF_SEARCH ref_conf_search[NB_MAX_REF_SEARCH_CONF];
 #define NB_MAX_REF_SEARCH_CONF_VAR      46
 REG_REF_SEARCH ref_conf_var_search[NB_MAX_REF_SEARCH_CONF_VAR];
 
-#define NB_MAX_REF_SEARCH_MRU           27
+#define NB_MAX_REF_SEARCH_MRU           30
 REG_REF_SEARCH ref_mru_search[NB_MAX_REF_SEARCH_MRU];
 #define NB_MAX_REF_SEARCH_MRU_VAR        NB_MAX_REF_SEARCH_MRU*2
 REG_REF_SEARCH ref_mru_var_search[NB_MAX_REF_SEARCH_MRU_VAR];
@@ -636,6 +637,7 @@ HTREEITEM AjouterItemTreeView(HANDLE hdlg, int treeview, char *texte, HTREEITEM 
 HTREEITEM AjouterItemTreeViewFile(HANDLE hdlg, int treeview, char *texte, HTREEITEM hparent,DWORD img_id);
 HTREEITEM AjouterItemTreeViewRep(HANDLE hdlg, int treeview, char *texte, HTREEITEM hparent);
 void EnumProcess(HANDLE hlv, unsigned short nb_colonne);
+BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size);
 
 void TreeExport(HANDLE htree);
 void ExportLVSelecttoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
@@ -667,12 +669,12 @@ void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 
 //registre
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
+void OpenRegeditKey(char *key);
 
 //process
 void ReadProcessInfo(DWORD pid, HANDLE hlv);
 
 //fonction d'extractions syskey + hash
-void OpenRegeditKey(char *key);
 DWORD WINAPI BackupRegFile(LPVOID lParam);
 char HexaToDecS(char *hexa);
 int TraiterUserDataFromSAM_V(LINE_ITEM *item);
@@ -709,7 +711,6 @@ HANDLE h_scan_files;
 HANDLE h_scan_registry;
 DWORD WINAPI Scan(LPVOID lParam);
 DWORD WINAPI StopScan(LPVOID lParam);
-
 DWORD WINAPI Scan_logs(LPVOID lParam);
 DWORD WINAPI Scan_files(LPVOID lParam);
 DWORD WINAPI Scan_registry(LPVOID lParam);

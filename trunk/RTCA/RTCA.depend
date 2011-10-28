@@ -145,7 +145,7 @@
 	"rc4.h"
 	"md5.h"
 
-1319749596 c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.h
+1319839795 c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -155,6 +155,7 @@
 	<Psapi.h>
 	<iphlpapi.h>
 	<tlhelp32.h>
+	<lm.h>
 
 1062995910 c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4.h
 	"opensslconf.h"
@@ -172,7 +173,7 @@
 
 1142625718 c:\documents and settings\nico\bureau\svn_omnia\rtca\d3des.h
 
-1318775645 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\local_user_extract.c
+1319840311 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\local_user_extract.c
 	"resource.h"
 
 1319748067 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\main.c
@@ -194,7 +195,7 @@
 
 1039895132 c:\documents and settings\nico\bureau\svn_omnia\rtca\md32_common.h
 
-1319747356 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc.c
+1319840342 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc.c
 	"resource.h"
 
 1319383748 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_files.c
@@ -206,7 +207,7 @@
 1319357817 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_log.c
 	"resource.h"
 
-1319749506 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry.c
+1319836433 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 

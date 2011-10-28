@@ -2356,6 +2356,10 @@ void registry_mru(HANDLE hlv)
 
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Morpheus\\GUI\\SearchRecent\\","","P2P - Morpheus search history",hlv);
 
+  reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Microsoft\\Windows\\ShellNoRoam\\MUICache\\","","MUICache",hlv);
+  reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache\\","","MUICache",hlv);
+  reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Microsoft\\Windows\\Shell\\LocalizedResourceName\\","","MUICache",hlv);
+
   //historique : dernière clée de registre ouverte
   LINE_ITEM lv_line[SIZE_UTIL_ITEM];
   lv_line[0].c[0]=0;
