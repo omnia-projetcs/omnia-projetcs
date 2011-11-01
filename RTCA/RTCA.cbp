@@ -30,6 +30,9 @@
 			<Add library="user32" />
 			<Add library="kernel32" />
 		</Linker>
+		<Unit filename="Clean.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="SyskeyExtract.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -86,6 +89,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_registry_files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_guide.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_registry_search.c">

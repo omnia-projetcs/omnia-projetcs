@@ -140,12 +140,12 @@
 1318627255 source:c:\documents and settings\nico\bureau\rtca - forensic\sources\rtca2\rtca\proc_logs_evtx.c
 	"resource.h"
 
-1319378753 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\syskeyextract.c
+1319375153 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\syskeyextract.c
 	"resource.h"
 	"rc4.h"
 	"md5.h"
 
-1319839795 c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.h
+1319904721 c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -157,97 +157,103 @@
 	<tlhelp32.h>
 	<lm.h>
 
-1062995910 c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4.h
+1062992310 c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4.h
 	"opensslconf.h"
 
-1050004034 c:\documents and settings\nico\bureau\svn_omnia\rtca\opensslconf.h
+1050000434 c:\documents and settings\nico\bureau\svn_omnia\rtca\opensslconf.h
 
-1062996458 c:\documents and settings\nico\bureau\svn_omnia\rtca\md5.h
+1062992858 c:\documents and settings\nico\bureau\svn_omnia\rtca\md5.h
 	"e_os2.h"
 
-1062996454 c:\documents and settings\nico\bureau\svn_omnia\rtca\e_os2.h
+1062992854 c:\documents and settings\nico\bureau\svn_omnia\rtca\e_os2.h
 	"opensslconf.h"
 
-1315080408 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\d3des.c
+1315076808 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\d3des.c
 	"d3des.h"
 
-1142625718 c:\documents and settings\nico\bureau\svn_omnia\rtca\d3des.h
+1142622118 c:\documents and settings\nico\bureau\svn_omnia\rtca\d3des.h
 
-1319840311 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\local_user_extract.c
+1319836991 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\local_user_extract.c
 	"resource.h"
 
-1319748067 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\main.c
+1319904651 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\main.c
 	"resource.h"
 
-1062996422 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\md5_dgst.c
+1062992822 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\md5_dgst.c
 	<stdio.h>
 	"opensslv.h"
 	"md5_locl.h"
 
-1050002948 c:\documents and settings\nico\bureau\svn_omnia\rtca\opensslv.h
+1049999348 c:\documents and settings\nico\bureau\svn_omnia\rtca\opensslv.h
 
-1062996434 c:\documents and settings\nico\bureau\svn_omnia\rtca\md5_locl.h
+1062992834 c:\documents and settings\nico\bureau\svn_omnia\rtca\md5_locl.h
 	<stdlib.h>
 	<string.h>
 	"e_os2.h"
 	"md5.h"
 	"md32_common.h"
 
-1039895132 c:\documents and settings\nico\bureau\svn_omnia\rtca\md32_common.h
+1039891532 c:\documents and settings\nico\bureau\svn_omnia\rtca\md32_common.h
 
-1319840342 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc.c
+1319899760 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc.c
 	"resource.h"
 
-1319383748 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_files.c
+1319380148 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_files.c
 	"resource.h"
 
-1319385739 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_evtx.c
+1319382139 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_evtx.c
 	"resource.h"
 
-1319357817 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_log.c
+1319354217 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_log.c
 	"resource.h"
 
-1319836433 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry.c
+1319905942 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 
-1318775709 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_bin.c
+1318772109 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_bin.c
 	"resource.h"
 
-1318775709 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_files.c
+1318772109 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_files.c
 	"resource.h"
 
-1319749073 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_search.c
+1319745473 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_search.c
 	"resource.h"
 
-1062995996 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4_enc.c
+1062992396 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4_enc.c
 	"rc4.h"
 
-1062996162 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4_skey.c
+1062992562 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\rc4_skey.c
 	"rc4.h"
 	"opensslv.h"
 
-1319748131 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.rc
+1319921301 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\resource.rc
 	"resource.h"
 
-1319385507 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\export.c
+1319908372 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\export.c
 	"resource.h"
 
-1319365256 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs.c
+1319361656 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs.c
 	"resource.h"
 
-1319357794 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_evt.c
+1320150447 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_logs_evt.c
 	"resource.h"
 
-1318775974 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_process.c
+1318772374 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_process.c
 	"resource.h"
 
-1318776205 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_wce_bin.c
+1318772605 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_wce_bin.c
 	"resource.h"
 
-1318776059 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_bin2.c
+1318772459 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_bin2.c
 	"resource.h"
 
-1319381562 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\md5.c
+1319377962 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\md5.c
+	"resource.h"
+
+1319890815 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\clean.c
+	"resource.h"
+
+1319976701 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 

@@ -58,7 +58,7 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
         } EVENTLOGHEADER, *PEVENTLOGHEADER;
         b = buffer;
 
-        //validité dy fichier
+        //validité du fichier
         if (((PEVENTLOGHEADER)b)->HeaderSize == 0x30 && ((PEVENTLOGHEADER)b)->MajorVersion == 1&& ((PEVENTLOGHEADER)b)->MinorVersion == 1)
         {
           unsigned long int i=0,c=0,k=0,nb_events = ((PEVENTLOGHEADER)b)->CurrentRecordNumber;

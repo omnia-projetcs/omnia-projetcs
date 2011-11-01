@@ -196,6 +196,195 @@ void ExportLVtoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_c
   }
 }
 //------------------------------------------------------------------------------
+void ExportLVREG(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
+{
+  //test si des enregistrements
+  DWORD NBLigne=SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    if (nb_colonne>=5)
+    {
+      //traitement
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        char ligne[MAX_LINE_SIZE+1]="", last_path[MAX_LINE_SIZE+1]="";
+        char name[MAX_LINE_SIZE+1], value[MAX_LINE_SIZE+1], type[MAX_LINE_SIZE+1];
+        DWORD copiee;
+
+        //header
+        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n");
+        WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+
+        //traitement des données
+        DWORD i =0,j;
+
+        //traitement des autres lignes
+        HANDLE hlv = GetDlgItem(Tabl[id_tabl],lv);
+        for (j=0;j<NBLigne;j++)//ligne par ligne
+        {
+          //lecture de la colonne du path !
+          ListView_GetItemText(hlv,j,1,type,MAX_LINE_SIZE);
+          snprintf(ligne,MAX_LINE_SIZE,"\r\n[%s]\r\n",type);
+          if (strcmp(ligne,last_path)!=0)
+          {
+            WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            strcpy(last_path,ligne);
+          }
+
+          //lecture des données écrites seulement si plus grande que 0
+          name[0]=0;
+          value[0]=0;
+          type[0]=0;
+          ListView_GetItemText(hlv,j,2,name,MAX_LINE_SIZE);
+          ListView_GetItemText(hlv,j,3,value,MAX_LINE_SIZE);
+          ListView_GetItemText(hlv,j,4,type,MAX_LINE_SIZE);
+
+          if ((strlen(name)>0 || strlen(value)>0) && strlen(type)>0)
+          {
+            //suivant le format
+            if (!strcmp("REG_SZ",type))
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=\"%s\"\r\n",value);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=\"%s\"\r\n",name,value);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }else if (!strcmp("REG_EXPAND_SZ",type))//--
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=hex(2):%02X",(value[0]&0xff));
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=hex(2):%02X",name,value[0]&0xff);
+
+              for (i=1;i<strlen(value);i++)
+              {
+                sprintf(type,",%02X",value[0]&0xff);
+                strncat(ligne,type,MAX_LINE_SIZE);
+              }
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            }else if (!strcmp("REG_BINARY",type))//--
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=hex:%c%c",value[0],value[1]);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=hex:%c%c",name,value[0],value[1]);
+
+              for (i=2;i<strlen(value);i+=2)
+              {
+                sprintf(type,",%c%c",value[i],value[i+1]);
+                strncat(ligne,type,MAX_LINE_SIZE);
+              }
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            }else if (!strcmp("REG_DWORD",type))
+            {
+              if (name[0]==0) snprintf(ligne,MAX_LINE_SIZE,"@=dword:%s\r\n",value);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=dword:%s\r\n",name,value);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }else if (!strcmp("REG_NONE",type))
+            {
+              if (name[0]==0) strcpy(ligne,"@=\"\"\r\n");
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=\"\"\r\n",name);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }
+          }
+        }
+      }
+      CloseHandle(MyhFile);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void ExportLVSelectREG(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
+{
+  //test si des enregistrements
+  DWORD NBLigne=SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    if (nb_colonne>=5)
+    {
+      //traitement
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        char ligne[MAX_LINE_SIZE+1]="", last_path[MAX_LINE_SIZE+1]="";
+        char name[MAX_LINE_SIZE+1], value[MAX_LINE_SIZE+1], type[MAX_LINE_SIZE+1];
+        DWORD copiee;
+
+        //header
+        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n\r\n");
+        WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+
+        //traitement des données
+        DWORD i =0,j;
+
+        //traitement des autres lignes
+        HANDLE hlv = GetDlgItem(Tabl[id_tabl],lv);
+        for (j=0;j<NBLigne;j++)//ligne par ligne
+        {
+          if (SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)
+            continue;
+
+          //lecture de la colonne du path !
+          ListView_GetItemText(hlv,j,1,type,MAX_LINE_SIZE);
+          snprintf(ligne,MAX_LINE_SIZE,"\r\n[%s]\r\n",type);
+          if (strcmp(ligne,last_path)!=0)
+          {
+            WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            strcpy(last_path,ligne);
+          }
+
+          //lecture des données écrites seulement si plus grande que 0
+          name[0]=0;
+          value[0]=0;
+          type[0]=0;
+          ListView_GetItemText(hlv,j,2,name,MAX_LINE_SIZE);
+          ListView_GetItemText(hlv,j,3,value,MAX_LINE_SIZE);
+          ListView_GetItemText(hlv,j,4,type,MAX_LINE_SIZE);
+
+          if ((strlen(name)>0 || strlen(value)>0) && strlen(type)>0)
+          {
+            //suivant le format
+            if (!strcmp("REG_SZ",type))
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=\"%s\"\r\n",value);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=\"%s\"\r\n",name,value);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }else if (!strcmp("REG_EXPAND_SZ",type))
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=hex(2):%02X",value[0]&0xff);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=hex(2):%02X",name,value[0]&0xff);
+
+              for (i=1;i<strlen(value);i++)
+              {
+                sprintf(type,",%02X",value[0]&0xff);
+                strncat(ligne,type,MAX_LINE_SIZE);
+              }
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            }else if (!strcmp("REG_BINARY",type))
+            {
+              if (name[0]==0)snprintf(ligne,MAX_LINE_SIZE,"@=hex:%c%c",value[0],value[1]);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=hex:%c%c",name,value[0],value[1]);
+
+              for (i=2;i<strlen(value);i+=2)
+              {
+                sprintf(type,",%c%c",value[i],value[i+1]);
+                strncat(ligne,type,MAX_LINE_SIZE);
+              }
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            }else if (!strcmp("REG_DWORD",type))
+            {
+              if (name[0]==0) snprintf(ligne,MAX_LINE_SIZE,"@=dword:%s\r\n",value);
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=dword:%s\r\n",name,value);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }else if (!strcmp("REG_NONE",type))
+            {
+              if (name[0]==0) strcpy(ligne,"@=\"\"\r\n");
+              else snprintf(ligne,MAX_LINE_SIZE,"\"%s\"=\"\"\r\n",name);
+              WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+            }
+          }
+        }
+      }
+      CloseHandle(MyhFile);
+    }
+  }
+}
+//------------------------------------------------------------------------------
 void ExportLVtoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
 {
   //test si des enregistrements
@@ -542,7 +731,7 @@ void ExportLVSelectColto(char *path, unsigned int id_tabl, int lv, unsigned shor
   }
 }
 //------------------------------------------------------------------------------
-void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selection_only,BOOL pwdump)
+void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selection_only,BOOL pwdump, BOOL front_registry)
 {
   char path[MAX_PATH]="";
 
@@ -552,7 +741,8 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
   ofn.hwndOwner = Tabl[TABL_MAIN];
   ofn.lpstrFile = path;
   ofn.nMaxFile = MAX_PATH;
-  if (pwdump) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0Pwdump file\0*.pwdump\0";
+  if (pwdump) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0File Pwdump\0*.pwdump\0";
+  else if (front_registry) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0File REG\0*.reg\0";
   else ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0";
 
   ofn.nFilterIndex = 1;
@@ -574,10 +764,17 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
     {
       if (selection_only)ExportLVSelecttoXML(path, id_tabl, lv, nb_colonne);
       else ExportLVtoXML(path, id_tabl, lv, nb_colonne);
-    }else if (ofn.nFilterIndex == 4) //pwdump
+    }else if (ofn.nFilterIndex == 4)
     {
-      if (selection_only)ExportLVSelectColto(path, id_tabl, lv, 9);
-      else ExportLVColto(path, id_tabl, lv, 9);
+      if (pwdump)//pwdump
+      {
+        if (selection_only)ExportLVSelectColto(path, id_tabl, lv, 9);
+        else ExportLVColto(path, id_tabl, lv, 9);
+      }else //registry
+      {
+        if (selection_only)ExportLVSelectREG(path, id_tabl, lv,5);
+        else ExportLVREG(path, id_tabl, lv,5);
+      }
     }
   }
 }
