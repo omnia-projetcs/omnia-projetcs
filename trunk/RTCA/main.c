@@ -18,7 +18,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,TRV_CONF_TESTS),5,0,mWidth-245,mHeight-5,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth-235,0,230,160,TRUE);
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth-235,0,230,182,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOGS),mWidth-225,15,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_FILES),mWidth-225,35,60,15,TRUE);
@@ -30,17 +30,17 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-145,95,135,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-145,110,130,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,140,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,162,80,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF)             ,mWidth-235,160,230,50,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,175,80,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,190,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF)             ,mWidth-235,182,230,50,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,197,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,212,80,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,210,230,100,TRUE);
-        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,225,210,80,TRUE);
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,232,230,100,TRUE);
+        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,247,210,80,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,315,110,40,TRUE);
-        MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,315,110,40,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,337,110,40,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,337,110,40,TRUE);
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
@@ -264,6 +264,11 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             if (IsDlgButtonChecked(hwnd,CHK_CONF_ENABLE_STATE) ==BST_CHECKED)ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_SHOW);
             else ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_HIDE);
           break;
+
+          case POPUP_CLEAN_REGISTRY: clean_registry();break;
+          case POPUP_CLEAN_LOGS: clean_logs();break;
+
+          case POPUP_REG_CHECK: CheckRegistryFile();break;
         }
       }
     }else if (uMsg == WM_CONTEXTMENU)
@@ -318,14 +323,21 @@ BOOL CALLBACK DialogProc_logs(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,ED_SEARCH),5,mHeight-26,mWidth/4,21,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH),mWidth/4+10,mHeight-26,100,21,TRUE);
+
+        //redimmensionnement des colonnes
+        unsigned int col_size = (mWidth-310)/3;
+        redimColumn(hwnd,LV_LOGS_VIEW,4,col_size);
+        redimColumn(hwnd,LV_LOGS_VIEW,5,col_size);
+        redimColumn(hwnd,LV_LOGS_VIEW,7,col_size);
+
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
       {
         switch(LOWORD(wParam))
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL], TRUE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL], FALSE, FALSE);break;
+          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_LOGS_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE,LV_LOGS_VIEW);break;
           case POPUP_LV_I_VIEW : CreateThread(NULL,0,csvImport,0,0,0);break;
           case POPUP_LV_C_VIEW : ListView_DeleteAllItems(GetDlgItem(hwnd,LV_LOGS_VIEW));break;
@@ -390,14 +402,40 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
         MoveWindow(GetDlgItem(hwnd,ED_SEARCH),5,mHeight-26,mWidth/4,21,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH),mWidth/4+10,mHeight-26,100,21,TRUE);
+
+        //redimmensionnement des colonnes
+        unsigned int col_size = (mWidth-210)/7;
+        if (col_size>100)
+        {
+          col_size = (mWidth-510)/4;
+          redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,10,col_size);
+
+          redimColumn(hwnd,LV_FILES_VIEW,4,100);
+          redimColumn(hwnd,LV_FILES_VIEW,5,100);
+          redimColumn(hwnd,LV_FILES_VIEW,6,100);
+        }else
+        {
+          col_size = (mWidth-310)/4;
+          redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,10,col_size);
+
+          redimColumn(hwnd,LV_FILES_VIEW,4,33);
+          redimColumn(hwnd,LV_FILES_VIEW,5,33);
+          redimColumn(hwnd,LV_FILES_VIEW,6,33);
+        }
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
       {
         switch(LOWORD(wParam))
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL], TRUE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL], FALSE, FALSE);break;
+          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_FILES_VIEW, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE,LV_FILES_VIEW);break;
           case POPUP_LV_I_VIEW : CreateThread(NULL,0,csvImport,0,0,0);break;
           case POPUP_LV_C_VIEW : ListView_DeleteAllItems(GetDlgItem(hwnd,LV_FILES_VIEW));break;
@@ -617,6 +655,63 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         MoveWindow(GetDlgItem(hwnd,BT_TREE_VIEW),mWidth/4+120,mHeight-26,100,21,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CB_REGISTRY_VIEW),mWidth/4+225,mHeight-26,200,200,TRUE);
+
+        //redimmensionnement des colonnes
+        unsigned int col_size = (mWidth-290)/2;
+        redimColumn(hwnd,LV_REGISTRY_VIEW,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_VIEW,3,col_size);
+
+        col_size = (mWidth-250)/3;
+        redimColumn(hwnd,LV_REGISTRY_CONF,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_CONF,3,col_size);
+        redimColumn(hwnd,LV_REGISTRY_CONF,4,col_size);
+
+        col_size = (mWidth-390)/3;
+        redimColumn(hwnd,LV_REGISTRY_LOGICIEL,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_LOGICIEL,3,col_size);
+        redimColumn(hwnd,LV_REGISTRY_LOGICIEL,5,col_size);
+
+        col_size = (mWidth-330)/3;
+        redimColumn(hwnd,LV_REGISTRY_MAJ,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_MAJ,3,col_size);
+        redimColumn(hwnd,LV_REGISTRY_MAJ,4,col_size);
+
+        col_size = (mWidth-350)/3;
+        redimColumn(hwnd,LV_REGISTRY_SERVICES,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_SERVICES,4,col_size);
+        redimColumn(hwnd,LV_REGISTRY_SERVICES,5,col_size);
+
+        redimColumn(hwnd,LV_REGISTRY_HISTORIQUE,2,mWidth-390);
+
+        col_size = (mWidth-300)/2;
+        redimColumn(hwnd,LV_REGISTRY_USB,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_USB,3,col_size);
+
+        col_size = (mWidth-190)/2;
+        redimColumn(hwnd,LV_REGISTRY_START,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_START,3,col_size);
+
+        redimColumn(hwnd,LV_REGISTRY_LAN,2,mWidth-520);
+
+        col_size = (mWidth-340)/4;
+        redimColumn(hwnd,LV_REGISTRY_USERS,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_USERS,3,col_size);
+        redimColumn(hwnd,LV_REGISTRY_USERS,4,col_size);
+        redimColumn(hwnd,LV_REGISTRY_USERS,9,col_size);
+
+        col_size = (mWidth-390)/2;
+        redimColumn(hwnd,LV_REGISTRY_PASSWORD,4,col_size);
+        redimColumn(hwnd,LV_REGISTRY_PASSWORD,5,col_size);
+
+        col_size = (mWidth-190)/3;
+        redimColumn(hwnd,LV_REGISTRY_MRU,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_MRU,3,col_size);
+        redimColumn(hwnd,LV_REGISTRY_MRU,4,col_size);
+
+        col_size = (mWidth-190)/2;
+        redimColumn(hwnd,LV_REGISTRY_PATH,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_PATH,3,col_size);
+
     }else if (uMsg == WM_COMMAND)
     {
       switch(HIWORD(wParam))
@@ -625,14 +720,14 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
           switch(LOWORD(wParam))
           {
             case POPUP_LV_S_SELECTION :
-              if (TABL_ID_REG_VISIBLE == 0)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], TRUE, FALSE);
-              else if (TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL == LV_REGISTRY_USERS_NB_COL)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], TRUE, TRUE);
-              else LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], TRUE, FALSE);
+              if (TABL_ID_REG_VISIBLE == 0)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], TRUE, FALSE,TRUE);
+              else if (TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL == LV_REGISTRY_USERS_NB_COL)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], TRUE, TRUE, FALSE);
+              else LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], TRUE, FALSE, FALSE);
             break;
             case POPUP_LV_S_VIEW :
-              if (TABL_ID_REG_VISIBLE == 0)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], FALSE, FALSE);
-              else if (TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL == LV_REGISTRY_USERS_NB_COL)LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], FALSE, TRUE);
-              else LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], FALSE, FALSE);
+              if (TABL_ID_REG_VISIBLE == 0)LVSaveAll(TABL_ID_VISIBLE, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL], FALSE, FALSE, TRUE);
+              else if (TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL == LV_REGISTRY_USERS_NB_COL)LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], FALSE, TRUE, FALSE);
+              else LVSaveAll(TABL_ID_VISIBLE, TABL_ID_REG_VISIBLE+LV_FILES_VIEW, NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL], FALSE, FALSE, FALSE);
             break;
             case POPUP_LV_S_DELETE :
               if (TABL_ID_REG_VISIBLE == 0)LVDelete(TABL_ID_VISIBLE, LV_REGISTRY_VIEW);
@@ -806,6 +901,13 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       unsigned int mWidth = LOWORD(lParam);  // width of client area
       unsigned int mHeight = HIWORD(lParam);  // width of client area
       MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
+
+      //redimmensionnement des colonnes
+      unsigned int col_size = (mWidth-380)/3;
+      redimColumn(hwnd,LV_VIEW,2,col_size);
+      redimColumn(hwnd,LV_VIEW,4,col_size);
+      redimColumn(hwnd,LV_VIEW,6,col_size);
+
   }else if (uMsg == WM_COMMAND)
   {
     switch(HIWORD(wParam))
@@ -813,8 +915,8 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       case BN_CLICKED:
         switch(LOWORD(wParam))
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE);break;
+          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
           case POPUP_LV_C_VIEW : EnumProcess(GetDlgItem(hwnd,LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);break;
 
@@ -941,6 +1043,15 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 
       MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
       MoveWindow(GetDlgItem(hwnd,LV_VIEW_H),5,0,mWidth-10,mHeight-5,TRUE);
+
+      //redimmensionnement des colonnes
+      unsigned int col_size = (mWidth-220)/2;
+      redimColumn(hwnd,LV_VIEW,2,col_size);
+      redimColumn(hwnd,LV_VIEW,3,col_size);
+
+      //redimmensionnement des colonnes
+      redimColumn(hwnd,LV_VIEW_H,3,mWidth-440);
+
   }else if (uMsg == WM_COMMAND)
   {
     switch(HIWORD(wParam))
@@ -948,9 +1059,9 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
       case BN_CLICKED:
         switch(LOWORD(wParam))
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL], TRUE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL], FALSE, FALSE);break;
-          case POPUP_LV_AS_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW_H, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL], FALSE, FALSE);break;
+          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
+          case POPUP_LV_AS_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW_H, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
           case POPUP_LV_C_VIEW : ListView_DeleteAllItems(GetDlgItem(hwnd,LV_VIEW));break;
 
@@ -1004,8 +1115,8 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       {
         switch(LOWORD(wParam))
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], TRUE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], FALSE, FALSE);break;
+          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+          case POPUP_LV_S_VIEW : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_INFO,LV_VIEW);break;
 
           case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;

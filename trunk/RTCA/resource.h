@@ -20,7 +20,7 @@
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.11 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.12 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -131,7 +131,11 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_TRV_CONF_M     10007
 #define POPUP_TRV_CONF_OFP   10008
 #define POPUP_TRV_CONF_EXPORT_LIST_FILES  10010
-#define POPUP_BACKUP         10011
+
+#define POPUP_BACKUP         10020
+#define POPUP_REG_CHECK      10021
+#define POPUP_CLEAN_REGISTRY 10022
+#define POPUP_CLEAN_LOGS     10023
 
 #define POPUP_LV             11000
 #define POPUP_LV_S_SELECTION 11001
@@ -602,6 +606,7 @@ BYTE secret_c[MAX_LINE_SIZE];
 void InitConfig(HWND hwnd);
 void EndConfig();
 void ErrorExit(LPTSTR lpszFunction);
+void redimColumn(HANDLE f,int lv,int column,unsigned int col_size);
 
 //fonctions de traitement
 void GetMyDirectory(char *path, unsigned int TAILLE);
@@ -647,7 +652,7 @@ void ExportLVtoHTML(char *path, unsigned int id_tabl, int lv, unsigned short nb_
 void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVtoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
 void ExportLVColto(char *path, unsigned int id_tabl, int lv, unsigned short col); //pwdump ou col spécifique !!
-void LVSaveAll(unsigned int id_tabl, int lv, unsigned short nb_colonne, BOOL selection_only,BOOL pwdump);
+void LVSaveAll(unsigned int id_tabl, int lv, unsigned short nb_colonne, BOOL selection_only,BOOL pwdump,BOOL front_registry);
 void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_col);
 
 BOOL TestSIDShadowCopy(HANDLE hlv, char *sid);
@@ -670,6 +675,7 @@ void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 //registre
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
 void OpenRegeditKey(char *key);
+void CheckRegistryFile();
 
 //process
 void ReadProcessInfo(DWORD pid, HANDLE hlv);
@@ -692,6 +698,9 @@ void TraiterlogFile(char *path, HANDLE hlv);
 void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv);
 void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv);
 
+//clean
+void clean_registry();
+void clean_logs();
 
 //gestion des recherches automatique des fichiers à analyser
 HANDLE h_AutoSearchFiles;

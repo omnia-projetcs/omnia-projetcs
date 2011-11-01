@@ -145,9 +145,14 @@ BEGIN
     MENUITEM "Up"           ,POPUP_TRV_CONF_P
     MENUITEM "Down"         ,POPUP_TRV_CONF_M
     MENUITEM SEPARATOR
-    POPUP "Copy"
+    POPUP "Advanced"
     BEGIN
+      //MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK   //en cours de dev !
+      MENUITEM SEPARATOR
       MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
+      MENUITEM SEPARATOR
+      MENUITEM "Clean (local host) registry history" ,POPUP_CLEAN_REGISTRY
+      MENUITEM "Clean (local host) audits records" ,POPUP_CLEAN_LOGS
     END
     END
 END
