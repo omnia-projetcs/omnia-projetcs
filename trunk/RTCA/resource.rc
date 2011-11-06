@@ -46,7 +46,7 @@ BEGIN
 
   CONTROL "Dump local registry (low)"           ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Registry recovery mode"              ,CHK_CONF_REG_FILE_RECOVERY        ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
-  CONTROL "Enable state"                        ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable state (low)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
@@ -147,7 +147,7 @@ BEGIN
     MENUITEM SEPARATOR
     POPUP "Advanced"
     BEGIN
-      //MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK   //en cours de dev !
+      MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK   //en cours de dev !
       MENUITEM SEPARATOR
       MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
       MENUITEM SEPARATOR
