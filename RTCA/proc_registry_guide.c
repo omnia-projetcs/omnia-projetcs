@@ -6,334 +6,373 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
-int LireValeurGuidesExt(HKEY ENTETE,char *file, char *chemin,char *nom,unsigned int tailleMax,unsigned int type,char *Valeur, char *resultat_good, char *description, HANDLE hlv)
+void LireValeurGuidesExt(LINE_ITEM *lv_line, HANDLE hlv)
 {
-    //variables
-    DWORD tailleCle=0;
-    HKEY CleTmp=0;
+  //on découpe la clé pour récupérer les informations !
+  char chemin[MAX_LINE_SIZE];
+  HKEY CleTmp=0;
 
-    // on ouvre la cle
-    if (RegOpenKey(ENTETE,chemin,&CleTmp)!=ERROR_SUCCESS)
-       return FALSE;
-
-    //On recupere la taille de la cle qui va être lue
-    if (RegQueryValueEx(CleTmp, nom, 0, 0, 0, &tailleCle)!=ERROR_SUCCESS)
-    {
-       RegCloseKey(CleTmp);
-       return FALSE;
-    }
-
-    //permet de gérer les chaines énormes
-    if (Valeur == 0)
-    {
-      RegCloseKey(CleTmp);
-      return tailleCle;
-    }else if (tailleMax<tailleCle)
-    {
-      RegCloseKey(CleTmp);
-      return -1;
-    }else Valeur[0]=0;
-
-    if (RegQueryValueEx(CleTmp, nom, 0, 0, Valeur, &tailleCle)!=ERROR_SUCCESS)
-    {
-       RegCloseKey(CleTmp);
-       tailleCle = 0;
-    }
-
-    //traitement
-    LINE_ITEM lv_line[SIZE_UTIL_ITEM];
-
-    snprintf(lv_line[0].c,MAX_LINE_SIZE,"%s",file);
-    lv_line[5].c[0]=0;
-
-    //Key
-    if (ENTETE == HKEY_LOCAL_MACHINE)           snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_LOCAL_MACHINE\\%s",chemin);
-    else if (ENTETE == HKEY_USERS)              snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_USERS\\%s",chemin);
-    else if (ENTETE == HKEY_PERFORMANCE_DATA)   snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_PERFORMANCE_DATA\\%s",chemin);
-    else if (ENTETE == HKEY_DYN_DATA)           snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_DYN_DATA\\%s",chemin);
-    else if (ENTETE == HKEY_CLASSES_ROOT)       snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_CLASSES_ROOT\\%s",chemin);
-    else if (ENTETE == HKEY_CURRENT_USER)       snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_CURRENT_USER\\%s",chemin);
-    else if (ENTETE == HKEY_CURRENT_CONFIG)     snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_CURRENT_CONFIG\\%s",chemin);
-
-    if (tailleCle == 0)
-    {
-          lv_line[3].c[0]=0;
-          if (resultat_good[0]==0) snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",resultat_good,description);
-          else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NO VALUE] Good value : %s ; %s",resultat_good,description);
-    }else
-    {
-      //type
-      switch(type)
+  switch(lv_line[1].c[5])
+  {
+    case 'C':
+      switch(lv_line[1].c[13])
       {
-        case 0: //string
-          snprintf(lv_line[3].c,MAX_LINE_SIZE,"%s",Valeur,description);
-
-          if (!strcmp(Valeur,resultat_good))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",resultat_good,description);
-          else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",resultat_good,description);
+        case 'R'://HKEY_CLASSES_ROOT
+          strcpy(chemin,lv_line[1].c+18);
+          if (RegOpenKey(HKEY_CLASSES_ROOT,chemin,&CleTmp)!=ERROR_SUCCESS)return;
         break;
-        case 1: //dword
-          sprintf(lv_line[3].c,"%02x%02x%02x%02x",Valeur[0]&0xff,Valeur[1]&0xff,Valeur[2]&0xff,Valeur[3]&0xff);
-
-          if (!strcmp(lv_line[3].c,resultat_good))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",resultat_good,description);
-          else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",resultat_good,description);
+        case 'U'://HKEY_CURRENT_USER
+          strcpy(chemin,lv_line[1].c+18);
+          if (RegOpenKey(HKEY_CURRENT_USER,chemin,&CleTmp)!=ERROR_SUCCESS)return;
         break;
-        case 2: //hex
-        {
-          DWORD i;
-          snprintf(lv_line[2].c,MAX_LINE_SIZE,"%02X",Valeur[0]&0xff);
-          strcpy(lv_line[3].c,lv_line[2].c);
-
-          for (i=1;i<tailleCle;i++)
-          {
-            snprintf(lv_line[2].c+(i*3-1),MAX_LINE_SIZE-i*3,",%02X",Valeur[i]&0xff);
-            snprintf(lv_line[3].c+(i*2),MAX_LINE_SIZE-i*2,"%02X",Valeur[i]&0xff);
-          }
-          strncat(lv_line[2].c,"\0",MAX_LINE_SIZE);
-          strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
-
-          if (!strcmp(lv_line[2].c,resultat_good))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",resultat_good,description);
-          else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",resultat_good,description);
-        }
-        break;
-        default :
-          lv_line[3].c[0]=0;
-          snprintf(lv_line[4].c,MAX_LINE_SIZE,"[UNKNOW] Good value : %s ; %s",resultat_good,description);
+        case 'C'://HKEY_CURRENT_CONFIG
+          strcpy(chemin,lv_line[1].c+20);
+          if (RegOpenKey(HKEY_CURRENT_CONFIG,chemin,&CleTmp)!=ERROR_SUCCESS)return;
         break;
       }
-    }
+    break;
+    case 'L'://HKEY_LOCAL_MACHINE
+      strcpy(chemin,lv_line[1].c+19);
+      if (RegOpenKey(HKEY_LOCAL_MACHINE,chemin,&CleTmp)!=ERROR_SUCCESS)return;
+    break;
+    case 'D'://HKEY_DYN_DATA
+      strcpy(chemin,lv_line[1].c+14);
+      if (RegOpenKey(HKEY_DYN_DATA,chemin,&CleTmp)!=ERROR_SUCCESS)return;
+    break;
+    case 'P'://HKEY_PERFORMANCE_DATA
+      strcpy(chemin,lv_line[1].c+22);
+      if (RegOpenKey(HKEY_PERFORMANCE_DATA,chemin,&CleTmp)!=ERROR_SUCCESS)return;
+    break;
+    case 'U'://HKEY_USERS
+      strcpy(chemin,lv_line[1].c+11);
+      if (RegOpenKey(HKEY_USERS,chemin,&CleTmp)!=ERROR_SUCCESS)return;
+    break;
+  }
 
-    //Value
-    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",nom);
-
-    //additem
-    AddToLV(hlv, lv_line, 5);
-
-    //On ferme la cle
-    RegCloseKey(CleTmp);
-    return tailleCle;
-}
-//---------------------------------------------------------------------------------------------------------------
-void TestRegistrGuide(char *str_guide)
-{
-  char *buffer;
-  DWORD taille_fichier, copiee;
-  int ret;
-  HANDLE hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF);
-
-  //lecture de guide
-  //puis on ouvre le fichier de guide
-  HANDLE Hsrc = CreateFile(str_guide,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-  if (Hsrc != INVALID_HANDLE_VALUE)
+  //lecture
+  DWORD tailleCle=MAX_LINE_SIZE;
+  lv_line[6].c[0]=0;
+  if (RegQueryValueEx(CleTmp, lv_line[2].c, 0, 0, (LPBYTE)lv_line[6].c, &tailleCle)!=ERROR_SUCCESS)
   {
-    taille_fichier = GetFileSize(Hsrc,NULL);
-    if (taille_fichier)
+     RegCloseKey(CleTmp);
+     tailleCle = 0;
+  }
+
+  if (tailleCle == 0)
+  {
+    if (lv_line[3].c[0]==0) snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+    else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NO VALUE] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+    lv_line[3].c[0]=0;
+  }else
+  {
+    //type
+    switch(lv_line[4].c[0])
     {
-      buffer = (char*)LocalAlloc(LMEM_FIXED, sizeof(char)*taille_fichier+1);
-      if (buffer!=0)
+      case 'S': //string
+        if (!strcmp(lv_line[3].c,lv_line[6].c))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+        else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+
+        snprintf(lv_line[3].c,MAX_LINE_SIZE,"%s",lv_line[6].c);
+      break;
+      case 'N': //dword
+        sprintf(lv_line[7].c,"%02x%02x%02x%02x",lv_line[6].c[3]&0xff,lv_line[6].c[2]&0xff,lv_line[6].c[1]&0xff,lv_line[6].c[0]&0xff);
+
+        if (!strcmp(lv_line[3].c,lv_line[7].c))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+        else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+
+        strcpy(lv_line[3].c,lv_line[7].c);
+      break;
+      case 'B': //hex
       {
-        if (ReadFile(Hsrc, buffer, taille_fichier,&copiee,0))
+        DWORD i;
+        lv_line[7].c[0]=0;
+        for (i=0;i<tailleCle && i*2<MAX_LINE_SIZE;i++)
         {
-          char buffer_ligne[MAX_PATH*4+1];
-          char commentaire[MAX_PATH*4+1];
-          char chemin[MAX_PATH*4+1];
-          char valeur[MAX_PATH+1];
-          char resultat[MAX_PATH+1];
-          char resultat_lu[MAX_PATH+1];
-          unsigned int type; // 0=string, 1=dword, 2=hex/binaire
-          HKEY hkClasse;
+          sprintf(lv_line[7].c+i*2,"%02X",lv_line[6].c[i]&0xff);
+        }
+        lv_line[7].c[tailleCle*2]=0;
 
-          unsigned long int i;
-          unsigned int j,k,l;
+        if (!strcmp(lv_line[3].c,lv_line[7].c))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+        else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
 
-          for (i=0;i<taille_fichier;i++)
+        strcpy(lv_line[3].c,lv_line[7].c);
+      }
+      break;
+      default : //binaire par défaut
+      {
+        DWORD i;
+        lv_line[7].c[0]=0;
+        for (i=0;i<tailleCle && i*2<MAX_LINE_SIZE;i++)
+        {
+          sprintf(lv_line[7].c+i*2,"%02X",lv_line[6].c[i]&0xff);
+        }
+        lv_line[7].c[tailleCle*2]=0;
+
+        if (!strcmp(lv_line[3].c,lv_line[7].c))snprintf(lv_line[4].c,MAX_LINE_SIZE,"[OK][UNKNOW] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+        else snprintf(lv_line[4].c,MAX_LINE_SIZE,"[NOK][UNKNOW] Good value : %s ; %s",lv_line[3].c,lv_line[5].c);
+
+        strcpy(lv_line[3].c,lv_line[7].c);
+      }
+      break;
+    }
+  }
+
+  //additem
+  lv_line[6].c[0]=0;
+  AddToLV(hlv, lv_line, 5);
+
+  //On ferme la cle
+  RegCloseKey(CleTmp);
+}
+//------------------------------------------------------------------------------
+void TestRegistrGuide(char *fic)
+{
+  //ouverture du fichier
+  HANDLE Hfic = CreateFile(fic,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (Hfic == INVALID_HANDLE_VALUE)return;
+
+  //taille du fichier
+  DWORD taille_fic = GetFileSize(Hfic,NULL);
+  if (taille_fic<1 || taille_fic == INVALID_FILE_SIZE)
+  {
+    CloseHandle(Hfic);
+    return;
+  }
+
+  //allocation
+  char *buffer = (char *) HeapAlloc(GetProcessHeap(), 0, sizeof(char*)*taille_fic+1);
+  if (!buffer)
+  {
+    CloseHandle(Hfic);
+    SB_add_T(TABL_CONF-1, "REG : Out of memory");
+    return;
+  }
+
+  //lecture du fichier
+  DWORD copiee;
+  if (ReadFile(Hfic, buffer, taille_fic,&copiee,0))
+  {
+      taille_fic = copiee;
+      //test si format Wildstring: on passe les 2 premier caractère et on format le tout
+      if(buffer[0]==-1 && buffer[1]==-2)
+      {
+        char *buffer2 = (char *)HeapAlloc(GetProcessHeap(), 0, sizeof(char*)*taille_fic+1);
+        if (buffer2 != NULL)
+        {
+          DWORD i, j=0;
+          for (i=2;i<taille_fic;i+=2)
           {
-            //on copie ligne par ligne
-            j=0;
-            while(buffer[i] != '\n' && i<taille_fichier && j<MAX_PATH*4 )
+            buffer2[j++]=buffer[i];
+          }
+          buffer2[j] = 0;
+          taille_fic = j-1;
+          strcpy(buffer,buffer2);
+          HeapFree(GetProcessHeap(), 0,buffer2);
+        }
+      }
+
+      //traitement pour ajout à la listeview
+      DWORD i,j;
+      char buffer_ligne[MAX_LINE_SIZE+1];
+      char tmp[MAX_LINE_SIZE+1];
+      BOOL continues = FALSE;
+      char *p;
+
+      LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+      lv_line[5].c[0]=0;
+      lv_line[6].c[0]=0;
+      strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+
+      HANDLE hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF);
+
+      for (i=0;i<taille_fic;i++)
+      {
+        //copie d'une ligne
+        j=0;
+        while (buffer[i] && buffer[i]!='\n' && i<taille_fic && j<MAX_LINE_SIZE)buffer_ligne[j++] = buffer[i++];
+
+        //si la ligne fait plus de 1 caractère on continue !!
+        if (j>2)
+        {
+          //traitement du fin de chaîne
+          if (buffer_ligne[j-1] == '\r')buffer_ligne[j-1]=0;
+          else buffer_ligne[j]=0;
+
+          if (continues)
+          {
+            if (buffer_ligne[0]==' ' && buffer_ligne[1]==' ')
+              strcpy(tmp,buffer_ligne+2); //passage des 2 espaces de début
+            else strcpy(tmp,buffer_ligne);
+
+            if (tmp[strlen(tmp)-1]=='\\')//seulement l'hexa
             {
-              buffer_ligne[j++] = buffer[i++];
-              if (buffer[i-1] == buffer[i] && buffer[i] == '\\')i++;
+              tmp[strlen(tmp)-1]=0;
+              SupChar(tmp,lv_line[3].c+strlen(lv_line[3].c),',',MAX_LINE_SIZE-strlen(lv_line[3].c));
+            }else //si fin de la zone de donnée
+            {
+              SupChar(tmp,lv_line[3].c+strlen(lv_line[3].c),',',MAX_LINE_SIZE-strlen(lv_line[3].c));
+
+              continues = FALSE;
+              lv_line[5].c[0]=0;
+              lv_line[6].c[0]=0;
+              strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+              LireValeurGuidesExt(lv_line, hlv);
             }
-            buffer_ligne[j]=0;
-
-            if (strlen(buffer_ligne))
+          }else if (buffer_ligne[0] == ';') //description
+          {
+            strncpy(lv_line[5].c,buffer_ligne+1,MAX_LINE_SIZE);
+          }else if (buffer_ligne[0] == '[') //début de chaîne
+          {
+            strncpy(lv_line[1].c,buffer_ligne+1,MAX_LINE_SIZE);
+            //on supprime le ']' de fin
+            lv_line[1].c[strlen(lv_line[1].c)-1]=0;
+          }else if (buffer_ligne[0] == '@')
+          {
+            if (buffer_ligne[2]=='"') // des séparateurs
             {
-              //traitement de la ligne
-              switch(buffer_ligne[0])
+              lv_line[2].c[0]=0;
+              lv_line[3].c[0]=0;
+
+              //data
+              strcpy(lv_line[3].c,buffer_ligne+3);
+              //on supprime le '"' de fin
+              lv_line[3].c[strlen(lv_line[3].c)-1]=0;
+
+              //on test si un type précis
+              if ((lv_line[3].c[0]=='d' || lv_line[3].c[0]=='D')&&(lv_line[3].c[1]=='w' || lv_line[3].c[1]=='W')&&
+                  (lv_line[3].c[2]=='o' || lv_line[3].c[2]=='O')&&(lv_line[3].c[3]=='r' || lv_line[3].c[3]=='R')&&
+                  (lv_line[3].c[4]=='d' || lv_line[3].c[4]=='D')&& lv_line[3].c[5]==':'){strcpy(lv_line[4].c,"NUMBER");strcpy(tmp,lv_line[3].c+6);strcpy(lv_line[3].c,tmp);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&&lv_line[3].c[3]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+4);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[5]==')' &&
+                       lv_line[3].c[6]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+7);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[6]==')' &&
+                       lv_line[3].c[7]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+8);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[7]==')' &&
+                       lv_line[3].c[8]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+9);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else strcpy(lv_line[4].c,"STRING");
+              lv_line[5].c[0]=0;
+              lv_line[6].c[0]=0;
+              strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+              LireValeurGuidesExt(lv_line, hlv);
+            }else
+            {
+              lv_line[3].c[0]=0;
+              strcpy(lv_line[3].c,buffer_ligne+2);
+
+                            //on test si un type précis
+              if ((lv_line[3].c[0]=='d' || lv_line[3].c[0]=='D')&&(lv_line[3].c[1]=='w' || lv_line[3].c[1]=='W')&&
+                  (lv_line[3].c[2]=='o' || lv_line[3].c[2]=='O')&&(lv_line[3].c[3]=='r' || lv_line[3].c[3]=='R')&&
+                  (lv_line[3].c[4]=='d' || lv_line[3].c[4]=='D')&& lv_line[3].c[5]==':'){strcpy(lv_line[4].c,"NUMBER");strcpy(tmp,lv_line[3].c+6);strcpy(lv_line[3].c,tmp);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&&lv_line[3].c[3]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+4);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[5]==')' &&
+                       lv_line[3].c[6]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+7);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[6]==')' &&
+                       lv_line[3].c[7]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+8);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[7]==')' &&
+                       lv_line[3].c[8]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+9);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else strcpy(lv_line[4].c,"STRING");
+
+              //test si une chaine non finie avec un '\'
+              if (lv_line[3].c[strlen(lv_line[3].c)-1]=='\\')
               {
-                //commentaire
-                case ';':
-                     strcpy(commentaire,buffer_ligne+1);
-                     commentaire[strlen(commentaire)-1]=0; //suppression du \r\n de fin
-                break;
-                //chemin
-                case '[':
-                     //on décortique suivant le type
-                     //et on récupère le chemin
-                     if (buffer_ligne[6]=='L' || buffer_ligne[6]=='l')
-                     {
-                       hkClasse = HKEY_LOCAL_MACHINE;
-                       strcpy(chemin,buffer_ligne+20);
-                     }else if (buffer_ligne[6]=='U' || buffer_ligne[6]=='u')
-                     {
-                       hkClasse = HKEY_USERS;
-                       strcpy(chemin,buffer_ligne+12);
-                     }else if (buffer_ligne[6]=='P' || buffer_ligne[6]=='p')
-                     {
-                       hkClasse = HKEY_PERFORMANCE_DATA;
-                       strcpy(chemin,buffer_ligne+23);
-                     }else if (buffer_ligne[6]=='D' || buffer_ligne[6]=='d')
-                     {
-                       hkClasse = HKEY_DYN_DATA;
-                       strcpy(chemin,buffer_ligne+15);
-                     }else if (buffer_ligne[6]=='C' || buffer_ligne[6]=='c')
-                     {
-                       if (buffer_ligne[7]=='L' || buffer_ligne[7]=='l')
-                       {
-                         hkClasse = HKEY_CLASSES_ROOT;
-                         strcpy(chemin,buffer_ligne+19);
-                       }else if (buffer_ligne[14]=='U' || buffer_ligne[14]=='u')
-                       {
-                         hkClasse = HKEY_CURRENT_USER;
-                         strcpy(chemin,buffer_ligne+19);
-                       }else if (buffer_ligne[14]=='C' || buffer_ligne[14]=='c')
-                       {
-                         hkClasse = HKEY_CURRENT_CONFIG;
-                         strcpy(chemin,buffer_ligne+21);
-                       }
-                     }
-                     //suppression de la fin : ']\r'
-                     chemin[strlen(chemin)-2]=0;
-                break;
-                //gestion du nom de la valeur, de son type et de son contenu
-                case '"':
-                     k=1,l=0;
-                     while(k<j && buffer_ligne[k]!='"')valeur[l++]=buffer_ligne[k++];
-                     valeur[l]=0;
+                lv_line[3].c[strlen(lv_line[3].c)-1]=0;
+                continues = TRUE;
+              }else
+              {
+                lv_line[5].c[0]=0;
+                lv_line[6].c[0]=0;
+                strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+                LireValeurGuidesExt(lv_line, hlv);
+              }
+            }
+          }else if (buffer_ligne[0] == '"')
+          {
+            //valeur
+            strcpy(lv_line[2].c,buffer_ligne+1);
+            p = lv_line[2].c;
+            while (*p && !(*p=='"' && *(p+1)== '='))p++;
+            *p=0;
 
-                     k+=2; // on passe : "=
+            //données
+            if (buffer_ligne[strlen(lv_line[2].c)+3]=='"')
+            {
+              lv_line[3].c[0]=0;
+              strcpy(lv_line[3].c,buffer_ligne+strlen(lv_line[2].c)+4);
+              lv_line[3].c[strlen(lv_line[3].c)-1]=0;//on supprime le '"' de fin
 
-                     if (buffer_ligne[k] == 'h' || buffer_ligne[k] == 'H')//hexa
-                     {
-                       //on vérifie si des () après le hex
-                       if (buffer_ligne[k+3] == '(')
-                       {
-                         if (buffer_ligne[k+5] == ')')strcpy(resultat,buffer_ligne+(k+7));
-                         else if (buffer_ligne[k+6] == ')')strcpy(resultat,buffer_ligne+(k+8));
-                         else if (buffer_ligne[k+7] == ')')strcpy(resultat,buffer_ligne+(k+9));
-                         else if (buffer_ligne[k+8] == ')')strcpy(resultat,buffer_ligne+(k+10));
-                         else strcpy(resultat,buffer_ligne+(k+11));
-                       }else
-                         strcpy(resultat,buffer_ligne+(k+4));
+              //on test si un type précis
+              if ((lv_line[3].c[0]=='d' || lv_line[3].c[0]=='D')&&(lv_line[3].c[1]=='w' || lv_line[3].c[1]=='W')&&
+                  (lv_line[3].c[2]=='o' || lv_line[3].c[2]=='O')&&(lv_line[3].c[3]=='r' || lv_line[3].c[3]=='R')&&
+                  (lv_line[3].c[4]=='d' || lv_line[3].c[4]=='D')&& lv_line[3].c[5]==':'){strcpy(lv_line[4].c,"NUMBER");strcpy(tmp,lv_line[3].c+6);strcpy(lv_line[3].c,tmp);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&&lv_line[3].c[3]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+4);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[5]==')' &&
+                       lv_line[3].c[6]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+7);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[6]==')' &&
+                       lv_line[3].c[7]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+8);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[7]==')' &&
+                       lv_line[3].c[8]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+9);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else strcpy(lv_line[4].c,"STRING");
 
-                       //traitement du cas multiples-ligne
-                       if (resultat[strlen(resultat)-2]=='\\')
-                       {
-                        //pas traité pour le moment mise à part la suppression du caractères + ,
-                        resultat[strlen(resultat)-2]=0;
+              lv_line[5].c[0]=0;
+              lv_line[6].c[0]=0;
+              strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+              LireValeurGuidesExt(lv_line, hlv);
+            }
+            else
+            {
+              lv_line[3].c[0]=0;
+              strcpy(lv_line[3].c,buffer_ligne+strlen(lv_line[2].c)+3);
 
-                        //dans le cas de lignes multiples on a 2 espaces "  "
-                       }
+                            //on test si un type précis
+              if ((lv_line[3].c[0]=='d' || lv_line[3].c[0]=='D')&&(lv_line[3].c[1]=='w' || lv_line[3].c[1]=='W')&&
+                  (lv_line[3].c[2]=='o' || lv_line[3].c[2]=='O')&&(lv_line[3].c[3]=='r' || lv_line[3].c[3]=='R')&&
+                  (lv_line[3].c[4]=='d' || lv_line[3].c[4]=='D')&& lv_line[3].c[5]==':'){strcpy(lv_line[4].c,"NUMBER");strcpy(tmp,lv_line[3].c+6);strcpy(lv_line[3].c,tmp);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&&lv_line[3].c[3]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+4);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[5]==')' &&
+                       lv_line[3].c[6]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+7);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[6]==')' &&
+                       lv_line[3].c[7]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+8);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else if ((lv_line[3].c[0]=='h' || lv_line[3].c[0]=='H')&&(lv_line[3].c[1]=='e' || lv_line[3].c[1]=='E')&&
+                       (lv_line[3].c[2]=='x' || lv_line[3].c[2]=='X')&& lv_line[3].c[3]=='(' && lv_line[3].c[7]==')' &&
+                       lv_line[3].c[8]==':'){strcpy(lv_line[4].c,"BINARY");strcpy(tmp,lv_line[3].c+9);SupChar(tmp,lv_line[3].c,',',MAX_LINE_SIZE);}
+              else strcpy(lv_line[4].c,"STRING");
 
-                       resultat[strlen(resultat)-1]=0; // suppression du '\r' de fin de ligne
-                       type = 2;
-                     //dword
-                     }else if (buffer_ligne[k] == 'd' || buffer_ligne[k] == 'D')
-                     {
-                       strcpy(resultat,buffer_ligne+(k+6));
-                       type = 1;
-                       resultat[8]=0;
-                     }else //string
-                     {
-                       strcpy(resultat,buffer_ligne+(k+1));
-                       resultat[strlen(resultat)-2]=0; // suppression du '"' de fin de ligne
-                       type = 0;
-                     }
+              //test si une chaine non finie avec un '\'
+              if (lv_line[3].c[strlen(lv_line[3].c)-1]=='\\')
+              {
+                lv_line[3].c[strlen(lv_line[3].c)-1]=0;
+                continues = TRUE;
+              }else
+              {
+                if (lv_line[4].c[0] != 'H' && lv_line[4].c[0] != 'S' && lv_line[4].c[0] != 'N')strcpy(lv_line[4].c,"BINARY");
 
-                     //maintenant on effectue le test de la valeur
-                     ret = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,MAX_PATH,type,resultat_lu,resultat,commentaire,hlv);
-
-                     if (ret == -1)
-                     {
-                       int taille = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,MAX_PATH,type,resultat_lu,resultat,commentaire,hlv);
-                       char *buff_tmp;
-                       buff_tmp = malloc(sizeof(char)*taille+1);
-                       ret = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,taille,buff_tmp,type,resultat,commentaire,hlv);
-                       if (ret>0)
-                       {
-                         strncpy(resultat_lu,buff_tmp,MAX_PATH);
-                         free(buff_tmp);
-                       }
-                     }
-                break;
-                /*case '@': //nom vide
-                    valeur[0]=0;
-                    k=2; // on passe @=
-
-                     if (buffer_ligne[k] == 'h' || buffer_ligne[k] == 'H')//hexa
-                     {
-                       //on vérifie si des () après le hex
-                       if (buffer_ligne[k+3] == '(')
-                       {
-                         if (buffer_ligne[k+5] == ')')strcpy(resultat,buffer_ligne+(k+7));
-                         else if (buffer_ligne[k+6] == ')')strcpy(resultat,buffer_ligne+(k+8));
-                         else if (buffer_ligne[k+7] == ')')strcpy(resultat,buffer_ligne+(k+9));
-                         else if (buffer_ligne[k+8] == ')')strcpy(resultat,buffer_ligne+(k+10));
-                         else strcpy(resultat,buffer_ligne+(k+11));
-                       }else
-                         strcpy(resultat,buffer_ligne+(k+4));
-
-                       //traitement du cas multiples-ligne
-                       if (resultat[strlen(resultat)-2]=='\\')
-                       {
-                        //pas traité pour le moment mise à part la suppression du caractères + ,
-                        resultat[strlen(resultat)-2]=0;
-
-                        //dans le cas de lignes multiples on a 2 espaces "  "
-                       }
-
-                       resultat[strlen(resultat)-1]=0; // suppression du '\r' de fin de ligne
-                       type = 2;
-                     //dword
-                     }else if (buffer_ligne[k] == 'd' || buffer_ligne[k] == 'D')
-                     {
-                       strcpy(resultat,buffer_ligne+(k+6));
-                       resultat[8]=0;
-
-                       type = 1;
-                     }else //string
-                     {
-                       strcpy(resultat,buffer_ligne+(k+1));
-                       resultat[strlen(resultat)-2]=0; // suppression du '"' de fin de ligne
-
-                       type = 0;
-                     }
-
-                     //maintenant on effectue le test de la valeur
-                     ret = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,MAX_PATH,type,resultat_lu,resultat,commentaire,hlv);
-
-                     if (ret == -1)
-                     {
-                       int taille = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,MAX_PATH,type,resultat_lu,resultat,commentaire,hlv);
-                       char *buff_tmp;
-                       buff_tmp = malloc(sizeof(char)*taille+1);
-                       ret = LireValeurGuidesExt(hkClasse,str_guide,chemin,valeur,taille,buff_tmp,type,resultat,commentaire,hlv);
-                       if (ret>0)
-                       {
-                         strncpy(resultat_lu,buff_tmp,MAX_PATH);
-                         free(buff_tmp);
-                       }
-                     }
-                break;*/
+                lv_line[5].c[0]=0;
+                lv_line[6].c[0]=0;
+                strncpy(lv_line[0].c,fic,MAX_LINE_SIZE);
+                LireValeurGuidesExt(lv_line, hlv);
               }
             }
           }
         }
-        LocalFree(buffer);
       }
-    }
   }
-  CloseHandle(Hsrc);
+  CloseHandle(Hfic);
+  HeapFree(GetProcessHeap(), 0, buffer);
 }
 //------------------------------------------------------------------------------
 void CheckRegistryFile()
@@ -365,5 +404,8 @@ void CheckRegistryFile()
     ShowWindow(GetDlgItem(Tabl[TABL_REGISTRY],TV_VIEW), SW_HIDE);
     ShowWindow(GetDlgItem(Tabl[TABL_REGISTRY],BT_TREE_VIEW), SW_HIDE);
     ShowWindow(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF), SW_SHOW);
+
+    //sélection de l'item n°2 de la liste !
+    SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_SETCURSEL,(WPARAM)1, (LPARAM)0);
   }
 }
