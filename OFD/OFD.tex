@@ -4,7 +4,7 @@
 % Sources : http://code.google.com/p/omnia-projetcs/
 %
 % Description : Fiches techniques d'utilisation d'outils
-%					 dans le cadre d'audits de s\'ecurit\'e, administration
+%					 dans le cadre d'audits de securite, administration
 %					 et tests d'intrusion.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \documentclass[a4paper,11pt]{article}				    % entete standard pour feuille de format A4, en police 12pt et en edition en article
@@ -1789,30 +1789,37 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 {
 \textbf{Lors de la d\'ecouverte ou d'un doute de compromission :}
 \begin{description}
-    \item[$\Square$] Sauvegarder l'\'etat des processus et liste des ports ouverts.
+    \item[$\Square$] Sauvegarder l'\'etat des processus et la liste des ports ouverts.
     \item[$\Square$] Effectuer un \textit{Dump} de la m\'emoire de l'utilisateur.
     \item[$\Square$] Effectuer une copie des disques bit-\`a-bit. 
     \item[$\Square$] V\'erifier l'int\'egrit\'e de l'image en effectuant un checksum SHA du disque original et de l'image.
     \item[$\Square$] Ne pas \'eteindre la machine, la d\'econnecter de tout r\'eseau.
+    \item[$\Square$] En cas de disque chiffr\'e, r\'ecup\'erer la cl\'ee de d\'echiffrement et le type de solution utilis\'ee. 
 \end{description}
 
 \vskip+0.2cm
 \textbf{Syst\`eme de fichier :}
 \begin{description}
-    \item[$\Square$] Monter la partition.
+    \item[$\Square$] Monter l'image de la partition.
     \item[$\Square$] Effectuer une liste de l'ensemble des fichiers pr\'esents sur le disque avec emprunte SHA (peut \^etre demand\'e en cas de demande judiciaire).   
     \item[$\Square$] Tenter une r\'ecup\'eration des fichiers effac\'es.
     \item[$\Square$] V\'erifier la pr\'esence de virus sur tous les fichiers (m\^eme effac\'es).
-    \item[$\Square$] Faire une recherche sur les types de fichier : scripts, sauvegardes, registre, multim\'edias, bureautiques, compress\'es, ex\'ecutables et temporaires\dots{}
-    \item[$\Square$] Faire une recherche sur les derniers fichiers modifi\'es.
-    \item[$\Square$] V\'erifier les droits des utilisateurs (administrateur\dots{}).
-    \item[$\Square$] Recherche d'occurrences dans les fichiers de swap (cha\^ines de caract\'eres).    
+    \item[$\Square$] Identifier les fichiers importants : scripts, sauvegardes, registre, multim\'edias, bureautiques, compress\'es, ex\'ecutables et temporaires\dots{}
+    \item[$\Square$] Rechercher les derniers fichiers modifi\'es.
+    \item[$\Square$] V\'erifier les droits des utilisateurs (administrateur, guest, lecture+\'ecriture, SUID/SGID\dots{}).   
+\end{description} 
+
+\vskip+0.2cm
+\textbf{M\'emoire :}
+\begin{description}
+    \item[$\Square$] Recherche d'occurrences dans les fichiers de swap, m\'emoire et hibernation (cha\^ines, mots de passe\dots{}). 
 \end{description} 
 
 \vskip+0.2cm
 \textbf{P\'eriph\'eriques :}
 \begin{description}
-    \item[$\Square$] Liste et date d'utilisation des p\'eriph\'eriques USB.
+    \item[$\Square$] Liste et date d'utilisation des derniers p\'eriph\'eriques USB/Firewire\dots{}.
+    \item[$\Square$] Liste des p\'eriph\'eriques r\'eseau install\'es.
     \item[$\Square$] Liste des r\'eseaux et cartes install\'ees.
 \end{description} 
   
@@ -1831,30 +1838,56 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 \textbf{Journaux d'audit :}
 \begin{description}    
     \item[$\Square$] V\'erifier tous les journaux d'audit (horaires d'acc\`es, acc\`es multi-utilisateurs, droits sp\'ecifiques, coh\'erance des journaux pour d\'etecter la suppression d'enregistrement ou le changement d'heure.).
-    \item[$\Square$] (Windows) Exportation des applications ex\'ecut\'ees, nombre d'utilisation et date de derni\'ere utilisation. 
+    \item[$\Square$] Exportation des applications ex\'ecut\'ees, nombre d'utilisation et dates de derni\'ere utilisation. 
 \end{description}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\CficheTotal{}{Forensic - Outils (1/2)}
+\CficheTotal{}{Forensic - Outils (1/3)}
 {
-\vskip+0.1cm
-\textbf{\large\color{red}Syst\`eme de fichiers et m\'emoire}\vskip+0.1cm
+
+\textbf{\large\color{red}Syst\`eme de fichiers}\vskip+0.1cm
 {\small
 \begin{tabular}{ll}
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
-\fl{\textbf{dd} (data dump)}{Permet d'effectuer des copies bit \`a bit de donn\'ees.\\\underline{Note :} En cas de disque endommag\'e ou besoin de reprise pr\'ef\'erer : {\sl\color{blue}ddrescue} packet gddrescue ou dc3dd \url{http://dc3dd.sourceforge.net}}{1.2cm}
+\fl{\textbf{dd} (data dump)}{Permet d'effectuer des copies bit \`a bit de donn\'ees.\\\underline{Note :} En cas de disque endommag\'e ou besoin de reprise pr\'ef\'erer : {\sl\color{blue}ddrescue} packet gddrescue ou dc3dd \url{http://dc3dd.sourceforge.net} Pour Windows mdd : \url{http://sourceforge.net/projects/mdd/} et dd : \url{http://www.chrysocome.net/dd}}{2cm}
 \fl{\textbf{VBoxManage}\\\url{http://www.virtualbox.org}}{Permet la conversion de disque en formats : RAW, VDI, VMDK, VHD\dots{} Fait parti de Virtualbox.}{0.8cm}
 \fl{\textbf{raw2vmdk}\\\url{http://sourceforge.net/projects/raw2vmdk}}{Permet la cr\'eation rapide d'un lien \`a partir d'un disque RAW vers un VMDK (plus besoin de convertir le disque).}{1.2cm}
-\fl{\textbf{Memoryze}\\\url{http://www.mandiant.com/products/free_software}}{Extraction de la m\'emoire de syst\'eme Windows.\\ Le logiciel {\sl\color{blue}audit viewer} permet de traiter ses r\'esultats.}{1.2cm}
+\fl{\textbf{P2 eXplorer}\\\url{http://www.paraben.com/programs/download.php?f=p2x.exe}}{Permet l'ouverture d'un grand nombre de format d'image sans modification.}{1.2cm}
+
 \fl{\textbf{TestDisk + PhotoRec}\\\url{http://www.cgsecurity.org}}{Recherche de partition et fichier effac\'es (FAT, NTFS, EXT2/EXT3, HFS+).
 Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_Formats_Recovered_By_PhotoRec}}{1.2cm}
 \fl{\textbf{Windows File Analyzer}\\\url{http://www.mitec.cz/wfa.html}}{Analyseur de fichiers : Thumbs.db, prefetch, raccourcis, Index.DAT et corbeille.}{0.8cm}
-\fl{\textbf{Encrypted Disk Detector}\\\url{http://www.jadsoftware.com/go/?page_id=167}}{Recherche de volumes chiffr\'es (PGP, Truecrypt et Bitlocker).}{1.2cm}
 
-%	\item  R\'ecup\'eration de fichiers effac\'es FAT/NTFS : \url{http://www.runtime.org/data-recovery-software.htm}
+\fl{\textbf{Strings} avanc\'e pour Windows\\\url{http://technet.microsoft.com/en-us/sysinternals/bb897439.aspx}}{Extracteur de chaine Ansi et Unicode.}{1.2cm}
+
+\fl{\textbf{Encrypted Disk Detector}\\\url{http://www.jadsoftware.com/go/?page_id=167}}{Recherche de volumes chiffr\'es (PGP, Truecrypt et Bitlocker).}{1.2cm}
+\fl{\textbf{TCHunt}\\\url{http://16s.us/TCHunt/downloads/TCHunt-1.5/}}{Recherche de volumes chiffr\'es.}{1.2cm}
+\fl{\textbf{FI TOOLS (Payant)}\\\url{http://www.forensicinnovations.com/fitools.html}}{Recherche de volumes chiffr\'es.}{1.2cm}
+\fl{\textbf{Passwar Kit (Payant)}\\\url{http://www.lostpassword.com/kit-enterprise.htm}}{Recherche de volumes chiffr\'es et extraction de la cl\'ee en m\'emoire.}{1.2cm}
+
+\fl{\textbf{Dislocker }\\\url{http://www.hsc.fr/ressources/outils/dislocker/index.html}}{D\'echiffrement sous Linux de contenaires Bitlocker.}{1.2cm}
+
 \end{tabular}
 }\vskip+0.4cm
+
+\textbf{\large\color{red}M\'emoire}\vskip+0.1cm
+{\small
+\begin{tabular}{ll}
+\textbf{Nom/URL} & \textbf{Description} \\
+\hline
+
+\fl{\textbf{Memoryze}\\\url{http://www.mandiant.com/products/free_software}}{Extraction de la m\'emoire de syst\'eme Windows.\\ Le logiciel {\sl\color{blue}audit viewer} permet de traiter ses r\'esultats.}{1.2cm}
+
+\fl{\textbf{Ptfinder}\\\url{http://computer.forensikblog.de/files/ptfinder/ptfinder-current.zip}}{Recherche de fichiers dans la m\'emoire.}{1.2cm}
+
+\fl{\textbf{Volatility}\\\url{https://www.volatilesystems.com/default/volatility}}{Suite, extraction des processus, donn\'ees, \'el\'ements du registre\dots{}}{1.2cm}
+\end{tabular}
+}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\CficheTotal{}{Forensic - Outils (2/3)}
+{
 
 \textbf{\large \color{red}Antivirus}\vskip+0.1cm
 {\small
@@ -1862,7 +1895,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
 \fl{\textbf{Clam Antivirus}\\\url{http://www.clamav.net}}{Antivirus en ligne de commande fonctionnant sur un grand nombre de syst\`emes.}{0.8cm}
-\fl{\textbf{VirusTotal}\\\url{http://www.virustotal.com}}{Analyse de fichier en ligne par un grand nombre d'antivirus.}{0.8cm}
+\fl{\textbf{VirusTotal}\\\url{http://www.virustotal.com}}{Analyse de fichier en ligne par un grand nombre d'antivirus. Application Windows : \url{http://www.virustotal.com/vtsetup.exe}}{0.8cm}
 \end{tabular}
 }\vskip+0.4cm
 
@@ -1871,9 +1904,10 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \begin{tabular}{ll}
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
-\fl{\textbf{Evtx\_view}\\\url{http://www.tzworks.net}}{Extraction, analyse, export des hashs de mots de passe ...dans les fichiers de base de registre brut.}{0.8cm}
+\fl{\textbf{Evtx\_view}\\\url{http://www.tzworks.net}}{Extraction, analyse et export des journaux d'\'ev\`enempent Evtx.}{0.8cm}
+\fl{\textbf{SearchEvent/Filter Events}\\\url{http://ctxadmtools.musumeci.com.ar}}{Analyse et export des journaux d'\'ev\`enempent Evtx.}{0.8cm}
+\fl{\textbf{EvtxParser}\\\url{http://computer.forensikblog.de/files/evtx/Parse-Evtx-current.zip}}{Script perl pour parser les fichiers Evtx.}{1.2cm}
 \fl{\textbf{Log Parser}\\\url{http://www.microsoft.com/download/en/details.aspx?displaylang=en&pf=true&id=24659}}{Convertisseurs de fichiers NCSA, IIS, IISODBC, BIN, IISMSID, HTTPERR, URLSCAN, CSV, TSV, W3C, XML, EVT, ETW, NETMON, REG, ADS, TEXTLINE, TEXTWORD, FS, COM}{1.6cm}
-\fl{\textbf{LireExec}\\\url{http://omni.a.free.fr}}{Historique cach\'e de Windows des applications ex\'ecut\'ees par les utilisateurs. Extracteur inclus aussi dans {\sl\color{blue}CTRP}.}{0.8cm}
 \end{tabular}
 }\vskip+0.4cm
 
@@ -1882,23 +1916,21 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \begin{tabular}{ll}
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
-\fl{\textbf{Yaru}\\\url{http://www.tzworks.net}}{Extraction, analyse, export des hashs de mots de passe ...dans les fichiers de base de registre brut.}{0.8cm}
+\fl{\textbf{Yaru}\\\url{http://www.tzworks.net}}{Extraction, analyse dans les fichiers de base de registre brut.}{0.8cm}
 \fl{\textbf{WRR}\\\url{http://www.deftlinux.net}}{Extraction, recherche et analyse du contenu des fichiers de base de registre brut. Fait parti de la suite DEFT-EXTRA.}{0.8cm}
 \end{tabular}
-}
-}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\CficheTotal{}{Forensic - Outils (2/2)}
-{
-\vskip+0.1cm
+}\vskip+0.4cm
 
 \textbf{\large \color{red}Navigateurs Internet}\vskip+0.1cm
 {\small
 \begin{tabular}{ll}
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
-\fl{\textbf{Nirsoft}\\\url{http://www.nirsoft.net}}{Liste d'outils permettant d'extraire les historiques de navigation, recherche et mots de passes.}{0.8cm}
+\fl{\textbf{Nirsoft}\\\url{http://www.nirsoft.net}}{Liste d'outils permettant d'extraire les historiques de navigation, messagerie, recherche et mots de passes.}{0.8cm}
 \fl{\textbf{Firefox Extractor} (f3e)\\\url{http://www.firefoxforensics.com}}{Extracteur de l'historique de navigation pour Firefox 3 et Chrome.}{0.8cm}
+\fl{\textbf{Historian}\\\url{http://www.gaijin.at/dlhistorian.php}}{Extracteur de l'historique de navigation pour IE, Mozzila, Firefox, Op\'era et Chrome.}{1.2cm}
+\fl{\textbf{SQLiteBrowser}\\\url{http://sourceforge.net/projects/sqlitebrowser/}}{Client pour base SQLite.}{1.2cm}
+\fl{\textbf{Plist-editor}\\\url{http://www.icopybot.com/plist-editor.htm}}{\'Editeur de fichier de d'historique pour Safari.}{1.2cm}
 \end{tabular}
 }\vskip+0.4cm
 
@@ -1908,36 +1940,73 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
 \fl{\textbf{Mail Viewer}\\\url{http://www.mitec.cz/mailview.html}}{Permet de lire les bases de messageries : Outlook, Thunderbird, Live Mail et fichiers EML.}{0.8cm}
+\fl{\textbf{SysTools Export Notes (Payant)}\\\url{http://www.lotusnotestooutlook.net/convert-lotus-notes-to-outlook.html}}{Permet de lire les bases de messageries LotusNotes.}{1.6cm}
+\end{tabular}
+}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\CficheTotal{}{Forensic - Outils (3/3)}
+{
+
+\textbf{\large \color{red}Fichiers sp\'eciaux}\vskip+0.1cm
+{\small
+\begin{tabular}{ll}
+\textbf{Nom/URL} & \textbf{Description} \\
+\hline
+\fl{\textbf{Rifiuti}\\\url{http://www.mcafee.com/us/downloads/free-tools/rifiuti.aspx}}{Fichier corbeille}{1.2cm}
+\fl{\textbf{RecycleReader}\\\url{http://www.live-forensics.com/dl/RecycleReader.zip}}{Fichier corbeille}{1.2cm}
+\fl{\textbf{Vinetto}\\\url{http://sourceforge.net/projects/vinetto/}}{Thumbs.db}{1.2cm}
+\fl{\textbf{XPDF}\\\url{http://www.foolabs.com/xpdf/}}{Fichier PDF}{0.8cm}
+\fl{\textbf{Exif}\\\url{http://araskin.webs.com/exif/exif.html}}{Pluggin Firefox/thunderbird, pour extraction des informations des fichier Exif d'index d'appareil num\'erique (exemple : photos)}{1.2cm}
+\fl{\textbf{Meta-extractor}\\\url{http://meta-extractor.sourceforge.net/}}{Fichiers image, BMP, GIF, JPEG et TIFF}{1.2cm}
+\fl{\textbf{Hachoir}\\\url{https://bitbucket.org/haypo/hachoir/wiki/Home}}{Librairie Python pour extraire les m\'etadonn\'ees : Vid\'eos, musiques, images, archives ZIP, TAR, PDF, torrent, HTML}{1.2cm}
 \end{tabular}
 }\vskip+0.4cm
 
-\textbf{\large \color{red}Frameworks, suites d'outils et distributions}
+\textbf{\large \color{red}Frameworks, suites d'outils et distributions}\vskip+0.1cm
 {\small
 \begin{itemize}
 	\item Suite SYSINTERNAL : \url{http://technet.microsoft.com/en-us/sysinternals/bb896649.aspx}
 	\item Suite Foundstone (Mcafee) : \url{http://www.mcafee.com/us/downloads/free-tools/index.aspx}
-	\item Suite Nirsoft :  \url{http://nirsoft.net}
+	\item Suite Nirsoft : \url{http://nirsoft.net}
 	\item Suite DEFT-EXTRA : \url{http://www.deftlinux.net}
 	\item Suite mitec : \url{http://www.mitec.cz/}
 	\item DFF : \url{http://www.digital-forensic.org}
+	\item FTK (Forensic Toolkit) : \url{http://accessdata.com/support/adownloads}
 	\item SANS : \url{https://computer-forensics.sans.org/community/downloads/}
 	\item TSK : \url{http://www.sleuthkit.org/sleuthkit/download.php}
+	\item Mitec : \url{http://www.mitec.cz}
+	\item Tzworks : \url{http://www.tzworks.net/download_links.php}
 	\item Suite Volatility : \url{https://www.volatilesystems.com/default/volatility}
-	\item Suite d'outils pour l'analyse de fichiers journaux, registre, systme de fichier, application : \url{http://www.tzworks.net/download_links.php}
+	\item Tarasco Security Tools : \url{http://www.tarasco.org/security/tools.html}
+	\item RtCA, traitement du syst\`eme de fichiers, de la base de registre et des journaux d'audit : \url{http://code.google.com/p/omnia-projetcs/}
 \end{itemize}
 }\vskip+0.4cm
 
-\textbf{\large \color{red}Ressources}
+\textbf{\large \color{red}Ressources}\vskip+0.1cm
 {\small
 \begin{itemize}
-	\item \url{http://forensiccontrol.com/fcresources.php}
-	\item \url{http://www.forensicswiki.org}
-	\item \url{http://www.forensic-computing.ltd.uk}
+	\item Forensic en g\'en\'eral :\\	
+	\url{http://forensiccontrol.com/resources/free-software}\\
+	\url{http://www.forensicswiki.org}\\
+	\url{http://www.forensic-computing.ltd.uk}\\
+	\url{http://www.forensicfocus.com}\\
+	\url{http://www.cybersnitch.net/tucofs/tucofs.asp?mode=mainmenu}\\
+	\url{http://www.cert.org/forensics/tools/include/all_announcements.html}\\
+	\url{http://www.vulnerabilitydatabase.com/tag/forensics/}\vskip+0.2cm
+	
+	\item M\'emoire :\\
+	\url{http://sud0man.blogspot.com/2010/04/hkram.html}\vskip+0.2cm
+	
+	\item Mac :\\
+	\url{http://www.westwind.com/reference/OS-X/invisibles.html}\vskip+0.2cm
+
+	\item Journaux d'\'ev\`enements Windows :\\
+	\url{http://www.myeventlog.com}\\
+	\url{http://www.eventid.net}\\
+	\url{http://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx?i=j}\vskip+0.2cm
 \end{itemize}
 }
-
-%%Ajouter : http://accessdata.com/support/adownloads et http://accessdata.com/downloads/current_releases/
-
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Forensic - Unix/Linux}{protocole.png}{}
@@ -1952,7 +2021,12 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Sauvegarde d'un disque bit \`a bit : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/fichier\_resultat.raw}\\
 \textbf{Sauvegarde de la m\'emoire RAM : } {\sl \color{blue}dd if=/dev/mem of=/media/sav/fichier\_resultat.raw}\\
 \textbf{Sauvegarde de la liste des processus et \'etat : } {\sl \color{blue}tar cvjf proc.tar.bz2 /proc}\\
-\textbf{Sauvegarde de l'\'etat des services et ports : } {\sl \color{blue}netstat -lapute >etat\_proc.txt}\\
+\textbf{Sauvegarde de l'\'etat des services et ports : } 
+{\sl \color{blue}netstat -an} et {\sl \color{blue}lsof -i n | egrep 'COMMAND|LISTEN'}\\
+\textbf{Liste des modules charg\'es en m\'emoire : } {\sl \color{blue}df -a}\\
+\textbf{Liste des services et leurs niveaux d'ex\'ecution : } {\sl \color{blue}chkconfig {-}{-}list}\\
+\textbf{\'Etat des services : } {\sl \color{blue}/etc/rc.d/init.d/[Nom du service]}\\
+\textbf{Liste des t\^ aches programm\'ees : } {\sl \color{blue}crontab -l}\\
 
 \textbf{Monter une image RAW en local (ici en lecture seule, en n'autorisant pas l'ex\'ecution) :}\\
 {\sl \color{blue}mount -o loop,ro,noexec imag.raw /media/rep}
@@ -1992,12 +2066,24 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Fichiers et r\'epertoires importants :}\\
 \textit{Ces \'el\'ement d\'ependent de la configuration local.}
 \begin{itemize}
-	\item Droits des utilisateurs : {\sl \color{blue}/etc/sudoers, /etc/passwd, /etc/shadow, /etc/group, /etc/gshadow\dots{}}
+	\item Privil\`eges et \'etat des utilisateurs : {\sl \color{blue}/etc/sudoers, /etc/passwd, /etc/shadow, /etc/group, /etc/gshadow\dots{}}
 	\item Journaux d'audit : {\sl \color{blue}/var/log/}
 	\item Applications Web : {\sl \color{blue}/var/www/}
 	\item Gestionnaire de d\'emarrage (bootloader) GRUB : {\sl \color{blue}/boot/grub/}
-	%\item Scripts de d\'emarrage : {\sl \color{blue}/etc/rcX.d/}, 
+	\item Scripts de d\'emarrage : {\sl \color{blue}/etc/rcX.d/\dots{}}
+	\item Configuration de Gnome : {\sl \color{blue}\%userhome\%/.gconf}
+	\item Historique des commandes de l'utilisateur : {\sl \color{blue}\%userhome\%/.bash\_history}
+	\item Scripts de connexion et d\'econnexion des utilisateurs : {\sl \color{blue}\%userhome\%/.bashrc} et {\sl \color{blue}\%userhome\%/.bash\_logout}
 \end{itemize}
+
+\vskip+0.2cm
+\textbf{Commandes utiles :}\\
+Identifier les heures de d\'ebut et de fin d'enregistrement pour chaque jour :\\
+{\sl \color{blue}(cat messages.log | uniq -w 6 \&\& tac messages.log | uniq -w 6) | sort -M > fichier\_resultat.log}\vskip+0.2cm
+
+Filtrer les journaux entre deux dates (en cas de fichier compress\'e zgrep peut remplacer grep) :\\
+{\sl \color{blue}egrep "Aug 21 11 :|Aug 23 12 :" /var/log/messages > fichier\_resultat.log}\vskip+0.2cm
+
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Forensic - Windows}{protocole.png}{}
@@ -2038,8 +2124,11 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 \textbf{D\'echiffrer une partition chiffr\'ee avec Bitlocker :}\\
 \textit{Le plus simple est d'utiliser une machine en Windows 7 qui g\`ere le d\'echiffrement de partition Bitlocker en natif. Pour d\'echiffrer la partition la recovery key sera n\'ecessaire :\begin{footnotesize}000000-000000-000000-000000-000000-000000-000000-000000\end{footnotesize}}
 \vskip+0.1cm
-Sous Linux un outil (en version alpha/unstable) existe :\\
- \url{http://www.nvlabs.in/archives/1-NVbit-Accessing-Bitlocker-volumes-from-linux.html}
+Sous Linux plusieurs outils existent :
+\begin{itemize}
+\item Dislocker : \url{http://www.hsc.fr/ressources/outils/dislocker/index.html}
+\item NVbit : \url{http://www.nvlabs.in/archives/1-NVbit-Accessing-Bitlocker-volumes-from-linux.html}
+\end{itemize}
 
 \vskip+0.2cm
 \textbf{Cas d'analyse sans d\'emarrer le syst\`eme d'exploitation h\^ote :}\\
@@ -2051,14 +2140,18 @@ Emplacement des fichiers de la base de registre :
 L'outil WRR de la suite DEFT-EXTRA permet d'ouvrir/extraire/exploiter les fichiers de registre.}
 
 \vskip+0.2cm
-\textbf{Historique de navigation Internet :} (r\'ecup\'erer aussi les cookies)\\
-IE : contenu dans le fichier {\sl \color{blue}index.dat}, lisible avec PASCO (Foundstone).\\
-%Exemples d'emplacements : \url{C:/Documents and Settings/<user>/Local Settings/Temporary Internet Files:Content.IE5:}, \url{C:/Documents and Settings/<user>/Local Settings/History/History.IE5/},
-%\url{C:/Documents and Settings/<user>/Cookies/}
-Firefox/Chrome : avec {\sl \color{blue}f3e}, en copiant la base sqlite dans son r\'epertoire  (\url{http://www.firefoxforensics.com}).
+\textbf{Recherche de l'occurrence \underline{hack} dans le SWAP :} {\sl \color{blue}strings fichier.swp | grep -C 2 hack}
 
 \vskip+0.2cm
-\textbf{Recherche de l'occurrence \underline{hack} dans le SWAP :} {\sl \color{blue}strings fichier.swp | grep -C 2 hack}
+\textbf{Fichiers et r\'epertoires importants :}
+\begin{itemize}
+	\item Fichiers d'hibernation et fichier d'\'echange : {\sl \color{blue}\%sysdir\%$\backslash$hiberfil.sys} et {\sl \color{blue}\%sysdir\%$\backslash$pagefile.sys}
+	\item Fichiers de base de registre : {\sl \color{blue}\%windir\%$\backslash$System32$\backslash$config$\backslash$}
+	\item Fichier de domaine pr\'esent sur les contr\^oleurs : {\sl \color{blue}\%windir\%$\backslash$ntds$\backslash$ntds.dit}
+	\item Journaux d'audit : {\sl \color{blue}*.evt, *.evtx, *.log} dans {\sl \color{blue}\%windir\%$\backslash$Logs$\backslash$} et {\sl \color{blue}\%windir\%$\backslash$System32$\backslash$config$\backslash$}
+	\item Fichiers applicatifs : Firefox, Thunderbird\dots{}
+	\item Tout fichier en rapport avec l'investigation : torrent, images,\dots{}
+\end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{FTP}{services.jpg}{\url{http://abcdrfc.free.fr/}}
@@ -2584,6 +2677,9 @@ Il faut utiliser un utilitaire comme \textbf{Pwdump} ou \textbf{Fgdump} pour r\'
 	\item Mimikatz : \url{http://www.gentilkiwi.com}
 	\item Pwdump/Fgdump : \url{http://www.foofus.net/fizzgig/}
 	\item WCE : \url{http://www.ampliasecurity.com/research.html} (\url{http://www.ampliasecurity.com/research/wce_v1_2.tgz})
+	\item RtCA : \url{http://code.google.com/p/omnia-projetcs/}
+	\item SAMDUMP2/Bkhive et Ophcrack : \url{http://sourceforge.net/projects/ophcrack/files/}
+	\item ntds\_dump\_hash + script shadow copy : \url{http://csababarta.com/downloads/ntds_dump_hash.zip}, \url{http://tools.lanmaster53.com/vssown.vbs} et les ressources : \url{http://pauldotcom.com/2011/11/safely-dumping-hashes-from-liv.html}
 \end{itemize}
 \vskip +0.5cm
 
@@ -2619,15 +2715,12 @@ Pour modifier la configuration des modes (incr\'ementation, dictionnaire, simple
 \\Collection de macro-commandes utilisant le {\TeX}  facilitant la r\'edaction de documents scientifiques vers des fichiers PDF, DVI, PS.
 }
 {
-\textbf{\huge Documentations :}
-\begin{description}
-	\item[Babafou Latex] \url{http://tex.loria.fr/general/apprends-latex.pdf}
-	\item[FAQ FR 2004] \url{http://omni.a.free.fr/Docs/faqfr-20041111-3.00.alpha.pdf}
-	\item[Fancy Header] \url{http://www.cs.uu.nl/people/piet}
-	\item[Symbols A4] \url{http://www.pakin.org/}
-	\item[R\`egles de typographies] \url{http://jacques-andre.fr/faqtypo/lessons.pdf}
-\end{description}
-\vskip+0.3cm
+\textbf{\huge Documentations :}\\
+\textbf{Babafou Latex} \url{http://tex.loria.fr/general/apprends-latex.pdf}\\
+\textbf{FAQ FR 2004} \url{http://omni.a.free.fr/Docs/faqfr-20041111-3.00.alpha.pdf}\\
+\textbf{Fancy Header} \url{http://www.cs.uu.nl/people/piet}\\
+\textbf{Symbols A4} \url{http://www.pakin.org/}\\
+\textbf{R\`egles de typographies} \url{http://jacques-andre.fr/faqtypo/lessons.pdf}\vskip+0.3cm
 
 \textbf{\huge Exemples de commande :}\vskip+0.2cm
 \begin{tabular}{l|l|l|l|l}
@@ -2669,8 +2762,9 @@ $\backslash$begin\{itemize\} $\backslash$item 1 $\backslash$item 2 $\backslash$e
 $\backslash$textbf\{\#1\} - $\backslash$textit\{\#2\}$\backslash$$\backslash$ %%$
 \}}\\
 \textbf{Appel de la macro :}  
-{\sl \color{blue}$\backslash$MaMacro\{param1\}\{param2\}}
-\vskip+0.3cm
+{\sl \color{blue}$\backslash$MaMacro\{param1\}\{param2\}}\\
+\textbf{Ex\'ecution de commande sur le syst\`eme au travers la compilation Latex :}  
+{\sl \color{blue}$\backslash$execute\{script.sh\}}\vskip+0.3cm
 
 \textbf{\huge Liens utiles :}
 \begin{itemize}
@@ -2976,12 +3070,10 @@ Le RDN de Personne1 est rdn:uid=Personne1,\\ son DN est dn:uid=Personne1,ou=Serv
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Linux/Unix (1/2)}{tux.png}{
-\url{http://www.linux-france.org}\\
-\url{http://www.linux.org}\\
-\url{http://www.lea-linux.org}\\
-\url{http://www.ubuntu-fr.org}\\
-\url{http://distrowatch.com}\\
-\url{http://abs.traduc.org}
+\url{http://www.linux-france.org}, \url{http://www.linux.org}\\
+\url{http://www.lea-linux.org}, \url{http://www.ubuntu-fr.org}\\
+\url{http://distrowatch.com}, \url{http://abs.traduc.org}\\
+ibsh restrict shell :\url{http://www.cryptolife.org/index.php/Lock_users_in_the_home_directory}
 }
 {
 \\S\'ecurisation et points de s\'ecurit\'e d'un syst\`eme LINUX/UNIX.
@@ -3276,15 +3368,15 @@ Les termes de recherche pour les exploits : \textbf{Breaking chroot()}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Linux - GRUB}{gnu_grub.jpg}
 {
-%http://www.google.fr/url?sa=t&source=web&cd=3&ved=0CCwQFjAC&url=http%3A%2F%2Fgrub.enbug.org%2FAuthentification&rct=j&q=acc%C3%A8s%20a%20la%20console%20grub&ei=1SPyTKqhO8qwhAef7uCsDA&usg=AFQjCNGvG705vGvtCPCEdBO28ySGqjIpxQ&cad=rja
 \url{http://grub.enbug.org}\\
 \url{http://grub.enbug.org/GRUB2LiveCDInstallGuide-FR}\\
+\url{http://www.dedoimedo.com/computers/grub-2.html}\\
 }{
 \\GNU GRUB est un gestionnaire de d\'emarrage. C'est une version am\'elior\'ee de GRUB the GRand Unified Bootloader.\vskip+0.1cm
 
 \underline{Remarque :} penser \`a supprimer les versions ant\'erieures du noyau (dans /boot/) pour \'eviter l'exploitation de failles.
 }{
-\begin{Large}GRUB (versions < 2)\end{Large}\\
+\begin{large}GRUB (versions < 2)\end{large}\\
 \textbf{Les fichiers de configuration par d\'efaut de grub :}
 \begin{itemize}
 	\item Fichier de configuration de l'application : {\sl \color{blue}/boot/grub/menu.lst}
@@ -3321,7 +3413,7 @@ Exemple pour modifier une entr\'ee pour d\'emarrer en single-user :
 \end{itemize}
 
 \vskip+0.2cm
-\begin{Large}GRUB (versions $\geq$ 2 - paquet grub-pc)\end{Large}\\
+\begin{large}GRUB (versions $\geq$ 2 - paquet grub-pc)\end{large}\\
 \textbf{Les fichiers de configuration par d\'efaut de grub :}
 \begin{itemize}
 	\item Fichiers de configuration de l'application : {\sl \color{blue}/etc/grub.d/} et {\sl \color{blue}/etc/default/grub}
@@ -4276,23 +4368,16 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 	\begin{tabular}{cc}
 		\blockFiche{8cm}{9cm}{Configuration r\'eseau}
 		{
-			%Manque la configuration Wifi :
-			%ifconfig wlan0 scan % pour identifier le rseau  
-			% +se connecter et entre la cle
-			% dhclient pour l'ip
-			
-			
-			\MbFCmd{1.3cm}
-			{Configuration du r\'eseau filaire :}
+			\MbFCmd{1.2cm}
+			{Configuration du r\'eseau filaire + wifi :}
 			{
-			/etc/network/interface\\
-			ifconfig
+			/etc/network/interface {\color{black} ou} ifconfig {\color{black} ou} dhclient\\
+			ifconfig wlan0 scan
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{0.8cm}
 			{Configuration du r\'eseau sans fils :}
 			{
-			iwconfig\\
-			iwpriv
+			iwconfig {\color{black} ou} iwpriv
 			}\\
 			\MbFCmd{0.8cm}
 			{Modifier le serveur DNS :}
@@ -4304,11 +4389,10 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			{
 				arp -a
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{0.8cm}
 			{Arr\^eter / d\'emarrer une interface r\'eseau :}
 			{
-			ifdown \textit{[interface]}\\
-			ifup \textit{[interface]}
+			ifdown \textit{[interface]} {\color{black} /} ifup \textit{[interface]}
 			}\\
 			\MbFCmd{1.8cm}
 			{Red\'emarrer le service r\'eseau (prise en compte des modifications de passerelle et r\'esolution de noms) :}
@@ -4316,6 +4400,11 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 				services network restart\\
 				/etc/init.d/networking restart
 			}\\
+			\MbFCmd{0.76cm}
+			{Application pour utiliser un modem :}
+			{
+			WVDIAL
+			}\\	
 			\hline
 			\rowcolor[gray]{.9} \textbf{Configuration Firewall (IPTABLES)}\\\hline
 			\MbFCmd{1.3cm}
@@ -5158,13 +5247,14 @@ Attention sous Windows, pour ces commandes cygwin*.dll doit se trouver dans le m
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Netcat}{protocole.png}
-{\url{http://netcat.sourceforge.net/}\\\url{http://www.securityfocus.com/tools/139}\\
-\url{http://secureinfo.free.fr/1/?id=105}, \url{http://nmap.org/book/ncat-man.html}
+{\url{http://netcat.sourceforge.net/} \url{http://www.securityfocus.com/tools/139}\\
+\url{http://secureinfo.free.fr/1/?id=105}, \url{http://nmap.org/book/ncat-man.html}\\
+\url{http://www.geeek.org/comment-creer-un-proxy-http-ultra-simple-sous-linux-286.html}
 }
 {
 \\Bo\^ite \`a outils (Netkit) r\'eseau multi-syst\`eme (client/serveur). 
  Il g\`ere en natif les protocoles HTTP, TELNET, FTP\dots{}\\
-Cl\^one permettant les connexions chiffr\'ees : Cryptcat\\ \url{http://sourceforge.net/projects/cryptcat/}
+Cl\^one permettant les connexions chiffr\'ees : Cryptcat \url{http://sourceforge.net/projects/cryptcat/}
 }
 {
 \textbf{Scan de port : }\\
@@ -5187,6 +5277,13 @@ L'option -s permet de sp\'ecifier l'interface r\'eseau \`a utiliser.\\
 
 \textit{Partie envoi.}\\
 {\sl \color{blue}nc 192.168.0.1 777 < fichier.txt}\vskip + 0.2cm
+
+\textbf{Proxy transparent : }\\
+\textit{Les requ\^etes \'emises sont sotcku\'ees dans \textbf{in\_file} et les r\'eponses dans \textbf{out\_file}.}\\
+{\sl \color{blue}
+mknod backpipe p\\
+nc -l -p 80 < backpipe | tee -a in\_file | nc localhost 8080 | tee -a out\_file > backpipe
+}\vskip + 0.2cm
 
 \addcontentsline{toc}{subsubsection}{Cryptcat}
 \textbf{Utilisation de cryptcat pour avoir une liaison chiffr\'ee :}\\
@@ -5956,12 +6053,12 @@ Il n'est pas n\'ecessaire de remplir tous les champs pour effectuer un envoie (v
 cpt = sniff() {\color{gray}\# \textbf{CTRL+C}}\vskip-0.1cm
 wrpcap("capture.pcap",cpt) {\color{gray} \# la fonction de chargement est rdpcap()}}\vskip+0.1cm
 
-\textbf{Trace route TCP avec sortie en 3D, PDF et SVG :}\vskip-0.1cm
+\textbf{Trace route TCP avec sortie en 3D, PDF, SVG et texte :}\vskip-0.1cm
 {\sl \color{blue}
 a = traceroute(["toto.fr","titi.fr","tutu.fr"])\vskip-0.1cm
 a.trace3D()\vskip-0.1cm
-a.pdfdump("export.pdf")\vskip-0.1cm
-a.graph(target=">resultat.svg")}\vskip+0.1cm
+a.pdfdump("export.pdf")} {\color{gray}\#a.graph(target=">resultat.svg")}\vskip-0.1cm
+{\sl \color{blue}a.sprintf("\{IP:\%IP.src\% \{ICMP:\%ICMP.type\%\}\{TCP:\%TCP.flags\%\}\}")}\vskip+0.1cm
 
 \textbf{Trace route UDP :}\vskip-0.1cm
 {\sl \color{blue}
@@ -6102,7 +6199,7 @@ send(p)}\vskip+0.1cm
 					Menu Outils->Options\dots{}->Avanc\'e->R\'eseau->Param\`etres\dots{}\\
 					Il suffit maintenant d'effectuer une navigation sur le site pour identifier les technologies.}
 		\item Par d\'efaut un URL de type \url{http://www.google.fr/search?hl=fr&q=test} montre l'utilisation de m\'ethode GET (param\`etres s\'epar\'es par \&).
-		\item V\'erifier les fichier de style (CSS), javascripts (JS), et d\'efaut (phpinfo.php, .htaccess, .htpasswd\dots{}).
+		\item V\'erifier les fichier de style (CSS), javascripts (JS), et d\'efaut (phpinfo.php, /admin:\dots{}).
 		\item V\'erifier la verbosit\'e des messages d'erreur.\\
 	\end{itemize}
 \end{enumerate}
@@ -6470,7 +6567,7 @@ actions \`a son insu (exemple : dans le cas d'un administrateur de forum).
 {
 \textbf{Mise en place :}
 \begin{description}
-   \item[$\Square$] Recherche la possibilit\'e d'inclure \`a une page notre propre code (PHP, javascript, lien) :
+   \item[$\Square$] Rechercher la possibilit\'e d'inclure \`a une page notre propre code (PHP, javascript, lien) :
 	\begin{itemize}
 		\item livre d'or ;
 		\item forum ;
@@ -7489,9 +7586,77 @@ Pour d\'esactiver la prise en compte des fichiers d'exclusions robots.txt (\url{
 }
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Windows - Base de registre}{microsoft.png}
+{\url{http://www.beginningtoseethelight.org/ntsecurity/index.php}}
+{
+Depuis la cr\'eation des syst\`emes d'exploitation graphique de Microsoft la base de registre existe, il en existe deux format : un pour syst\`eme embarqu\'e (Windows mobile, CE\dots{}) et un pour PC. \\La liste des emplacements des diff\'erents fichiers de registre est pr\'esent dans la base de registre : HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$hivelist$\backslash$
+}
+{
+{
+\footnotesize
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Chemin} & \textbf{Ruche} & \textbf{Description}\\\hline\hline
+\%SYSTEMROOT\%$\backslash$System32$\backslash$config$\backslash$SAM & HKLM$\backslash$SAM & {\footnotesize Comptes et groupes.}\\\hline
+\%SYSTEMROOT\%$\backslash$System32$\backslash$config$\backslash$SECURITY	& HKLM$\backslash$SECURITY & {\footnotesize GPO et politique locale de s\'ecurit\'e.}\\\hline
+\%SYSTEMROOT\%$\backslash$System32$\backslash$config$\backslash$SOFTWARE & HKLM$\backslash$SOFTWARE & {\footnotesize Configuration logicielle et syst\`eme.}\\\hline
+\%SYSTEMROOT\%$\backslash$System32$\backslash$config$\backslash$SYSTEM & HKLM$\backslash$SYSTEM & {\footnotesize Conf. syst\`eme, services, SYSKEY\dots{}}\\\hline
+\%SYSTEMROOT\%$\backslash$System32$\backslash$config$\backslash$DEFAULT & HKU$\backslash$.DEFAULT & {\footnotesize Profil utilisateur par d\'efaut.}\\\hline
+\%USERROOT\%$\backslash$NTUSER.DAT & HKCU$\backslash$ & {\footnotesize Configuration de l'utilisateur actuel.}\\\hline
+\end{tabular}
+}
+
+\vskip+0.2cm
+\textbf{Copy des fichiers de base de registre avec les droits administrateur :}\\ {\sl \color{blue}REG SAVE HKLM$\backslash$SAM \%path\_to\_save\%$\backslash$SAM}
+\vskip+0.2cm
+\textbf{\large Outils :}
+\begin{itemize}
+\item \textbf{AutoRuns} : \url{http://technet.microsoft.com/fr-fr/sysinternals/hh206034}
+\item \textbf{RtCA} : \url{http://omnia-projetcs.googlecode.com/svn/trunk/RtCA/RtCA.exe}
+\item \textbf{MiTec Windows Registry Recovery} : \url{http://www.mitec.cz}
+\item \textbf{TZWorks Yet Another Registry Utility} : \url{http://www.tzworks.net/download_links.php}
+\item \textbf{Digital Forensics Framework} : \url{http://www.digital-forensic.org}
+\item \textbf{Regviewer} : \url{http://sourceforge.net/projects/regviewer/}
+\item \textbf{Registry decoder} : \url{http://code.google.com/p/registrydecoder/}
+\end{itemize}
+\vskip+0.2cm
+\textbf{Liste des informations dans le registre :}
+\begin{itemize}
+	\item programmes et mises \` a jour :\\
+	{\sl \footnotesize \color{blue}HKEY\_LOCAL\_MACHINE$\backslash$SOFTWARE$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Uninstall$\backslash$\\
+	HKEY\_LOCAL\_MACHINE$\backslash$SOFTWARE$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Component Based Servicing$\backslash$Packages$\backslash$\\
+	HKEY\_LOCAL\_MACHINE$\backslash$SOFTWARE$\backslash$Microsoft$\backslash$Updates$\backslash$}\vskip+0.2cm
+	 
+	\item Services et drivers :\\ {\sl \footnotesize \color{blue}HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$services$\backslash$}\vskip+0.2cm
+		 
+	\item P\'eriph\'eriques USB :\\ {\sl \footnotesize \color{blue}HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$Enum$\backslash$STORAGE, USB, USBSTOR}\vskip+0.2cm	 
+	
+	\item P\'eriph\'eriques mont\'es :\\ {\sl \footnotesize \color{blue}HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$MountedDevices$\backslash$}\vskip+0.2cm	
+	 	
+	\item Historique Userassist (cod\'e en ROT13) :\\ {\sl \footnotesize \color{blue}HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Explorer$\backslash$UserAssist$\backslash$*$\backslash$Count$\backslash$}\vskip+0.2cm	 
+	\item MUICache :\\ {\sl \footnotesize \color{blue}
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Windows$\backslash$ShellNoRoam$\backslash$MUICache$\backslash$\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Classes$\backslash$Local Settings$\backslash$Software$\backslash$Microsoft$\backslash$Windows$\backslash$Shell$\backslash$MUICache$\backslash$}\vskip+0.2cm	
+	
+	\item MRU (parfois en unicode) :\\ {\sl \footnotesize \color{blue}
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Explorer$\backslash$RunMRU, ComDlg32, RecentDocs, StreamMRU, ComputerDescriptions, Map Network Drive MRU\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Search Assistant$\backslash$ACMru$\backslash$*$\backslash$\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Internet Explorer$\backslash$TypedURLs$\backslash$\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$MediaPlayer$\backslash$Player$\backslash$RecentFileList, RecentURLList\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Applets$\backslash$*$\backslash$Recent File List$\backslash$\\
+	HKEY\_CURRENT\_USER$\backslash$Software$\backslash$Microsoft$\backslash$Office$\backslash$\%OFFICEVERSION\%$\backslash$\%APPLI\%$\backslash$Recent File List$\backslash$\\
+	}		
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Windows - \'El\'evation de privil\`eges}{microsoft.png}
-{}{
-\\Ici l'objectif de ces \'el\'evations de privil\`eges est d'obtenir des droits administrateur/system sur la machine.
+{
+\url{http://www.nobodix.org/seb/win2003_adminpass.html}\\
+\url{http://www.jms1.net/nt-unlock.shtml}\\
+}{
+\\Ici l'objectif de ces \'el\'evations de privil\`eges est d'obtenir des droits administrateur/system sur la machine.\\
+
+Documentation de scripts pour Windows : \url{http://www.robvanderwoude.com}
 }{
 {\Large \textbf{Windows 2000}}\\
 \textbf{Gr\^ace \`a l'\'ecran de veille :}\\
@@ -7544,13 +7709,56 @@ sc delete shellcmdline
 	\item Offline NT Password 6 Registry Editor :\\ \url{http://pogostick.net/~pnh/ntpasswd/}\vskip+0.2cm
 	\item ERD Commander 2007 :\\ \url{http://www.passwordone.com/component/option,com_remository/Itemid,110/func,startdown/id,183/}\\
 \end{itemize}
-
-%%Ajouter cette technique : http://www.nobodix.org/seb/win2003_adminpass.html
-%%http://www.jms1.net/nt-unlock.shtml
-
-%%http://fire.dmzs.com/index.php?section=tools&subsection=F
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Windows - Journaux d'audit}{microsoft.png}
+{
+\url{http://www.ultimatewindowssecurity.com/securitylog/encyclopedia/default.aspx?i=j}\\
+\url{http://www.eventid.net}\\
+\url{http://www.myeventlog.com}\\
+}
+{
+Il existe deux formats de fichiers d'audit sous syst\`emes Windows : Evt (version ant'erieures \`a Vista) puis Evtx.
+}
+{
+\textbf{Emplacement des fichiers :}
+\begin{itemize}
+	\item \%windir\%$\backslash$System32$\backslash$config$\backslash$*.evt
+	\item \%windir\%$\backslash$winevt$\backslash$Logs$\backslash$*.evtx
+\end{itemize}
 
+\vskip+0.4cm
+\textbf{Outils :}
+\begin{itemize}
+	\item MyEventViewer : \url{http://www.nirsoft.net/utils/my_event_viewer.html}
+	\item SearchEvent/Filter Events : \url{http://ctxadmtools.musumeci.com.ar/}
+	\item EvtxParser : \url{http://computer.forensikblog.de/files/evtx/Parse-Evtx-current.zip}
+	\item RtCA : \url{http://omnia-projetcs.googlecode.com/svn/trunk/RtCA/RtCA.exe}
+\end{itemize}
+
+\vskip+0.4cm
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{OS} & \textbf{ID} & \textbf{Source} & \textbf{Description}\\\hline\hline
+< Vista & 512 & System & D\'emarrage de Windows\\\hline
+< Vista&513&System&Arr\^et de Windows\\\hline
+< Vista&520&System&Modification de l'heure syst\`eme\\\hline
+< Vista&528,540&System&Connexion d'un utilisateur\\\hline
+< Vista&529-537&System&\'Echec d'authentification\\\hline
+< Vista&538&System&D\'econnexion d'un utilisateur\\\hline
+< Vista&517&System&Le journal d'audit a \'et\'e effac\'e.\\\hline
+< Vista&624-630, 644-647&System&Modification/cr\'eation d'un compte\\\hline
+$\geq$ Vista & 4608 & System & D\'emarrage de Windows\\\hline
+$\geq$ Vista&4609&System&Arr\^et de Windows\\\hline
+$\geq$ Vista&4616&System&Modification de l'heure syst\`eme\\\hline
+$\geq$ Vista&4624  &System&Connexion d'un utilisateur\\\hline
+$\geq$ Vista&4625&System&\'Echec d'authentification\\\hline
+$\geq$ Vista &4634 &System &D\'econnexion d'un utilisateur\\\hline
+$\geq$ Vista &1102 &System &Le journal d'audit a \'et\'e effac\'e\\\hline
+$\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un compte\\\hline
+\end{tabular}
+
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{WMI}{protocole.png}
 {
