@@ -15,6 +15,25 @@ ICON_FICHIER_DWORD  ICON DISCARDABLE "file_dword.ico"
 ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
+IDR_VERSION VERSIONINFO
+FILEVERSION 0,0,1,15
+PRODUCTVERSION 0,0,1,15
+FILETYPE 0x00000001
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "04090000"
+    BEGIN
+      VALUE "CompanyName", "http://omni-a.blogspot.com\0"
+      VALUE "OriginalFilename", "RtCA.exe\0"
+      VALUE "ProductName", "RtCA\0"
+      VALUE "Author", "Nicolas Hanteville\0"
+      VALUE "FileVersion", "0.0.1.15\0"
+      VALUE "ProductVersion", "0.0.1.15\0"
+    END
+  END
+END
+//------------------------------------------------------------------------------
 DLG_MAIN DIALOGEX 6,6,389,273
 CAPTION NOM_APPLI
 FONT 8,"MS Sans Serif",0,0
@@ -194,7 +213,6 @@ BEGIN
     BEGIN
     MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
     MENUITEM "Save view"      ,POPUP_LV_S_VIEW
-    MENUITEM "Refresh view"   ,POPUP_LV_C_VIEW
     MENUITEM "Open process path" ,POPUP_LV_P_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
@@ -207,6 +225,12 @@ BEGIN
       MENUITEM "Owner"        ,POPUP_LV_CP_COL5
       MENUITEM "Start date"   ,POPUP_LV_CP_COL6
       MENUITEM "Network"      ,POPUP_LV_CP_COL7
+    END
+    MENUITEM SEPARATOR
+    POPUP "Dll injection"
+    BEGIN
+      MENUITEM "Add remote thread injection"        ,ADD_DLL_INJECT_REMOTE_THREAD
+      MENUITEM "Remove remote thread injection"     ,REM_DLL_INJECT_REMOTE_THREAD
     END
     END
 END
@@ -246,7 +270,6 @@ BEGIN
   POPUP "Popup_tv"
     BEGIN
     MENUITEM "Copy complet path"    ,POPUP_TV_CP_COMPLET_PATH
-    MENUITEM "Properties"           ,POPUP_TV_PROPERTIES
     MENUITEM SEPARATOR
     MENUITEM "Open"                 ,POPUP_TV_OPEN
     MENUITEM "Add file from"        ,POPUP_TV_ADD
@@ -266,13 +289,14 @@ BEGIN
     END
 END
 //------------------------------------------------------------------------------
-DLG_INFO DIALOGEX 6,6,294,231
+DLG_INFO DIALOGEX 6,6,400,231
 CAPTION "Information"
 FONT 8,"MS Sans Serif",0,0
-STYLE 0x00C80000
-EXSTYLE 0x00000080
+STYLE 0x00CF0800
+//STYLE 0x00C80000
+//EXSTYLE 0x00000080
 BEGIN
-  CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,0,0,294,231,0x00000200
+  CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,0,0,400,231,0x00000200
 END
 //------------------------------------------------------------------------------
 POPUP_LV_INFO MENU DISCARDABLE
@@ -283,6 +307,7 @@ BEGIN
     MENUITEM "Save view"      ,POPUP_LV_S_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Open file Path" ,POPUP_TRV_CONF_OFP
+    MENUITEM "File properties" ,POPUP_LV_PROPERTIES
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
     POPUP "Copy"

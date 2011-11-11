@@ -118,7 +118,7 @@ void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio,
     psd = HeapAlloc(GetProcessHeap(), 0, ssd);
     if (!psd)return;
 
-    if(GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
+    if(proprio && GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
     {
       PSID psid = NULL;
       BOOL pFlag = FALSE;
@@ -139,7 +139,7 @@ void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio,
   unsigned long size_sd = 0;
   //récupération du descripteur sécurité
   GetFileSecurity(file, DACL_SECURITY_INFORMATION, 0, 0, &size_sd);
-  if (size_sd>0)
+  if (acls && size_sd>0)
   {
     sd = (SECURITY_DESCRIPTOR *) HeapAlloc(GetProcessHeap(), 0, size_sd);
     if (sd != NULL)
