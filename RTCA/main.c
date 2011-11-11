@@ -493,22 +493,6 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
             ShellExecute(Tabl[TABL_MAIN], "open", file, NULL,NULL,SW_SHOW);
           }
           break;
-          case POPUP_TV_PROPERTIES:
-          {
-            //lecture du path du fichier
-            char file[MAX_PATH];
-            GetItemPath(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0), file, MAX_PATH);
-            //proprorties
-            ShellExecute(Tabl[TABL_MAIN], "properties", file, NULL,NULL,SW_SHOW);
-            SHELLEXECUTEINFO se;
-            ZeroMemory(&se,sizeof(se));
-            se.cbSize = sizeof(se);
-            se.fMask = SEE_MASK_INVOKEIDLIST;
-            se.lpFile = file;
-            se.lpVerb = "properties";
-            ShellExecuteEx(&se);
-          }
-          break;
           case POPUP_TV_ADD:
           {
             //lecture du path du fichier
@@ -906,8 +890,14 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       unsigned int col_size = (mWidth-380)/3;
       redimColumn(hwnd,LV_VIEW,2,col_size);
       redimColumn(hwnd,LV_VIEW,4,col_size);
-      redimColumn(hwnd,LV_VIEW,6,col_size);
 
+      col_size = col_size/9;
+      redimColumn(hwnd,LV_VIEW,6,col_size);
+      redimColumn(hwnd,LV_VIEW,7,col_size*2);
+      redimColumn(hwnd,LV_VIEW,8,col_size);
+      redimColumn(hwnd,LV_VIEW,9,col_size*2);
+      redimColumn(hwnd,LV_VIEW,10,col_size);
+      redimColumn(hwnd,LV_VIEW,11,col_size*2);
   }else if (uMsg == WM_COMMAND)
   {
     switch(HIWORD(wParam))
@@ -915,11 +905,42 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       case BN_CLICKED:
         switch(LOWORD(wParam))
         {
+          //jestion des injections de dll
+          case ADD_DLL_INJECT_REMOTE_THREAD:
+          case REM_DLL_INJECT_REMOTE_THREAD:
+          {
+            //lecture du pid du processus
+            char tmp[MAX_PATH]="";
+            HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
+            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,tmp,MAX_PATH);
+            DWORD pid = atoi(tmp);
+
+            //choix de la DLL
+            tmp[0]=0;
+            OPENFILENAME ofnFile;
+            ZeroMemory(&ofnFile,sizeof(OPENFILENAME));
+            ofnFile.lStructSize   = sizeof(OPENFILENAME);
+            ofnFile.hwndOwner     = Tabl[TABL_MAIN];
+            ofnFile.lpstrFile     = tmp;
+            ofnFile.nMaxFile      = MAX_PATH;
+            ofnFile.lpstrFilter   = "dll (*.dll)\0*.dll\0";
+            ofnFile.nFilterIndex  = 1;
+            ofnFile.lpstrTitle    = "Chose DLL";
+            ofnFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+            if(GetOpenFileName(&ofnFile))
+            {
+              //élévation de privilège
+              SetDebugPrivilege();
+
+              //injection or not ^^
+              if (LOWORD(wParam) == ADD_DLL_INJECT_REMOTE_THREAD)DllInjecteurA(pid,tmp);
+              else DllEjecteurA(pid,tmp);
+            }
+          }
+          break;
           case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
           case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
-          case POPUP_LV_C_VIEW : EnumProcess(GetDlgItem(hwnd,LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);break;
-
           case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
           case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
           case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
@@ -966,9 +987,6 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
             }
           }
           break;
-
-
-
       break;
     }
   }else if (uMsg == WM_CONTEXTMENU)
@@ -1013,19 +1031,11 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
     }if ((LOWORD(wParam) == LV_VIEW) && (((LPNMHDR)lParam)->code == NM_DBLCLK))
     {
-      //double click sur un processus ^^
-      //init de la listeview
-      ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_INFO],LV_VIEW));
-
-      //récupération de l'id ^^
-      char tmp[MAX_PATH]="";
-      ListView_GetItemText(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),SendMessage(GetDlgItem(Tabl[TABL_INFO],LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,tmp,MAX_PATH);
-
       //chargement des infos du processus
-      ReadProcessInfo(atoi(tmp),GetDlgItem(Tabl[TABL_INFO],LV_VIEW));
+      ReadProcessInfo(GetDlgItem(hwnd,LV_VIEW),SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED));
 
       //affichage de la fenêtre
       ShowWindow(Tabl[TABL_INFO], SW_SHOW);
@@ -1109,152 +1119,181 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
 //------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (uMsg == WM_COMMAND)
+  if (uMsg == WM_SIZE)
+  {
+      unsigned int mWidth = LOWORD(lParam);  // width of client area
+      unsigned int mHeight = HIWORD(lParam);  // width of client area
+
+      MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
+      //redimmensionnement des colonnes
+      unsigned int col_size = (mWidth-70)/5;
+      redimColumn(hwnd,LV_VIEW,0,col_size);
+      redimColumn(hwnd,LV_VIEW,1,col_size*2);
+      redimColumn(hwnd,LV_VIEW,2,col_size);
+      redimColumn(hwnd,LV_VIEW,3,col_size);
+  }
+  else if (uMsg == WM_COMMAND)
+  {
+    if (HIWORD(wParam) == BN_CLICKED)
     {
-      if (HIWORD(wParam) == BN_CLICKED)
+      switch(LOWORD(wParam))
       {
-        switch(LOWORD(wParam))
+        case POPUP_LV_S_SELECTION : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+        case POPUP_LV_S_VIEW : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
+        case POPUP_LV_S_DELETE : LVDelete(TABL_INFO,LV_VIEW);break;
+
+        case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
+        case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
+        case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
+        case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
+        case POPUP_TRV_CONF_OFP:
         {
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_INFO, LV_VIEW, NB_COLONNE_LV[LV_INFO_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
-          case POPUP_LV_S_DELETE : LVDelete(TABL_INFO,LV_VIEW);break;
-
-          case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
-          case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
-          case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
-          case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
-          case POPUP_TRV_CONF_OFP:
+          if (SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0))
           {
-            if (SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0))
-            {
-              char tmp[MAX_PATH]="";
-              ListView_GetItemText(GetDlgItem(hwnd,LV_VIEW),SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,tmp,MAX_PATH);
+            char tmp[MAX_PATH]="";
+            ListView_GetItemText(GetDlgItem(hwnd,LV_VIEW),SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,tmp,MAX_PATH);
 
-              unsigned int size = strlen(tmp);
-              if (size)
-              {
-                //on récupère le path
-                char *c = tmp+size-1;
-                while(*c != '\\')c--;
-                c++;
-                *c=0;
-                ShellExecute(Tabl[TABL_MAIN], "explore", tmp, NULL,NULL,SW_SHOW);
-              }
+            unsigned int size = strlen(tmp);
+            if (size)
+            {
+              //on récupère le path
+              char *c = tmp+size-1;
+              while(*c != '\\')c--;
+              c++;
+              *c=0;
+              ShellExecute(Tabl[TABL_MAIN], "explore", tmp, NULL,NULL,SW_SHOW);
             }
           }
-          break;
         }
-      }
-    }else if (uMsg == WM_CONTEXTMENU)
-    {
-      HMENU hmenu;
-      if ((hmenu = LoadMenu(hInst, MAKEINTRESOURCE(POPUP_LV_INFO)))!= NULL)
-      {
-        //vérification si un item est sélectionné ^^
-        if (ListView_GetSelectedCount((HANDLE)wParam)<1)
-        {
-          RemoveMenu(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
+        break;
+        case POPUP_LV_PROPERTIES:
+          {
+            //lecture du path du fichier
+            char file[MAX_PATH];
+            ListView_GetItemText(GetDlgItem(hwnd,LV_VIEW),SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,file,MAX_PATH);
 
-          RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
-          RemoveMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_GRAYED);
-          RemoveMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_GRAYED);
-          RemoveMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_GRAYED);
-        }
-
-        //affichage du popup menu
-        TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
-        DestroyMenu(hmenu);
+            //properties
+            SHELLEXECUTEINFO se;
+            ZeroMemory(&se,sizeof(se));
+            se.cbSize = sizeof(se);
+            se.fMask = SEE_MASK_INVOKEIDLIST;
+            se.lpFile = file;
+            se.lpVerb = "properties";
+            ShellExecuteEx(&se);
+          }
+        break;
       }
     }
-    else if (uMsg == WM_NOTIFY)
+  }else if (uMsg == WM_CONTEXTMENU)
+  {
+    HMENU hmenu;
+    if ((hmenu = LoadMenu(hInst, MAKEINTRESOURCE(POPUP_LV_INFO)))!= NULL)
     {
-      if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
+      //vérification si un item est sélectionné ^^
+      if (ListView_GetSelectedCount((HANDLE)wParam)<1)
       {
-        c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_INFO_VIEW_NB_COL]);
-      }
-    }else if (uMsg == WM_CLOSE)ShowWindow(hwnd, SW_HIDE);
+        RemoveMenu(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
 
-    return FALSE;
+        RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_GRAYED);
+      }
+
+      //affichage du popup menu
+      TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+      DestroyMenu(hmenu);
+    }
+  }
+  else if (uMsg == WM_NOTIFY)
+  {
+    if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
+    {
+      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_INFO_VIEW_NB_COL]);
+    }
+  }else if (uMsg == WM_CLOSE)ShowWindow(hwnd, SW_HIDE);
+
+  return FALSE;
 }
 //------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    switch(uMsg)
+  switch(uMsg)
+  {
+    case WM_CTLCOLORBTN :return DefWindowProc(hwnd, WM_CTLCOLORBTN, wParam, lParam);
+    case WM_DRAWITEM:DessinerBouton((LPDRAWITEMSTRUCT)lParam);break;
+    case WM_SIZE:
     {
-      case WM_CTLCOLORBTN :return DefWindowProc(hwnd, WM_CTLCOLORBTN, wParam, lParam);
-      case WM_DRAWITEM:DessinerBouton((LPDRAWITEMSTRUCT)lParam);break;
-      case WM_SIZE:
+      unsigned int mWidth = LOWORD(lParam);  // width of client area
+      unsigned int mHeight = HIWORD(lParam);  // width of client area
+
+      //controle de la taille minimum
+      if (mWidth<584 ||mHeight<444)
       {
-        unsigned int mWidth = LOWORD(lParam);  // width of client area
-        unsigned int mHeight = HIWORD(lParam);  // width of client area
+        RECT Rect;
+        GetWindowRect(hwnd, &Rect);
+        MoveWindow(hwnd,Rect.left,Rect.top,584+8,444+34,TRUE);
+      }else
+      {
+        //redimmensionnement des onglets ^^
+        MoveWindow(Tabl[TABL_CONF]    ,0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_LOGS]    ,0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_FILES]   ,0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_REGISTRY],0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_PROCESS],0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_STATE],0,38,mWidth,mHeight-60,TRUE);
 
-        //controle de la taille minimum
-        if (mWidth<584 ||mHeight<444)
+        //de la status barre
+        MoveWindow(GetDlgItem(hwnd,SB_MAIN), 0, mHeight, mWidth,0, TRUE);
+        //init de la barre de status
+        int TaillePart[4];
+        TaillePart[0] = mWidth/4; // messages d'information
+        TaillePart[1] = mWidth/2; // état du scanne logs
+        TaillePart[2] = (mWidth/4)*3; // état du scanne fichiers
+        TaillePart[3] = mWidth; // état du scanne registre
+        SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETPARTS,(WPARAM)4, (LPARAM)TaillePart);
+      }
+    }
+    break;
+    case WM_COMMAND:
+      if (HIWORD(wParam) == BN_CLICKED)
+      {
+        switch(LOWORD(wParam))
         {
-          RECT Rect;
-          GetWindowRect(hwnd, &Rect);
-          MoveWindow(hwnd,Rect.left,Rect.top,584+8,444+34,TRUE);
-        }else
-        {
-          //redimmensionnement des onglets ^^
-          MoveWindow(Tabl[TABL_CONF]    ,0,38,mWidth,mHeight-60,TRUE);
-          MoveWindow(Tabl[TABL_LOGS]    ,0,38,mWidth,mHeight-60,TRUE);
-          MoveWindow(Tabl[TABL_FILES]   ,0,38,mWidth,mHeight-60,TRUE);
-          MoveWindow(Tabl[TABL_REGISTRY],0,38,mWidth,mHeight-60,TRUE);
-          MoveWindow(Tabl[TABL_PROCESS],0,38,mWidth,mHeight-60,TRUE);
-          MoveWindow(Tabl[TABL_STATE],0,38,mWidth,mHeight-60,TRUE);
-
-          //de la status barre
-          MoveWindow(GetDlgItem(hwnd,SB_MAIN), 0, mHeight, mWidth,0, TRUE);
-          //init de la barre de status
-          int TaillePart[4];
-          TaillePart[0] = mWidth/4; // messages d'information
-          TaillePart[1] = mWidth/2; // état du scanne logs
-          TaillePart[2] = (mWidth/4)*3; // état du scanne fichiers
-          TaillePart[3] = mWidth; // état du scanne registre
-          SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETPARTS,(WPARAM)4, (LPARAM)TaillePart);
+          case BT_MAIN_CONF : ViewTabl(TABL_CONF);break;
+          case BT_MAIN_LOGS : ViewTabl(TABL_LOGS);break;
+          case BT_MAIN_FILES : ViewTabl(TABL_FILES);break;
+          case BT_MAIN_REGISTRY : ViewTabl(TABL_REGISTRY);break;
+          case BT_MAIN_PROCESS : EnumProcess(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);ViewTabl(TABL_PROCESS);break;
+          case BT_MAIN_STATE : ViewTabl(TABL_STATE);break;
         }
       }
-      break;
-      case WM_COMMAND:
-        if (HIWORD(wParam) == BN_CLICKED)
-        {
-          switch(LOWORD(wParam))
-          {
-            case BT_MAIN_CONF : ViewTabl(TABL_CONF);break;
-            case BT_MAIN_LOGS : ViewTabl(TABL_LOGS);break;
-            case BT_MAIN_FILES : ViewTabl(TABL_FILES);break;
-            case BT_MAIN_REGISTRY : ViewTabl(TABL_REGISTRY);break;
-            case BT_MAIN_PROCESS : EnumProcess(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);ViewTabl(TABL_PROCESS);break;
-            case BT_MAIN_STATE : ViewTabl(TABL_STATE);break;
-          }
-        }
-      break;
-      case WM_DROPFILES://gestion du drag and drop de fichier ^^
-        {
-           HDROP H_DropInfo=(HDROP)wParam;//récupération de la liste
-           char tmp[MAX_PATH];
-           DWORD i,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, tmp, MAX_PATH);
-           for (i=0;i<nb_path;i++)
-           {
-             //traitement des données ^^
-             DragQueryFile(H_DropInfo, i, tmp, MAX_PATH);
+    break;
+    case WM_DROPFILES://gestion du drag and drop de fichier ^^
+      {
+         HDROP H_DropInfo=(HDROP)wParam;//récupération de la liste
+         char tmp[MAX_PATH];
+         DWORD i,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, tmp, MAX_PATH);
+         for (i=0;i<nb_path;i++)
+         {
+           //traitement des données ^^
+           DragQueryFile(H_DropInfo, i, tmp, MAX_PATH);
 
-             //vérification du type de fichier + add^^
-             FileToTreeView(tmp);
-           }
-           DragFinish(H_DropInfo);//libération de la mémoire
+           //vérification du type de fichier + add^^
+           FileToTreeView(tmp);
+         }
+         DragFinish(H_DropInfo);//libération de la mémoire
 
-           //expend des branches
-           SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
-           SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
-           SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
-        }
-      break;
-      case WM_INITDIALOG:InitConfig(hwnd); break;
-      case WM_CLOSE:EndConfig();break;
-    }
-    return FALSE;
+         //expend des branches
+         SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
+         SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
+         SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+      }
+    break;
+    case WM_INITDIALOG:InitConfig(hwnd); break;
+    case WM_CLOSE:EndConfig();break;
+  }
+  return FALSE;
 }
 //------------------------------------------------------------------------------
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)

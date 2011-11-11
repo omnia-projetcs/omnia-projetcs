@@ -20,7 +20,7 @@
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.13 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.15 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -48,6 +48,8 @@
 #define ICON_FILE_STR 3
 #define ICON_FILE_UNK 4
 #define ICON_FILE     5
+
+#define IDR_VERSION 1
 //------------------------------------------------------------------------------
 BOOL consol_mode;
 char console_cmd[MAX_LINE_SIZE];
@@ -161,6 +163,10 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_LV_CP_COL11    11020
 #define POPUP_LV_CP_COL12    11021
 #define POPUP_LV_CP_COL13    11022
+
+#define ADD_DLL_INJECT_REMOTE_THREAD  11023
+#define REM_DLL_INJECT_REMOTE_THREAD  11024
+#define POPUP_LV_PROPERTIES           11025
 
 #define POPUP_TV_EXPAND_ALL  11030
 #define POPUP_LV_P_VIEW      11031
@@ -340,6 +346,18 @@ typedef struct line_item
   char c[MAX_LINE_SIZE];
 }LINE_ITEM;
 #define SIZE_UTIL_ITEM    13
+
+#define MAX_PROC_LINE_ITEM_SIZE 20
+typedef struct line_proc_item
+{
+  char protocol[MAX_PROC_LINE_ITEM_SIZE];
+  char state[MAX_PROC_LINE_ITEM_SIZE];
+  char IP_src[MAX_PROC_LINE_ITEM_SIZE];
+  char IP_dst[MAX_PROC_LINE_ITEM_SIZE];
+  char Port_src[MAX_PROC_LINE_ITEM_SIZE];
+  char Port_dst[MAX_PROC_LINE_ITEM_SIZE];
+}LINE_PROC_ITEM;
+
 
 typedef struct ThreadExport
 {
@@ -573,8 +591,8 @@ typedef struct s_item_ls
     char sid[1];      //par defaut découpé en section de 2octet *nb_part
   }DATA_USER;
   */
-
-
+//------------------------------------------------------------------------------
+PVOID OldValue_W64b;
 //------------------------------------------------------------------------------
 //MD5
 typedef unsigned char md5_byte_t; /* 8-bit byte */
@@ -633,6 +651,7 @@ void LVDelete(unsigned int id_tabl, int lv);
 void LVtoMessage(HANDLE hlv, unsigned short colonne);
 void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char* description,HANDLE hlv);
 
+DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img);
 void AddToLV_Registry(LINE_ITEM *item);
 DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
@@ -678,7 +697,9 @@ void OpenRegeditKey(char *key);
 void CheckRegistryFile();
 
 //process
-void ReadProcessInfo(DWORD pid, HANDLE hlv);
+void ReadProcessInfo(HANDLE hlv, DWORD id);
+BOOL WINAPI DllInjecteurA(DWORD dwPid,char * szDLLPath);
+BOOL WINAPI DllEjecteurA(DWORD dwPid,char * szDLLPath);
 
 //fonction d'extractions syskey + hash
 DWORD WINAPI BackupRegFile(LPVOID lParam);

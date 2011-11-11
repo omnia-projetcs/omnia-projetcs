@@ -531,6 +531,26 @@ void LVtoMessage(HANDLE hlv, unsigned short colonne)
 }
 //------------------------------------------------------------------------------
 //HANDLE hListView = GetDlgItem(Tabl[TAB_DISCO],LSTV);
+DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img)
+{
+  //ajout de la ligne
+  LVITEM lvi;
+  lvi.mask = LVIF_TEXT|LVIF_PARAM|LVIF_IMAGE;
+  lvi.iSubItem = 0;
+  lvi.lParam = LVM_SORTITEMS;
+  lvi.pszText="";
+  lvi.iItem = ListView_GetItemCount(hlv);
+  lvi.iImage = img;
+  DWORD itemPos = ListView_InsertItem(hlv, &lvi);
+
+  //ajout des items
+  unsigned short i=0;
+  for (;i<nb_colonne;i++){if (item[i].c[0]!=0)ListView_SetItemText(hlv,itemPos,i,item[i].c);}
+
+  return itemPos;
+}
+//------------------------------------------------------------------------------
+//HANDLE hListView = GetDlgItem(Tabl[TAB_DISCO],LSTV);
 DWORD AddToLV(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
 {
   //ajout de la ligne
@@ -1763,6 +1783,21 @@ void InitConfig(HWND hwnd)
   InitCommonControls();
   InitializeCriticalSection(&Sync);
 
+  //disable 64b redirection
+  OldValue_W64b = FALSE;
+
+  typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);
+  WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
+
+  HMODULE hDLL = LoadLibrary( "KERNEL32.dll");
+  if (hDLL != NULL)
+  {
+    Wow64DisableWow64FsRedirect = (WOW64DISABLEREDIRECT) GetProcAddress(hDLL,"Wow64DisableWow64FsRedirection");
+    if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
+
+    FreeLibrary(hDLL);
+  }
+
   //init des variables globales
   Tabl[TABL_MAIN] = hwnd;
   AutoSearchFilesStart = FALSE;
@@ -1805,6 +1840,7 @@ void InitConfig(HWND hwnd)
 
   //fenêtre Info ^^
   Tabl[TABL_INFO]     = CreateDialog(0, MAKEINTRESOURCE(DLG_INFO)    ,Tabl[TABL_MAIN],DialogProc_info);
+  SendMessage(Tabl[TABL_INFO], WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(ICON_APP)));
 
   ShowWindow(Tabl[TABL_LOGS], SW_HIDE);
   ShowWindow(Tabl[TABL_FILES], SW_HIDE);
@@ -2195,11 +2231,11 @@ void InitConfig(HWND hwnd)
 
   TABL_ID_REG_VISIBLE = 0;
 
-  lvc.cx = 40;       //taille colonne
-  lvc.pszText = "Pid"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
   lvc.cx = 100;       //taille colonne
   lvc.pszText = "Process"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "Pid"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
   lvc.cx = 80;       //taille colonne
   lvc.pszText = "Path"; //texte de la colonne
@@ -2213,11 +2249,31 @@ void InitConfig(HWND hwnd)
   lvc.cx = 120;       //taille colonne
   lvc.pszText = "Start date"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
-  lvc.cx = 80;       //taille colonne
-  lvc.pszText = "Network"; //texte de la colonne
+
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Protocol"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "IP src"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Port src"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "IP dst"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)9, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Port dst"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "State"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP);
-  NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL] = 7;
+  NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL] = 12;
+
+
+
+
 
   lvc.cx = 130;       //taille colonne
   lvc.pszText = "Start"; //texte de la colonne
@@ -2253,7 +2309,7 @@ void InitConfig(HWND hwnd)
   lvc.cx = 100;       //taille colonne
   lvc.pszText = "Description"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
-  lvc.cx = 150;       //taille colonne
+  lvc.cx = 300;       //taille colonne
   lvc.pszText = ""; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
   lvc.cx = 80;       //taille colonne
@@ -2982,6 +3038,19 @@ void InitConfig(HWND hwnd)
 //------------------------------------------------------------------------------
 void EndConfig()
 {
+  //reinit W64 redirect
+  typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID OldValue);
+  WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
+
+  HMODULE hDLL = LoadLibrary( "KERNEL32.dll");
+  if (hDLL != NULL)
+  {
+    Wow64DisableWow64FsRedirect = (WOW64DISABLEREDIRECT) GetProcAddress(hDLL,"Wow64RevertWow64FsRedirection");
+    if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
+
+    FreeLibrary(hDLL);
+  }
+
   EndDialog(Tabl[TABL_MAIN], 0);
   DeleteObject(PoliceGras);
   DeleteCriticalSection(&Sync);
