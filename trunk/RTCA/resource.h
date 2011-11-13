@@ -20,7 +20,7 @@
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.15 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.16 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -167,6 +167,7 @@ BOOL TV_FILES_VISBLE;
 #define ADD_DLL_INJECT_REMOTE_THREAD  11023
 #define REM_DLL_INJECT_REMOTE_THREAD  11024
 #define POPUP_LV_PROPERTIES           11025
+#define POPUP_KILL_PROCESS            11026
 
 #define POPUP_TV_EXPAND_ALL  11030
 #define POPUP_LV_P_VIEW      11031
@@ -627,6 +628,7 @@ void ErrorExit(LPTSTR lpszFunction);
 void redimColumn(HANDLE f,int lv,int column,unsigned int col_size);
 
 //fonctions de traitement
+void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio, unsigned int prop_taille_max);
 void GetMyDirectory(char *path, unsigned int TAILLE);
 BOOL Compare(char*src,char*dst);
 unsigned long int Contient(char*data,char*chaine);
@@ -697,9 +699,11 @@ void OpenRegeditKey(char *key);
 void CheckRegistryFile();
 
 //process
+void SetDebugPrivilege();
 void ReadProcessInfo(HANDLE hlv, DWORD id);
 BOOL WINAPI DllInjecteurA(DWORD dwPid,char * szDLLPath);
 BOOL WINAPI DllEjecteurA(DWORD dwPid,char * szDLLPath);
+void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column);
 
 //fonction d'extractions syskey + hash
 DWORD WINAPI BackupRegFile(LPVOID lParam);
@@ -714,7 +718,7 @@ void AddLvSyskey(char *path, char *cJD, char *cSkew1, char *cGBG, char *cData, c
 void SyskeyExtract(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *path);
 
 //event logs
-void EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned short max_size);
+BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned short max_size);
 void TraiterlogFile(char *path, HANDLE hlv);
 void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv);
 void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv);

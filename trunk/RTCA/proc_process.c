@@ -56,7 +56,6 @@ BOOL WINAPI DLLInjecteurW(DWORD dwPid,PWSTR szDLLPath)
 
 BOOL WINAPI DLLEjecteurW(DWORD dwPid,PWSTR szDLLPath)
 {
-
 	/* Recherche de l'adresse du module dans le processus cible. */
 	MODULEENTRY32W meModule;
 	meModule.dwSize = sizeof(meModule);
@@ -89,7 +88,7 @@ BOOL WINAPI DLLEjecteurW(DWORD dwPid,PWSTR szDLLPath)
 		return FALSE;
 	}
     /* Remarque : ici pas besoin de crée une variable contenant le path de la dll dans le processus cible
-     * étant donné que la dll a été chargée et que donc il suffit de récupérer l'adresse de celle-ci
+     * étant donné que la dll a été chargée, il suffit de récupérer l'adresse de celle-ci
      * dans les modules chargés par le processus cible. (fait ci-dessus grâce à CreateToolhelp32Snapshot, ... )
      */
 
@@ -145,6 +144,41 @@ BOOL WINAPI DllEjecteurA(DWORD dwPid,char * szDLLPath){
 	MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)szDLLPath,(int)-1,(LPWSTR)wszDllPath,(int)W_MAX_PATH);
 
 	return (DLLEjecteurW(dwPid,wszDllPath));
+}
+//------------------------------------------------------------------------------
+void SupSItem(HANDLE hlv,unsigned int column,char *txt)
+{
+  DWORD NBLigne=SendMessage(hlv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    int j;
+    char tmp[MAX_LINE_SIZE]="";
+    for (j=NBLigne-1;j>-1;j--)//ligne par ligne
+    {
+      tmp[0]=0;
+      ListView_GetItemText(hlv,j,column,tmp,MAX_LINE_SIZE);
+      if (!strcmp(tmp,txt))
+        SendMessage(hlv,LVM_DELETEITEM,(WPARAM)j,(LPARAM)NULL);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column)
+{
+  //récupération de l'id
+  char tmp[MAX_LINE_SIZE]="";
+  ListView_GetItemText(hlv,id,column,tmp,MAX_LINE_SIZE);
+
+  //passage en mode privilèges
+  SetDebugPrivilege();
+
+  //kill
+  HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, atoi(tmp));
+  if (hProcess != NULL)
+  {
+    if (TerminateProcess(hProcess, 0))SupSItem(hlv ,column, tmp);
+    CloseHandle(hProcess);
+  }
 }
 //------------------------------------------------------------------------------
 int __stdcall GetIconProcess(HANDLE hlv,char * szProcessPath)
@@ -629,7 +663,7 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
       LINE_ITEM lv_line[SIZE_UTIL_ITEM];
       LINE_PROC_ITEM port_line[MAX_PATH];
 
-      int img = NULL;
+      int img = 0;
 
       char tmp[MAX_PATH];
       do
