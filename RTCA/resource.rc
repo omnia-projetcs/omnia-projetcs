@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,15
-PRODUCTVERSION 0,0,1,15
+FILEVERSION 0,0,1,16
+PRODUCTVERSION 0,0,1,16
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.15\0"
-      VALUE "ProductVersion", "0.0.1.15\0"
+      VALUE "FileVersion", "0.0.1.16\0"
+      VALUE "ProductVersion", "0.0.1.16\0"
     END
   END
 END
@@ -216,6 +216,7 @@ BEGIN
     MENUITEM "Open process path" ,POPUP_LV_P_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
+    MENUITEM "Kill process"   ,POPUP_KILL_PROCESS
     POPUP "Copy"
     BEGIN
       MENUITEM "Pid"          ,POPUP_LV_CP_COL1

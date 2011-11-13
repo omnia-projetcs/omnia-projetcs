@@ -41,6 +41,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,337,110,40,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,337,110,40,TRUE);
+
+        //pour correction du bug d'affichage
+        InvalidateRect(hwnd, NULL, TRUE);
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
@@ -325,11 +328,13 @@ BOOL CALLBACK DialogProc_logs(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH),mWidth/4+10,mHeight-26,100,21,TRUE);
 
         //redimmensionnement des colonnes
-        unsigned int col_size = (mWidth-310)/3;
+        unsigned int col_size = (mWidth-330)/3;
         redimColumn(hwnd,LV_LOGS_VIEW,4,col_size);
         redimColumn(hwnd,LV_LOGS_VIEW,5,col_size);
         redimColumn(hwnd,LV_LOGS_VIEW,7,col_size);
+        redimColumn(hwnd,LV_LOGS_VIEW,8,20);
 
+        InvalidateRect(hwnd, NULL, TRUE);
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
@@ -428,6 +433,7 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           redimColumn(hwnd,LV_FILES_VIEW,5,33);
           redimColumn(hwnd,LV_FILES_VIEW,6,33);
         }
+        InvalidateRect(hwnd, NULL, TRUE);
     }else if (uMsg == WM_COMMAND)
     {
       if (HIWORD(wParam) == BN_CLICKED)
@@ -696,6 +702,7 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         redimColumn(hwnd,LV_REGISTRY_PATH,2,col_size);
         redimColumn(hwnd,LV_REGISTRY_PATH,3,col_size);
 
+        InvalidateRect(hwnd, NULL, TRUE);
     }else if (uMsg == WM_COMMAND)
     {
       switch(HIWORD(wParam))
@@ -898,6 +905,8 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       redimColumn(hwnd,LV_VIEW,9,col_size*2);
       redimColumn(hwnd,LV_VIEW,10,col_size);
       redimColumn(hwnd,LV_VIEW,11,col_size*2);
+
+      InvalidateRect(hwnd, NULL, TRUE);
   }else if (uMsg == WM_COMMAND)
   {
     switch(HIWORD(wParam))
@@ -941,6 +950,7 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
           case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
           case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
+          case POPUP_KILL_PROCESS : KilllvProcess(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1);break;
           case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
           case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
           case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
@@ -1062,6 +1072,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
       //redimmensionnement des colonnes
       redimColumn(hwnd,LV_VIEW_H,3,mWidth-440);
 
+      InvalidateRect(hwnd, NULL, TRUE);
   }else if (uMsg == WM_COMMAND)
   {
     switch(HIWORD(wParam))
@@ -1131,6 +1142,8 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       redimColumn(hwnd,LV_VIEW,1,col_size*2);
       redimColumn(hwnd,LV_VIEW,2,col_size);
       redimColumn(hwnd,LV_VIEW,3,col_size);
+
+      InvalidateRect(hwnd, NULL, TRUE);
   }
   else if (uMsg == WM_COMMAND)
   {
@@ -1172,14 +1185,17 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             char file[MAX_PATH];
             ListView_GetItemText(GetDlgItem(hwnd,LV_VIEW),SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,file,MAX_PATH);
 
-            //properties
-            SHELLEXECUTEINFO se;
-            ZeroMemory(&se,sizeof(se));
-            se.cbSize = sizeof(se);
-            se.fMask = SEE_MASK_INVOKEIDLIST;
-            se.lpFile = file;
-            se.lpVerb = "properties";
-            ShellExecuteEx(&se);
+            if (file[1]==':' || (file[1]=='\\' && file[1]=='\\'))
+            {
+              //properties
+              SHELLEXECUTEINFO se;
+              ZeroMemory(&se,sizeof(se));
+              se.cbSize = sizeof(se);
+              se.fMask = SEE_MASK_INVOKEIDLIST;
+              se.lpFile = file;
+              se.lpVerb = "properties";
+              ShellExecuteEx(&se);
+            }
           }
         break;
       }
@@ -1253,6 +1269,7 @@ BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         TaillePart[3] = mWidth; // état du scanne registre
         SendDlgItemMessage(Tabl[TABL_MAIN],SB_MAIN,SB_SETPARTS,(WPARAM)4, (LPARAM)TaillePart);
       }
+      InvalidateRect(hwnd, NULL, TRUE);
     }
     break;
     case WM_COMMAND:

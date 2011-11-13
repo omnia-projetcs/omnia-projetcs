@@ -1922,11 +1922,14 @@ void InitConfig(HWND hwnd)
   lvc.cx = 50;       //taille colonne
   lvc.pszText = "Type"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
-  lvc.cx = 90;       //taille colonne
+  lvc.cx = 70;       //taille colonne
   lvc.pszText = "User-SID"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Critical"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_LOGS],LV_LOGS_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL] = 8;
+  NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL] = 9;
 
   lvc.cx = 50;       //taille colonne
   lvc.pszText = "Path"; //texte de la colonne

@@ -4591,92 +4591,86 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 	\begin{tabular}{cc}
 		\blockFiche{8cm}{9cm}{Compression de fichier}
 		{
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Compression d'un r\'epertoire en *.bz2 :}
 			{
 				tar cvjf resultat.tar.bz2 Rep\_a\_compresser
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Compression d'un r\'epertoire en *.tar.gz :}
 			{
 			  tar cvzf resultat.tar.gz Rep\_a\_compresser
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Compresser un r\'epertoire en *.tar :}
 			{
 				tar -vcf resultat.tar Rep\_a\_compresser
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Afficher le contenu d'une archive :}
 			{
 				tar -tf fichier.tar
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.7cm}
 			{D\'ecompresser seulement un fichier d'une archive :}
 			{
 				tar -xvf fichier.tar "toto.exe"
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1cm}
 			{D\'ecompression de fichier *.bz2 :}
 			{
-				tar jxvf fichier.tar.bz2\\
+				tar jxvf fichier.tar.bz2\vskip-0.1cm
 				bzip2 -d fichier.bz2\\
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1cm}
 			{D\'ecompression de fichier *.gz ou *.tar.gz ou *.tgz:}
 			{
-				gzip -d fichier.gz\\
+				gzip -d fichier.gz\vskip-0.1cm
 				tar zxvf fichier.tgz
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.7cm}
 			{D\'ecompression de fichier *.tar}
 			{
 				tar -vxf fichier.tar
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1.2cm}
 			{Extraire un fichier RPM avec rpm2cpio (package rpm) et cpio (package cpio) :}
 			{
 				rpm2cpio fichier.rpm | cpio -mid
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.7cm}
 			{Extraire un fichier DEB avec ar (package binutils) :}
 			{
 				ar xv fichier.deb
 			}\\
 			\hline
 			\rowcolor[gray]{.9} \textbf{Encodage \& d\'ecodage}\\\hline
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.7cm}
 			{Extraire des fichiers uuencod\'es ou en base 64 :}
 			{
 				uudeview -i \textit{[fichier]}
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1.2cm}
 			{Modifier le format de codage des caract\`eres de \textbf{Latin1} \`a \textbf{UTF8} :}
 			{
 				recode latin1..utf8 \textit{[fichier]}
 			}\\
 			\hline
 			\rowcolor[gray]{.9} \textbf{SHELL}\\\hline
-			\MbFCmd{3.8cm}
+			\MbFCmd{1.6cm}
 			{Diff\'erents shell existants :}
 			{
-				sh { \color{black} \textit{\textbf{SH}ell}}\\
-				csh { \color{black} \textit{\textbf{C SH}ell}}\\
-				ksh { \color{black} \textit{\textbf{K}orn \textbf{SH}ell}}\\
-				bash { \color{black} \textit{\textbf{B}ourne \textbf{A}gain \textbf{SH}ell}}\\
-				tcsh { \color{black} \textit{\textbf{T}ENEX \textbf{C} \textbf{SH}ell}}\\
-				zsh { \color{black} \textit{\textbf{Z}hong Shao \textbf{SH}ell}}\\
-				rc { \color{black} \textit{\textbf{R}un \textbf{C}ommands}}
+				sh { \color{black} \textit{\textbf{SH}ell}}, csh { \color{black} \textit{\textbf{C SH}ell}}, ksh { \color{black} \textit{\textbf{K}orn \textbf{SH}ell}}\\
+				bash { \color{black} \textit{\textbf{B}ourne \textbf{A}gain \textbf{SH}ell}}, tcsh { \color{black} \textit{\textbf{T}ENEX \textbf{C} \textbf{SH}ell}}, zsh { \color{black} \textit{\textbf{Z}hong Shao \textbf{SH}ell}}, rc { \color{black} \textit{\textbf{R}un \textbf{C}ommands}}
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{0.7cm}
 			{Ex\'ecution d'un shell :}
 			{
-				/bin/sh\\
-				/sbin/zsh
+				/bin/sh ou /sbin/zsh
 			}\\
 			\hline
 			\rowcolor[gray]{.9} \textbf{Copie de fichier avec SSH}\\\hline
-			\MbFCmd{1.3cm}
+			\MbFCmd{0.7cm}
 			{Copie d'un fichier serveur vers le r\'epertoire courant :}
 			{
 			scp login@serveur:Chemin/Fichier .
@@ -4684,8 +4678,33 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			\MbFCmd{0.7cm}
 			{Copie d'un r\'epertoire vers un serveur :}
 			{
-			scp -r \textit{[R\'epertoire]} login@serveur:Chemin\vskip - 2cm
-			}
+			scp -r \textit{[R\'epertoire]} login@serveur:Chemin
+			}\\
+			\hline
+			\rowcolor[gray]{.9} \textbf{SVN (Subversion)}\\\hline
+			\MbFCmd{0.7cm}
+			{Copy local du d\'ep\^ot :}
+			{
+			svn checkout \url{http:\\url/svn/repository} localcopy
+			}\\
+			\MbFCmd{0.7cm}	
+			{Mise \`a jour \`a partir du r\'epertoire localcopy :}
+			{
+			svn update localcopy
+			}\\	
+			\MbFCmd{1.3cm}	
+			{Ajout du fichier et ajout au d\'ep\^ot :}
+			{
+			svn add localcopy/fichier\vskip-0.1cm
+			svn commit localcopy
+			}				
+			\MbFCmd{0.95cm}	
+			{D\'eplacement, copy, suppression de fichier :}
+			{
+			svn move/copy fichier destination\vskip-0.1cm
+			svn delete fichier
+			%\vskip - 2cm
+			}	
 		}
 	&
 		\blockFiche{8cm}{9cm}{Commandes Unix }

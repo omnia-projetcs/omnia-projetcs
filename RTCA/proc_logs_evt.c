@@ -139,7 +139,8 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
                 snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",(char *)pevlr+sizeof(EVENTLOGRECORD));
 
               //ID
-              EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+              if(EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
+              else lv_line[8].c[0]=0;
 
               //Description + infos
               //NumStrings, StringOffset

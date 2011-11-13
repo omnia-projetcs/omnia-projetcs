@@ -232,21 +232,25 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
           //if (*c == 0x05)
           {
             snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",c);
-            EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+            if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
+            else lv_line[8].c[0]=0;
+
             break;
 
             /*if ((*(c+1) == 0x12 || *(c+1) == 0x13 || *(c+1) == 0x14) && *(c+2) == 0x00)
             {
               c+=5;
               snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",c);
-              EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+            if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
+            else lv_line[8].c[0]=0;
               break;
             }else if (*(c+1) == 0x15 && *(c+2) == 0x00)
             {
               c+=21;
               if (*c == 0x00)c++;
               snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",c);
-              EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+            if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
+            else lv_line[8].c[0]=0;
               break;
             }*/
           }
@@ -275,7 +279,8 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
           n++;
         }
 
-        EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE);
+        if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
+        else lv_line[8].c[0]=0;
       }
 
       //traitement de la description !!
