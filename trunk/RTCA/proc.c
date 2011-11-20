@@ -637,6 +637,53 @@ void AddToLV_Registry(LINE_ITEM *item)
   }
 }
 //------------------------------------------------------------------------------
+void AddToLV_Registry2(char *date, char *user, char *from, char *data)
+{
+  if (!State_Enable || date[0]==0)return;
+  EnterCriticalSection(&Sync);
+  //recherche de l'emplacement par date ^^
+  //si aucun item dans la liste on en ajoute
+  HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW);
+  DWORD nb_items = ListView_GetItemCount(hlv_r);
+  DWORD ref_item =0,i;
+  char tmp[MAX_LINE_SIZE];
+
+  //date de création
+  if (nb_items > 0)
+  {
+    //on boucle tous les items jusqu'a avoir item > au notre
+    for (i=0;i<nb_items;i++)
+    {
+      tmp[0]=0;
+      ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
+      if (strcmp(date,tmp)<0)
+      {
+        ref_item = i;
+        break;
+      }
+    }
+  }
+
+  //ajout de l'item
+  LVITEM lvi;
+  lvi.mask = LVIF_TEXT|LVIF_PARAM;
+  lvi.iSubItem = 0;
+  lvi.lParam = LVM_SORTITEMS;
+  lvi.pszText="";
+  lvi.iItem = ref_item;
+  ListView_InsertItem(hlv_r, &lvi);
+  //Date
+  ListView_SetItemText(hlv_r,ref_item,0,date);
+  //Source
+  ListView_SetItemText(hlv_r,ref_item,1,"Registry");
+  //User
+  ListView_SetItemText(hlv_r,ref_item,3,user);
+  //Description
+  snprintf(tmp,MAX_LINE_SIZE,"[Key update] Data from : %s ; %s",from,data);
+  ListView_SetItemText(hlv_r,ref_item,2,tmp);
+  LeaveCriticalSection(&Sync);
+}
+//------------------------------------------------------------------------------
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
 {
   if (!State_Enable)return AddToLV(hlv, item, nb_colonne);
@@ -2315,15 +2362,23 @@ void InitConfig(HWND hwnd)
   lvc.cx = 300;       //taille colonne
   lvc.pszText = ""; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
-  lvc.cx = 80;       //taille colonne
+  lvc.cx = 60;       //taille colonne
   lvc.pszText = ""; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
-  lvc.cx = 80;       //taille colonne
+  lvc.cx = 60;       //taille colonne
   lvc.pszText = ""; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
-
+  lvc.cx = 10;       //taille colonne
+  lvc.pszText = "ProductName"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
+  lvc.pszText = "FileVersion"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
+  lvc.pszText = "CompanyName"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
+  lvc.pszText = "FileDescription"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_INFO_VIEW_NB_COL] = 4;
+  NB_COLONNE_LV[LV_INFO_VIEW_NB_COL] = 8;
 
   //treeview
   TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
@@ -2476,8 +2531,9 @@ void InitConfig(HWND hwnd)
   strcpy(ref_autorun_search[i++].v,"Microsoft\\Windows CE Services\\AutoStartOnDisconnect");
 
   i=0;
-  strcpy(ref_hiddenlog_search[i++].v,"Explorer\\UserAssist\\{5E6AB780-7743-11CF-A12B-00AA004AE837}\\Count");
-  strcpy(ref_hiddenlog_search[i++].v,"Explorer\\UserAssist\\{75048700-EF1F-11D0-9888-006097DEACF9}\\Count");
+  strcpy(ref_hiddenlog_search[i++].v,"Explorer\\UserAssist\\");
+  //strcpy(ref_hiddenlog_search[i++].v,"Explorer\\UserAssist\\{5E6AB780-7743-11CF-A12B-00AA004AE837}\\Count");
+  //strcpy(ref_hiddenlog_search[i++].v,"Explorer\\UserAssist\\{75048700-EF1F-11D0-9888-006097DEACF9}\\Count");
 
   i=0;
   strcpy(ref_software_search[i++].v,"Microsoft\\Windows\\CurrentVersion\\Uninstall\\");

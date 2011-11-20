@@ -18,9 +18,8 @@
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
-
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.16 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.17 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -40,16 +39,16 @@
 #define ICON_FICHIER_UNKNOW   106
 #define ICON_FICHIER          107
 
-#define SZ_PART_SYSKEY  0x20
+#define SZ_PART_SYSKEY        0x20
 
-#define ICON_FILE_DOSSIER  0
-#define ICON_FILE_BIN 1
-#define ICON_FILE_NUM 2
-#define ICON_FILE_STR 3
-#define ICON_FILE_UNK 4
-#define ICON_FILE     5
+#define ICON_FILE_DOSSIER     0
+#define ICON_FILE_BIN         1
+#define ICON_FILE_NUM         2
+#define ICON_FILE_STR         3
+#define ICON_FILE_UNK         4
+#define ICON_FILE             5
 
-#define IDR_VERSION 1
+#define IDR_VERSION           1
 //------------------------------------------------------------------------------
 BOOL consol_mode;
 char console_cmd[MAX_LINE_SIZE];
@@ -378,7 +377,7 @@ typedef struct reg_ref_search
 #define NB_MAX_REF_SEARCH_AUTORUN       17
 REG_REF_SEARCH ref_autorun_search[NB_MAX_REF_SEARCH_AUTORUN];
 
-#define NB_MAX_REF_SEARCH_HIDDENLOG      2
+#define NB_MAX_REF_SEARCH_HIDDENLOG      1
 REG_REF_SEARCH ref_hiddenlog_search[NB_MAX_REF_SEARCH_HIDDENLOG];
 
 #define NB_MAX_REF_SEARCH_NETWORK        1
@@ -655,6 +654,7 @@ void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char*
 
 DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img);
 void AddToLV_Registry(LINE_ITEM *item);
+void AddToLV_Registry2(char *date, char *user, char *from, char *data);
 DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 DWORD AddToLV(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);

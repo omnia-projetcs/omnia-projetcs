@@ -276,12 +276,12 @@ BOOL registry_users_extract()
   HANDLE hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS);
   HKEY CleTmp;
   DWORD nbSubKey = 0,i,j,k,l,TailleNomSubKey, size;
-  char path[MAX_PATH],NomSubKey[MAX_PATH],tmp[MAX_LINE_SIZE];
+  char path[MAX_PATH],NomSubKey[MAX_PATH],tmp[MAX_LINE_SIZE],tmp_add[MAX_PATH],user[MAX_PATH];
   LINE_ITEM lv_line[SIZE_UTIL_ITEM];
 
   //modification des droits
   BOOL ok = FALSE;
-  int ret = set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
+  int ret = 0;set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
   if (ret == 0)//ok
   {
     //lecture des users
@@ -359,6 +359,8 @@ BOOL registry_users_extract()
                     }
                   }
                 }
+                snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
+                snprintf(user,MAX_PATH,"%s",lv_line[3].c);
                 l = AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
 
                 //traitement des données de connexion
@@ -381,6 +383,7 @@ BOOL registry_users_extract()
                   ListView_SetItemText(hlv,l,7,lv_line[7].c);
                   ListView_SetItemText(hlv,l,8,lv_line[8].c);
                 }
+                AddToLV_Registry2(lv_line[6].c, user, "Users & groups", tmp_add);
               }
             }
           }
