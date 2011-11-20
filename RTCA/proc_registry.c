@@ -740,6 +740,8 @@ void registry_software(HANDLE hlv)
              || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"OK");
             else lv_line[6].c[0]=0;
 
+
+            AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
           }
         }
@@ -802,6 +804,7 @@ void registry_software(HANDLE hlv)
              || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"YES");
             else strcpy(lv_line[6].c,"NO");
 
+            AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
           }
         }
@@ -817,6 +820,7 @@ void registry_update(HANDLE hlv)
   HKEY CleTmp,CleTmp2,CleTmp3,CleTmp4;
   DWORD nbSubKey=0,nbSubKey2,nbSubKey3,TailleNomSubKey,TailleNomSubKey2,TailleNomSubKey3,i,j,k;
   char chemin[MAX_PATH],chemin2[MAX_PATH],chemin3[MAX_PATH];
+  char tmp_add[MAX_PATH];
   FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
   SYSTEMTIME SysTime;
 
@@ -856,6 +860,8 @@ void registry_update(HANDLE hlv)
           lv_line[4].c[0]=0;
           LireValeur(HKEY_LOCAL_MACHINE,chemin,"InstallLocation",lv_line[4].c,MAX_PATH);
 
+          snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
+          AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
           AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
         }
       }
@@ -906,6 +912,8 @@ void registry_update(HANDLE hlv)
                           snprintf(lv_line[5].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
                       RegCloseKey(CleTmp4);
                     }
+                    snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
+                    AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
                     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
                   }else
                   {
@@ -936,6 +944,8 @@ void registry_update(HANDLE hlv)
                                   snprintf(lv_line[5].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
                               RegCloseKey(CleTmp4);
                             }
+                            snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
+                            AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
                             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
                           }
                         }
@@ -961,7 +971,7 @@ void registry_services(HANDLE hlv)
   LINE_ITEM lv_line[SIZE_UTIL_ITEM];
   HKEY CleTmp=0,CleTmp2;
   DWORD nbSubKey,i,TailleNomSubKey, val;
-  char NomSubKey[MAX_PATH]="", chemin2[MAX_PATH];
+  char NomSubKey[MAX_PATH]="", chemin2[MAX_PATH], tmp_add[MAX_PATH];
   FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
   SYSTEMTIME SysTime;
 
@@ -1030,6 +1040,8 @@ void registry_services(HANDLE hlv)
       lv_line[5].c[0]=0;
       LireGValeur(HKEY_LOCAL_MACHINE,chemin2,"Description",lv_line[5].c);
 
+      snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[6].c,lv_line[3].c,lv_line[1].c);
+      AddToLV_Registry2(lv_line[7].c, "", "Service/Driver", tmp_add);
       AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
     }
   }
@@ -1290,11 +1302,13 @@ void LireValBin(HKEY ENTETE,char *chemin,char *nom,char *donnes,char *user, HAND
            if(FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
            {
              if(FileTimeToSystemTime(&LocalFileTime, &SysTime))
-              sprintf(lv_line[4].c,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+               sprintf(lv_line[4].c,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
              else lv_line[4].c[0]=0;
            }else lv_line[4].c[0]=0;
          }
        }
+
+       AddToLV_Registry2(lv_line[4].c, "", "UserAssist", lv_line[2].c);
        AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL] );
 
        //fermeture de la clé
@@ -1417,7 +1431,7 @@ void registry_usb(HANDLE hlv)
   HKEY CleTmp=0,CleTmp2=0,CleTmp3=0;
   DWORD nbSubKey, TailleNomSubKey,TailleNomSubKey2;
   char NomSubKey[MAX_PATH], NomSubKey2[MAX_PATH], chemin2[MAX_PATH];
-  char val[MAX_PATH],val2[MAX_PATH],val3[MAX_PATH];
+  char val[MAX_PATH],val2[MAX_PATH],val3[MAX_PATH],tmp_add[MAX_PATH];
   int i;
   FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
   SYSTEMTIME SysTime;
@@ -1484,6 +1498,9 @@ void registry_usb(HANDLE hlv)
 
                    //KEY
                    snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_LOCAL_MACHINE\\%s",chemin2);
+
+                   snprintf(tmp_add,MAX_PATH,"%s,%s",lv_line[2].c,lv_line[3].c);
+                   AddToLV_Registry2(lv_line[4].c, "", "USB", tmp_add);
 
                    AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
               }
@@ -2029,7 +2046,7 @@ void registry_users(HANDLE hlv)
       DWORD nb = 0,total = 0;
       unsigned int i;
       USER_INFO_2 * pBuf_info=0;
-      char group[MAX_PATH]="\0", tmp[MAX_PATH]="\0";
+      char group[MAX_PATH]="\0", tmp[MAX_PATH]="\0",tmp_add[MAX_PATH];
 
       BYTE BSid[MAX_PATH];
       PSID Sid = (PSID) BSid;
@@ -2144,6 +2161,8 @@ void registry_users(HANDLE hlv)
                     }
                   }
                 }
+                snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
+                AddToLV_Registry2(lv_line[6].c, lv_line[3].c, "Users & groups", tmp_add);
                 AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
                 Buffer++;
               }else break;

@@ -244,7 +244,7 @@ BOOL GetAppVersion( char *file, char *version, unsigned int max_size)
         free (lpData);
         return FALSE;
       }
-      if( VerQueryValue( lpData, "\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
+      if( VerQueryValue(lpData, "\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
       {
         snprintf(version,max_size,"%d.%d.%d.%d",
                  HIWORD(pFileInfo->dwFileVersionMS),
@@ -260,10 +260,96 @@ BOOL GetAppVersion( char *file, char *version, unsigned int max_size)
   }
  return FALSE;
 }
+//----------------------------------------------------------------------
+void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *CompanyName, char *FileDescription)
+{
+  ProductName[0]=0;
+  FileVersion[0]=0;
+  CompanyName[0]=0;
+  FileDescription[0]=0;
+
+  HINSTANCE hDLL;
+  if((hDLL = LoadLibrary("VERSION.DLL" ))!= NULL)
+  {
+    typedef BOOL (WINAPI * GETFILEVERSIONINFO)(LPCTSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData);
+    typedef BOOL (WINAPI * VERQUERYVALUE)(LPCVOID pBlock, LPCTSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen);
+
+    GETFILEVERSIONINFO GetFileVersionInfo      = (GETFILEVERSIONINFO)   GetProcAddress(hDLL , "GetFileVersionInfoA");
+    VERQUERYVALUE VerQueryValue                = (VERQUERYVALUE)   GetProcAddress(hDLL , "VerQueryValueA");
+    if (GetFileVersionInfo && VerQueryValue)
+    {
+      //chargement des infos
+      char buffer[MAX_LINE_SIZE];
+      if (GetFileVersionInfo(file, NULL, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
+      {
+        //lecture des infos du buffer
+         VS_FIXEDFILEINFO *v_buffer;
+         WORD             *d_buffer;
+         char             *c;
+         unsigned int     size;
+
+         //vérification si bien une table + lecture de la langue
+         if (VerQueryValue(buffer, "\\VarFileInfo\\Translation", (LPVOID *)&d_buffer, &size))
+         {
+           if (size>0 && d_buffer != NULL)
+           {
+            //génération du début de string :
+            char v_string[MAX_PATH],t_string[MAX_PATH];
+            /*char s_string[][]={"CompanyName"    , "FileDescription", "FileVersion",
+                                 "InternalName"   , "LegalCopyright" , "OriginalFilename",
+                                 "ProductName"    , "ProductVersion"};*/
+            snprintf(v_string,MAX_PATH,"\\StringFileInfo\\%04x%04x\\", d_buffer[0], d_buffer[1]);
+
+            //lecture de ProductName
+            if (ProductName != NULL)
+            {
+              snprintf(t_string,MAX_PATH,"%sProductName",v_string);
+              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
+              {
+                if (size>0 && c!= NULL)strcpy(ProductName,c);
+              }
+            }
+
+            //lecture de FileVersion
+            if (FileVersion != NULL)
+            {
+              snprintf(t_string,MAX_PATH,"%sFileVersion",v_string);
+              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
+              {
+                if (size>0 && c!= NULL)strcpy(FileVersion,c);
+              }
+            }
+
+            //lecture du CompanyName
+            if (CompanyName != NULL)
+            {
+              snprintf(t_string,MAX_PATH,"%sCompanyName",v_string);
+              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
+              {
+                if (size>0 && c!= NULL)strcpy(CompanyName,c);
+              }
+            }
+
+            //lecture du FileDescription
+            if (FileDescription != NULL)
+            {
+              snprintf(t_string,MAX_PATH,"%sFileDescription",v_string);
+              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
+              {
+                if (size>0 && c!= NULL)strcpy(FileDescription,c);
+              }
+            }
+           }
+         }
+      }
+    }
+    FreeLibrary(hDLL);
+  }
+}
 //------------------------------------------------------------------------------
 void ReadProcessInfo(HANDLE hlv_src, DWORD id)
 {
-  LINE_ITEM lv_line[4];
+  LINE_ITEM lv_line[8];
   HMODULE hMod[MAX_LINE_SIZE];
   DWORD cbNeeded = 0,j;
   char tmp[MAX_PATH]="";
@@ -293,7 +379,8 @@ void ReadProcessInfo(HANDLE hlv_src, DWORD id)
     //owner
     GetACLS(lv_line[1].c, NULL, 0, lv_line[3].c, MAX_LINE_SIZE);
 
-    AddToLV(hlv, lv_line,4);
+    FileInfoRead(lv_line[1].c, lv_line[4].c, lv_line[5].c, lv_line[6].c, lv_line[7].c);
+    AddToLV(hlv, lv_line,8);
     lv_line[2].c[0]=0;
     lv_line[3].c[0]=0;
   }
@@ -376,7 +463,9 @@ void ReadProcessInfo(HANDLE hlv_src, DWORD id)
             //proprio
             GetACLS(lv_line[1].c, NULL, 0, lv_line[3].c, MAX_LINE_SIZE);
 
-            AddToLV(hlv, lv_line, 4);
+            //infos
+            FileInfoRead(lv_line[1].c, lv_line[4].c, lv_line[5].c, lv_line[6].c, lv_line[7].c);
+            AddToLV(hlv, lv_line, 8);
           }
       }
     }
