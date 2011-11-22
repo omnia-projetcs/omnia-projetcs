@@ -922,7 +922,7 @@ void FiltreRegData(LINE_ITEM *item)
   AddToLV_Registry(item);
 
   //Path sans quitter (spécial)
-  if (!strcmp(item[2].c,"Path"))
+  if (!strcmp(item[2].c,"Path") || !strcmp(item[2].c,"InstallerLocation") || !strcmp(item[2].c,"Installation Sources") || Contient(item[1].c,"Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"))
   {
     AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH), item, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
   }
@@ -1074,15 +1074,16 @@ void FiltreRegData(LINE_ITEM *item)
 
           if (test_ok) //ajout à l'item
           {
-            if (j==0)// nom du package
+            if (j==0 || j==1)// nom du package
             {
               //application reconnues ?
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
                || (item[3].c[0] == 'C' && item[3].c[8] == 'f')||(item[3].c[0] == 'H' && item[3].c[5] == 'x')||(item[3].c[0] == 'S' && item[3].c[9] == 'U')
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
-               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,6,"OK")
+               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,6,"OK");
 
-            }else if (j==2)//date formatage
+              ListView_SetItemText(hlv,l,2,item[3].c);
+            }else if (j==3)//date formatage
             {
               tmp[0]=0;
               strcpy(tmp,item[3].c);
@@ -1094,7 +1095,8 @@ void FiltreRegData(LINE_ITEM *item)
               tmp[9]=item[3].c[7];
               tmp[10]=0;
               ListView_SetItemText(hlv,l,4,tmp);
-            }else ListView_SetItemText(hlv,l,j+2,item[3].c);
+            }else if (j==2) {ListView_SetItemText(hlv,l,3,item[3].c);}//publisher
+            else ListView_SetItemText(hlv,l,5,item[3].c);//UninstallString
           }else//nouvel item
           {
             //copie des données normales
@@ -1104,7 +1106,7 @@ void FiltreRegData(LINE_ITEM *item)
             item[2].c[0]=0;
             item[5].c[0]=0;
 
-            if (j==0)// nom du package
+            if (j==0 || j==1)// nom du package
             {
               //application reconnues ?
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
@@ -1112,7 +1114,9 @@ void FiltreRegData(LINE_ITEM *item)
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
                || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) strcpy(item[6].c,"OK");
 
-            }else if (j==2)//date formatage
+              strcpy(item[2].c,tmp);
+              item[3].c[0]=0;
+            }else if (j==3)//date formatage
             {
               tmp[4]='/';
               tmp[5]=item[3].c[4];
@@ -1121,10 +1125,16 @@ void FiltreRegData(LINE_ITEM *item)
               tmp[8]=item[3].c[6];
               tmp[9]=item[3].c[7];
               tmp[10]=0;
+              strcpy(item[4].c,tmp);
+              item[3].c[0]=0;
+            }else if (j==2)//date formatage
+            {
+              strcpy(item[3].c,tmp);
+            }else
+            {
+              item[3].c[0]=0;
+              strcpy(item[5].c,tmp);
             }
-            item[3].c[0]=0;
-            strcpy(item[j+2].c,tmp);
-
             AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
           }
           return;

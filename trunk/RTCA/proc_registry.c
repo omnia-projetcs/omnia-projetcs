@@ -702,107 +702,59 @@ void registry_software(HANDLE hlv)
           snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s",NomSubKey);
 
           lv_line[2].c[0]=0;
-          if(LireValeur(HKEY_LOCAL_MACHINE,chemin2,"DisplayName",lv_line[2].c,MAX_LINE_SIZE))
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"DisplayName",lv_line[2].c,MAX_LINE_SIZE))
           {
-            editor[0]=0;
-            lv_line[4].c[0]=0;
-            //date d'installation
-            //test et récupération de la date de dernière modif
-            if (RegOpenKey(HKEY_LOCAL_MACHINE,chemin2,&CleTmp2)==ERROR_SUCCESS)
-            {
-              if(RegQueryInfoKey(CleTmp2,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
-              {
-                if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
-                  snprintf(lv_line[4].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-              }
-              RegCloseKey(CleTmp2);
-            }
-
-            //ajout de la version
-            if(LireValeur(HKEY_LOCAL_MACHINE,chemin2,"DisplayVersion",editor,MAX_PATH))
-            {
-              strcat(lv_line[2].c," ");
-              strncat(lv_line[2].c,editor,MAX_LINE_SIZE);
-            }
-
-            //editeur
-            lv_line[3].c[0]=0;
-            LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Publisher",lv_line[3].c,MAX_LINE_SIZE);
-
-            ////UninstallString
-            lv_line[5].c[0]=0;
-            LireValeur(HKEY_LOCAL_MACHINE,chemin2,"UninstallString",lv_line[5].c,MAX_PATH);
-
-            //application reconnues ?
-            if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
-             || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
-             || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
-             || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"OK");
-            else lv_line[6].c[0]=0;
-
-
-            AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
-            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+            LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Comments",lv_line[2].c,MAX_LINE_SIZE);
           }
-        }
-      }
-    }
-    RegCloseKey(CleTmp);
-  }
-  if (RegOpenKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",&CleTmp)==ERROR_SUCCESS)
-  {
-    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
-    {
-      lv_line[0].c[0]=0;
-      for (i=0;i<nbSubKey;i++)
-      {
-        TailleNomSubKey=MAX_PATH;// on reinitialise la taille a chaque fois sinon il ne lit pas la valeur suivant
-        if (RegEnumKeyEx (CleTmp,i,NomSubKey,&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
-        {
-          // on cree la trame pour recupere les donnees
-          strcpy(chemin2,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\");
-          strncat(chemin2,NomSubKey,MAX_PATH);
-          strncat(chemin2,"\\\0",MAX_PATH);
-          snprintf(lv_line[1].c,MAX_LINE_SIZE,"HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\%s",NomSubKey);
 
-          lv_line[2].c[0]=0;
-          if(LireValeur(HKEY_CURRENT_USER,chemin2,"DisplayName",lv_line[2].c,MAX_LINE_SIZE))
+          editor[0]=0;
+          lv_line[4].c[0]=0;
+          //date d'installation
+          //test et récupération de la date de dernière modif
+          if (RegOpenKey(HKEY_LOCAL_MACHINE,chemin2,&CleTmp2)==ERROR_SUCCESS)
           {
-            editor[0]=0;
-            lv_line[4].c[0]=0;
-            //date d'installation
-            //test et récupération de la date de dernière modif
-            if (RegOpenKey(HKEY_CURRENT_USER,chemin2,&CleTmp2)==ERROR_SUCCESS)
+            if(RegQueryInfoKey(CleTmp2,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
             {
-              if(RegQueryInfoKey(CleTmp2,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
+              if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+                snprintf(lv_line[4].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+            }
+            RegCloseKey(CleTmp2);
+          }
+
+          //ajout de la version
+          if(LireValeur(HKEY_LOCAL_MACHINE,chemin2,"DisplayVersion",editor,MAX_PATH))
+          {
+            strcat(lv_line[2].c," ");
+            strncat(lv_line[2].c,editor,MAX_LINE_SIZE);
+          }
+
+          //editeur
+          lv_line[3].c[0]=0;
+          LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Publisher",lv_line[3].c,MAX_LINE_SIZE);
+
+          ////UninstallString
+          lv_line[5].c[0]=0;
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"UninstallString",lv_line[5].c,MAX_PATH))
+          {
+            if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"InstallLocation",lv_line[5].c,MAX_PATH))
+            {
+              if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Inno Setup: App Path",lv_line[5].c,MAX_PATH))
               {
-                if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
-                  snprintf(lv_line[4].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                LireValeur(HKEY_LOCAL_MACHINE,chemin2,"QuietUninstallString",lv_line[5].c,MAX_PATH);
               }
-              RegCloseKey(CleTmp2);
             }
+          }
 
-            //ajout de la version
-            if(LireValeur(HKEY_CURRENT_USER,chemin2,"DisplayVersion",editor,MAX_PATH))
-            {
-              strcat(lv_line[2].c," ");
-              strncat(lv_line[2].c,editor,MAX_LINE_SIZE);
-            }
+          //application reconnues ?
+          if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
+           || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
+           || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
+           || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"OK");
+          else lv_line[6].c[0]=0;
 
-            //editeur
-            lv_line[3].c[0]=0;
-            LireValeur(HKEY_CURRENT_USER,chemin2,"Publisher",lv_line[3].c,MAX_LINE_SIZE);
-
-            ////UninstallString
-            lv_line[5].c[0]=0;
-            LireValeur(HKEY_CURRENT_USER,chemin2,"UninstallString",lv_line[5].c,MAX_PATH);
-
-            //application reconnues ?
-            if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
-             || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
-             || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
-             || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"YES");
-            else strcpy(lv_line[6].c,"NO");
+          if (lv_line[2].c[0]!=0 || lv_line[5].c[0]!=0)
+          {
+            if (lv_line[2].c[0]==0)strcpy(lv_line[2].c,NomSubKey);
 
             AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
@@ -2390,6 +2342,32 @@ void registry_mru(HANDLE hlv)
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
 }
 //------------------------------------------------------------------------------
+void registry_path(HANDLE hlv)
+{
+  //liste des path de tous les utilisateurs
+  //racine du HKEY_USERS
+  HKEY CleTmp=0;
+  DWORD i,nbSubKey=0, TailleNomSubKey;
+  char path[MAX_PATH], NomSubKey[MAX_PATH];
+  if (RegOpenKey((HKEY)HKEY_USERS,"",&CleTmp)!=ERROR_SUCCESS)return;
+
+  //liste des sous clés ^^
+  //nombre de sous clés
+  if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+  {
+    for (i=0;i<nbSubKey;i++)
+    {
+      TailleNomSubKey = MAX_PATH;
+      if (RegEnumKeyEx (CleTmp,i,NomSubKey,(LPDWORD)&TailleNomSubKey,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+      {
+        snprintf(path,MAX_PATH,"%s\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",NomSubKey);
+        reg_liste_DataValeur(HKEY_USERS,"HKEY_USERS",path,hlv);
+      }
+    }
+  }
+  RegCloseKey(CleTmp);
+}
+//------------------------------------------------------------------------------
 void registry_syskey(HANDLE hlv, char*sk)
 {
   HKEY CleTmp=0;
@@ -2476,6 +2454,7 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
       registry_users(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS));
       registry_password(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD));
       registry_mru(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU));
+      registry_path(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH));
 
       SB_add_T(SB_ONGLET_REGISTRY, "");
     }
