@@ -2061,7 +2061,7 @@ void InitConfig(HWND hwnd)
   lvc.pszText = "Install date-Update"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
   lvc.cx = 100;       //taille colonne
-  lvc.pszText = "UninstallString"; //texte de la colonne
+  lvc.pszText = "UninstallString/InstallLocation"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
   lvc.cx = 100;       //taille colonne
   lvc.pszText = "Checked"; //texte de la colonne
@@ -2539,9 +2539,13 @@ void InitConfig(HWND hwnd)
   strcpy(ref_software_search[i++].v,"Microsoft\\Windows\\CurrentVersion\\Uninstall\\");
   i=0;
   strcpy(ref_software_var_search[i++].v,"DisplayName");
+  strcpy(ref_software_var_search[i++].v,"Comments");
   strcpy(ref_software_var_search[i++].v,"Publisher");
   strcpy(ref_software_var_search[i++].v,"InstallDate");
   strcpy(ref_software_var_search[i++].v,"UninstallString");
+  strcpy(ref_software_var_search[i++].v,"QuietUninstallString");
+  strcpy(ref_software_var_search[i++].v,"InstallLocation");
+  strcpy(ref_software_var_search[i++].v,"Inno Setup: App Path");
 
   i=0;
   strcpy(ref_update_search[i++].v,"Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\");

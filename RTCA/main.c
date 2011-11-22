@@ -909,95 +909,94 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       InvalidateRect(hwnd, NULL, TRUE);
   }else if (uMsg == WM_COMMAND)
   {
-    switch(HIWORD(wParam))
+    if (HIWORD(wParam) == BN_CLICKED)
     {
-      case BN_CLICKED:
-        switch(LOWORD(wParam))
+      switch(LOWORD(wParam))
+      {
+        //gestion des injections de dll
+        case ADD_DLL_INJECT_REMOTE_THREAD:
+        case REM_DLL_INJECT_REMOTE_THREAD:
         {
-          //jestion des injections de dll
-          case ADD_DLL_INJECT_REMOTE_THREAD:
-          case REM_DLL_INJECT_REMOTE_THREAD:
+          //lecture du pid du processus
+          char tmp[MAX_PATH]="";
+          HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
+          ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,tmp,MAX_PATH);
+          DWORD pid = atoi(tmp);
+
+          //choix de la DLL
+          tmp[0]=0;
+          OPENFILENAME ofnFile;
+          ZeroMemory(&ofnFile,sizeof(OPENFILENAME));
+          ofnFile.lStructSize   = sizeof(OPENFILENAME);
+          ofnFile.hwndOwner     = Tabl[TABL_MAIN];
+          ofnFile.lpstrFile     = tmp;
+          ofnFile.nMaxFile      = MAX_PATH;
+          ofnFile.lpstrFilter   = "dll (*.dll)\0*.dll\0";
+          ofnFile.nFilterIndex  = 1;
+          ofnFile.lpstrTitle    = "Chose DLL";
+          ofnFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
+          if(GetOpenFileName(&ofnFile))
           {
-            //lecture du pid du processus
-            char tmp[MAX_PATH]="";
-            HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
-            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,tmp,MAX_PATH);
-            DWORD pid = atoi(tmp);
+            //élévation de privilège
+            SetDebugPrivilege();
 
-            //choix de la DLL
-            tmp[0]=0;
-            OPENFILENAME ofnFile;
-            ZeroMemory(&ofnFile,sizeof(OPENFILENAME));
-            ofnFile.lStructSize   = sizeof(OPENFILENAME);
-            ofnFile.hwndOwner     = Tabl[TABL_MAIN];
-            ofnFile.lpstrFile     = tmp;
-            ofnFile.nMaxFile      = MAX_PATH;
-            ofnFile.lpstrFilter   = "dll (*.dll)\0*.dll\0";
-            ofnFile.nFilterIndex  = 1;
-            ofnFile.lpstrTitle    = "Chose DLL";
-            ofnFile.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_HIDEREADONLY;
-            if(GetOpenFileName(&ofnFile))
-            {
-              //élévation de privilège
-              SetDebugPrivilege();
-
-              //injection or not ^^
-              if (LOWORD(wParam) == ADD_DLL_INJECT_REMOTE_THREAD)DllInjecteurA(pid,tmp);
-              else DllEjecteurA(pid,tmp);
-            }
+            //injection or not ^^
+            if (LOWORD(wParam) == ADD_DLL_INJECT_REMOTE_THREAD)DllInjecteurA(pid,tmp);
+            else DllEjecteurA(pid,tmp);
           }
-          break;
-          case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
-          case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
-          case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
-          case POPUP_KILL_PROCESS : KilllvProcess(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1);break;
-          case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
-          case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
-          case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
-          case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
-          case POPUP_LV_CP_COL5:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),4);break;
-          case POPUP_LV_CP_COL6:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),5);break;
-          case POPUP_LV_CP_COL7:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),6);break;        }
-          case POPUP_LV_P_VIEW: //open registry path
+        }
+        break;
+        case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
+        case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
+        case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
+        case POPUP_KILL_PROCESS : KilllvProcess(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1);break;
+        case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
+        case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
+        case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
+        case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
+        case POPUP_LV_CP_COL5:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),4);break;
+        case POPUP_LV_CP_COL6:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),5);break;
+        case POPUP_LV_CP_COL7:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),6);break;
+        case POPUP_LV_P_VIEW: //open registry path
+        {
+          HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
+          char path[MAX_PATH];
+
+          ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,path,MAX_PATH);
+
+          //test du path
+          if (strlen(path)>0)
           {
-            HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
-            char path[MAX_PATH];
-
-            ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,path,MAX_PATH);
-
-            //test du path
-            if (strlen(path)>0)
+            if (path[0]=='\\')
             {
-              if (path[0]=='\\')
+              if (path[1]=='?' && path[4]!='\\')
               {
-                if (path[1]=='?' && path[4]!='\\')
-                {
-                  //on supprime les 4 premiers données ^^
-                  char ext_path[MAX_PATH];
-                  strcpy(ext_path,path+4);
+                //on supprime les 4 premiers données ^^
+                char ext_path[MAX_PATH];
+                strcpy(ext_path,path+4);
 
-                  //suppression du nom de fichier ^^
-                  char *c = ext_path;
-                  while(*c++);
-                  while(*c!='\\')c--;
-                  *c =0;
+                //suppression du nom de fichier ^^
+                char *c = ext_path;
+                while(*c++);
+                while(*c!='\\')c--;
+                *c =0;
 
-                  ShellExecute(Tabl[TABL_MAIN], "open","explorer",ext_path,NULL,SW_SHOW);
-                }
-              }else
-              {
-                  //suppression du nom de fichier ^^
-                  char *c = path;
-                  while(*c++);
-                  while(*c!='\\')c--;
-                  *c =0;
-
-                  ShellExecute(Tabl[TABL_MAIN], "open","explorer",path,NULL,SW_SHOW);
+                ShellExecute(Tabl[TABL_MAIN], "open","explorer",ext_path,NULL,SW_SHOW);
               }
+            }else
+            {
+                //suppression du nom de fichier ^^
+                char *c = path;
+                while(*c++);
+                while(*c!='\\')c--;
+                *c =0;
+
+                ShellExecute(Tabl[TABL_MAIN], "open","explorer",path,NULL,SW_SHOW);
             }
           }
-          break;
-      break;
+        }
+        break;
+      }
     }
   }else if (uMsg == WM_CONTEXTMENU)
   {
@@ -1137,11 +1136,15 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
       MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
       //redimmensionnement des colonnes
-      unsigned int col_size = (mWidth-70)/5;
+      unsigned int col_size = (mWidth-70)/9;
       redimColumn(hwnd,LV_VIEW,0,col_size);
       redimColumn(hwnd,LV_VIEW,1,col_size*2);
       redimColumn(hwnd,LV_VIEW,2,col_size);
       redimColumn(hwnd,LV_VIEW,3,col_size);
+      redimColumn(hwnd,LV_VIEW,4,col_size);
+      redimColumn(hwnd,LV_VIEW,5,col_size);
+      redimColumn(hwnd,LV_VIEW,6,col_size);
+      redimColumn(hwnd,LV_VIEW,7,col_size);
 
       InvalidateRect(hwnd, NULL, TRUE);
   }

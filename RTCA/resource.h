@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.17 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.18 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -385,7 +385,7 @@ REG_REF_SEARCH ref_network_search[NB_MAX_REF_SEARCH_NETWORK];
 
 #define NB_MAX_REF_SEARCH_SOFTWARE       1
 REG_REF_SEARCH ref_software_search[NB_MAX_REF_SEARCH_SOFTWARE];
-#define NB_MAX_REF_SEARCH_SOFTWARE_VAR   4
+#define NB_MAX_REF_SEARCH_SOFTWARE_VAR   8
 REG_REF_SEARCH ref_software_var_search[NB_MAX_REF_SEARCH_SOFTWARE_VAR];
 
 #define NB_MAX_REF_SEARCH_UPDATE         2
