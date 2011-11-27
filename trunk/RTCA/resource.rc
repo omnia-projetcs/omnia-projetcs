@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,18
-PRODUCTVERSION 0,0,1,18
+FILEVERSION 0,0,1,19
+PRODUCTVERSION 0,0,1,19
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,15 +28,15 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.18\0"
-      VALUE "ProductVersion", "0.0.1.18\0"
+      VALUE "FileVersion", "0.0.1.19\0"
+      VALUE "ProductVersion", "0.0.1.19\0"
     END
   END
 END
 //------------------------------------------------------------------------------
 DLG_MAIN DIALOGEX 6,6,389,273
 CAPTION NOM_APPLI
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x10CF0800
 EXSTYLE WS_EX_ACCEPTFILES
 BEGIN
@@ -51,7 +51,7 @@ BEGIN
 END
 //------------------------------------------------------------------------------
 DLG_CONF DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,TRV_CONF_TESTS       ,"SysTreeView32",0x50310807| WS_TABSTOP,4,3,226,233,0x00000200
@@ -85,7 +85,7 @@ END
 
 //------------------------------------------------------------------------------
 DLG_LOGS DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0 //MS Sans Serif",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,LV_LOGS_VIEW         ,"SysListView32",0x40810089,4,3,374,204,0x00000200
@@ -94,7 +94,7 @@ BEGIN
 END
 //------------------------------------------------------------------------------
 DLG_FILES DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,LV_FILES_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
@@ -105,7 +105,7 @@ BEGIN
 END
 //------------------------------------------------------------------------------
 DLG_REGISTRY DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
@@ -131,14 +131,14 @@ BEGIN
 END
 //------------------------------------------------------------------------------
 DLG_PROCESS DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
 END
 //------------------------------------------------------------------------------
 DLG_STATE DIALOGEX 0,24,389,237
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
   CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
@@ -233,6 +233,7 @@ BEGIN
       MENUITEM "Add remote thread injection"        ,ADD_DLL_INJECT_REMOTE_THREAD
       MENUITEM "Remove remote thread injection"     ,REM_DLL_INJECT_REMOTE_THREAD
     END
+    MENUITEM "Dump process memory" ,POPUP_DUMP_MEMORY
     END
 END
 //------------------------------------------------------------------------------
@@ -292,7 +293,7 @@ END
 //------------------------------------------------------------------------------
 DLG_INFO DIALOGEX 6,6,400,231
 CAPTION "Information"
-FONT 8,"MS Sans Serif",0,0
+FONT 8,"Arial",0,0
 STYLE 0x00CF0800
 //STYLE 0x00C80000
 //EXSTYLE 0x00000080

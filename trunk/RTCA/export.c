@@ -196,6 +196,269 @@ void ExportLVtoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_c
   }
 }
 //------------------------------------------------------------------------------
+void strToREG_MULTI_SZ(char *buffer)
+{
+  char tmp[MAX_LINE_SIZE];
+  char ct[3];
+  char *c = buffer;
+  while (*c++)
+  {
+    if (*c == ' ')strncat(tmp,"00",MAX_LINE_SIZE);
+    else
+    {
+      snprintf(ct,3,"%02X",*c & 0XFF);
+      strncat(tmp,ct,MAX_LINE_SIZE);
+    }
+  }
+  strncat(tmp,"\0",MAX_LINE_SIZE);
+  strcpy(buffer,tmp);
+}
+//------------------------------------------------------------------------------
+void ExportLVINF(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
+{
+  //test si des enregistrements
+  DWORD NBLigne=SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    if (nb_colonne>=5)
+    {
+      //traitement
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        char ligne[MAX_LINE_SIZE+1]="", buffer[MAX_LINE_SIZE+1];
+        DWORD copiee;
+
+        //header
+        strcpy(ligne,
+        "; Install example : RunDll32.exe setupapi,InstallHinfSection DefaultInstall 132 FILE.inf"
+        "[Version]\r\n"
+        "Signature=$CHICAGO$\r\n"
+        "Provider=RTCA from http://code.google.com/p/omnia-projetcs/\r\n\r\n"
+        "[DefaultInstall]\r\n"
+        "AddReg=Add.Settings\r\n\r\n"
+        "[Add.Settings]\r\n");
+        WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+
+        //traitement des données
+        DWORD j;
+
+        //traitement des autres lignes
+        HANDLE hlv = GetDlgItem(Tabl[id_tabl],lv);
+        for (j=0;j<NBLigne;j++)//ligne par ligne
+        {
+          //extraction de la source
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,1,buffer,MAX_LINE_SIZE);
+
+          if (buffer[5] == 'U')//HKEY_USERS
+          {
+            snprintf(ligne,MAX_LINE_SIZE,"HKU, %s,",&buffer[strlen("HKEY_USERS")+1]);
+          }else if (buffer[5] == 'L')//HKEY_LOCAL_MACHINE
+          {
+            snprintf(ligne,MAX_LINE_SIZE,"HKLM, %s,",&buffer[strlen("HKEY_LOCAL_MACHINE")+1]);
+          }else if (buffer[5] == 'C')
+          {
+            if (buffer[13] == 'U')//HKEY_CURRENT_USER
+            {
+              snprintf(ligne,MAX_LINE_SIZE,"HKCU, %s,",&buffer[strlen("HKEY_CURRENT_USER")+1]);
+            }else if (buffer[13] == 'R')//HKEY_CLASSES_ROOT
+            {
+              snprintf(ligne,MAX_LINE_SIZE,"HKCR, %s,",&buffer[strlen("HKEY_CLASSES_ROOT")+1]);
+            }else continue;
+          }else continue;
+
+          //nom de la valeur
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,2,buffer,MAX_LINE_SIZE);
+          strncat(ligne,buffer,MAX_LINE_SIZE);
+          strncat(ligne,",",MAX_LINE_SIZE);
+
+          //Type+data
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,4,buffer,MAX_LINE_SIZE);
+          switch(buffer[4])
+          {
+            case 'S'://REG_SZ
+              strncat(ligne,"0x00000000,\"",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'B'://REG_BINARY
+              strncat(ligne,"0x00000001,",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'M'://REG_MULTI_SZ
+              strncat(ligne,"0x00010000,",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strToREG_MULTI_SZ(buffer);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'E'://REG_EXPAND_SZ
+              strncat(ligne,"0x00020000,\"",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'D'://REG_DWORD
+            case 'Q'://REG_QWORD
+              strncat(ligne,"0x00010001,0x",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'N'://REG_NONE
+              strncat(ligne,"0x00020001,",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            default : continue;
+          }
+
+          //ajout
+          WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+        }
+      }
+      CloseHandle(MyhFile);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void ExportLVSelectINF(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
+{
+  //test si des enregistrements
+  DWORD NBLigne=SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    if (nb_colonne>=5)
+    {
+      //traitement
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        char ligne[MAX_LINE_SIZE+1]="", buffer[MAX_LINE_SIZE+1];
+        DWORD copiee;
+
+        //header
+        strcpy(ligne,
+        "; Install example : RunDll32.exe setupapi,InstallHinfSection DefaultInstall 132 FILE.inf"
+        "[Version]\r\n"
+        "Signature=$CHICAGO$\r\n"
+        "Provider=RTCA from http://code.google.com/p/omnia-projetcs/\r\n\r\n"
+        "[DefaultInstall]\r\n"
+        "AddReg=Add.Settings\r\n\r\n"
+        "[Add.Settings]\r\n");
+        WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+
+        //traitement des données
+        DWORD j;
+
+        //traitement des autres lignes
+        HANDLE hlv = GetDlgItem(Tabl[id_tabl],lv);
+        for (j=0;j<NBLigne;j++)//ligne par ligne
+        {
+          if (SendDlgItemMessage(Tabl[id_tabl],lv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)
+            continue;
+
+          //extraction de la source
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,1,buffer,MAX_LINE_SIZE);
+
+          if (buffer[5] == 'U')//HKEY_USERS
+          {
+            snprintf(ligne,MAX_LINE_SIZE,"HKU, %s,",&buffer[strlen("HKEY_USERS")+1]);
+          }else if (buffer[5] == 'L')//HKEY_LOCAL_MACHINE
+          {
+            snprintf(ligne,MAX_LINE_SIZE,"HKLM, %s,",&buffer[strlen("HKEY_LOCAL_MACHINE")+1]);
+          }else if (buffer[5] == 'C')
+          {
+            if (buffer[13] == 'U')//HKEY_CURRENT_USER
+            {
+              snprintf(ligne,MAX_LINE_SIZE,"HKCU, %s,",&buffer[strlen("HKEY_CURRENT_USER")+1]);
+            }else if (buffer[13] == 'R')//HKEY_CLASSES_ROOT
+            {
+              snprintf(ligne,MAX_LINE_SIZE,"HKCR, %s,",&buffer[strlen("HKEY_CLASSES_ROOT")+1]);
+            }else continue;
+          }else continue;
+
+          //nom de la valeur
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,2,buffer,MAX_LINE_SIZE);
+          strncat(ligne,buffer,MAX_LINE_SIZE);
+          strncat(ligne,",",MAX_LINE_SIZE);
+
+          //Type+data
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,4,buffer,MAX_LINE_SIZE);
+          switch(buffer[4])
+          {
+            case 'S'://REG_SZ
+              strncat(ligne,"0x00000000,\"",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'B'://REG_BINARY
+              strncat(ligne,"0x00000001,",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'M'://REG_MULTI_SZ
+              strncat(ligne,"0x00010000,",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strToREG_MULTI_SZ(buffer);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'E'://REG_EXPAND_SZ
+              strncat(ligne,"0x00020000,\"",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'D'://REG_DWORD
+            case 'Q'://REG_QWORD
+              strncat(ligne,"0x00010001,0x",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            case 'N'://REG_NONE
+              strncat(ligne,"0x00020001,0x",MAX_LINE_SIZE);
+              buffer[0]=0;
+              ListView_GetItemText(hlv,j,3,buffer,MAX_LINE_SIZE);
+              strncat(ligne,buffer,MAX_LINE_SIZE);
+              strncat(ligne,"\r\n\0",MAX_LINE_SIZE);
+            break;
+            default : continue;
+          }
+
+          //ajout
+          WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
+        }
+      }
+      CloseHandle(MyhFile);
+    }
+  }
+}
+//------------------------------------------------------------------------------
 void ExportLVREG(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne)
 {
   //test si des enregistrements
@@ -213,7 +476,7 @@ void ExportLVREG(char *path, unsigned int id_tabl, int lv, unsigned short nb_col
         DWORD copiee;
 
         //header
-        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n");
+        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n;Extract from RTCA http://code.google.com/p/omnia-projetcs/\r\n;\r\n\r\n");
         WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
 
         //traitement des données
@@ -306,7 +569,7 @@ void ExportLVSelectREG(char *path, unsigned int id_tabl, int lv, unsigned short 
         DWORD copiee;
 
         //header
-        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n\r\n");
+        strcpy(ligne,"Windows Registry Editor Version 5.00\r\n;Extract from RTCA http://code.google.com/p/omnia-projetcs/\r\n;\r\n\r\n");
         WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
 
         //traitement des données
@@ -742,7 +1005,7 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
   ofn.lpstrFile = path;
   ofn.nMaxFile = MAX_PATH;
   if (pwdump) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0File Pwdump\0*.pwdump\0";
-  else if (front_registry) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0File REG\0*.reg\0";
+  else if (front_registry) ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0File REG\0*.reg\0File INF\0*.inf\0";
   else ofn.lpstrFilter ="File CSV\0*.csv\0File HTML\0*.html\0File XML\0*.xml\0";
 
   ofn.nFilterIndex = 1;
@@ -775,6 +1038,10 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
         if (selection_only)ExportLVSelectREG(path, id_tabl, lv,5);
         else ExportLVREG(path, id_tabl, lv,5);
       }
+    }else if (ofn.nFilterIndex == 5)
+    {
+      if (selection_only)ExportLVSelectINF(path, id_tabl, lv,5);
+      else ExportLVINF(path, id_tabl, lv,5);
     }
   }
 }

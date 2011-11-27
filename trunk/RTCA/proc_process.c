@@ -6,12 +6,88 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+//dump de la mémoire d'un processus
+DWORD WINAPI DumpProcessMemory(LPVOID lParam)
+{
+  DWORD pid = (DWORD)lParam;
+
+  //Récupération des privilèges Debug
+  SetDebugPrivilege(TRUE);
+
+  //ouvrir le process
+  HANDLE hProc = OpenProcess(PROCESS_VM_READ|PROCESS_QUERY_INFORMATION, FALSE, pid);//PROCESS_ALL_ACCESS
+  if (hProc!=NULL)
+  {
+    //hardward info : last memory process
+    SYSTEM_INFO si;
+    GetNativeSystemInfo(&si);
+    //64bit : GetSystemInfo(&si);
+
+    //choix de l'emplacement de sauvegarde ^^
+    char path[MAX_PATH]="";
+
+    OPENFILENAME ofn;
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.hwndOwner = Tabl[TABL_MAIN];
+    ofn.lpstrFile = path;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrFilter ="File RAW\0*.raw\0";
+    ofn.nFilterIndex = 1;
+    ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+    ofn.lpstrDefExt =".raw\0";
+
+    if (GetSaveFileName(&ofn)==TRUE)
+    {
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        DWORD copiee;
+
+        //écriture en raw (région/régions)
+        MEMORY_BASIC_INFORMATION    mbi;
+        LPVOID mem = 0;
+        LPVOID buffer;
+        while (mem < si.lpMaximumApplicationAddress)
+        {
+          //lecture des informations de la zone mémoire !
+          if (!VirtualQueryEx(hProc,mem, &mbi, sizeof(MEMORY_BASIC_INFORMATION)))break;
+
+          //lecture écriture des datas !
+          if (mbi.RegionSize > 0)
+          {
+            buffer = (char*)malloc(mbi.RegionSize);
+            if (buffer!=NULL)
+            {
+              //lecture
+              if (ReadProcessMemory(hProc, mbi.BaseAddress, buffer, mbi.RegionSize, NULL))
+              {
+                //sauvegarde
+                WriteFile(MyhFile,buffer,mbi.RegionSize,&copiee,0);
+              }
+              free(buffer);
+            }
+          }else break;
+
+          //région suivante :
+          mem = (LPVOID)((DWORD)mbi.BaseAddress + (DWORD)mbi.RegionSize);
+        }
+      }
+      CloseHandle(MyhFile);
+    }
+    CloseHandle(hProc);
+
+    MessageBox(0,path,"Memory Dump done",MB_OK|MB_TOPMOST);
+  }
+
+  //disable right
+  SetDebugPrivilege(FALSE);
+}
+//------------------------------------------------------------------------------
 //Functions for DLL injection from : http://www.cppfrance.com//code.aspx?ID=49419
 #define W_MAX_PATH MAX_PATH*sizeof(WCHAR)
 BOOL WINAPI DLLInjecteurW(DWORD dwPid,PWSTR szDLLPath)
 {
-	SetDebugPrivilege();
-
 	LPTHREAD_START_ROUTINE lpthThreadFunction; /* Pointeur de fonction. */
 	/* Recherche de l'adresse de LoadLibraryW dans kernel32. */
     lpthThreadFunction = (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryW"); /* GetProcAdress renvoie l'adresse de la fonction LoadLibrary. */
@@ -112,18 +188,25 @@ BOOL WINAPI DLLEjecteurW(DWORD dwPid,PWSTR szDLLPath)
 }
 
 /*Privilege DEBUG. */
-void SetDebugPrivilege()
+void SetDebugPrivilege(BOOL enable)
 {
+    if (enable)nb_process_SE_DEBUG++;
+    else
+    {
+      nb_process_SE_DEBUG--;
+      if (nb_process_SE_DEBUG != NULL)return;
+    }
+
     TOKEN_PRIVILEGES privilege;
     LUID Luid;
     HANDLE handle1;
     HANDLE handle2;
     handle1 = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
-    OpenProcessToken(handle1, TOKEN_ALL_ACCESS, &handle2);
+    OpenProcessToken(handle1,TOKEN_ALL_ACCESS, &handle2);
     LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &Luid);
     privilege.PrivilegeCount = 1;
     privilege.Privileges[0].Luid = Luid;
-    privilege.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+    privilege.Privileges[0].Attributes = enable?SE_PRIVILEGE_ENABLED:0x04/*SE_PRIVILEGE_REMOVED*/;
     AdjustTokenPrivileges(handle2, FALSE, &privilege, sizeof(privilege), NULL, NULL);
     CloseHandle(handle2);
     CloseHandle(handle1);
@@ -170,7 +253,7 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column)
   ListView_GetItemText(hlv,id,column,tmp,MAX_LINE_SIZE);
 
   //passage en mode privilèges
-  SetDebugPrivilege();
+  SetDebugPrivilege(TRUE);
 
   //kill
   HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, atoi(tmp));
@@ -179,6 +262,7 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column)
     if (TerminateProcess(hProcess, 0))SupSItem(hlv ,column, tmp);
     CloseHandle(hProcess);
   }
+  SetDebugPrivilege(FALSE);
 }
 //------------------------------------------------------------------------------
 int __stdcall GetIconProcess(HANDLE hlv,char * szProcessPath)
@@ -283,7 +367,6 @@ void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *Compan
       if (GetFileVersionInfo(file, NULL, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
       {
         //lecture des infos du buffer
-         VS_FIXEDFILEINFO *v_buffer;
          WORD             *d_buffer;
          char             *c;
          unsigned int     size;
@@ -633,24 +716,6 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
   return nb_ligne;
 }
 //------------------------------------------------------------------------------
-void EnableTokenPrivilege()
-{
-	HANDLE ht	= 0;
-	TOKEN_PRIVILEGES tkp = {0};
-
-	//token du process
-	if (OpenProcessToken(GetCurrentProcess(),TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &ht) != 0)
-  {
-    //add privilège
-    if(LookupPrivilegeValue(NULL, SE_DEBUG_NAME,&tkp.Privileges[0].Luid))
-    {
-      tkp.PrivilegeCount = 1;
-      tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-      AdjustTokenPrivileges(ht, FALSE, &tkp, 0,(PTOKEN_PRIVILEGES)NULL, 0);
-    }
-  }
-}
-//------------------------------------------------------------------------------
 void GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
 {
   typedef struct _PEB
@@ -735,8 +800,8 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
   //liste des processus
   DWORD j, k, cbNeeded;
 
-  //enable privilège pour accéder aus process système
-  EnableTokenPrivilege();
+  //enable privilège pour accéder aux process système
+  SetDebugPrivilege(TRUE);
 
   PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
   HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -880,4 +945,5 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
     }
     CloseHandle(hCT);
   }
+  SetDebugPrivilege(FALSE);
 }

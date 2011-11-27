@@ -1046,6 +1046,32 @@ void FiltreRegData(LINE_ITEM *item)
     }
   }
 
+/*
+          //Installed by
+          lv_line[6].c[0]=0;
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"URLInfoAbout",lv_line[6].c,MAX_PATH))
+          {
+            if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"URLUpdateInfo",lv_line[6].c,MAX_PATH))
+            {
+              LireValeur(HKEY_LOCAL_MACHINE,chemin2,"HelpLink",lv_line[6].c,MAX_PATH);
+            }
+          }
+
+          //URL
+          lv_line[7].c[0]=0;
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"InstallSource",lv_line[7].c,MAX_PATH))
+          {
+            LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Inno Setup: User",lv_line[7].c,MAX_PATH);
+          }
+
+          //application reconnues ?
+          if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
+           || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
+           || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
+           || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[8].c,"OK");
+          else lv_line[8].c[0]=0;
+*/
+
   //Software
   for (i=0;i<NB_MAX_REF_SEARCH_SOFTWARE;i++)
   {
@@ -1080,7 +1106,7 @@ void FiltreRegData(LINE_ITEM *item)
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
                || (item[3].c[0] == 'C' && item[3].c[8] == 'f')||(item[3].c[0] == 'H' && item[3].c[5] == 'x')||(item[3].c[0] == 'S' && item[3].c[9] == 'U')
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
-               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,6,"OK");
+               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) ListView_SetItemText(hlv,l,8,"OK");
 
               ListView_SetItemText(hlv,l,2,item[3].c);
             }else if (j==3)//date formatage
@@ -1096,7 +1122,9 @@ void FiltreRegData(LINE_ITEM *item)
               tmp[10]=0;
               ListView_SetItemText(hlv,l,4,tmp);
             }else if (j==2) {ListView_SetItemText(hlv,l,3,item[3].c);}//publisher
-            else ListView_SetItemText(hlv,l,5,item[3].c);//UninstallString
+            else if (j>=4 && j<8){ListView_SetItemText(hlv,l,5,item[3].c);}//UninstallString
+            else if (j==8) {ListView_SetItemText(hlv,l,6,item[3].c);}
+            else if (j>=9) {ListView_SetItemText(hlv,l,7,item[3].c);}
           }else//nouvel item
           {
             //copie des données normales
@@ -1112,7 +1140,7 @@ void FiltreRegData(LINE_ITEM *item)
               if ((item[3].c[0] == 'M' &&(item[3].c[5] == 'w' || item[3].c[7] == 'j' || item[3].c[8] == 't' || (item[3].c[1] == 'S' && item[3].c[2] == 'D' && item[3].c[3] == 'N')))
                || (item[3].c[0] == 'C' && item[3].c[8] == 'f')||(item[3].c[0] == 'H' && item[3].c[5] == 'x')||(item[3].c[0] == 'S' && item[3].c[9] == 'U')
                || (item[3].c[0] == 'W' && item[3].c[6] == 's' && item[3].c[8] != 'L')
-               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) strcpy(item[6].c,"OK");
+               || (item[3].c[0] == 'L' && item[3].c[8] != 'W' && item[3].c[16] != 'M')) strcpy(item[8].c,"OK");
 
               strcpy(item[2].c,tmp);
               item[3].c[0]=0;
@@ -1130,10 +1158,18 @@ void FiltreRegData(LINE_ITEM *item)
             }else if (j==2)//date formatage
             {
               strcpy(item[3].c,tmp);
-            }else
+            }else if (j>=4 && j<8)
             {
               item[3].c[0]=0;
               strcpy(item[5].c,tmp);
+            }else if (j==8)
+            {
+              item[3].c[0]=0;
+              strcpy(item[6].c,tmp);
+            }else if (j>=9)
+            {
+              item[3].c[0]=0;
+              strcpy(item[7].c,tmp);
             }
             AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
           }

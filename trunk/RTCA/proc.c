@@ -893,8 +893,28 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
   char tmp2[MAX_LINE_SIZE];
   unsigned short i=0;
 
+  //gestion des images
+  LVITEM lvItemsrc, lvItemdst;
+  lvItemsrc.mask      = LVIF_PARAM|LVIF_IMAGE;
+  lvItemsrc.iSubItem  = 0;
+  lvItemsrc.lParam    = LVM_SORTITEMS;
+  lvItemdst.mask      = LVIF_PARAM|LVIF_IMAGE;
+  lvItemdst.iSubItem  = 0;
+  lvItemdst.lParam    = LVM_SORTITEMS;
+
+  lvItemsrc.iItem = ligne1;
+  lvItemdst.iItem = ligne2;
+  ListView_GetItem(hListView, &lvItemsrc);
+  ListView_GetItem(hListView, &lvItemdst);
+
+  lvItemsrc.iItem = ligne2;
+  lvItemdst.iItem = ligne1;
+  ListView_SetItem(hListView, &lvItemsrc);
+  ListView_SetItem(hListView, &lvItemdst);
+
   while (i <nb_colonne)
   {
+    //le reste
     ListView_GetItemText(hListView,ligne1,i,tmp1,MAX_LINE_SIZE);
     ListView_GetItemText(hListView,ligne2,i,tmp2,MAX_LINE_SIZE);
 
@@ -903,7 +923,6 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
    i++;
   }
 }
-
 //------------------------------------------------------------------------------
 /*void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
 {
@@ -1852,6 +1871,7 @@ void InitConfig(HWND hwnd)
   State_Enable = FALSE;
   MD5_Enable = FALSE;
 
+  nb_process_SE_DEBUG = FALSE;
   ExportStart = FALSE;
   h_Export = NULL;
 
@@ -2003,14 +2023,16 @@ void InitConfig(HWND hwnd)
   lvc.cx = 20;       //taille colonne
   lvc.pszText = "Hidden"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
-  lvc.cx = 20;       //taille colonne
   lvc.pszText = "System"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)9, (LPARAM)&lvc);
-  lvc.cx = 20;       //taille colonne
+  lvc.cx = 10;       //taille colonne
   lvc.pszText = "MD5"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
+  lvc.cx = 10;       //taille colonne
+  lvc.pszText = "Size"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 11;
+  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 12;
 
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW), SW_SHOW);
@@ -2063,11 +2085,16 @@ void InitConfig(HWND hwnd)
   lvc.cx = 100;       //taille colonne
   lvc.pszText = "UninstallString/InstallLocation"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
-  lvc.cx = 100;       //taille colonne
-  lvc.pszText = "Checked"; //texte de la colonne
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "Installed by"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
+  lvc.pszText = "URL/Source"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Checked"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL] = 7;
+  NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL] = 9;
 
   lvc.cx = 50;       //taille colonne
   lvc.pszText = "File"; //texte de la colonne
@@ -2321,10 +2348,6 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_PROCESS],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP);
   NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL] = 12;
 
-
-
-
-
   lvc.cx = 130;       //taille colonne
   lvc.pszText = "Start"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_H,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
@@ -2546,6 +2569,11 @@ void InitConfig(HWND hwnd)
   strcpy(ref_software_var_search[i++].v,"QuietUninstallString");
   strcpy(ref_software_var_search[i++].v,"InstallLocation");
   strcpy(ref_software_var_search[i++].v,"Inno Setup: App Path");
+  strcpy(ref_software_var_search[i++].v,"Inno Setup: User");
+  strcpy(ref_software_var_search[i++].v,"InstallSource");
+  strcpy(ref_software_var_search[i++].v,"URLInfoAbout");
+  strcpy(ref_software_var_search[i++].v,"URLUpdateInfo");
+  strcpy(ref_software_var_search[i++].v,"HelpLink");
 
   i=0;
   strcpy(ref_update_search[i++].v,"Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\");
@@ -2576,6 +2604,7 @@ void InitConfig(HWND hwnd)
   strcpy(ref_conf_search[i++].v,"Services\\LanManWorkstation\\Parameters");
   strcpy(ref_conf_search[i++].v,"\\Control\\Lsa");
   strcpy(ref_conf_search[i++].v,"CurrentVersion\\Policies\\System");
+  strcpy(ref_conf_search[i++].v,"Control Panel\\Desktop");
 
   i=0;
   strcpy(ref_conf_var_search[i++].v,"ProductName");
@@ -2628,6 +2657,15 @@ void InitConfig(HWND hwnd)
   strcpy(ref_conf_var_search[i++].v,"(audit) Audit the access of global system objects, 0x01:Enable");
   strcpy(ref_conf_var_search[i++].v,"fullprivilegeauditing");
   strcpy(ref_conf_var_search[i++].v,"(audit) Audit use of Backup and Restore privilege, 0x01:Enable");
+
+  strcpy(ref_conf_var_search[i++].v,"everyoneincludesanonymous");
+  strcpy(ref_conf_var_search[i++].v,"(attack vector) Permissions \"everyone\" are applied to anonymous users, 0x00:Disable");
+  strcpy(ref_conf_var_search[i++].v,"ScreenSaveActive");
+  strcpy(ref_conf_var_search[i++].v,"(ScreenSaver) Enable screensaver, 0x01:Enable");
+  strcpy(ref_conf_var_search[i++].v,"ScreenSaverIsSecure");
+  strcpy(ref_conf_var_search[i++].v,"(ScreenSaver) Password to exit the screen saver, 0x01:Enable");
+  strcpy(ref_conf_var_search[i++].v,"ScreenSaveTimeOut");
+  strcpy(ref_conf_var_search[i++].v,"(ScreenSaver) Time to activate the screen saver (second).");
 
   i=0;
   strcpy(ref_mru_search[i++].v,"CurrentVersion\\Explorer\\RunMRU");
