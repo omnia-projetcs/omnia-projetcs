@@ -363,7 +363,7 @@ void registry_configuration(HANDLE hlv)
   //OS Vesion
   lv_line[3].c[0]=0;
   strcpy(lv_line[2].c,"ProductName");
-  strcpy(lv_line[4].c,"(Configuration) Opérating System");
+  strcpy(lv_line[4].c,"(Configuration) Operating System");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion","ProductName",lv_line[3].c))
   {
   }else strcpy(lv_line[3].c,"<NO VALUE>");
@@ -670,6 +670,41 @@ void registry_configuration(HANDLE hlv)
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
+  lv_line[3].c[0]=0;
+  tmp[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
+  strcpy(lv_line[2].c,"everyoneincludesanonymous");
+  strcpy(lv_line[4].c,"(attack vector) Permissions \"everyone\" are applied to anonymous users, 0x00:Disable");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","everyoneincludesanonymous",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Control Panel\\Desktop");
+  strcpy(lv_line[2].c,"ScreenSaveActive");
+  strcpy(lv_line[4].c,"(ScreenSaver) Enable screensaver, 0x01:Enable");
+  if (!LireGValeur(HKEY_CURRENT_USER,"Control Panel\\Desktop","ScreenSaveActive",lv_line[3].c))
+    strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Control Panel\\Desktop");
+  strcpy(lv_line[2].c,"ScreenSaverIsSecure");
+  strcpy(lv_line[4].c,"(ScreenSaver) Password to exit the screen saver, 0x01:Enable");
+  if (!LireGValeur(HKEY_CURRENT_USER,"Control Panel\\Desktop","ScreenSaverIsSecure",lv_line[3].c))
+    strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Control Panel\\Desktop");
+  strcpy(lv_line[2].c,"ScreenSaveTimeOut");
+  strcpy(lv_line[4].c,"(ScreenSaver) Time to activate the screen saver (second).");
+  if (!LireGValeur(HKEY_CURRENT_USER,"Control Panel\\Desktop","ScreenSaveTimeOut",lv_line[3].c))
+    strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
   //registry hive path
   reg_liste_DataValeurSpec(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SYSTEM\\CurrentControlSet\\Control\\hivelist\\","","(configuration) Registry hive path",hlv);
 }
@@ -745,19 +780,36 @@ void registry_software(HANDLE hlv)
             }
           }
 
+          //Installed by
+          lv_line[6].c[0]=0;
+          LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Inno Setup: User",lv_line[6].c,MAX_PATH);
+
+          //URL
+          lv_line[7].c[0]=0;
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"URLInfoAbout",lv_line[7].c,MAX_PATH))
+          {
+            if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"URLUpdateInfo",lv_line[7].c,MAX_PATH))
+            {
+              if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"InstallSource",lv_line[7].c,MAX_PATH))
+              {
+                LireValeur(HKEY_LOCAL_MACHINE,chemin2,"HelpLink",lv_line[7].c,MAX_PATH);
+              }
+            }
+          }
+
           //application reconnues ?
           if ((lv_line[2].c[0] == 'M' &&(lv_line[2].c[5] == 'w' || lv_line[2].c[7] == 'j' || lv_line[2].c[8] == 't' || (lv_line[2].c[1] == 'S' && lv_line[2].c[2] == 'D' && lv_line[2].c[3] == 'N')))
            || (lv_line[2].c[0] == 'C' && lv_line[2].c[8] == 'f')||(lv_line[2].c[0] == 'H' && lv_line[2].c[5] == 'x')||(lv_line[2].c[0] == 'S' && lv_line[2].c[9] == 'U')
            || (lv_line[2].c[0] == 'W' && lv_line[2].c[6] == 's' && lv_line[2].c[8] != 'L')
-           || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[6].c,"OK");
-          else lv_line[6].c[0]=0;
+           || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[8].c,"OK");
+          else lv_line[8].c[0]=0;
 
           if (lv_line[2].c[0]!=0 || lv_line[5].c[0]!=0)
           {
             if (lv_line[2].c[0]==0)strcpy(lv_line[2].c,NomSubKey);
 
             AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
-            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
           }
         }
       }
@@ -2433,10 +2485,10 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
     if (cong_reg_global)
     {
       HANDLE hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW);
-      EnumKeyAndValue(HKEY_CLASSES_ROOT, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_CLASSES_ROOT",TVI_ROOT,ICON_FILE_DOSSIER), "");
       EnumKeyAndValue(HKEY_CURRENT_USER, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_CURRENT_USER",TVI_ROOT,ICON_FILE_DOSSIER), "");
       EnumKeyAndValue(HKEY_LOCAL_MACHINE, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_LOCAL_MACHINE",TVI_ROOT,ICON_FILE_DOSSIER), "");   //ajouter la gestion des privilèges ^^
       EnumKeyAndValue(HKEY_USERS, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_USERS",TVI_ROOT,ICON_FILE_DOSSIER), "");
+      EnumKeyAndValue(HKEY_CLASSES_ROOT, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_CLASSES_ROOT",TVI_ROOT,ICON_FILE_DOSSIER), "");
       EnumKeyAndValue(HKEY_CURRENT_CONFIG, "", hlv, AjouterItemTreeViewFile(Tabl[TABL_REGISTRY], TV_VIEW,"HKEY_CURRENT_CONFIG",TVI_ROOT,ICON_FILE_DOSSIER), "");
 
       snprintf(tmp,MAX_PATH,"load %u values",ListView_GetItemCount(hlv));

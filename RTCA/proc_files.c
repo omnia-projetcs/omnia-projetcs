@@ -331,6 +331,7 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           }
           //ajout à la listeview
           lv_line[10].c[0]=0;
+          lv_line[11].c[0]=0;
           AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
 
           //on traite les autres répertoires
@@ -361,6 +362,13 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           {
             FileToMd5(Rep, lv_line[10].c);
           }
+
+          //size
+          if (data.nFileSizeLow+data.nFileSizeHigh > 1099511627776)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uTo",(data.nFileSizeLow+data.nFileSizeHigh)/1099511627776);
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uGo",(data.nFileSizeLow+data.nFileSizeHigh)/1073741824);
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uMo",(data.nFileSizeLow+data.nFileSizeHigh)/1048576);
+          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uKo",(data.nFileSizeLow+data.nFileSizeHigh)/1024);
+          else snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uo",data.nFileSizeLow+data.nFileSizeHigh);
 
           //ACLS
           lv_line[3].c[0] = 0;

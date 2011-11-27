@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.18 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.19 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -167,6 +167,7 @@ BOOL TV_FILES_VISBLE;
 #define REM_DLL_INJECT_REMOTE_THREAD  11024
 #define POPUP_LV_PROPERTIES           11025
 #define POPUP_KILL_PROCESS            11026
+#define POPUP_DUMP_MEMORY             11027
 
 #define POPUP_TV_EXPAND_ALL  11030
 #define POPUP_LV_P_VIEW      11031
@@ -385,7 +386,7 @@ REG_REF_SEARCH ref_network_search[NB_MAX_REF_SEARCH_NETWORK];
 
 #define NB_MAX_REF_SEARCH_SOFTWARE       1
 REG_REF_SEARCH ref_software_search[NB_MAX_REF_SEARCH_SOFTWARE];
-#define NB_MAX_REF_SEARCH_SOFTWARE_VAR   8
+#define NB_MAX_REF_SEARCH_SOFTWARE_VAR   13
 REG_REF_SEARCH ref_software_var_search[NB_MAX_REF_SEARCH_SOFTWARE_VAR];
 
 #define NB_MAX_REF_SEARCH_UPDATE         2
@@ -402,9 +403,9 @@ REG_REF_SEARCH ref_service_var_search[NB_MAX_REF_SEARCH_SERVICE_VAR];
 #define NB_MAX_REF_SEARCH_USERS          1
 REG_REF_SEARCH ref_users_search[NB_MAX_REF_SEARCH_USERS];
 
-#define NB_MAX_REF_SEARCH_CONF           7
+#define NB_MAX_REF_SEARCH_CONF           8
 REG_REF_SEARCH ref_conf_search[NB_MAX_REF_SEARCH_CONF];
-#define NB_MAX_REF_SEARCH_CONF_VAR      46
+#define NB_MAX_REF_SEARCH_CONF_VAR      54
 REG_REF_SEARCH ref_conf_var_search[NB_MAX_REF_SEARCH_CONF_VAR];
 
 #define NB_MAX_REF_SEARCH_MRU           30
@@ -620,6 +621,8 @@ char sk_c[MAX_LINE_SIZE];
 BOOL secret_;
 BYTE secret_c[MAX_LINE_SIZE];
 //------------------------------------------------------------------------------
+DWORD nb_process_SE_DEBUG;
+//------------------------------------------------------------------------------
 //fonctions systèmes standard
 void InitConfig(HWND hwnd);
 void EndConfig();
@@ -699,7 +702,8 @@ void OpenRegeditKey(char *key);
 void CheckRegistryFile();
 
 //process
-void SetDebugPrivilege();
+void SetDebugPrivilege(BOOL enable);
+DWORD WINAPI DumpProcessMemory(LPVOID lParam);
 void ReadProcessInfo(HANDLE hlv, DWORD id);
 BOOL WINAPI DllInjecteurA(DWORD dwPid,char * szDLLPath);
 BOOL WINAPI DllEjecteurA(DWORD dwPid,char * szDLLPath);

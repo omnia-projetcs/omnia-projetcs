@@ -22,13 +22,13 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOGS),mWidth-225,15,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_FILES),mWidth-225,35,60,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-145,35,130,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-145,50,130,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-145,65,100,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-150,35,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-150,50,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-150,65,100,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REGISTRY),mWidth-225,95,60,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-145,95,135,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-145,110,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-150,95,140,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-150,110,140,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,162,80,15,TRUE);
 
@@ -36,11 +36,11 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,197,80,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,212,80,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,232,230,100,TRUE);
-        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,247,210,80,TRUE);
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,232,230,110,TRUE);
+        MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,247,210,90,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,337,110,40,TRUE);
-        MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,337,110,40,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_CONF_EXPORT),mWidth-235,347,110,30,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_CONF_START),mWidth-115,347,110,30,TRUE);
 
         //pour correction du bug d'affichage
         InvalidateRect(hwnd, NULL, TRUE);
@@ -416,7 +416,8 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
-          redimColumn(hwnd,LV_FILES_VIEW,10,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,10,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,11,col_size/2);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,100);
           redimColumn(hwnd,LV_FILES_VIEW,5,100);
@@ -427,7 +428,8 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
-          redimColumn(hwnd,LV_FILES_VIEW,10,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,10,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,11,col_size/2);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,33);
           redimColumn(hwnd,LV_FILES_VIEW,5,33);
@@ -814,28 +816,6 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                                           , SendMessage(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),11);break;
 
           case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
-          /*case POPUP_TV_OPEN:
-          {
-            //lecture du path du fichier
-            char file[MAX_PATH];
-            GetItemPath(hwnd,TV_VIEW, SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0), file, MAX_PATH);
-          }
-          break;
-          case POPUP_TV_DELETE:
-          {
-            //lecture du path du fichier
-            char file[MAX_PATH];
-            GetItemPath(hwnd,TV_VIEW, SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0), file, MAX_PATH);
-
-            //extraction du nom de la valeure
-            //extraction de la ruche
-            //on supprime les données
-
-            //suppression
-
-            //traitement dans le fichier + base de registre
-
-          }*/
           break;
           }
         break;
@@ -871,12 +851,7 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
         //suivant l'index visible ^^
-        switch(TABL_ID_REG_VISIBLE)
-        {
-          case 0:
-          case LV_REGISTRY_CONF_NB_COL :c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);break;
-          default : c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[TABL_ID_REG_VISIBLE+LV_FILES_VIEW_NB_COL]);break;
-        }
+        c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,SIZE_UTIL_ITEM);
       }else if (((LPNMHDR)lParam)->code == EN_CHANGE)
       {
         if (LOWORD(wParam) == ED_SEARCH)pos_search_registry = 0;
@@ -938,17 +913,32 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           if(GetOpenFileName(&ofnFile))
           {
             //élévation de privilège
-            SetDebugPrivilege();
+            SetDebugPrivilege(TRUE);
 
             //injection or not ^^
             if (LOWORD(wParam) == ADD_DLL_INJECT_REMOTE_THREAD)DllInjecteurA(pid,tmp);
             else DllEjecteurA(pid,tmp);
+
+            SetDebugPrivilege(FALSE);
           }
         }
         break;
         case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], TRUE, FALSE, FALSE);break;
         case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL], FALSE, FALSE, FALSE);break;
         case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
+
+        case POPUP_DUMP_MEMORY :
+        {
+          //lecture du pid du process
+          HANDLE hlv = GetDlgItem(hwnd,LV_VIEW);
+          char cpid[MAX_PATH];
+          ListView_GetItemText(hlv,SendMessage(hlv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,cpid,MAX_PATH);
+
+          CreateThread(NULL,0,DumpProcessMemory,(PVOID)atoi(cpid),0,0);
+        }
+        break;
+
+
         case POPUP_KILL_PROCESS : KilllvProcess(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1);break;
         case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
         case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
