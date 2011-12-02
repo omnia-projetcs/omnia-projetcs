@@ -937,7 +937,9 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           CreateThread(NULL,0,DumpProcessMemory,(PVOID)atoi(cpid),0,0);
         }
         break;
-
+        /*case POPUP_ALL_PROCESS_AND_THREAD:
+          EnumProcessAndThread(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+        break;*/
 
         case POPUP_KILL_PROCESS : KilllvProcess(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1);break;
         case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
@@ -957,7 +959,7 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           //test du path
           if (strlen(path)>0)
           {
-            if (path[0]=='\\')
+            if (path[0]=='\\' && path[1]!='\\')
             {
               if (path[1]=='?' && path[4]!='\\')
               {
@@ -972,6 +974,24 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
                 *c =0;
 
                 ShellExecute(Tabl[TABL_MAIN], "open","explorer",ext_path,NULL,SW_SHOW);
+              }else if (path[0]=='\\' && path[1]=='S' && path[2]=='y' && path[3]=='s' && path[4]=='t' && path[5]=='e' && path[6]=='m' && path[7]=='R')
+              {
+                //variable système
+                char path2[MAX_PATH];
+                if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion","SystemRoot",path2))
+                {
+                  //ajout du path lue
+                  strncat(path2,path+11,MAX_PATH);
+                  strncat(path2,"\0",MAX_PATH);
+
+                  //suppression du nom de fichier ^^
+                  char *c = path2;
+                  while(*c++);
+                  while(*c!='\\')c--;
+                  *c =0;
+
+                  ShellExecute(Tabl[TABL_MAIN], "open","explorer",path2,NULL,SW_SHOW);
+                }
               }
             }else
             {
@@ -997,9 +1017,15 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       //si pas d'item
       if (ListView_GetItemCount((HANDLE)wParam) <1)
       {
-        RemoveMenu(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_S_VIEW,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_KILL_PROCESS,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_S_DELETE,MF_BYCOMMAND|MF_GRAYED);
+
+        RemoveMenu(hmenu,ADD_DLL_INJECT_REMOTE_THREAD,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,REM_DLL_INJECT_REMOTE_THREAD,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_DUMP_MEMORY,MF_BYCOMMAND|MF_GRAYED);
 
         RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_GRAYED);
@@ -1012,7 +1038,13 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
       {
         //si pas de sélection
         RemoveMenu(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_KILL_PROCESS,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_S_DELETE,MF_BYCOMMAND|MF_GRAYED);
+
+        RemoveMenu(hmenu,ADD_DLL_INJECT_REMOTE_THREAD,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,REM_DLL_INJECT_REMOTE_THREAD,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_DUMP_MEMORY,MF_BYCOMMAND|MF_GRAYED);
 
         RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_GRAYED);
