@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.19 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.20 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -168,6 +168,7 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_LV_PROPERTIES           11025
 #define POPUP_KILL_PROCESS            11026
 #define POPUP_DUMP_MEMORY             11027
+//#define POPUP_ALL_PROCESS_AND_THREAD  11028
 
 #define POPUP_TV_EXPAND_ALL  11030
 #define POPUP_LV_P_VIEW      11031

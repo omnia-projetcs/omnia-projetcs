@@ -453,6 +453,15 @@ void ReadProcessInfo(HANDLE hlv_src, DWORD id)
     if (tmp[0]=='\\' && tmp[1]=='?' && tmp[2]=='?' && tmp[3]=='\\')
     {
       strcpy(lv_line[1].c,tmp+4);
+    }else if (tmp[0]=='\\' && tmp[1]=='S' && tmp[2]=='y' && tmp[3]=='s' && tmp[4]=='t' && tmp[5]=='e' && tmp[6]=='m' && tmp[7]=='R')
+    {
+      //variable système
+      if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion","SystemRoot",lv_line[1].c))
+      {
+        //ajout du path lue
+        strncat(lv_line[1].c,tmp+11,MAX_LINE_SIZE);
+        strncat(lv_line[1].c,"\0",MAX_LINE_SIZE);
+      }else strcpy(lv_line[1].c,tmp);
     }else strcpy(lv_line[1].c,tmp);
     strcpy(tmp,lv_line[1].c);
 
@@ -716,8 +725,11 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
   return nb_ligne;
 }
 //------------------------------------------------------------------------------
-void GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
+BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
 {
+  arg[0]=0;
+  BOOL ret = FALSE;
+
   typedef struct _PEB
   {
     BYTE Reserved1[2];
@@ -785,6 +797,7 @@ void GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
             if (ReadProcessMemory(hProcess, (LPVOID)Block.dwCmdLineAddress, cmd, Block.wMaxLength, &dwSize) != 0)
             {
               snprintf(arg,size,"%S",cmd);
+              ret = TRUE;
             }
             free(cmd);
           }
@@ -792,6 +805,172 @@ void GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
       }
     }
   }
+  return ret;
+}
+//------------------------------------------------------------------------------
+void EnumProcessAndThread(HANDLE hlv, unsigned short nb_colonne, unsigned int last_id, unsigned int end_id)
+{
+  //liste des processus
+  DWORD i, j, k, cbNeeded;
+
+  //enable privilège pour accéder aux process système
+  SetDebugPrivilege(TRUE);
+
+  HANDLE hProcess,hProcess2;
+  HMODULE hMod[MAX_PATH];
+  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime ,LocalFileTime;
+  SYSTEMTIME SysTime;
+
+  LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+  LINE_PROC_ITEM port_line[MAX_PATH];
+
+  unsigned int img = 0;
+  BOOL continue_ok = TRUE;
+
+  char tmp[MAX_LINE_SIZE];
+
+  //afin de passer outre les rootkit on énumère manuellement les process par id
+  for (i=last_id+1;i<end_id;i++) //32768 = 2gb/64k pour la gestion du 64bits
+  {
+    // récupère le handle du processus.
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,i);
+    if (hProcess!=INVALID_HANDLE_VALUE && hProcess!=NULL)
+    {
+      lv_line[0].c[0] = 0;
+      lv_line[1].c[0] = 0;
+      lv_line[2].c[0] = 0;
+      lv_line[3].c[0] = 0;
+      lv_line[4].c[0] = 0;
+      lv_line[5].c[0] = 0;
+      lv_line[6].c[0] = 0;
+      lv_line[7].c[0] = 0;
+      lv_line[8].c[0] = 0;
+      lv_line[9].c[0] = 0;
+      lv_line[10].c[0] = 0;
+      lv_line[11].c[0] = 0;
+
+      //PID
+      sprintf(lv_line[1].c,"%04lu",i);
+
+      //lecture de la ligne de commande
+      GetProcessArg(hProcess, lv_line[3].c, MAX_LINE_SIZE);
+
+      //on vérifie si le path existe déja ou non
+      j = ListView_GetItemCount(hlv);
+      continue_ok = TRUE;
+      for (k=0;k<j;k++)
+      {
+        ListView_GetItemText(hlv,k,3,tmp,MAX_LINE_SIZE);
+        if (!strcmp(tmp,lv_line[3].c)){continue_ok = FALSE;break;}
+      }
+      if (!continue_ok)continue;
+
+      //name
+      //if (GetModuleBaseName(hProcess,NULL,lv_line[0].c,MAX_LINE_SIZE) == 0) continue;
+      if (GetModuleBaseName(hProcess,NULL,tmp,MAX_LINE_SIZE) != 0)
+      {
+        snprintf(lv_line[0].c,MAX_LINE_SIZE,"[%s]",tmp);
+      }else lv_line[0].c[0] = 0;
+
+      //description
+      if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded))
+      {
+        //Path
+        if (GetModuleFileNameEx(hProcess,hMod[0],lv_line[2].c,MAX_LINE_SIZE) == 0)lv_line[2].c[0] = 0;
+      }
+
+      //user
+      if ((hProcess2 = OpenProcess(READ_CONTROL,0,i))!=NULL)
+      {
+        PSECURITY_DESCRIPTOR psDesc = (PSECURITY_DESCRIPTOR)GlobalAlloc(GMEM_FIXED,MAX_PATH);
+        DWORD dwSize = 0;
+        SID_NAME_USE f_sid;
+        PSID psid=0;
+        BOOL proprio = FALSE;
+        char c_name[TAILLE_TMP];
+        DWORD d_name = TAILLE_TMP;
+        char c_domaine[TAILLE_TMP];
+        DWORD d_domaine = TAILLE_TMP;
+        if (psDesc != NULL)
+        {
+          //info de l'objet
+          if (GetKernelObjectSecurity(hProcess2,OWNER_SECURITY_INFORMATION,psDesc,1000,&dwSize))
+          {
+            //security descriptor
+            if (GetSecurityDescriptorOwner(psDesc,&psid, &proprio))
+            {
+              if (IsValidSid(psid))
+              {
+                //SID to user + domaine
+                c_name[0]=0;
+                c_domaine[0]=0;
+                if(LookupAccountSid(NULL,psid,c_name,&d_name,c_domaine,&d_domaine,&f_sid))
+                {
+                  snprintf(lv_line[4].c,MAX_LINE_SIZE,"%s\\%s",c_domaine,c_name);
+                }
+
+                //ajout du SID user :
+                PSID_IDENTIFIER_AUTHORITY t = GetSidIdentifierAuthority(psid);
+                snprintf(tmp,MAX_PATH," SID : S-%d-%u",((SID*)psid)->Revision,t->Value[5]+ (t->Value[4]<<8) + (t->Value[3]<<16) + (t->Value[2]<<24));
+                strncat(lv_line[4].c,tmp,MAX_LINE_SIZE);
+                PUCHAR pcSubAuth = GetSidSubAuthorityCount(psid);
+                unsigned char m,ucMax = *pcSubAuth;
+                DWORD *SidP;
+
+                for (m=0;m<ucMax;++m)
+                {
+                  SidP=GetSidSubAuthority(psid,m);
+                  snprintf(tmp,MAX_PATH,"-%lu",*SidP);
+                  strncat(lv_line[4].c,tmp,MAX_LINE_SIZE);
+                }
+                strncat(lv_line[4].c,"\0",MAX_LINE_SIZE);
+              }else lv_line[4].c[0] = 0;
+            }
+          }
+          GlobalFree(psDesc);
+        }
+        CloseHandle(hProcess2);
+      }
+
+      //date de début
+      if (GetProcessTimes(hProcess, &lpCreationTime,&lpExitTime, &lpKernelTime, &lpUserTime))
+      {
+        //traitement de la date
+        if (lpCreationTime.dwHighDateTime != 0 && lpCreationTime.dwLowDateTime != 0)
+        {
+          if(FileTimeToLocalFileTime(&lpCreationTime, &LocalFileTime))
+          {
+            if(FileTimeToSystemTime(&LocalFileTime, &SysTime))
+              snprintf(lv_line[5].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+          }
+        }
+      }
+
+      //icon
+      if (lv_line[2].c[0]=='\\' && lv_line[2].c[1]=='?' && lv_line[2].c[2]=='?' && lv_line[2].c[3]=='\\')img = GetIconProcess(hlv,lv_line[2].c+4);
+      else img = GetIconProcess(hlv,lv_line[2].c);
+
+      //port réseau ouvert
+      j=GetPortsFromPID(i, port_line, MAX_PATH, MAX_LINE_SIZE);
+
+      if (j == 0)AddToLVICON(hlv,lv_line, nb_colonne,img);
+      else
+      {
+        for (k=0;k<j;k++)
+        {
+          strcpy(lv_line[6].c, port_line[k].protocol);
+          strcpy(lv_line[7].c, port_line[k].IP_src);
+          strcpy(lv_line[8].c, port_line[k].Port_src);
+          strcpy(lv_line[9].c, port_line[k].IP_dst);
+          strcpy(lv_line[10].c, port_line[k].Port_dst);
+          strcpy(lv_line[11].c, port_line[k].state);
+          AddToLVICON(hlv,lv_line, nb_colonne,img);
+        }
+      }
+      CloseHandle(hProcess);
+    }
+  }
+  SetDebugPrivilege(FALSE);
 }
 //------------------------------------------------------------------------------
 void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
@@ -804,7 +983,7 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
   SetDebugPrivilege(TRUE);
 
   PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
-  HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+  HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS|TH32CS_SNAPTHREAD, 0);
   if (hCT!=INVALID_HANDLE_VALUE)
   {
     if(Process32First(hCT, &pe))
@@ -817,7 +996,7 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
       LINE_ITEM lv_line[SIZE_UTIL_ITEM];
       LINE_PROC_ITEM port_line[MAX_PATH];
 
-      int img = 0;
+      unsigned int img = 0;
 
       char tmp[MAX_PATH];
       do
@@ -847,7 +1026,7 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
           if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded) )
           {
             //Path
-            GetModuleFileNameEx(hProcess,hMod[0],lv_line[2].c,MAX_LINE_SIZE);
+            if (GetModuleFileNameEx(hProcess,hMod[0],lv_line[2].c,MAX_LINE_SIZE) == 0)lv_line[2].c[0] = 0;
           }
 
           //lecture de la ligne de commande
@@ -942,6 +1121,9 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
           CloseHandle(hProcess);
         }
       }while(Process32Next(hCT, &pe));
+
+      //ajout des processus non énumérés
+      EnumProcessAndThread(hlv, nb_colonne, 1, 32768);
     }
     CloseHandle(hCT);
   }

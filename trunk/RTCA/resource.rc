@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,19
-PRODUCTVERSION 0,0,1,19
+FILEVERSION 0,0,1,20
+PRODUCTVERSION 0,0,1,20
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.19\0"
-      VALUE "ProductVersion", "0.0.1.19\0"
+      VALUE "FileVersion", "0.0.1.20\0"
+      VALUE "ProductVersion", "0.0.1.20\0"
     END
   END
 END
@@ -228,6 +228,7 @@ BEGIN
       MENUITEM "Network"      ,POPUP_LV_CP_COL7
     END
     MENUITEM SEPARATOR
+   // MENUITEM "List all process and thread" ,POPUP_ALL_PROCESS_AND_THREAD
     POPUP "Dll injection"
     BEGIN
       MENUITEM "Add remote thread injection"        ,ADD_DLL_INJECT_REMOTE_THREAD

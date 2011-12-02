@@ -1526,43 +1526,43 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
   if (nblecteurs>0)
   {
     SEARCH_C files[25];
-    strcpy(files[j++].c,"SAM");
-    strcpy(files[j++].c,"sam");
-    strcpy(files[j++].c,"software");
-    strcpy(files[j++].c,"SOFTWARE");
-    strcpy(files[j++].c,"software.sav");
-    strcpy(files[j++].c,"SOFTWARE.SAV");
-    strcpy(files[j++].c,"system");
-    strcpy(files[j++].c,"SYSTEM");
-    strcpy(files[j++].c,"system.dat");
-    strcpy(files[j++].c,"SYSTEM.DAT");
-    strcpy(files[j++].c,"system.sav");
-    strcpy(files[j++].c,"SYSTEM.SAV");
-    strcpy(files[j++].c,"default");
-    strcpy(files[j++].c,"DEFAULT");
-    strcpy(files[j++].c,"default.sav");
-    strcpy(files[j++].c,"DEFAULT.SAV");
-    strcpy(files[j++].c,"ntuser.dat");
-    strcpy(files[j++].c,"NTUSER.DAT");
-    strcpy(files[j++].c,"user.dat");
-    strcpy(files[j++].c,"USER.DAT");
-    strcpy(files[j++].c,"userdiff");
-    strcpy(files[j++].c,"USERDIFF");
-    strcpy(files[j++].c,"Reg.dat");
-    strcpy(files[j++].c,"Usrclass.dat");
-    strcpy(files[j++].c,"Classes.dat");
+    strcpy(files[j++].c,"SAM\0");
+    strcpy(files[j++].c,"sam\0");
+    strcpy(files[j++].c,"software\0");
+    strcpy(files[j++].c,"SOFTWARE\0");
+    strcpy(files[j++].c,"software.sav\0");
+    strcpy(files[j++].c,"SOFTWARE.SAV\0");
+    strcpy(files[j++].c,"system\0");
+    strcpy(files[j++].c,"SYSTEM\0");
+    strcpy(files[j++].c,"system.dat\0");
+    strcpy(files[j++].c,"SYSTEM.DAT\0");
+    strcpy(files[j++].c,"system.sav\0");
+    strcpy(files[j++].c,"SYSTEM.SAV\0");
+    strcpy(files[j++].c,"default\0");
+    strcpy(files[j++].c,"DEFAULT\0");
+    strcpy(files[j++].c,"default.sav\0");
+    strcpy(files[j++].c,"DEFAULT.SAV\0");
+    strcpy(files[j++].c,"ntuser.dat\0");
+    strcpy(files[j++].c,"NTUSER.DAT\0");
+    strcpy(files[j++].c,"user.dat\0");
+    strcpy(files[j++].c,"USER.DAT\0");
+    strcpy(files[j++].c,"userdiff\0");
+    strcpy(files[j++].c,"USERDIFF\0");
+    strcpy(files[j++].c,"Reg.dat\0");
+    strcpy(files[j++].c,"Usrclass.dat\0");
+    strcpy(files[j++].c,"Classes.dat\0");
 
     SEARCH_C exts_reg[2];
-    strcpy(exts_reg[l++].c,"reg");
-    strcpy(exts_reg[l++].c,"REG");
+    strcpy(exts_reg[l++].c,"reg\0");
+    strcpy(exts_reg[l++].c,"REG\0");
 
     SEARCH_C exts[6];
-    strcpy(exts[k++].c,"evt");
-    strcpy(exts[k++].c,"EVT");
-    strcpy(exts[k++].c,"evtx");
-    strcpy(exts[k++].c,"EVTX");
-    strcpy(exts[k++].c,"log");
-    strcpy(exts[k++].c,"LOG");
+    strcpy(exts[k++].c,"evt\0");
+    strcpy(exts[k++].c,"EVT\0");
+    strcpy(exts[k++].c,"evtx\0");
+    strcpy(exts[k++].c,"EVTX\0");
+    /*strcpy(exts[k++].c,"log");
+    strcpy(exts[k++].c,"LOG");*/
 
     //init du treeview
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
@@ -2383,13 +2383,13 @@ void InitConfig(HWND hwnd)
   lvc.pszText = "Description"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
   lvc.cx = 300;       //taille colonne
-  lvc.pszText = ""; //texte de la colonne
+  lvc.pszText = "Information"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
   lvc.cx = 60;       //taille colonne
-  lvc.pszText = ""; //texte de la colonne
+  lvc.pszText = "Size"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
   lvc.cx = 60;       //taille colonne
-  lvc.pszText = ""; //texte de la colonne
+  lvc.pszText = "Owner"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "ProductName"; //texte de la colonne
