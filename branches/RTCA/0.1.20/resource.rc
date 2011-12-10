@@ -1,0 +1,334 @@
+//------------------------------------------------------------------------------
+// Projet RTCA          : READ TO CATCH ALL
+// Auteur               : Nicolas Hanteville
+// Site                 : http://code.google.com/p/omnia-projetcs/
+// Licence              : GPL V3
+//------------------------------------------------------------------------------
+#include "resource.h"
+//------------------------------------------------------------------------------
+ICON_APP            ICON DISCARDABLE "RTCA.ico"
+
+ICON_DOSSIER        ICON DISCARDABLE "folder.ico"
+ICON_FICHIER        ICON DISCARDABLE "file.ico"
+ICON_FICHIER_BIN    ICON DISCARDABLE "file_bin.ico"
+ICON_FICHIER_DWORD  ICON DISCARDABLE "file_dword.ico"
+ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
+ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
+//------------------------------------------------------------------------------
+IDR_VERSION VERSIONINFO
+FILEVERSION 0,0,1,20
+PRODUCTVERSION 0,0,1,20
+FILETYPE 0x00000001
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "04090000"
+    BEGIN
+      VALUE "CompanyName", "http://omni-a.blogspot.com\0"
+      VALUE "OriginalFilename", "RtCA.exe\0"
+      VALUE "ProductName", "RtCA\0"
+      VALUE "Author", "Nicolas Hanteville\0"
+      VALUE "FileVersion", "0.0.1.20\0"
+      VALUE "ProductVersion", "0.0.1.20\0"
+    END
+  END
+END
+//------------------------------------------------------------------------------
+DLG_MAIN DIALOGEX 6,6,389,273
+CAPTION NOM_APPLI
+FONT 8,"Arial",0,0
+STYLE 0x10CF0800
+EXSTYLE WS_EX_ACCEPTFILES
+BEGIN
+  CONTROL "Options"       ,BT_MAIN_CONF         ,"Button",0x5001800B| WS_TABSTOP,2,1,60,17
+  CONTROL "Audit logs"    ,BT_MAIN_LOGS         ,"Button",0x5001800B| WS_TABSTOP,71,1,60,17
+  CONTROL "Files"         ,BT_MAIN_FILES        ,"Button",0x5001800B| WS_TABSTOP,133,1,60,17
+  CONTROL "Registry/AD"   ,BT_MAIN_REGISTRY     ,"Button",0x5001800B| WS_TABSTOP,195,1,60,17
+  CONTROL "State"         ,BT_MAIN_STATE        ,"Button",0x5001800B| WS_TABSTOP,257,1,60,17
+
+  CONTROL "Process"       ,BT_MAIN_PROCESS      ,"Button",0x5001800B| WS_TABSTOP,326,1,60,17
+  CONTROL ""              ,SB_MAIN              ,"msctls_statusbar32",0x50000003|SBARS_SIZEGRIP,0,260,389,12
+END
+//------------------------------------------------------------------------------
+DLG_CONF DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,TRV_CONF_TESTS       ,"SysTreeView32",0x50310807| WS_TABSTOP,4,3,226,233,0x00000200
+  CONTROL "Audit logs"    ,CHK_CONF_LOGS        ,"Button",0x50010003| WS_TABSTOP,244,15,54,9
+  CONTROL "Files"         ,CHK_CONF_FILES       ,"Button",0x50010003| WS_TABSTOP,244,28,54,9
+  CONTROL "Registry"      ,CHK_CONF_REGISTRY    ,"Button",0x50010003| WS_TABSTOP,244,41,54,9
+  CONTROL "Tests"         ,GRP_CONF             ,"Button",0x50000007| WS_TABSTOP,236,3,148,59
+  CONTROL "Local only"    ,CHK_CONF_LOCAL       ,"Button",0x50010003| WS_TABSTOP,306,30,54,9
+  CONTROL "Setup"         ,GRP_CONF_CONF        ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
+  CONTROL "Stay on top"   ,CHK_CONF_TOP         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+
+  CONTROL "Dump local registry (low)"           ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Registry recovery mode"              ,CHK_CONF_REG_FILE_RECOVERY        ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable state (low)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+
+  CONTROL "MD5 files hash"                      ,CHK_CONF_MD5                       ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+
+  CONTROL "About"         ,GRP_CONF_ABOUT       ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
+  CONTROL "Read to Catch All :\n"
+          "Licensed under the terms of the GNU\n"
+          "General Public License version 3.\n\n"
+          "Author: nicolas.hanteville@gmail.com\n"
+          "http://code.google.com/p/omnia-projetcs/"
+                          ,ST_CONF_ABOUT        ,"Static",0x50000000,244,80,128,102
+
+  CONTROL "Start"         ,BT_CONF_START        ,"Button",0x50010000| WS_TABSTOP,312,196,72,22
+  CONTROL "Export"        ,BT_CONF_EXPORT       ,"Button",0x50010000| WS_TABSTOP,236,196,70,22
+END
+
+//------------------------------------------------------------------------------
+DLG_LOGS DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0 //MS Sans Serif",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,LV_LOGS_VIEW         ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
+  CONTROL "Search"        ,BT_VIEW_SEARCH       ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
+END
+//------------------------------------------------------------------------------
+DLG_FILES DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,LV_FILES_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
+  CONTROL "Search"        ,BT_VIEW_SEARCH       ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
+  CONTROL ""              ,TV_VIEW              ,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER,4,3,226,233,0x00000200
+  CONTROL "Tree view"     ,BT_TREE_VIEW         ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
+END
+//------------------------------------------------------------------------------
+DLG_REGISTRY DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
+  CONTROL "Search"        ,BT_VIEW_SEARCH       ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
+  CONTROL "Tree view"     ,BT_TREE_VIEW         ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
+  CONTROL ""              ,TV_VIEW              ,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER,4,3,226,233,0x00000200
+  CONTROL ""              ,LV_REGISTRY_VIEW     ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_CONF     ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_LOGICIEL ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_MAJ      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_SERVICES ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_HISTORIQUE,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_USB      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_START    ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_LAN      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_USERS    ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+
+  CONTROL ""              ,LV_REGISTRY_PASSWORD ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_MRU      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_REGISTRY_PATH     ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+
+  CONTROL ""              ,CB_REGISTRY_VIEW     ,"ComboBox",0x50210003| WS_TABSTOP,206,216,166,110
+END
+//------------------------------------------------------------------------------
+DLG_PROCESS DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+END
+//------------------------------------------------------------------------------
+DLG_STATE DIALOGEX 0,24,389,237
+FONT 8,"Arial",0,0
+STYLE 0x40080000
+BEGIN
+  CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_VIEW_H      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+END
+//------------------------------------------------------------------------------
+POPUP_TRV_CONF MENU DISCARDABLE
+BEGIN
+  POPUP "Configuration"
+    BEGIN
+    POPUP "Add"
+    BEGIN
+      MENUITEM "Add file"     ,POPUP_TRV_CONF_ADD_FILE
+      MENUITEM "Add path"     ,POPUP_TRV_CONF_ADD_PATH
+    END
+    MENUITEM "Remove"        ,POPUP_TRV_CONF_REMOVE
+    MENUITEM "Clean all"     ,POPUP_TRV_CONF_CLEAN
+    MENUITEM "Open file Path",POPUP_TRV_CONF_OFP
+    MENUITEM SEPARATOR
+    MENUITEM "Auto search files",POPUP_TRV_CONF_AUTO_SEARCH_FILES
+    MENUITEM "Export list files",POPUP_TRV_CONF_EXPORT_LIST_FILES
+    MENUITEM SEPARATOR
+    MENUITEM "Up"           ,POPUP_TRV_CONF_P
+    MENUITEM "Down"         ,POPUP_TRV_CONF_M
+    MENUITEM SEPARATOR
+    POPUP "Advanced"
+    BEGIN
+      MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK   //en cours de dev !
+      MENUITEM SEPARATOR
+      MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
+      MENUITEM SEPARATOR
+      MENUITEM "Clean (local host) registry history" ,POPUP_CLEAN_REGISTRY
+      MENUITEM "Clean (local host) audits records" ,POPUP_CLEAN_LOGS
+    END
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_LV MENU DISCARDABLE
+BEGIN
+  POPUP "Save"
+    BEGIN
+    MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
+    MENUITEM "Save view"      ,POPUP_LV_S_VIEW
+    MENUITEM "Import file"    ,POPUP_LV_I_VIEW
+    MENUITEM "Open registry path" ,POPUP_LV_P_VIEW
+    MENUITEM SEPARATOR
+    MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
+    MENUITEM "Select all search" ,POPUP_LV_AS_VIEW
+    MENUITEM SEPARATOR
+    MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
+    POPUP "Copy"
+    BEGIN
+      MENUITEM "Column item 1"     ,POPUP_LV_CP_COL1
+      MENUITEM "Column item 2"     ,POPUP_LV_CP_COL2
+      MENUITEM "Column item 3"     ,POPUP_LV_CP_COL3
+      MENUITEM "Column item 4"     ,POPUP_LV_CP_COL4
+      MENUITEM "Column item 5"     ,POPUP_LV_CP_COL5
+      MENUITEM "Column item 6"     ,POPUP_LV_CP_COL6
+      MENUITEM "Column item 7"     ,POPUP_LV_CP_COL7
+      MENUITEM "Column item 8"     ,POPUP_LV_CP_COL8
+      MENUITEM "Column item 9"     ,POPUP_LV_CP_COL9
+      MENUITEM "Column item 10"    ,POPUP_LV_CP_COL10
+      MENUITEM "Column item 11"    ,POPUP_LV_CP_COL11
+      MENUITEM "Column item 12"    ,POPUP_LV_CP_COL12
+    END
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_LV_PROCESS MENU DISCARDABLE
+BEGIN
+  POPUP "Save"
+    BEGIN
+    MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
+    MENUITEM "Save view"      ,POPUP_LV_S_VIEW
+    MENUITEM "Open process path" ,POPUP_LV_P_VIEW
+    MENUITEM SEPARATOR
+    MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
+    MENUITEM "Kill process"   ,POPUP_KILL_PROCESS
+    POPUP "Copy"
+    BEGIN
+      MENUITEM "Pid"          ,POPUP_LV_CP_COL1
+      MENUITEM "Process"      ,POPUP_LV_CP_COL2
+      MENUITEM "Path"         ,POPUP_LV_CP_COL3
+      MENUITEM "Command"      ,POPUP_LV_CP_COL4
+      MENUITEM "Owner"        ,POPUP_LV_CP_COL5
+      MENUITEM "Start date"   ,POPUP_LV_CP_COL6
+      MENUITEM "Network"      ,POPUP_LV_CP_COL7
+    END
+    MENUITEM SEPARATOR
+   // MENUITEM "List all process and thread" ,POPUP_ALL_PROCESS_AND_THREAD
+    POPUP "Dll injection"
+    BEGIN
+      MENUITEM "Add remote thread injection"        ,ADD_DLL_INJECT_REMOTE_THREAD
+      MENUITEM "Remove remote thread injection"     ,REM_DLL_INJECT_REMOTE_THREAD
+    END
+    MENUITEM "Dump process memory" ,POPUP_DUMP_MEMORY
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_LV_STATE MENU DISCARDABLE
+BEGIN
+  POPUP "Save"
+    BEGIN
+    MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
+    MENUITEM "Save view"      ,POPUP_LV_S_VIEW
+    MENUITEM "Save DAY STATE" ,POPUP_LV_AS_VIEW
+    MENUITEM SEPARATOR
+    MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
+    MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
+    POPUP "Copy"
+    BEGIN
+      MENUITEM "Date"           ,POPUP_LV_CP_COL1
+      MENUITEM "Source"         ,POPUP_LV_CP_COL2
+      MENUITEM "User"           ,POPUP_LV_CP_COL3
+      MENUITEM "Description"    ,POPUP_LV_CP_COL4
+    END
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_LV_I MENU DISCARDABLE
+BEGIN
+  POPUP "Import"
+    BEGIN
+    MENUITEM "Import file"    ,POPUP_LV_I_VIEW
+    MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
+    //MENUITEM "Expand all"     ,POPUP_TV_EXPAND_ALL
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_TV_F MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_tv"
+    BEGIN
+    MENUITEM "Copy complet path"    ,POPUP_TV_CP_COMPLET_PATH
+    MENUITEM SEPARATOR
+    MENUITEM "Open"                 ,POPUP_TV_OPEN
+    MENUITEM "Add file from"        ,POPUP_TV_ADD
+    MENUITEM "Copy to"              ,POPUP_TV_COPY
+    MENUITEM "Delete"               ,POPUP_TV_DELETE
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_TV_R MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_tv"
+    BEGIN
+    MENUITEM "Copy complet path"    ,POPUP_TV_CP_COMPLET_PATH
+    /*MENUITEM SEPARATOR
+    MENUITEM "Edit"                 ,POPUP_TV_OPEN
+    MENUITEM "Delete"               ,POPUP_TV_DELETE*/
+    END
+END
+//------------------------------------------------------------------------------
+DLG_INFO DIALOGEX 6,6,400,231
+CAPTION "Information"
+FONT 8,"Arial",0,0
+STYLE 0x00CF0800
+//STYLE 0x00C80000
+//EXSTYLE 0x00000080
+BEGIN
+  CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,0,0,400,231,0x00000200
+END
+//------------------------------------------------------------------------------
+POPUP_LV_INFO MENU DISCARDABLE
+BEGIN
+  POPUP "Save"
+    BEGIN
+    MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
+    MENUITEM "Save view"      ,POPUP_LV_S_VIEW
+    MENUITEM SEPARATOR
+    MENUITEM "Open file Path" ,POPUP_TRV_CONF_OFP
+    MENUITEM "File properties" ,POPUP_LV_PROPERTIES
+    MENUITEM SEPARATOR
+    MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
+    POPUP "Copy"
+      BEGIN
+        MENUITEM "Description"     ,POPUP_LV_CP_COL1
+        MENUITEM "Column item 2"     ,POPUP_LV_CP_COL2
+        MENUITEM "Column item 3"     ,POPUP_LV_CP_COL3
+        MENUITEM "Column item 4"     ,POPUP_LV_CP_COL4
+      END
+    END
+END
+//------------------------------------------------------------------------------
+POPUPEXPORT MENU DISCARDABLE
+BEGIN
+  POPUP "Export"
+    BEGIN
+    MENUITEM "Export to *.csv"  ,POPUP_E_CSV
+    MENUITEM "Export to *.html" ,POPUP_E_HTML
+    MENUITEM "Export to *.xml"  ,POPUP_E_XML
+    END
+END
