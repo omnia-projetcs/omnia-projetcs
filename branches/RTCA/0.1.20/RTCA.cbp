@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="RtCA" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Release">
+				<Option output="RtCA" prefix_auto="1" extension_auto="1" />
+				<Option object_output="C:\Documents and Settings\nico\Bureau\RTCA - Forensic\Sources\RTCA2\RTCA\.objs" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libcomctl32.a" />
+					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libpsapi.a" />
+					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libws2_32.a" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Linker>
+			<Add library="gdi32" />
+			<Add library="user32" />
+			<Add library="kernel32" />
+		</Linker>
+		<Unit filename="Clean.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="SyskeyExtract.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="d3des.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="d3des.h" />
+		<Unit filename="export.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="local_user_extract.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="md5_dgst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_logs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_logs_evt.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_logs_evtx.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_logs_log.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_process.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_WCE_bin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_bin.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_bin2.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_guide.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_search.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rc4_enc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="rc4_skey.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="resource.h" />
+		<Unit filename="resource.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="suivie.txt" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
