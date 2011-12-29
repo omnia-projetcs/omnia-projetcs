@@ -143,7 +143,7 @@ char HexaToDecS(char *hexa)
 };
 //------------------------------------------------------------------------------
 //conversion de chaine Wildstring stocké sous forme hexa en char
-void SHexaToString(char *src, char *dst)
+char *SHexaToString(char *src, char *dst)
 {
   unsigned int i,size = strlen(src);
   char *d = dst;
@@ -153,6 +153,21 @@ void SHexaToString(char *src, char *dst)
     else *d++ = HexaToDecS(&src[i]);
   }
   *d =0;
+  return dst;
+}
+//------------------------------------------------------------------------------
+//conversion de chaine string stocké sous forme hexa en char
+char *SHexaToChar(char *src, char *dst)
+{
+  unsigned int i,size = strlen(src);
+  char *d = dst;
+  for (i=0;i<size;i+=2)
+  {
+    if (src[i]=='0' && src[i+1]=='0')break;
+    else *d++ = HexaToDecS(&src[i]);
+  }
+  *d =0;
+  return dst;
 }
 //------------------------------------------------------------------------------
 unsigned long int HTD(char *src) //pour conversion en hexa
@@ -1658,24 +1673,28 @@ void FiltreRegData(LINE_ITEM *item)
     }
   }
   //la même chose avec le Wifi ^^
-  if (Contient(item[1].c,"WZCSVC\\Parameters\\interfaces\\"))
+  if (Contient(item[1].c,"WZCSVC\\Parameters\\Interfaces\\"))
   {
     //on vérifie toute les lignes du tableau en recherchant un enregistrement existant ^^
     hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_LAN);
     k = ListView_GetItemCount(hlv);
     test_ok = FALSE;
 
+    char tmp_GUID[50];
+    snprintf(tmp_GUID,"%s",&(item[1].c[strlen(item[1].c)-37]));
+
     for (l=0;l<k;l++)
     {
       tmp[0]=0;
       ListView_GetItemText(hlv,l,1,tmp,MAX_LINE_SIZE);
-      if (!strcmp(tmp,item[1].c))
+      //if (!strcmp(tmp,item[1].c))
+      if(Contient(tmp,tmp_GUID))
       {
         test_ok = TRUE;
         break;
       }
     }
-
+    char tmp3[MAX_LINE_SIZE];
     if (test_ok)//update
     {
       //lecture des données lues
@@ -1684,19 +1703,19 @@ void FiltreRegData(LINE_ITEM *item)
       char tmp2[MAX_LINE_SIZE];
 
       //pour chaque paramètre on ajoute à l'item ou création d'un item vide ^^
-      if (Contient(item[2].c,"Static#") && strlen(item[3].c)>104)
+      if ((Contient(item[2].c,"Static#") || Contient(item[2].c,"ActiveSettings")) && strlen(item[3].c)>105)
       {
         switch (item[3].c[105])
         {
-          case '0':snprintf(tmp2,MAX_LINE_SIZE,"%s /WEP",tmp);break;
-          case '1':snprintf(tmp2,MAX_LINE_SIZE,"%s /Open",tmp);break;
-          case '4':item[3].c[9]=='3'?snprintf(tmp2,MAX_LINE_SIZE,"%s /WPA-PSK:TKIP",tmp):snprintf(tmp2,MAX_LINE_SIZE,"%s /WPA:TKIP",tmp);break;
-          case '6':item[3].c[9]=='3'?snprintf(tmp2,MAX_LINE_SIZE,"%s /WPA-PSK:AES",tmp):snprintf(tmp2,MAX_LINE_SIZE,"%s /WPA:AES",tmp);break;
+          case '0':snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WEP",tmp,SHexaToChar(&(item[3].c[40]),tmp3));break;
+          case '1':snprintf(tmp2,MAX_LINE_SIZE,"%s %s/Open",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
+          case '4':item[3].c[9]=='3'?snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA-PSK:TKIP",tmp,SHexaToChar(&(item[3].c[40]), tmp3)):snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA:TKIP",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
+          case '6':item[3].c[9]=='3'?snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA-PSK:AES",tmp,SHexaToChar(&(item[3].c[40]), tmp3)):snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA:AES",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
           default:
           if (item[3].c[9] == '3')//PSK
-            sprintf(tmp2,"%s /WPA2-PSK ? : CODE: 0x%c%c",tmp,item[3].c[104],item[3].c[105]);
+            snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA2-PSK ? : CODE: 0x%c%c",tmp,SHexaToChar(&(item[3].c[40]), tmp3),item[3].c[104],item[3].c[105]);
           else
-            sprintf(tmp2,"%s /WPA2 ? : CODE: 0x%c%c",tmp,item[3].c[104],item[3].c[105]);
+            snprintf(tmp2,MAX_LINE_SIZE,"%s %s/WPA2 ? : CODE: 0x%c%c",tmp,SHexaToChar(&(item[3].c[40]), tmp3),item[3].c[104],item[3].c[105]);
           break;
         }
         ListView_SetItemText(hlv,l,7,tmp2);
@@ -1708,22 +1727,22 @@ void FiltreRegData(LINE_ITEM *item)
     }else
     {
       //pour chaque paramètre on ajoute à l'item ou création d'un item vide ^^
-      if (Contient(item[2].c,"Static#") && strlen(item[3].c)>104)
+      if ((Contient(item[2].c,"Static#") || Contient(item[2].c,"ActiveSettings")) && strlen(item[3].c)>105)
       {
         switch (item[3].c[105])
         {
-          case '0':strcpy(item[7].c,"/WEP");break;
-          case '1':strcpy(item[7].c,"/Open");break;
-          case '4':item[3].c[9]=='3'?strcpy(item[7].c,"/WPA-PSK:TKIP"):strcpy(item[7].c,"/WPA:TKIP");break;
-          case '6':item[3].c[9]=='3'?strcpy(item[7].c,"/WPA-PSK:AES"):strcpy(item[7].c,"/WPA:AES");break;
+          case '0':snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WEP",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
+          case '1':snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/Open",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
+          case '4':item[3].c[9]=='3'?snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA-PSK:TKIP",tmp,SHexaToChar(&(item[3].c[40]), tmp3)):snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA:TKIP",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
+          case '6':item[3].c[9]=='3'?snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA-PSK:AES",tmp,SHexaToChar(&(item[3].c[40]), tmp3)):snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA:AES",tmp,SHexaToChar(&(item[3].c[40]), tmp3));break;
           default:
           if (item[3].c[9] == '3')//PSK
-            sprintf(item[7].c,"/WPA2-PSK ? : CODE: 0x%c%c",item[3].c[104],item[3].c[105]);
+            snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA2-PSK ? : CODE: 0x%c%c",tmp,SHexaToChar(&(item[3].c[40]), tmp3),item[3].c[104],item[3].c[105]);
           else
-            sprintf(item[7].c,"/WPA2 ? : CODE: 0x%c%c",item[3].c[104],item[3].c[105]);
+            snprintf(item[7].c,MAX_LINE_SIZE,"%s %s/WPA2 ? : CODE: 0x%c%c",tmp,SHexaToChar(&(item[3].c[40]), tmp3),item[3].c[104],item[3].c[105]);
           break;
         }
-        item[1].c[0]=0;
+        //item[1].c[0]=0;
         item[2].c[0]=0;
         item[3].c[0]=0;
         item[4].c[0]=0;
@@ -1733,7 +1752,7 @@ void FiltreRegData(LINE_ITEM *item)
       }else if (!strcmp(item[2].c,"ControlFlags") || !strcmp(item[2].c,"LayoutVersion"))
       {
         snprintf(item[7].c,MAX_LINE_SIZE,"%s:%s",item[2].c,item[3].c);
-        item[1].c[0]=0;
+        //item[1].c[0]=0;
         item[2].c[0]=0;
         item[3].c[0]=0;
         item[4].c[0]=0;

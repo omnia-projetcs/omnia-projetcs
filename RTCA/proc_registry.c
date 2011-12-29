@@ -1765,11 +1765,11 @@ void registry_start(HANDLE hlv)
 void LireConfSSID(char *GUID,char *resultat,unsigned int size)
 {
   char tmp[MAX_PATH],
-  tmp1[MAX_PATH],
-  tmp2[MAX_PATH]="ControlFlags: 0x",
-  tmp3[MAX_PATH],
-  tmp5[15]="Static#0000",
+  tmp2[MAX_PATH],
+  tmp3[MAX_LINE_SIZE],
+  name[MAX_PATH],
   cSSID[MAX_PATH]="",chiffrement[MAX_PATH]="";
+
   HKEY CleTmp;
   FILETIME DernierMAJ;
   SYSTEMTIME SysTime;
@@ -1778,62 +1778,60 @@ void LireConfSSID(char *GUID,char *resultat,unsigned int size)
   snprintf(tmp,MAX_PATH,"SOFTWARE\\MICROSOFT\\WZCSVC\\Parameters\\interfaces\\%s",GUID);
 
   //si ControlFlags n'existe pas alors pas de clé
-  tmp1[0]=0;
-  if (LireValeur(HKEY_LOCAL_MACHINE,tmp,"ControlFlags",tmp1,MAX_PATH))
+  DWORD i, t=0, u = 0,v = 0;
+  if (LireDValeur(HKEY_LOCAL_MACHINE,tmp,"ControlFlags",&v))
   {
-    if (tmp1[0]!=0)
+    if (LireDValeur(HKEY_LOCAL_MACHINE,tmp,"LayoutVersion",&u))
     {
-      //ControlFlags  + LayoutVersion
-      tmp3[0]=0;
-      if (LireValeur(HKEY_LOCAL_MACHINE,tmp,"LayoutVersion",tmp3,MAX_PATH))
-      {
-        snprintf(tmp2,MAX_PATH,"ControlFlags: 0x%s LayoutVersion:0x%s",tmp1,tmp3);
-      }else snprintf(tmp2,MAX_PATH,"ControlFlags:0x%s",tmp1);
+      snprintf(tmp2,MAX_PATH,"ControlFlags: 0x%08X LayoutVersion:0x%08X",v&0xFFFFFFFF,u&0xFFFFFFFF);
+    }else snprintf(tmp2,MAX_PATH,"ControlFlags:0x%0X",v&0xFFFFFFFF);
 
+    for (i=0;i<256;i++)
+    {
+      snprintf(name,MAX_PATH,"Static#%04d",i);//"Static#0000"
 
-      //gestion de la configuration en static
-      //Static#0000
-      tmp3[0]=0;
-      char *c;
-      if (LireGValeur(HKEY_LOCAL_MACHINE,tmp,tmp5,tmp1)>52)
+      if ((t=LireGValeur(HKEY_LOCAL_MACHINE,tmp,name,tmp3))>52)
       {
         //SSID
-        c = tmp1+2;
-        while (*c<32 && *c)c++;//le 2ème caractère représente le début du SSID
-        strcpy(cSSID,c);
+        snprintf(chiffrement,MAX_PATH," %s",tmp3+0x14);
 
         // si on regarde les prochain octets et est égale a 4: WPA-TKIP  et 6: WPA-AES si 01: non chiffré , sinon WEP
         // si 5ème octet = 03 = PSK si 02 partagé?
-        chiffrement[0]=0;
-        switch (tmp1[52])
+        switch (tmp3[52])
         {
-          case 0:strcpy(chiffrement,"/WEP");break;
-          case 1:strcpy(chiffrement,"/Open");break;
-          case 4:tmp1[4]==3?strcpy(chiffrement,"/WPA-PSK:TKIP"):strcpy(chiffrement,"/WPA:TKIP");break;
-          case 6:tmp1[4]==3?strcpy(chiffrement,"/WPA-PSK:AES"):strcpy(chiffrement,"/WPA:AES");break;
+          case 0:strncat(chiffrement,"/WEP\0",MAX_PATH);break;
+          case 1:strncat(chiffrement,"/Open\0",MAX_PATH);break;
+          case 4:tmp3[4]==3?strncat(chiffrement,"/WPA-PSK:TKIP\0",MAX_PATH):strncat(chiffrement,"/WPA:TKIP\0",MAX_PATH);break;
+          case 6:tmp3[4]==3?strncat(chiffrement,"/WPA-PSK:AES\0",MAX_PATH):strncat(chiffrement,"/WPA:AES\0",MAX_PATH);break;
           default:
-          if (tmp1[4] == 3)//PSK
-            sprintf(chiffrement,"/WPA2-PSK ? : CODE: %d",tmp1[52]);
-          else
-            sprintf(chiffrement,"/WPA2 ? : CODE: %d",tmp1[52]);
+          if (tmp3[4] == 3)//PSK
+          {
+            snprintf(name,MAX_PATH,"/WPA2-PSK ? : CODE: %d",tmp3[52]);
+            strncat(chiffrement,name,MAX_PATH);
+          }else
+          {
+            snprintf(name,MAX_PATH,"/WPA2 ? : CODE: %d",tmp3[52]);
+            strncat(chiffrement,name,MAX_PATH);
+          }
           break;
         }
-      }
-
-      //date de dernière modification
-      if (RegOpenKey(HKEY_LOCAL_MACHINE,tmp,&CleTmp)==ERROR_SUCCESS)
-      {
-          if(RegQueryInfoKey(CleTmp,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
-          {
-            if (FileTimeToSystemTime(&DernierMAJ, &SysTime))
-            //traitement de l'affichage de la date
-              snprintf(tmp1,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-            else tmp1[0]=0;
-          }
-          RegCloseKey(CleTmp);
-      }
-      snprintf(resultat,size,"SSID:%s%s Last update:%s %s",cSSID,chiffrement,tmp1,tmp2);
+        strncat(cSSID,chiffrement,MAX_PATH);
+      }else break;
     }
+
+    //date de dernière modification
+    if (RegOpenKey(HKEY_LOCAL_MACHINE,tmp,&CleTmp)==ERROR_SUCCESS)
+    {
+        if(RegQueryInfoKey(CleTmp,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
+        {
+          if (FileTimeToSystemTime(&DernierMAJ, &SysTime))
+          //traitement de l'affichage de la date
+            snprintf(tmp3,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+          else tmp3[0]=0;
+        }
+        RegCloseKey(CleTmp);
+    }
+    snprintf(resultat,size,"SSID:%s Last update:%s %s",cSSID,tmp3,tmp2);
   }
 }
 //------------------------------------------------------------------------------
@@ -2453,6 +2451,84 @@ void registry_syskey(HANDLE hlv, char*sk)
 
   //traitement
   AddLvSyskey("",cJD, cSkew1, cGBG, cData,sk);
+}
+//------------------------------------------------------------------------------
+void RegistryTestDWORD(HKEY hk, char *path, char *value, DWORD ok_v, DWORD nok_v)
+{
+  //lecture de la valeur !
+  DWORD tmp;
+  if(LireDValeur(hk,path,value,&tmp))
+  {
+    if (tmp == ok_v)//test si déja la bonne valeure ou la nouvelle !
+    {
+      HKEY CleTmp;
+      if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+      {
+        RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(nok_v));
+        RegCloseKey(CleTmp);
+      }
+    }else
+    {
+      HKEY CleTmp;
+      if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+      {
+        RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &ok_v, sizeof(ok_v));
+        RegCloseKey(CleTmp);
+      }
+    }
+  }else
+  {
+    //création du path
+    HKEY CleTmp = NULL;
+    if(RegCreateKeyEx(hk,path,0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&CleTmp,NULL) == ERROR_SUCCESS)
+    {
+      RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
+      RegCloseKey(CleTmp);
+    }else if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+    {
+      RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
+      RegCloseKey(CleTmp);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void RegistryTestSTRING(HKEY hk, char *path, char *value, char *ok_v, char *nok_v)
+{
+  //lecture de la valeur !
+  char tmp[MAX_LINE_SIZE];
+  if(LireGValeur(hk,path,value,tmp))
+  {
+    if (!strcmp(tmp,ok_v))//test si déja la bonne valeure ou la nouvelle !
+    {
+      HKEY CleTmp;
+      if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+      {
+        RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+        RegCloseKey(CleTmp);
+      }
+    }else
+    {
+      HKEY CleTmp;
+      if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+      {
+        RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) ok_v, strlen(ok_v));
+        RegCloseKey(CleTmp);
+      }
+    }
+  }else
+  {
+    //création du path
+    HKEY CleTmp = NULL;
+    if(RegCreateKeyEx(hk,path,0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&CleTmp,NULL) == ERROR_SUCCESS)
+    {
+      RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+      RegCloseKey(CleTmp);
+    }else if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
+    {
+      RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+      RegCloseKey(CleTmp);
+    }
+  }
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_registry(LPVOID lParam)

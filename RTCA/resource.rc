@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,20
-PRODUCTVERSION 0,0,1,20
+FILEVERSION 0,0,1,21
+PRODUCTVERSION 0,0,1,21
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.20\0"
-      VALUE "ProductVersion", "0.0.1.20\0"
+      VALUE "FileVersion", "0.0.1.21\0"
+      VALUE "ProductVersion", "0.0.1.21\0"
     END
   END
 END
@@ -68,6 +68,7 @@ BEGIN
   CONTROL "Enable state (low)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable ADS search"                   ,CHK_CONF_ADS                      ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
   CONTROL "MD5 files hash"                      ,CHK_CONF_MD5                       ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
@@ -141,8 +142,10 @@ DLG_STATE DIALOGEX 0,24,389,237
 FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
-  CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
-  CONTROL ""              ,LV_VIEW_H      ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_VIEW          ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_VIEW_CRITICAL ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_VIEW_H        ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,CB_STATE_VIEW    ,"ComboBox",0x50210003| WS_TABSTOP,206,216,166,110
 END
 //------------------------------------------------------------------------------
 POPUP_TRV_CONF MENU DISCARDABLE
@@ -166,9 +169,18 @@ BEGIN
     MENUITEM SEPARATOR
     POPUP "Advanced"
     BEGIN
-      MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK   //en cours de dev !
-      MENUITEM SEPARATOR
+      MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK
       MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
+      POPUP "Modify local policy"
+      BEGIN
+        MENUITEM "Enable/Disable : use of registry editor (regedit.exe)"  ,POPUP_POL_REG
+        MENUITEM "Enable/Disable : use of CMD (cmd.exe)"                  ,POPUP_POL_CMD
+        MENUITEM "Enable/Disable : taskmanager (taskmgr.exe)"             ,POPUP_POL_TASKMGR
+        MENUITEM "Enable/Disable : USB mass storage (required admin right and reboot)" ,POPUP_POL_USB
+        MENUITEM SEPARATOR
+        MENUITEM "Enable/Disable : screensaver"                           ,POPUP_POL_SCR
+        MENUITEM "Enable/Disable : screensaver password"                  ,POPUP_POL_SCR_PWD
+      END
       MENUITEM SEPARATOR
       MENUITEM "Clean (local host) registry history" ,POPUP_CLEAN_REGISTRY
       MENUITEM "Clean (local host) audits records" ,POPUP_CLEAN_LOGS
@@ -203,6 +215,7 @@ BEGIN
       MENUITEM "Column item 10"    ,POPUP_LV_CP_COL10
       MENUITEM "Column item 11"    ,POPUP_LV_CP_COL11
       MENUITEM "Column item 12"    ,POPUP_LV_CP_COL12
+      MENUITEM "Column item 13"    ,POPUP_LV_CP_COL13
     END
     END
 END
@@ -244,7 +257,7 @@ BEGIN
     BEGIN
     MENUITEM "Save selection" ,POPUP_LV_S_SELECTION
     MENUITEM "Save view"      ,POPUP_LV_S_VIEW
-    MENUITEM "Save DAY STATE" ,POPUP_LV_AS_VIEW
+    //MENUITEM "Save DAY STATE" ,POPUP_LV_AS_VIEW
     MENUITEM SEPARATOR
     MENUITEM "Delete record"  ,POPUP_LV_S_DELETE
     MENUITEM "Clean view"     ,POPUP_LV_C_VIEW
@@ -252,8 +265,8 @@ BEGIN
     BEGIN
       MENUITEM "Date"           ,POPUP_LV_CP_COL1
       MENUITEM "Source"         ,POPUP_LV_CP_COL2
-      MENUITEM "User"           ,POPUP_LV_CP_COL3
-      MENUITEM "Description"    ,POPUP_LV_CP_COL4
+      MENUITEM "Description"    ,POPUP_LV_CP_COL3
+      MENUITEM "User"           ,POPUP_LV_CP_COL4
     END
     END
 END

@@ -15,6 +15,7 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //test de la taille
+    BOOL critical = FALSE;
     DWORD taille_fic = GetFileSize(Hlog,NULL);
     if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
     {
@@ -139,8 +140,8 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
                 snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",(char *)pevlr+sizeof(EVENTLOGRECORD));
 
               //ID
-              if(EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
-              else lv_line[8].c[0]=0;
+              if(EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE)){strcpy(lv_line[8].c,"X");critical=TRUE;}
+              else {lv_line[8].c[0]=0;critical=FALSE;}
 
               //Description + infos
               //NumStrings, StringOffset
@@ -232,7 +233,7 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
               }
               strncat(lv_line[7].c,"\0",MAX_LINE_SIZE);
 
-              AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+              AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL],critical);
             }
             c+= pevlr->Length;
             pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);

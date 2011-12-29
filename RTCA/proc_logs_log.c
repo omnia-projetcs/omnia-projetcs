@@ -15,6 +15,7 @@ void TraiterlogFile(char *path, HANDLE hlv)
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //lecture du contenu
+    BOOL critical = FALSE;
     long i,j=0,k,taille_fic = GetFileSize(Hlog,NULL);
     if (taille_fic > 17 && taille_fic!=INVALID_FILE_SIZE) // 17 = taile d'une ligne minimum
     {
@@ -164,7 +165,7 @@ void TraiterlogFile(char *path, HANDLE hlv)
             snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",j++);
 
             //ajout
-            AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+            AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL],critical);
           }
         }
         HeapFree(GetProcessHeap(), 0, buffer);

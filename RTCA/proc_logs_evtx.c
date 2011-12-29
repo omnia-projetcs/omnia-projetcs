@@ -131,6 +131,8 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
   }EVENTLOG_H_EVTX;
   EVENTLOG_H_EVTX *h_dheader = (EVENTLOG_H_EVTX *)buffer;
 
+  DWORD id = 0;
+
   //test de validité
   if (h_dheader->RecordSize <= size
    && h_dheader->MagicString[0] == '*' && h_dheader->MagicString[1] == '*' && h_dheader->MagicString[2] == 0 && h_dheader->MagicString[3] == 0)
@@ -141,6 +143,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
 
     FILETIME FileTime, LocalFileTime;
     SYSTEMTIME SysTime;
+    BOOL critical = FALSE;
 
     //traitement de la date (pas besoin de traitement depuis le 1/1/1970)
     FileTime.dwLowDateTime = (DWORD) h_dheader->TimeCreated;
@@ -193,7 +196,6 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
         unsigned short id;
       }M_ID;
       M_ID * mid;
-      DWORD id = 0;
 
       while(pos<h_dheader->RecordSize-10)
       {
@@ -232,8 +234,8 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
           //if (*c == 0x05)
           {
             snprintf(lv_line[4].c,MAX_LINE_SIZE,"%S",c);
-            if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
-            else lv_line[8].c[0]=0;
+            if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE)){strcpy(lv_line[8].c,"X");critical=TRUE;}
+            else {lv_line[8].c[0]=0;critical=FALSE;}
 
             break;
 
@@ -278,9 +280,8 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
           if (*n == '%'){*n=0; break;}
           n++;
         }
-
-        if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
-        else lv_line[8].c[0]=0;
+        if(EventIdtoDscr(id, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE)){strcpy(lv_line[8].c,"X");critical=TRUE;}
+        else {lv_line[8].c[0]=0;critical=FALSE;}
       }
 
       //traitement de la description !!
@@ -293,7 +294,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
 */
 
     //add
-    AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+    AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL],critical);
   }
   return h_dheader->RecordSize;
 }
