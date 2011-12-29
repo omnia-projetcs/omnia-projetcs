@@ -6,6 +6,49 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+void EnumADS(char *file, char *resultat, DWORD size)
+{
+  char buffer[MAX_PATH];
+  PFILE_STREAM_INFORMATION pStreamInfo = (PFILE_STREAM_INFORMATION)buffer;
+  IO_STATUS_BLOCK ioStatus;
+  char tmp[MAX_PATH];
+
+  BOOL first =TRUE;
+
+  resultat[0]=0;
+  //Open file (0 pour bypasser les ouvertures exclusives)
+  HANDLE Hfic = CreateFile(file, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
+  if(Hfic != INVALID_HANDLE_VALUE)
+  {
+    //9 for rescupe name information : FileNameInformation
+    if (!NtQueryInformationFile(Hfic, &ioStatus, buffer, MAX_PATH, FileStreamInformation))
+    {
+      //traitement des stream une par une
+      FILE_STREAM_INFORMATION *fsi = (FILE_STREAM_INFORMATION *) buffer;
+
+      while(1)
+      {
+        snprintf(tmp,MAX_PATH,"%S",fsi->StreamName);
+        if (strcmp(tmp,"::$DATA"))//si différent de la valeur par défaut
+        {
+          tmp[fsi->StreamNameLength/2]=0;
+          if (tmp[strlen(tmp)-5]=='$')tmp[strlen(tmp)-6]=0;
+
+          strncat(resultat,tmp,size);
+          if (!first)strncat(resultat," | ",size);
+          else first =FALSE;
+        }
+
+        //on passe à la suite
+        if (!fsi->NextEntryOffset)break;
+        fsi = (FILE_STREAM_INFORMATION *) (fsi->NextEntryOffset + (byte *)fsi);
+      }
+    }
+  }
+  CloseHandle(Hfic);
+  strncat(resultat,"\0",size);
+}
+//------------------------------------------------------------------------------
 void FileToMd5(char *path, char *md5)
 {
   //ouverture du fichier en lecture partagé
@@ -332,6 +375,7 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           //ajout à la listeview
           lv_line[10].c[0]=0;
           lv_line[11].c[0]=0;
+          lv_line[12].c[0]=0;
           AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
 
           //on traite les autres répertoires
@@ -376,6 +420,20 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           //lecture des ACLS
           lv_line[7].c[0] = 0;
           if (ACL_Enable)GetACLS(Rep, lv_line[7].c, MAX_LINE_SIZE, lv_line[3].c, MAX_LINE_SIZE);
+
+          //test + énumération des ADS
+          if(ADS && fat)
+          {
+            EnumADS(Rep, lv_line[12].c, MAX_LINE_SIZE);
+            if (lv_line[12].c[0]!=0)
+            {
+              //pour ajouter au treeview
+              snprintf(Rep,MAX_PATH,"%s%s",data.cFileName,lv_line[12].c);
+              AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,Rep,hparent,ICON_FILE);
+            }
+          }
+          else lv_line[12].c[0]=0;
+
           //ajout à la listeview
           AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
         }
@@ -394,6 +452,10 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   SendMessage(htv,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_FILES,TRUE);
+
+  //ADS
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_ADS))ADS = TRUE;
+  else ADS = FALSE;
 
   char lettre[4]="";
   unsigned long FileMaxLen=10,FileFlags;

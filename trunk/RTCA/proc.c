@@ -56,7 +56,7 @@ BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size)
 BOOL isWine()
 {
   HKEY CleTmp=0;
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"Software\\Wine\\",&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"Software\\Wine",&CleTmp)==ERROR_SUCCESS)
   {
     RegCloseKey(CleTmp);
     return TRUE;
@@ -814,7 +814,7 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
   return AddToLV(hlv, item, nb_colonne);
 }
 //------------------------------------------------------------------------------
-DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
+DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL critical)
 {
   if (!State_Enable)return AddToLV(hlv, item, nb_colonne);
 
@@ -861,6 +861,146 @@ DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
     //Description
     snprintf(tmp,MAX_LINE_SIZE,"[%s] %s : %s %s",item[6].c,item[4].c,item[2].c,item[5].c);
     ListView_SetItemText(hlv_r,ref_item,2,tmp);
+
+    //pour les cas de données critiques
+    if (critical)
+    {
+      hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_CRITICAL);
+      ref_item = ListView_GetItemCount(hlv_r);
+      lvi.iItem = ref_item;
+      ListView_InsertItem(hlv_r, &lvi);
+
+      ListView_SetItemText(hlv_r,ref_item,0,item[3].c);
+      ListView_SetItemText(hlv_r,ref_item,1,"Audit logs");
+      ListView_SetItemText(hlv_r,ref_item,2,tmp);
+      ListView_SetItemText(hlv_r,ref_item,3,item[7].c);
+    }
+
+    //ajout de la gestion horraire !
+
+
+    //correlation pour ajout dans l'onglet state
+    #define DATE_SIZE 20
+    #define COL_START 0
+    #define COL_END   1
+    //si une date est présente
+    //si aucun item dans la liste on en ajoute
+    hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
+    nb_items = ListView_GetItemCount(hlv_r);
+    if (nb_items == 0)
+    {
+      //ajout de l'item
+      LVITEM lvi;
+      lvi.mask = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem = 0;
+      lvi.lParam = LVM_SORTITEMS;
+      lvi.pszText="";
+      lvi.iItem = 0;
+      ListView_InsertItem(hlv_r, &lvi);
+
+      ListView_SetItemText(hlv_r,0,COL_START,item[3].c);
+      ListView_SetItemText(hlv_r,0,COL_END,item[3].c);
+      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
+
+      ListView_SetItemText(hlv_r,0,3,item[7].c);
+    }else
+    {
+      DWORD i, duree;
+      BOOL trouve = FALSE;
+      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
+      for (i=0;i<nb_items && !trouve;i++)
+      {
+        //On test l'ensemble des items présents afin de vérifier
+        //si il n'est pas plus récent ou plus ancien
+        //même jour ?
+        date_start[0]=0;
+        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
+        if (date_start[0]!=0)
+        {
+          //année + séparateur + mois + jours
+          if (date_start[0] == item[3].c[0] && date_start[1] == item[3].c[1] && date_start[2] == item[3].c[2] && date_start[3] == item[3].c[3] &&
+              date_start[4] == item[3].c[4] && date_start[7] == item[3].c[7] && //les séparateurs ^^
+              date_start[5] == item[3].c[5] && date_start[6] == item[3].c[6] && date_start[8] == item[3].c[8] && date_start[9] == item[3].c[9])
+          {
+            date_end[0]=0;
+            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
+
+            //même jour
+            trouve = TRUE;
+
+            //on vérifie si inférieur au start
+            if ((date_start[11] > item[3].c[11]) || (date_start[12] > item[3].c[12] && date_start[11] == item[3].c[11]) ||
+                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] > item[3].c[14])  ||
+                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] > item[3].c[15]) ||
+                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] == item[3].c[15] && date_start[17] > item[3].c[17]) ||
+                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] == item[3].c[15] && date_start[17] == item[3].c[17] && date_start[18] > item[3].c[18]))
+            {
+              ListView_SetItemText(hlv_r,i,COL_START,item[3].c);
+              strcpy(date_start,item[3].c);
+
+              ListView_SetItemText(hlv_r,i,3,item[7].c);
+
+              //calcul de  la durée
+              if (date_start[0]!=0 && date_end[0]!=0)
+              {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                ListView_SetItemText(hlv_r,i,2,tmp_date);
+              }
+            }else //ou supérieur au end ^^
+            {
+              if (date_end[0]!=0)
+              {
+                //on vérifie si supérieur à end
+                if ((date_end[11] < item[3].c[11]) || (date_end[12] < item[3].c[12] && date_end[11] == item[3].c[11]) ||
+                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] < item[3].c[14])  ||
+                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] < item[3].c[15]) ||
+                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] == item[3].c[15] && date_end[17] < item[3].c[17]) ||
+                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] == item[3].c[15] && date_end[17] == item[3].c[17] && date_end[18] < item[3].c[18]))
+                {
+                  ListView_SetItemText(hlv_r,i,COL_END,item[3].c);
+                  strcpy(date_end,item[3].c);
+
+                  ListView_SetItemText(hlv_r,i,3,item[7].c);
+
+                  //calcul de  la durée
+                  if (date_start[0]!=0 && date_end[0]!=0)
+                  {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                    ListView_SetItemText(hlv_r,i,2,tmp_date);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      //si pas identifié on ajoute l'item
+      if (!trouve)
+      {
+        //ajout de l'item
+        LVITEM lvi;
+        lvi.mask = LVIF_TEXT|LVIF_PARAM;
+        lvi.iSubItem = 0;
+        lvi.lParam = LVM_SORTITEMS;
+        lvi.pszText="";
+        lvi.iItem = ListView_GetItemCount(hlv_r);
+        i = ListView_InsertItem(hlv_r, &lvi);
+
+        ListView_SetItemText(hlv_r,i,COL_START,item[3].c);
+        ListView_SetItemText(hlv_r,i,COL_END,item[3].c);
+
+        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
+
+        ListView_SetItemText(hlv_r,i,3,item[7].c);
+      }
+    }
+
     LeaveCriticalSection(&Sync);
   }
 
@@ -924,7 +1064,7 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
   }
 }
 //------------------------------------------------------------------------------
-/*void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
+void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
 {
   DWORD i,min=0,max = ListView_GetItemCount(hListView);
   DWORD ref_min, ref_max;
@@ -960,43 +1100,6 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
       if (ref_min!=min)DeplacerLignes(min,ref_min,hListView,nb_colonne);
       if (ref_max!=max)DeplacerLignes(max,ref_max,hListView,nb_colonne);
     }while(++min<=--max);
-  }
-}*/
-
-//2ème technique plus lente et prend plus de ressource (moins bugué) !!!
-void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
-{
-  DWORD i,j,max = ListView_GetItemCount(hListView);
-  if (max > 0)
-  {
-    //allocation de la mémoire
-    LINE_ITEM *lv_line;
-    lv_line = malloc(sizeof(LINE_ITEM)*max);
-    if (lv_line == NULL)return;
-
-    //copie dans la zone mémoire
-    for (i=0;i<max;i++)
-    {
-      ListView_GetItemText(hListView,i,colonne_ref,lv_line[i].c,MAX_LINE_SIZE);
-    }
-
-    //tri + copie
-    DWORD ref_min;
-    for (i=0;i<max;i++)
-    {
-      ref_min = i;
-      for (j=i;j<max;j++)
-      {
-        if (strcmp(lv_line[ref_min].c,lv_line[j].c)>0)
-          ref_min = j;
-      }
-
-      //copie de l'item ^^
-      DeplacerLignes(i,ref_min,hListView,nb_colonne);
-      //copie de la zone mémoire pour test
-      strcpy(lv_line[ref_min].c,lv_line[i].c);
-    }
-    free(lv_line);
   }
 }
 
@@ -1090,6 +1193,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
         RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
       }else
       {
         switch(nb_col)
@@ -1110,6 +1214,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
             RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+            RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
           break;
           case LV_FILES_VIEW_NB_COL://10
             //on modifie les titre et on supprime les colonnes en trop
@@ -1121,12 +1226,13 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
             ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Last write time");
             ModifyMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL7,"Copy : Last access Time");
             ModifyMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL8,"Copy : ACL");
+            ModifyMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : Size");
+            ModifyMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL13,"Copy : ADS");
             ModifyMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_STRING,POPUP_LV_P_VIEW,"Open path");
 
             RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
-            RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
           break;
           case LV_REGISTRY_CONF_NB_COL:
             switch(TABL_ID_REG_VISIBLE)
@@ -1148,6 +1254,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                 RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                 RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                 RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
               break;
               default :
                 RemoveMenu(hmenu,POPUP_LV_I_VIEW,MF_BYCOMMAND|MF_GRAYED);
@@ -1168,6 +1275,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_USERS_NB_COL:
                   //on modifie les titre et on supprime les colonnes en trop
@@ -1184,6 +1292,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   ModifyMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : F Binary data");
 
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_MAJ_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1199,6 +1308,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_SERVICES_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1214,6 +1324,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_HISTORIQUE_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1229,6 +1340,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_USB_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1244,6 +1356,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_START_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1259,6 +1372,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_LAN_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1274,6 +1388,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_PASSWORD_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1289,6 +1404,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_MRU_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1304,6 +1420,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 default :
                   RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
@@ -1318,6 +1435,7 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 }
               break;
@@ -1924,6 +2042,14 @@ void InitConfig(HWND hwnd)
     ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_PROCESS) ,SW_HIDE);
   }
 
+  //chargement de la fonction pour les ADS
+  hDLL_NTDLL = LoadLibrary( "NTDLL.dll");
+  if (hDLL_NTDLL != NULL)
+  {
+    NtQueryInformationFile = (NTQUERYINFORMATIONFILE)GetProcAddress(hDLL_NTDLL , "NtQueryInformationFile");
+    if (NtQueryInformationFile==NULL) EnableWindow(GetDlgItem(Tabl[TABL_CONF],CHK_CONF_ADS),FALSE);
+  }else EnableWindow(GetDlgItem(Tabl[TABL_CONF],CHK_CONF_ADS),FALSE);
+
   //chargement de la liste d'image pour les treeview
   HIMAGELIST hImageList=ImageList_Create(16,16,ILC_COLORDDB | ILC_MASK,6,0);
   if (hImageList != NULL)
@@ -1965,6 +2091,13 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"MRU & MUICache & history");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All Path (Registry dump or offline)");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_SETCURSEL,(WPARAM)0, (LPARAM)0);
+
+  //initialisation des combobox state
+  SendDlgItemMessage(Tabl[TABL_STATE],CB_STATE_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All");
+  SendDlgItemMessage(Tabl[TABL_STATE],CB_STATE_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Critical");
+  SendDlgItemMessage(Tabl[TABL_STATE],CB_STATE_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Time");
+  SendDlgItemMessage(Tabl[TABL_STATE],CB_STATE_VIEW, CB_SETCURSEL,(WPARAM)0, (LPARAM)0);
+  TABL_ID_STATE_VISIBLE = 0;
 
   //entête des listview
   LVCOLUMN lvc;
@@ -2031,8 +2164,10 @@ void InitConfig(HWND hwnd)
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "Size"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
+  lvc.pszText = "ADS"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)12, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 12;
+  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 13;
 
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW), SW_SHOW);
@@ -2367,16 +2502,21 @@ void InitConfig(HWND hwnd)
   lvc.cx = 120;       //taille colonne
   lvc.pszText = "Date"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_CRITICAL,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
   lvc.cx = 60;       //taille colonne
   lvc.pszText = "Source"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_CRITICAL,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
   lvc.cx = 220;       //taille colonne
   lvc.pszText = "Description"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_CRITICAL,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
   lvc.cx = 140;       //taille colonne
   lvc.pszText = "User/ACL"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_CRITICAL,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+  SendDlgItemMessage(Tabl[TABL_STATE],LV_VIEW_CRITICAL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   NB_COLONNE_LV[LV_STATE_VIEW_NB_COL] = 4;
 
   lvc.cx = 100;       //taille colonne
@@ -3152,6 +3292,7 @@ void EndConfig()
     FreeLibrary(hDLL);
   }
 
+  if(hDLL_NTDLL!=NULL)FreeLibrary(hDLL_NTDLL);
   EndDialog(Tabl[TABL_MAIN], 0);
   DeleteObject(PoliceGras);
   DeleteCriticalSection(&Sync);

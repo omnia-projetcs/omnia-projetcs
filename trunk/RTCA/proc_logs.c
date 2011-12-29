@@ -1154,8 +1154,8 @@ BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned sh
   {
     switch(eventId)
     {
-      case 35 : snprintf(result,max_size,"%05d (Time service synchronised)",eventId);break;
-      case 36 : snprintf(result,max_size,"%05d (Time service not synchronised)",eventId);break;
+      case 35 : snprintf(result,max_size,"%05d (Time service synchronised)",eventId);return TRUE;
+      case 36 : snprintf(result,max_size,"%05d (Time service not synchronised)",eventId);return TRUE;
       default : DefaultEventIdtoDscr(eventId, result, max_size);break;
     }
   }else if (!strcmp(source,"Service Control Manager"))
@@ -1206,7 +1206,7 @@ BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned sh
   {
     switch(eventId)
     {
-      case 1000 : snprintf(result,max_size,"%05d (New IP address)",eventId);break;
+      case 1000 : snprintf(result,max_size,"%05d (New IP address)",eventId);return TRUE;
       case 1003 : snprintf(result,max_size,"%05d (Error to renew address)",eventId);break;
       default : DefaultEventIdtoDscr(eventId, result, max_size);break;
     }
@@ -1280,7 +1280,7 @@ BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned sh
       case 1023 : snprintf(result,max_size,"%05d (Update could not be installed)",eventId);break;
       case 10005 : snprintf(result,max_size,"%05d (Error)",eventId);break;
       case 11500 : snprintf(result,max_size,"%05d (Error, another installation is in progress)",eventId);break;
-      case 11601 : snprintf(result,max_size,"%05d (Error, disk full)",eventId);break;
+      case 11601 : snprintf(result,max_size,"%05d (Error, disk full)",eventId);return TRUE;
       case 11706 : snprintf(result,max_size,"%05d (Installation error)",eventId);break;
       case 11707 : snprintf(result,max_size,"%05d (Installation successfull)",eventId);break;
       case 11708 : snprintf(result,max_size,"%05d (Installation failed)",eventId);break;
@@ -1378,6 +1378,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
   unsigned long int i=1,r=0;
   unsigned int taille_tmp;
   char *pStrings;
+  BOOL critical;
 
   strcpy(lv_line[0].c,eventname);
 
@@ -1424,8 +1425,8 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
             strncpy(lv_line[4].c,(char *)pevlr+sizeof(EVENTLOGRECORD),MAX_LINE_SIZE);
 
           //ID
-          if (EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE))strcpy(lv_line[8].c,"X");
-          else lv_line[8].c[0]=0;
+          if (EventIdtoDscr(pevlr->EventID& 0xFFFF, lv_line[4].c, lv_line[2].c, MAX_LINE_SIZE)){strcpy(lv_line[8].c,"X");critical=TRUE;}
+          else {lv_line[8].c[0]=0;critical=FALSE;}
 
           //description
           memset(lv_line[5].c, 0, MAX_LINE_SIZE);
@@ -1481,7 +1482,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
           }
           strncat(lv_line[7].c,"\0",MAX_LINE_SIZE);
 
-          AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+          AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL],critical);
         }
         pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
         dwRead = dwRead-pevlr->Length;

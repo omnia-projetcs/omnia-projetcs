@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.20 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.21 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -81,10 +81,12 @@ char console_cmd[MAX_LINE_SIZE];
 #define CHK_CONF_NO_ACL                  1016
 #define CHK_CONF_NO_TYPE                 1017
 #define CHK_CONF_MD5                     1018
+#define CHK_CONF_ADS                     1019
 BOOL State_Enable;
 BOOL MD5_Enable;
 BOOL ACL_Enable;
 BOOL Type_Enable;
+BOOL ADS;
 CRITICAL_SECTION Sync;
 
 #define DLG_LOGS              2000
@@ -118,7 +120,9 @@ BOOL TV_FILES_VISBLE;
 #define DLG_PROCESS           8000
 #define DLG_STATE             8100
 #define LV_VIEW               8101
-#define LV_VIEW_H             8102
+#define LV_VIEW_CRITICAL      8102
+#define LV_VIEW_H             8103
+#define CB_STATE_VIEW         8104
 
 #define DLG_INFO              5000
 
@@ -137,6 +141,14 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_REG_CHECK      10021
 #define POPUP_CLEAN_REGISTRY 10022
 #define POPUP_CLEAN_LOGS     10023
+
+//popup règles REG
+#define POPUP_POL_REG        10100
+#define POPUP_POL_CMD        10101
+#define POPUP_POL_USB        10103
+#define POPUP_POL_SCR        10104
+#define POPUP_POL_SCR_PWD    10105
+#define POPUP_POL_TASKMGR    10106
 
 #define POPUP_LV             11000
 #define POPUP_LV_S_SELECTION 11001
@@ -218,6 +230,7 @@ HINSTANCE hInst;
 unsigned int TABL_ID_VISIBLE;
 
 unsigned int TABL_ID_REG_VISIBLE;
+unsigned int TABL_ID_STATE_VISIBLE;
 
 #define LV_NB                        32
 #define LV_LOGS_VIEW_NB_COL           0
@@ -624,6 +637,86 @@ BYTE secret_c[MAX_LINE_SIZE];
 //------------------------------------------------------------------------------
 DWORD nb_process_SE_DEBUG;
 //------------------------------------------------------------------------------
+typedef INT NTSTATUS;
+
+typedef struct _IO_STATUS_BLOCK {
+  union {
+    NTSTATUS Status;
+    PVOID Pointer;
+  };
+  ULONG_PTR Information;
+} IO_STATUS_BLOCK, *PIO_STATUS_BLOCK;
+
+typedef struct _FILE_STREAM_INFORMATION {
+  ULONG         NextEntryOffset;
+  ULONG         StreamNameLength;
+  LARGE_INTEGER StreamSize;
+  LARGE_INTEGER StreamAllocationSize;
+  WCHAR         StreamName[1];
+} FILE_STREAM_INFORMATION, *PFILE_STREAM_INFORMATION;
+
+typedef enum _FILE_INFORMATION_CLASS {
+  FileDirectoryInformation                  = 1,
+  FileFullDirectoryInformation,
+  FileBothDirectoryInformation,
+  FileBasicInformation,
+  FileStandardInformation,
+  FileInternalInformation,
+  FileEaInformation,
+  FileAccessInformation,
+  FileNameInformation,
+  FileRenameInformation,
+  FileLinkInformation,
+  FileNamesInformation,
+  FileDispositionInformation,
+  FilePositionInformation,
+  FileFullEaInformation,
+  FileModeInformation,
+  FileAlignmentInformation,
+  FileAllInformation,
+  FileAllocationInformation,
+  FileEndOfFileInformation,
+  FileAlternateNameInformation,
+  FileStreamInformation,
+  FilePipeInformation,
+  FilePipeLocalInformation,
+  FilePipeRemoteInformation,
+  FileMailslotQueryInformation,
+  FileMailslotSetInformation,
+  FileCompressionInformation,
+  FileObjectIdInformation,
+  FileCompletionInformation,
+  FileMoveClusterInformation,
+  FileQuotaInformation,
+  FileReparsePointInformation,
+  FileNetworkOpenInformation,
+  FileAttributeTagInformation,
+  FileTrackingInformation,
+  FileIdBothDirectoryInformation,
+  FileIdFullDirectoryInformation,
+  FileValidDataLengthInformation,
+  FileShortNameInformation,
+  FileIoCompletionNotificationInformation,
+  FileIoStatusBlockRangeInformation,
+  FileIoPriorityHintInformation,
+  FileSfioReserveInformation,
+  FileSfioVolumeInformation,
+  FileHardLinkInformation,
+  FileProcessIdsUsingFileInformation,
+  FileNormalizedNameInformation,
+  FileNetworkPhysicalNameInformation,
+  FileIdGlobalTxDirectoryInformation,
+  FileIsRemoteDeviceInformation,
+  FileAttributeCacheInformation,
+  FileNumaNodeInformation,
+  FileStandardLinkInformation,
+  FileRemoteProtocolInformation,
+  FileMaximumInformation
+} FILE_INFORMATION_CLASS, *PFILE_INFORMATION_CLASS;
+typedef NTSTATUS (NTAPI *NTQUERYINFORMATIONFILE)(HANDLE, PIO_STATUS_BLOCK, PVOID, ULONG, int);
+NTQUERYINFORMATIONFILE NtQueryInformationFile;
+HMODULE hDLL_NTDLL;
+//------------------------------------------------------------------------------
 //fonctions systèmes standard
 void InitConfig(HWND hwnd);
 void EndConfig();
@@ -659,7 +752,7 @@ void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char*
 DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img);
 void AddToLV_Registry(LINE_ITEM *item);
 void AddToLV_Registry2(char *date, char *user, char *from, char *data);
-DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
+DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL critical);
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 DWORD AddToLV(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 void AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
@@ -701,6 +794,8 @@ void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
 void OpenRegeditKey(char *key);
 void CheckRegistryFile();
+void RegistryTestDWORD(HKEY hk, char *path, char *value, DWORD ok_v, DWORD nok_v);
+void RegistryTestSTRING(HKEY hk, char *path, char *value, char *ok_v, char *nok_v);
 
 //process
 void SetDebugPrivilege(BOOL enable);

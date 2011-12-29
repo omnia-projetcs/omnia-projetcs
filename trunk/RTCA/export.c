@@ -1234,8 +1234,11 @@ DWORD WINAPI Export(LPVOID lParam)
            strncat(tmp,"_ALL_STATE.html",MAX_PATH);
            ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
            strcpy(tmp,path);
+           strncat(tmp,"_CRITICAL_STATE.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW_CRITICAL, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+           strcpy(tmp,path);
            strncat(tmp,"_DAY_STATE.html",MAX_PATH);
-           ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+           ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW_H, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
         break;
         case XML_TYPE :
            //création des rapports
@@ -1353,7 +1356,10 @@ DWORD WINAPI Export(LPVOID lParam)
            ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
         break;
       }
-
+      //pwdump
+      strcpy(tmp,path);
+      strncat(tmp,"_REG_USERS.pwdump",MAX_PATH);
+      ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 9);
      }
    }
 
