@@ -307,6 +307,8 @@ DWORD WINAPI Scan(LPVOID lParam)
 
   //Init de state
   ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW));
+  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_CRITICAL));
+  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H));
 
   //si aucun scan on quitte
   if (!h_scan_logs && !h_scan_files && !h_scan_registry)
@@ -633,13 +635,15 @@ void AddToLV_Registry(LINE_ITEM *item)
     //Description
     snprintf(tmp,MAX_LINE_SIZE,"[Key update] %s\\%s=%s",item[1].c,item[2].c,item[3].c);
     ListView_SetItemText(hlv_r,ref_item,2,tmp);
+
+    StateH(item,5,-1);
     LeaveCriticalSection(&Sync);
   }
 }
 //------------------------------------------------------------------------------
 void AddToLV_Registry2(char *date, char *user, char *from, char *data)
 {
-  if (!State_Enable || date[0]==0)return;
+  if (!State_Enable || date[0]==0 || date[0]=='N')return;
   EnterCriticalSection(&Sync);
   //recherche de l'emplacement par date ^^
   //si aucun item dans la liste on en ajoute
@@ -814,10 +818,265 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
   return AddToLV(hlv, item, nb_colonne);
 }
 //------------------------------------------------------------------------------
+void StateHC(LINE_ITEM *item, int col_date, char *user)
+{
+  if (col_date<0 || !State_Enable)return;
+  if (!strlen(item[col_date].c) || item[col_date].c[0]=='N')return;
+
+    //correlation pour ajout dans l'onglet state
+    #define DATE_SIZE 20
+    #define COL_START 0
+    #define COL_END   1
+    //si une date est présente
+    //si aucun item dans la liste on en ajoute
+    HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
+    DWORD nb_items = ListView_GetItemCount(hlv_r);
+    if (nb_items == 0)
+    {
+      //ajout de l'item
+      LVITEM lvi;
+      lvi.mask = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem = 0;
+      lvi.lParam = LVM_SORTITEMS;
+      lvi.pszText="";
+      lvi.iItem = 0;
+      ListView_InsertItem(hlv_r, &lvi);
+
+      ListView_SetItemText(hlv_r,0,COL_START,item[col_date].c);
+      ListView_SetItemText(hlv_r,0,COL_END,item[col_date].c);
+      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
+
+      ListView_SetItemText(hlv_r,0,3,user);
+    }else
+    {
+      DWORD i, duree;
+      BOOL trouve = FALSE;
+      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
+      for (i=0;i<nb_items && !trouve;i++)
+      {
+        //On test l'ensemble des items présents afin de vérifier
+        //si il n'est pas plus récent ou plus ancien
+        //même jour ?
+        date_start[0]=0;
+        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
+        if (date_start[0]!=0)
+        {
+          //année + séparateur + mois + jours
+          if (date_start[0] == item[col_date].c[0] && date_start[1] == item[col_date].c[1] && date_start[2] == item[col_date].c[2] && date_start[3] == item[col_date].c[3] &&
+              date_start[4] == item[col_date].c[4] && date_start[7] == item[col_date].c[7] && //les séparateurs ^^
+              date_start[5] == item[col_date].c[5] && date_start[6] == item[col_date].c[6] && date_start[8] == item[col_date].c[8] && date_start[9] == item[col_date].c[9])
+          {
+            date_end[0]=0;
+            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
+
+            //même jour
+            trouve = TRUE;
+
+            //on vérifie si inférieur au start
+            if ((date_start[11] > item[col_date].c[11]) || (date_start[12] > item[col_date].c[12] && date_start[11] == item[col_date].c[11]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] > item[col_date].c[14])  ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] > item[col_date].c[15]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] > item[col_date].c[17]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] == item[col_date].c[17] && date_start[18] > item[col_date].c[18]))
+            {
+              ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
+              strcpy(date_start,item[col_date].c);
+
+              ListView_SetItemText(hlv_r,i,3,user);
+
+              //calcul de  la durée
+              if (date_start[0]!=0 && date_end[0]!=0)
+              {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                ListView_SetItemText(hlv_r,i,2,tmp_date);
+              }
+            }else //ou supérieur au end ^^
+            {
+              if (date_end[0]!=0)
+              {
+                //on vérifie si supérieur à end
+                if ((date_end[11] < item[col_date].c[11]) || (date_end[12] < item[col_date].c[12] && date_end[11] == item[col_date].c[11]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] < item[col_date].c[14])  ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] < item[col_date].c[15]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] < item[col_date].c[17]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] == item[col_date].c[17] && date_end[18] < item[col_date].c[18]))
+                {
+                  ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
+                  strcpy(date_end,item[col_date].c);
+
+                  ListView_SetItemText(hlv_r,i,3,user);
+
+                  //calcul de  la durée
+                  if (date_start[0]!=0 && date_end[0]!=0)
+                  {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                    ListView_SetItemText(hlv_r,i,2,tmp_date);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      //si pas identifié on ajoute l'item
+      if (!trouve)
+      {
+        //ajout de l'item
+        LVITEM lvi;
+        lvi.mask = LVIF_TEXT|LVIF_PARAM;
+        lvi.iSubItem = 0;
+        lvi.lParam = LVM_SORTITEMS;
+        lvi.pszText="";
+        lvi.iItem = ListView_GetItemCount(hlv_r);
+        i = ListView_InsertItem(hlv_r, &lvi);
+
+        ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
+        ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
+
+        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
+
+        ListView_SetItemText(hlv_r,i,3,user);
+      }
+    }
+  }
+//------------------------------------------------------------------------------
+void StateH(LINE_ITEM *item, int col_date, int col_id)
+{
+  if (col_date<0 || !State_Enable)return;
+  if (!strlen(item[col_date].c) || (!strlen(item[col_id].c) && col_id!=-1) || item[col_date].c[0]=='N')return;
+
+    //correlation pour ajout dans l'onglet state
+    #define DATE_SIZE 20
+    #define COL_START 0
+    #define COL_END   1
+    //si une date est présente
+    //si aucun item dans la liste on en ajoute
+    HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
+    DWORD nb_items = ListView_GetItemCount(hlv_r);
+    if (nb_items == 0)
+    {
+      //ajout de l'item
+      LVITEM lvi;
+      lvi.mask = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem = 0;
+      lvi.lParam = LVM_SORTITEMS;
+      lvi.pszText="";
+      lvi.iItem = 0;
+      ListView_InsertItem(hlv_r, &lvi);
+
+      ListView_SetItemText(hlv_r,0,COL_START,item[col_date].c);
+      ListView_SetItemText(hlv_r,0,COL_END,item[col_date].c);
+      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
+
+      if(col_id>-1)ListView_SetItemText(hlv_r,0,3,item[col_id].c);
+    }else
+    {
+      DWORD i, duree;
+      BOOL trouve = FALSE;
+      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
+      for (i=0;i<nb_items && !trouve;i++)
+      {
+        //On test l'ensemble des items présents afin de vérifier
+        //si il n'est pas plus récent ou plus ancien
+        //même jour ?
+        date_start[0]=0;
+        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
+        if (date_start[0]!=0)
+        {
+          //année + séparateur + mois + jours
+          if (date_start[0] == item[col_date].c[0] && date_start[1] == item[col_date].c[1] && date_start[2] == item[col_date].c[2] && date_start[3] == item[col_date].c[3] &&
+              date_start[4] == item[col_date].c[4] && date_start[7] == item[col_date].c[7] && //les séparateurs ^^
+              date_start[5] == item[col_date].c[5] && date_start[6] == item[col_date].c[6] && date_start[8] == item[col_date].c[8] && date_start[9] == item[col_date].c[9])
+          {
+            date_end[0]=0;
+            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
+
+            //même jour
+            trouve = TRUE;
+
+            //on vérifie si inférieur au start
+            if ((date_start[11] > item[col_date].c[11]) || (date_start[12] > item[col_date].c[12] && date_start[11] == item[col_date].c[11]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] > item[col_date].c[14])  ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] > item[col_date].c[15]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] > item[col_date].c[17]) ||
+                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] == item[col_date].c[17] && date_start[18] > item[col_date].c[18]))
+            {
+              ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
+              strcpy(date_start,item[col_date].c);
+
+              if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
+
+              //calcul de  la durée
+              if (date_start[0]!=0 && date_end[0]!=0)
+              {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                ListView_SetItemText(hlv_r,i,2,tmp_date);
+              }
+            }else //ou supérieur au end ^^
+            {
+              if (date_end[0]!=0)
+              {
+                //on vérifie si supérieur à end
+                if ((date_end[11] < item[col_date].c[11]) || (date_end[12] < item[col_date].c[12] && date_end[11] == item[col_date].c[11]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] < item[col_date].c[14])  ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] < item[col_date].c[15]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] < item[col_date].c[17]) ||
+                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] == item[col_date].c[17] && date_end[18] < item[col_date].c[18]))
+                {
+                  ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
+                  strcpy(date_end,item[col_date].c);
+
+                  if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
+
+                  //calcul de  la durée
+                  if (date_start[0]!=0 && date_end[0]!=0)
+                  {
+                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
+                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
+
+                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
+                    ListView_SetItemText(hlv_r,i,2,tmp_date);
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      //si pas identifié on ajoute l'item
+      if (!trouve)
+      {
+        //ajout de l'item
+        LVITEM lvi;
+        lvi.mask = LVIF_TEXT|LVIF_PARAM;
+        lvi.iSubItem = 0;
+        lvi.lParam = LVM_SORTITEMS;
+        lvi.pszText="";
+        lvi.iItem = ListView_GetItemCount(hlv_r);
+        i = ListView_InsertItem(hlv_r, &lvi);
+
+        ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
+        ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
+
+        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
+
+        if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
+      }
+    }
+  }
+//------------------------------------------------------------------------------
 DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL critical)
 {
   if (!State_Enable)return AddToLV(hlv, item, nb_colonne);
-
   if (strlen(item[3].c)>=DATE_SIZE/2)
   {
     //recherche de l'emplacement par date ^^
@@ -877,130 +1136,7 @@ DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL c
     }
 
     //ajout de la gestion horraire !
-
-
-    //correlation pour ajout dans l'onglet state
-    #define DATE_SIZE 20
-    #define COL_START 0
-    #define COL_END   1
-    //si une date est présente
-    //si aucun item dans la liste on en ajoute
-    hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
-    nb_items = ListView_GetItemCount(hlv_r);
-    if (nb_items == 0)
-    {
-      //ajout de l'item
-      LVITEM lvi;
-      lvi.mask = LVIF_TEXT|LVIF_PARAM;
-      lvi.iSubItem = 0;
-      lvi.lParam = LVM_SORTITEMS;
-      lvi.pszText="";
-      lvi.iItem = 0;
-      ListView_InsertItem(hlv_r, &lvi);
-
-      ListView_SetItemText(hlv_r,0,COL_START,item[3].c);
-      ListView_SetItemText(hlv_r,0,COL_END,item[3].c);
-      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
-
-      ListView_SetItemText(hlv_r,0,3,item[7].c);
-    }else
-    {
-      DWORD i, duree;
-      BOOL trouve = FALSE;
-      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
-      for (i=0;i<nb_items && !trouve;i++)
-      {
-        //On test l'ensemble des items présents afin de vérifier
-        //si il n'est pas plus récent ou plus ancien
-        //même jour ?
-        date_start[0]=0;
-        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
-        if (date_start[0]!=0)
-        {
-          //année + séparateur + mois + jours
-          if (date_start[0] == item[3].c[0] && date_start[1] == item[3].c[1] && date_start[2] == item[3].c[2] && date_start[3] == item[3].c[3] &&
-              date_start[4] == item[3].c[4] && date_start[7] == item[3].c[7] && //les séparateurs ^^
-              date_start[5] == item[3].c[5] && date_start[6] == item[3].c[6] && date_start[8] == item[3].c[8] && date_start[9] == item[3].c[9])
-          {
-            date_end[0]=0;
-            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
-
-            //même jour
-            trouve = TRUE;
-
-            //on vérifie si inférieur au start
-            if ((date_start[11] > item[3].c[11]) || (date_start[12] > item[3].c[12] && date_start[11] == item[3].c[11]) ||
-                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] > item[3].c[14])  ||
-                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] > item[3].c[15]) ||
-                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] == item[3].c[15] && date_start[17] > item[3].c[17]) ||
-                (date_start[11] == item[3].c[11] && date_start[12] == item[3].c[12] && date_start[14] == item[3].c[14] && date_start[15] == item[3].c[15] && date_start[17] == item[3].c[17] && date_start[18] > item[3].c[18]))
-            {
-              ListView_SetItemText(hlv_r,i,COL_START,item[3].c);
-              strcpy(date_start,item[3].c);
-
-              ListView_SetItemText(hlv_r,i,3,item[7].c);
-
-              //calcul de  la durée
-              if (date_start[0]!=0 && date_end[0]!=0)
-              {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                ListView_SetItemText(hlv_r,i,2,tmp_date);
-              }
-            }else //ou supérieur au end ^^
-            {
-              if (date_end[0]!=0)
-              {
-                //on vérifie si supérieur à end
-                if ((date_end[11] < item[3].c[11]) || (date_end[12] < item[3].c[12] && date_end[11] == item[3].c[11]) ||
-                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] < item[3].c[14])  ||
-                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] < item[3].c[15]) ||
-                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] == item[3].c[15] && date_end[17] < item[3].c[17]) ||
-                    (date_end[11] == item[3].c[11] && date_end[12] == item[3].c[12] && date_end[14] == item[3].c[14] && date_end[15] == item[3].c[15] && date_end[17] == item[3].c[17] && date_end[18] < item[3].c[18]))
-                {
-                  ListView_SetItemText(hlv_r,i,COL_END,item[3].c);
-                  strcpy(date_end,item[3].c);
-
-                  ListView_SetItemText(hlv_r,i,3,item[7].c);
-
-                  //calcul de  la durée
-                  if (date_start[0]!=0 && date_end[0]!=0)
-                  {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                    ListView_SetItemText(hlv_r,i,2,tmp_date);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      //si pas identifié on ajoute l'item
-      if (!trouve)
-      {
-        //ajout de l'item
-        LVITEM lvi;
-        lvi.mask = LVIF_TEXT|LVIF_PARAM;
-        lvi.iSubItem = 0;
-        lvi.lParam = LVM_SORTITEMS;
-        lvi.pszText="";
-        lvi.iItem = ListView_GetItemCount(hlv_r);
-        i = ListView_InsertItem(hlv_r, &lvi);
-
-        ListView_SetItemText(hlv_r,i,COL_START,item[3].c);
-        ListView_SetItemText(hlv_r,i,COL_END,item[3].c);
-
-        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
-
-        ListView_SetItemText(hlv_r,i,3,item[7].c);
-      }
-    }
-
+    StateH(item,3,7);
     LeaveCriticalSection(&Sync);
   }
 
@@ -1066,41 +1202,30 @@ void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short
 //------------------------------------------------------------------------------
 void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
 {
-  DWORD i,min=0,max = ListView_GetItemCount(hListView);
-  DWORD ref_min, ref_max;
-  if (max>0)
+  DWORD i,min=0,nb = ListView_GetItemCount(hListView);
+  DWORD ref_min;
+
+  char val_min[MAX_LINE_SIZE],
+       tmp[MAX_LINE_SIZE];
+
+  do
   {
-    max = max-1;
-    char val_min[MAX_LINE_SIZE],
-         val_max[MAX_LINE_SIZE],
-         tmp[MAX_LINE_SIZE];
+    ListView_GetItemText(hListView,min,colonne_ref,val_min,MAX_LINE_SIZE);
+    ref_min = min;
 
-    do
+    for (i=min+1;i<nb;i++)
     {
-      ListView_GetItemText(hListView,min,colonne_ref,val_min,MAX_LINE_SIZE);
-      ListView_GetItemText(hListView,max,colonne_ref,val_max,MAX_LINE_SIZE);
-      ref_min = min;
-      ref_max = max;
+      ListView_GetItemText(hListView,i,colonne_ref,tmp,MAX_LINE_SIZE);
 
-      for (i=min+1;i<=max;i++)
+      //si plus petit
+      if (strcmp(tmp,val_min)<0)
       {
-        ListView_GetItemText(hListView,i,colonne_ref,tmp,MAX_LINE_SIZE);
-
-        //si plus petit
-        if (strcmp(tmp,val_min)<0)
-        {
-          strcpy(val_min,tmp);
-          ref_min = i;
-        }else if (strcmp(tmp,val_max)>0)
-        {
-          strcpy(val_max,tmp);
-          ref_max = i;
-        }
+        strcpy(val_min,tmp);
+        ref_min = i;
       }
-      if (ref_min!=min)DeplacerLignes(min,ref_min,hListView,nb_colonne);
-      if (ref_max!=max)DeplacerLignes(max,ref_max,hListView,nb_colonne);
-    }while(++min<=--max);
-  }
+    }
+    if (ref_min!=min)DeplacerLignes(min,ref_min,hListView,nb_colonne);
+  }while(++min<nb);
 }
 
 //------------------------------------------------------------------------------
@@ -1127,7 +1252,7 @@ void c_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colon
     h_Tc_Tri = NULL;
   }else
   {
-    STRI stri;
+    static STRI stri;
     stri.hwndFrom = hListView;
     stri.colonne_ref = colonne_ref;
     stri.nb_colonne = nb_colonne;
@@ -1286,13 +1411,13 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Description");
                   ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Group");
                   ModifyMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL7,"Copy : Last logon");
-                  ModifyMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL8,"Copy : Nb Connection");
-                  ModifyMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL9,"Copy : State");
-                  ModifyMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL10,"Copy : Password hash");
-                  ModifyMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : F Binary data");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL7,"Copy : Last password change");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL8,"Copy : Nb Connection");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL9,"Copy : State");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL10,"Copy : Password hash");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : F Binary data");
 
-                  RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
-                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_MAJ_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1412,8 +1537,8 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   ModifyMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL3,"Copy : Value");
                   ModifyMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL4,"Copy : Data");
                   ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Description");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Parent key update");
 
-                  RemoveMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
@@ -2215,10 +2340,10 @@ void InitConfig(HWND hwnd)
   lvc.pszText = "Publisher"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
   lvc.cx = 100;       //taille colonne
-  lvc.pszText = "Install date-Update"; //texte de la colonne
+  lvc.pszText = "UninstallString/InstallLocation"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
   lvc.cx = 100;       //taille colonne
-  lvc.pszText = "UninstallString/InstallLocation"; //texte de la colonne
+  lvc.pszText = "Install date-Update"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
   lvc.cx = 40;       //taille colonne
   lvc.pszText = "Installed by"; //texte de la colonne
@@ -2249,26 +2374,29 @@ void InitConfig(HWND hwnd)
   lvc.cx = 40;       //taille colonne
   lvc.pszText = "Group"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
-  lvc.cx = 40;       //taille colonne
+  lvc.cx = 20;       //taille colonne
   lvc.pszText = "Last logon"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
-  lvc.cx = 40;       //taille colonne
-  lvc.pszText = "Nb Connection"; //texte de la colonne
+  lvc.cx = 20;       //taille colonne
+  lvc.pszText = "Last password change"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
   lvc.cx = 40;       //taille colonne
-  lvc.pszText = "State"; //texte de la colonne
+  lvc.pszText = "Nb Connection"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
   lvc.cx = 40;       //taille colonne
-  lvc.pszText = "Password hash (Syskey protected)-Pwdump format (ready)"; //texte de la colonne
+  lvc.pszText = "State"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)9, (LPARAM)&lvc);
   lvc.cx = 40;       //taille colonne
-  lvc.pszText = "Shadow copy"; //texte de la colonne
+  lvc.pszText = "Password hash (Syskey protected)-Pwdump format (ready)"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "Shadow copy"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
   lvc.cx = 0;       //taille colonne
   lvc.pszText = "F Binary data"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_INSERTCOLUMN,(WPARAM)12, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL] = 12;
+  NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL] = 13;
 
   //hFONT
   //SendMessage(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS), WM_SETFONT,(WPARAM)CreateFont(12, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Lucida Console"), TRUE);
@@ -2432,13 +2560,17 @@ void InitConfig(HWND hwnd)
   lvc.cx = 120;       //taille colonne
   lvc.pszText = "Description"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
+  lvc.cx = 80;       //taille colonne
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
+  lvc.cx = 40;       //taille colonne
+  lvc.pszText = "Parent key update"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
 
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   SendDlgItemMessage(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL] = 6;
-  NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL] = 5;
+  NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL] = 6;
   NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL] = 4;
 
   TABL_ID_REG_VISIBLE = 0;

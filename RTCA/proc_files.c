@@ -9,7 +9,6 @@
 void EnumADS(char *file, char *resultat, DWORD size)
 {
   char buffer[MAX_PATH];
-  PFILE_STREAM_INFORMATION pStreamInfo = (PFILE_STREAM_INFORMATION)buffer;
   IO_STATUS_BLOCK ioStatus;
   char tmp[MAX_PATH];
 
@@ -408,11 +407,11 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           }
 
           //size
-          if (data.nFileSizeLow+data.nFileSizeHigh > 1099511627776)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uTo",(data.nFileSizeLow+data.nFileSizeHigh)/1099511627776);
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uGo",(data.nFileSizeLow+data.nFileSizeHigh)/1073741824);
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uMo",(data.nFileSizeLow+data.nFileSizeHigh)/1048576);
-          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uKo",(data.nFileSizeLow+data.nFileSizeHigh)/1024);
-          else snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uo",data.nFileSizeLow+data.nFileSizeHigh);
+          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uTo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uGo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uMo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uKo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+          else snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
 
           //ACLS
           lv_line[3].c[0] = 0;

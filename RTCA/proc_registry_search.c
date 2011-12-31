@@ -264,6 +264,7 @@ void TraiterUserDataFromSAM_F(LINE_ITEM *item)
   item[8].c[0]=0;
   item[9].c[0]=0;
   item[10].c[0]=0;
+  item[11].c[0]=0;
 
   if (strlen(item[3].c)>0x8F)
   {
@@ -296,13 +297,47 @@ void TraiterUserDataFromSAM_F(LINE_ITEM *item)
     if (FileTimeToSystemTime(&LocalFileTime, &SysTimeLAstConnexion) && LocalFileTime.dwHighDateTime>0 && LocalFileTime.dwLowDateTime>0)
     {
       snprintf(item[6].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",
-               SysTimeLAstConnexion.wDay,SysTimeLAstConnexion.wMonth,SysTimeLAstConnexion.wYear,
+               SysTimeLAstConnexion.wYear,SysTimeLAstConnexion.wMonth,SysTimeLAstConnexion.wDay,
                SysTimeLAstConnexion.wHour,SysTimeLAstConnexion.wMinute,SysTimeLAstConnexion.wSecond);
-    }
+    }else strcpy(item[6].c,"Never");
+
+    //Last password change
+    tmp[0] = item[3].c[0x36];
+    tmp[1] = item[3].c[0x37];
+    tmp[2] = item[3].c[0x34];
+    tmp[3] = item[3].c[0x35];
+    tmp[4] = item[3].c[0x32];
+    tmp[5] = item[3].c[0x33];
+    tmp[6] = item[3].c[0x30];
+    tmp[7] = item[3].c[0x31];
+    LocalFileTime.dwLowDateTime = HTDF(tmp,8);
+
+    tmp[0] = item[3].c[0x3E];
+    tmp[1] = item[3].c[0x3F];
+    tmp[2] = item[3].c[0x3C];
+    tmp[3] = item[3].c[0x3D];
+    tmp[4] = item[3].c[0x3A];
+    tmp[5] = item[3].c[0x3B];
+    tmp[6] = item[3].c[0x38];
+    tmp[7] = item[3].c[0x39];
+    LocalFileTime.dwHighDateTime = HTDF(tmp,8);
+
+    if (FileTimeToSystemTime(&LocalFileTime, &SysTimeLAstConnexion) && LocalFileTime.dwHighDateTime>0 && LocalFileTime.dwLowDateTime>0)
+    {
+      snprintf(item[7].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",
+               SysTimeLAstConnexion.wYear,SysTimeLAstConnexion.wMonth,SysTimeLAstConnexion.wDay,
+               SysTimeLAstConnexion.wHour,SysTimeLAstConnexion.wMinute,SysTimeLAstConnexion.wSecond);
+
+    }else strcpy(item[7].c,"Never\0");
+
 
     //Offste 0038, second digit = State
-    if (item[3].c[0x71]=='0')strcpy(item[8].c,"Enable");
-    else strcpy(item[8].c,"Disable");
+    if (item[3].c[0x71]=='0')strcpy(item[9].c,"State : Enable");
+    else strcpy(item[9].c,"State : Disable");
+
+    //Password Expire
+    if (item[3].c[0x73]=='2'||item[3].c[0x73]=='3'||item[3].c[0x73]=='6'||item[3].c[0x73]=='7'||item[3].c[0x73]=='A'||item[3].c[0x73]=='B'||item[3].c[0x73]=='E'||item[3].c[0x73]=='F')
+      strcat(item[9].c," (Password never expire)\0");
 
     //Offset 0030 : le RID utilisateur
     tmp[0] = item[3].c[0x66];
@@ -320,7 +355,8 @@ void TraiterUserDataFromSAM_F(LINE_ITEM *item)
     tmp[1] = item[3].c[0x87];
     tmp[2] = item[3].c[0x84];
     tmp[3] = item[3].c[0x85];
-    snprintf(item[7].c,MAX_PATH,"%lu",HTDF(tmp,4));
+    snprintf(item[8].c,MAX_PATH,"%lu",HTDF(tmp,4));
+
   }else item[3].c[0]=0;
 }
 //------------------------------------------------------------------------------
@@ -360,7 +396,8 @@ void TraiterGroupDataFromSAM_C(LINE_ITEM *item, HANDLE hlv)
   item[8].c[0]=0;
   item[9].c[0]=0;
   item[10].c[0]=0;
-  strcpy(item[11].c,item[3].c);
+  item[11].c[0]=0;
+  strcpy(item[12].c,item[3].c);
   unsigned long int size_total = strlen(item[3].c);
 
   //lecture de la taille du nom sur 1 int  = 4octets
@@ -436,7 +473,7 @@ void TraiterGroupDataFromSAM_C(LINE_ITEM *item, HANDLE hlv)
   if (taille_nom>0 && taille_nom<size_total && of_name>0 && of_name<size_total)
   {
     tmp[0]=0;
-    strncpy(tmp,(char*)(item[11].c+of_name),MAX_LINE_SIZE);
+    strncpy(tmp,(char*)(item[12].c+of_name),MAX_LINE_SIZE);
     SHexaToString(tmp,item[2].c);
     item[2].c[taille_nom]=0;
   }
@@ -445,7 +482,7 @@ void TraiterGroupDataFromSAM_C(LINE_ITEM *item, HANDLE hlv)
   if (taille_description>0 && taille_description<size_total && of_description>0 && of_description<size_total)
   {
     tmp[0]=0;
-    strncpy(tmp,(char*)(item[11].c+of_description),MAX_LINE_SIZE);
+    strncpy(tmp,(char*)(item[12].c+of_description),MAX_LINE_SIZE);
     SHexaToString(tmp,item[4].c);
     item[4].c[taille_description]=0;
   }
@@ -472,7 +509,7 @@ void TraiterGroupDataFromSAM_C(LINE_ITEM *item, HANDLE hlv)
 
 
   DWORD i,j, nb_c_sid;
-  char *d,*c = &item[11].c[of_sid];
+  char *d,*c = &item[12].c[of_sid];
   for (i=0;i<nb_sid;i++)
   {
     //lecture du nombre de sid
@@ -559,7 +596,8 @@ int TraiterUserDataFromSAM_V(LINE_ITEM *item)
   item[4].c[0]=0;
   item[9].c[0]=0;
   item[10].c[0]=0;
-  strcpy(item[11].c,item[3].c);
+  item[11].c[0]=0;
+  strcpy(item[12].c,item[3].c);
 
   unsigned long int size_total = strlen(item[3].c);
 
@@ -719,13 +757,15 @@ int TraiterUserDataFromSAM_V(LINE_ITEM *item)
 
   //Last logon = col6
   item[6].c[0]=0;
+  //Last password change = col7
+  item[7].c[0]=0;
   //Bytes 9–16 store the last log-on time
 
-  //Nb Connection = col7
-  item[7].c[0]=0;
-
-  //State = col8
+  //Nb Connection = col8
   item[8].c[0]=0;
+
+  //State = col9
+  item[9].c[0]=0;
 
   //SID : après 12 octets donc 24 caractères + dernière clée : 2o donc 4caractères : 2400 4400 0200 0105 0000 0000 0005 1500 0000
   //fin : 0000
@@ -857,14 +897,14 @@ int TraiterUserDataFromSAM_V(LINE_ITEM *item)
   if (taille_lmpw>8 && taille_lmpw<size_total && of_lmpw>0 && (of_lmpw + taille_lmpw+8)<size_total)
   {
     if (taille_lmpw > 32)taille_lmpw = 32;
-    strncpy(tmp2,item[11].c+of_lmpw+8,MAX_PATH);
+    strncpy(tmp2,item[12].c+of_lmpw+8,MAX_PATH);
     tmp2[taille_lmpw]=0;
   }else strcpy(tmp2,"<NO LM PASSWORD>");
 
   if (taille_ntpw>8 && taille_ntpw<size_total && of_ntpw>0 && (of_ntpw + taille_ntpw+8)<size_total)
   {
     if (taille_ntpw > 32)taille_ntpw = 32;
-    strncpy(tmp3,item[11].c+of_ntpw+8,MAX_PATH);
+    strncpy(tmp3,item[12].c+of_ntpw+8,MAX_PATH);
     tmp3[taille_ntpw]=0;
   }else strcpy(tmp3,"<NO NT PASSWORD>");
 
@@ -872,8 +912,8 @@ int TraiterUserDataFromSAM_V(LINE_ITEM *item)
   {
     //pwdump format
     //<user>:<id>:<lanman pw>:<NT pw>:comment:homedir:
-    //snprintf(item[9].c,MAX_PATH,"%s:%lu:%s:%s:::",item[2].c,last_id,tmp2,tmp3);
-    snprintf(item[9].c,MAX_PATH,":%s:%s",tmp2,tmp3);
+    //snprintf(item[10].c,MAX_PATH,"%s:%lu:%s:%s:::",item[2].c,last_id,tmp2,tmp3);
+    snprintf(item[10].c,MAX_PATH,":%s:%s",tmp2,tmp3);
   }
 
   return rid;
@@ -1145,9 +1185,7 @@ void FiltreRegData(LINE_ITEM *item)
             //copie des données normales
             tmp[0]=0;
             strcpy(tmp,item[3].c);
-            strcpy(item[4].c,item[5].c);
             item[2].c[0]=0;
-            item[5].c[0]=0;
 
             if (j==0 || j==1)// nom du package
             {
@@ -1168,7 +1206,7 @@ void FiltreRegData(LINE_ITEM *item)
               tmp[8]=item[3].c[6];
               tmp[9]=item[3].c[7];
               tmp[10]=0;
-              strcpy(item[4].c,tmp);
+              strcpy(item[5].c,tmp);
               item[3].c[0]=0;
             }else if (j==2)//date formatage
             {
@@ -1176,7 +1214,7 @@ void FiltreRegData(LINE_ITEM *item)
             }else if (j>=4 && j<8)
             {
               item[3].c[0]=0;
-              strcpy(item[5].c,tmp);
+              strcpy(item[4].c,tmp);
             }else if (j==8)
             {
               item[3].c[0]=0;
@@ -2013,6 +2051,7 @@ void FiltreRegData(LINE_ITEM *item)
             ListView_SetItemText(hlv,l,6,item[6].c);
             ListView_SetItemText(hlv,l,7,item[7].c);
             ListView_SetItemText(hlv,l,8,item[8].c);
+            ListView_SetItemText(hlv,l,9,item[9].c);
 
             tmp[0]=0;
             ListView_GetItemText(hlv,l,3,tmp,MAX_LINE_SIZE);

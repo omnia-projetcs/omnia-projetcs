@@ -139,7 +139,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
   {
     //lecture des informations du header
     //id
-    snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",h_dheader->RecordNumber);
+    snprintf(lv_line[1].c,MAX_LINE_SIZE,"%05lu",(long unsigned int)(h_dheader->RecordNumber));
 
     FILETIME FileTime, LocalFileTime;
     SYSTEMTIME SysTime;
