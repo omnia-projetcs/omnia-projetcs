@@ -82,6 +82,7 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
 
   //disable right
   SetDebugPrivilege(FALSE);
+  return 0;
 }
 //------------------------------------------------------------------------------
 //Functions for DLL injection from : http://www.cppfrance.com//code.aspx?ID=49419
@@ -194,7 +195,7 @@ void SetDebugPrivilege(BOOL enable)
     else
     {
       nb_process_SE_DEBUG--;
-      if (nb_process_SE_DEBUG != NULL)return;
+      if (nb_process_SE_DEBUG)return;
     }
 
     TOKEN_PRIVILEGES privilege;
@@ -315,7 +316,7 @@ BOOL GetAppVersion( char *file, char *version, unsigned int max_size)
     {
       DWORD dwHandle, dwLen;
       UINT BufLen;
-      LPTSTR lpData;
+      LPTSTR  lpData;
       VS_FIXEDFILEINFO *pFileInfo;
       dwLen = GetFileVersionInfoSize(file, &dwHandle);
       if (!dwLen) return FALSE;
@@ -328,7 +329,7 @@ BOOL GetAppVersion( char *file, char *version, unsigned int max_size)
         free (lpData);
         return FALSE;
       }
-      if( VerQueryValue(lpData, "\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
+      if(VerQueryValue(lpData, "\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
       {
         snprintf(version,max_size,"%d.%d.%d.%d",
                  HIWORD(pFileInfo->dwFileVersionMS),
@@ -364,7 +365,7 @@ void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *Compan
     {
       //chargement des infos
       char buffer[MAX_LINE_SIZE];
-      if (GetFileVersionInfo(file, NULL, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
+      if (GetFileVersionInfo(file, 0, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
       {
         //lecture des infos du buffer
          WORD             *d_buffer;
@@ -666,6 +667,14 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
                 default:strcpy(port_line[nb_ligne].state,"UNKNOW STATE");break;
               }
               nb_ligne++;
+            }else
+            {
+              port_line[nb_ligne].protocol[0]=0;
+              port_line[nb_ligne].IP_src[0]=0;
+              port_line[nb_ligne].Port_src[0]=0;
+              port_line[nb_ligne].IP_dst[0]=0;
+              port_line[nb_ligne].Port_dst[0]=0;
+              port_line[nb_ligne].state[0]=0;
             }
           }
         }
@@ -710,8 +719,16 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
               strcpy(port_line[nb_ligne].IP_dst,"*.*");
               snprintf(port_line[nb_ligne].Port_src,MAX_PROC_LINE_ITEM_SIZE,"%d",htons((u_short) UDP_table->table[i].dwLocalPort));
               port_line[nb_ligne].Port_dst[0]=0;
-
+              strcpy(port_line[nb_ligne].state,"LISTENING");
               nb_ligne++;
+            }else
+            {
+              port_line[nb_ligne].protocol[0]=0;
+              port_line[nb_ligne].IP_src[0]=0;
+              port_line[nb_ligne].Port_src[0]=0;
+              port_line[nb_ligne].IP_dst[0]=0;
+              port_line[nb_ligne].Port_dst[0]=0;
+              port_line[nb_ligne].state[0]=0;
             }
           }
         }

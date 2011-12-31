@@ -32,6 +32,26 @@ void OpenRegeditKey(char *key)
   if(ok)ShellExecute(Tabl[TABL_MAIN], "open","regedit","",NULL,SW_SHOW);
 }
 //------------------------------------------------------------------------------
+void LireKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date)
+{
+  date[0]=0;
+  HKEY CleTmp=0;
+
+  FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
+  SYSTEMTIME SysTime;
+
+  if (RegOpenKey(ENTETE,chemin,&CleTmp)==ERROR_SUCCESS)
+  {
+    if(RegQueryInfoKey(CleTmp,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
+    {
+      if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+        snprintf(date,size_date,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+    }
+    RegCloseKey(CleTmp);
+  }
+}
+
+//------------------------------------------------------------------------------
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur)
 {
     //variables
@@ -156,8 +176,8 @@ void EnumKeyAndValue(HKEY ENTETE, char*chemin, HANDLE hlv, HTREEITEM hparent, ch
       else sprintf(lv_line[1].c,"%lu(UNKONW)\\%s",(DWORD)ENTETE,chemin);
 
       DWORD NameSize = MAX_LINE_SIZE, DataSize = MAX_LINE_SIZE;
-      DWORD type =0,j;
-
+      DWORD type =0;
+      int j;
       char tmp[MAX_LINE_SIZE];
 
       for (i=0;i<nbValue;i++)
@@ -229,7 +249,7 @@ void EnumKeyAndValue(HKEY ENTETE, char*chemin, HANDLE hlv, HTREEITEM hparent, ch
             case 0x00000004 :
             case 0x00000005 :
               lv_line[3].c[0]=0;
-              for (j=0;j<DataSize;j++)
+              for (j=DataSize-1;j>=0;j--)
               {
                 snprintf(tmp,9,"%02X",lv_line[4].c[j]&0xff);
                 strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
@@ -358,6 +378,8 @@ void registry_configuration(HANDLE hlv)
 
   //path
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion");
+  //date
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion", lv_line[5].c, DATE_SIZE);
 
   //les informations ^^
   //OS Vesion
@@ -368,6 +390,7 @@ void registry_configuration(HANDLE hlv)
   {
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
 
 
   lv_line[3].c[0]=0;
@@ -398,6 +421,8 @@ void registry_configuration(HANDLE hlv)
   //AppInit_DLLs
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion\\Windows");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion\\Windows", lv_line[5].c, DATE_SIZE);
+
   strcpy(lv_line[2].c,"AppInit_DLLs");
   strcpy(lv_line[4].c,"(malware) DLL load in GUI Windows");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows","AppInit_DLLs",lv_line[3].c))
@@ -408,6 +433,7 @@ void registry_configuration(HANDLE hlv)
   //Debugger
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion\\Image File Execution Options\\Your Image File Name Here without a path");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\MICROSOFT\\Windows NT\\CurrentVersion\\Image File Execution Options\\Your Image File Name Here without a path", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"Debugger");
   strcpy(lv_line[4].c,"(attack vector) Use for redirect application");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Image File Execution Options\\Your Image File Name Here without a path","Debugger",lv_line[3].c))
@@ -418,6 +444,7 @@ void registry_configuration(HANDLE hlv)
   //CMD
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\MICROSOFT\\Command Processor");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\MICROSOFT\\Command Processor", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"Autorun");
   strcpy(lv_line[4].c,"(malware) Command to execute with all cmd command");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Command Processor","Autorun",lv_line[3].c))
@@ -425,30 +452,13 @@ void registry_configuration(HANDLE hlv)
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
-  lv_line[3].c[0]=0;
-  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\SOFTWARE\\MICROSOFT\\Command Processor");
-  strcpy(lv_line[2].c,"Autorun");
-  strcpy(lv_line[4].c,"(malware) Command to execute with all cmd command");
-  if (LireGValeur(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Command Processor","Autorun",lv_line[3].c))
-  {
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
   //Open
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\exefile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\exefile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"");
   strcpy(lv_line[4].c,"(malware) Run when popup menu run command");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\exefile\\shell\\open\\command","",lv_line[3].c))
-  {
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\SOFTWARE\\Classes\\exefile\\shell\\open\\command");
-  strcpy(lv_line[2].c,"");
-  strcpy(lv_line[4].c,"(malware) Run when popup menu run command");
-  if (LireGValeur(HKEY_CURRENT_USER,"SOFTWARE\\Classes\\exefile\\shell\\open\\command","",lv_line[3].c))
   {
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
@@ -457,6 +467,7 @@ void registry_configuration(HANDLE hlv)
   char tmp[MAX_PATH]="";
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"NoDriveTypeAutoRun");
   strcpy(lv_line[4].c,"(malware) Autorun usb/CDROM/..., 0xff:disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer","NoDriveTypeAutoRun",tmp))
@@ -468,6 +479,7 @@ void registry_configuration(HANDLE hlv)
   tmp[0]=0;
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"Autorun");
   strcpy(lv_line[4].c,"(malware) Autorun CDROM, 0x00:disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters","Autorun",tmp))
@@ -478,7 +490,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters");
   strcpy(lv_line[2].c,"RestrictNullSessAccess");
   strcpy(lv_line[4].c,"(attack vector) Null session, 0x01:Disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters","RestrictNullSessAccess",tmp))
@@ -489,21 +500,9 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters");
   strcpy(lv_line[2].c,"dontdisplaylastusername");
   strcpy(lv_line[4].c,"(authentication) 0x01:Do not display last username in logon screen");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters","dontdisplaylastusername",tmp))
-  {
-    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters");
-  strcpy(lv_line[2].c,"dontdisplaylastusername");
-  strcpy(lv_line[4].c,"(authentication) 0x01:Do not display last username in logon screen");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters","dontdisplaylastusername",tmp))
   {
     sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
   }else strcpy(lv_line[3].c,"<NO VALUE>");
@@ -523,6 +522,17 @@ void registry_configuration(HANDLE hlv)
   lv_line[3].c[0]=0;
   tmp[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"dontdisplaylastusername");
+  strcpy(lv_line[4].c,"(authentication) 0x01:Do not display last username in logon screen");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters","dontdisplaylastusername",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  tmp[0]=0;
   strcpy(lv_line[2].c,"enableplaintextpassword");
   strcpy(lv_line[4].c,"(authentication) 0x00:Disable send unencrypted password to connect to third-party SMB servers");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters","enableplaintextpassword",tmp))
@@ -533,7 +543,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters");
   strcpy(lv_line[2].c,"RestrictNullSessAccess");
   strcpy(lv_line[4].c,"(attack vector) Null session, 0x01:Disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\LanManWorkstation\\Parameters","RestrictNullSessAccess",tmp))
@@ -545,6 +554,7 @@ void registry_configuration(HANDLE hlv)
   lv_line[3].c[0]=0;
   tmp[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SYSTEM\\SYSTEM\\CurrentControlSet\\Control\\Lsa", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"RestrictAnonymousSAM");
   strcpy(lv_line[4].c,"(attack vector) Anonymous connexion for SAM enumeration (revers SID), 0x01:Disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","RestrictAnonymousSAM",tmp))
@@ -555,7 +565,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"RestrictAnonymous");
   strcpy(lv_line[4].c,"(attack vector) Anonymous connexion, 0x01:Disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","RestrictAnonymous",tmp))
@@ -566,51 +575,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
-  strcpy(lv_line[2].c,"DontDisplayLastUserName");
-  strcpy(lv_line[4].c,"(attack vector) Display last user login, 0x01:Disable");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","DontDisplayLastUserName",tmp))
-  {
-    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
-  strcpy(lv_line[2].c,"DisableRegistryTools");
-  strcpy(lv_line[4].c,"(attack vector) Disable use of windows registry editor, 0x01:Disable");
-  if (LireGValeur(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","DisableRegistryTools",tmp))
-  {
-    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
-  strcpy(lv_line[2].c,"EnableLUA");
-  strcpy(lv_line[4].c,"(malware) 0x01:Disable UAC (User Account Control)");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","EnableLUA",tmp))
-  {
-    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon");
-  strcpy(lv_line[2].c,"disablecad");
-  strcpy(lv_line[4].c,"(malware) 0x01:Enable CTRL+ALT+DEL requirement for logon");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon","disablecad",tmp))
-  {
-    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"LmCompatibilityLevel");
   strcpy(lv_line[4].c,"(authentication) Authentication method 0x00:only LM or NTLM, 0x01:NTLMv2 if enable, 0x02:NTLM only, 0x03:NTLMv2 only, 0x04:LM deny, 0x05:LM and NTLM deny, NTLMv2 only");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","LmCompatibilityLevel",tmp))
@@ -621,7 +585,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"NoLMHash");
   strcpy(lv_line[4].c,"(authentication) 0x01:Disable LM HASH");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","NoLMHash",tmp))
@@ -631,26 +594,7 @@ void registry_configuration(HANDLE hlv)
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
   lv_line[3].c[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
-  strcpy(lv_line[2].c,"legalnoticetext");
-  strcpy(lv_line[4].c,"(authentication) Message title for user attempting to log on");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows","legalnoticetext",lv_line[3].c))
-  {
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
-  strcpy(lv_line[2].c,"legalnoticecaption");
-  strcpy(lv_line[4].c,"(authentication) Message for user attempting to log on");
-  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows","legalnoticecaption",lv_line[3].c))
-  {
-  }else strcpy(lv_line[3].c,"<NO VALUE>");
-  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
-
-  lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"auditbaseobjects");
   strcpy(lv_line[4].c,"(audit) Audit the access of global system objects, 0x01:Enable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","auditbaseobjects",tmp))
@@ -661,7 +605,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"fullprivilegeauditing");
   strcpy(lv_line[4].c,"(audit) Audit use of Backup and Restore privilege, 0x01:Enable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","fullprivilegeauditing",tmp))
@@ -672,7 +615,6 @@ void registry_configuration(HANDLE hlv)
 
   lv_line[3].c[0]=0;
   tmp[0]=0;
-  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Lsa");
   strcpy(lv_line[2].c,"everyoneincludesanonymous");
   strcpy(lv_line[4].c,"(attack vector) Permissions \"everyone\" are applied to anonymous users, 0x00:Disable");
   if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa","everyoneincludesanonymous",tmp))
@@ -682,7 +624,72 @@ void registry_configuration(HANDLE hlv)
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
   lv_line[3].c[0]=0;
+  tmp[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"DontDisplayLastUserName");
+  strcpy(lv_line[4].c,"(attack vector) Display last user login, 0x01:Disable");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","DontDisplayLastUserName",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  tmp[0]=0;
+  strcpy(lv_line[2].c,"EnableLUA");
+  strcpy(lv_line[4].c,"(malware) 0x01:Disable UAC (User Account Control)");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","EnableLUA",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  tmp[0]=0;
+  strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System");
+  LireKeyUpdate(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"DisableRegistryTools");
+  strcpy(lv_line[4].c,"(attack vector) Disable use of windows registry editor, 0x01:Disable");
+  if (LireGValeur(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System","DisableRegistryTools",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  tmp[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"disablecad");
+  strcpy(lv_line[4].c,"(malware) 0x01:Enable CTRL+ALT+DEL requirement for logon");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon","disablecad",tmp))
+  {
+    sprintf(lv_line[3].c,"%02X%02X%02X%02X",tmp[3]&0xff,tmp[2]&0xff,tmp[1]&0xff,tmp[0]&0xff);
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"legalnoticetext");
+  strcpy(lv_line[4].c,"(authentication) Message title for user attempting to log on");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows","legalnoticetext",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[2].c,"legalnoticecaption");
+  strcpy(lv_line[4].c,"(authentication) Message for user attempting to log on");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Windows","legalnoticecaption",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Control Panel\\Desktop");
+  LireKeyUpdate(HKEY_CURRENT_USER,"Control Panel\\Desktop", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"ScreenSaveActive");
   strcpy(lv_line[4].c,"(ScreenSaver) Enable screensaver, 0x01:Enable");
   if (!LireGValeur(HKEY_CURRENT_USER,"Control Panel\\Desktop","ScreenSaveActive",lv_line[3].c))
@@ -743,7 +750,7 @@ void registry_software(HANDLE hlv)
           }
 
           editor[0]=0;
-          lv_line[4].c[0]=0;
+          lv_line[5].c[0]=0;
           //date d'installation
           //test et récupération de la date de dernière modif
           if (RegOpenKey(HKEY_LOCAL_MACHINE,chemin2,&CleTmp2)==ERROR_SUCCESS)
@@ -751,7 +758,7 @@ void registry_software(HANDLE hlv)
             if(RegQueryInfoKey(CleTmp2,0,0,0,0,0,0,0,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
             {
               if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
-                snprintf(lv_line[4].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                snprintf(lv_line[5].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
             }
             RegCloseKey(CleTmp2);
           }
@@ -768,14 +775,14 @@ void registry_software(HANDLE hlv)
           LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Publisher",lv_line[3].c,MAX_LINE_SIZE);
 
           ////UninstallString
-          lv_line[5].c[0]=0;
-          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"UninstallString",lv_line[5].c,MAX_PATH))
+          lv_line[4].c[0]=0;
+          if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"UninstallString",lv_line[4].c,MAX_PATH))
           {
-            if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"InstallLocation",lv_line[5].c,MAX_PATH))
+            if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"InstallLocation",lv_line[4].c,MAX_PATH))
             {
-              if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Inno Setup: App Path",lv_line[5].c,MAX_PATH))
+              if(!LireValeur(HKEY_LOCAL_MACHINE,chemin2,"Inno Setup: App Path",lv_line[4].c,MAX_PATH))
               {
-                LireValeur(HKEY_LOCAL_MACHINE,chemin2,"QuietUninstallString",lv_line[5].c,MAX_PATH);
+                LireValeur(HKEY_LOCAL_MACHINE,chemin2,"QuietUninstallString",lv_line[4].c,MAX_PATH);
               }
             }
           }
@@ -804,11 +811,12 @@ void registry_software(HANDLE hlv)
            || (lv_line[2].c[0] == 'L' && lv_line[2].c[8] != 'W' && lv_line[2].c[16] != 'M')) strcpy(lv_line[8].c,"OK");
           else lv_line[8].c[0]=0;
 
-          if (lv_line[2].c[0]!=0 || lv_line[5].c[0]!=0)
+          if (lv_line[2].c[0]!=0 || lv_line[4].c[0]!=0)
           {
             if (lv_line[2].c[0]==0)strcpy(lv_line[2].c,NomSubKey);
 
-            AddToLV_Registry2(lv_line[4].c, "", "Software", lv_line[2].c);
+            AddToLV_Registry2(lv_line[5].c, "", "Software", lv_line[2].c);
+            StateH(lv_line, 5, 6);
             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_LOGICIEL_NB_COL]);
           }
         }
@@ -866,6 +874,7 @@ void registry_update(HANDLE hlv)
 
           snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
           AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
+          StateH(lv_line, 5, 6);
           AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
         }
       }
@@ -918,6 +927,7 @@ void registry_update(HANDLE hlv)
                     }
                     snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
                     AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
+                    StateH(lv_line, 5, 6);
                     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
                   }else
                   {
@@ -950,6 +960,7 @@ void registry_update(HANDLE hlv)
                             }
                             snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[2].c,lv_line[3].c,lv_line[4].c);
                             AddToLV_Registry2(lv_line[5].c, lv_line[6].c, "Update/Packages", tmp_add);
+                            StateH(lv_line, 5, 6);
                             AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MAJ_NB_COL]);
                           }
                         }
@@ -1046,6 +1057,7 @@ void registry_services(HANDLE hlv)
 
       snprintf(tmp_add,MAX_PATH,"%s,%s,%s",lv_line[6].c,lv_line[3].c,lv_line[1].c);
       AddToLV_Registry2(lv_line[7].c, "", "Service/Driver", tmp_add);
+      StateH(lv_line, 7, -1);
       AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_SERVICES_NB_COL]);
     }
   }
@@ -1312,7 +1324,8 @@ void LireValBin(HKEY ENTETE,char *chemin,char *nom,char *donnes,char *user, HAND
          }
        }
 
-       AddToLV_Registry2(lv_line[4].c, "", "UserAssist", lv_line[2].c);
+       AddToLV_Registry2(lv_line[4].c, lv_line[5].c, "UserAssist", lv_line[2].c);
+       StateH(lv_line, 4, 5);
        AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL] );
 
        //fermeture de la clé
@@ -1505,6 +1518,7 @@ void registry_usb(HANDLE hlv)
 
                    snprintf(tmp_add,MAX_PATH,"%s,%s",lv_line[2].c,lv_line[3].c);
                    AddToLV_Registry2(lv_line[4].c, "", "USB", tmp_add);
+                   StateH(lv_line, 4, -1);
 
                    AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USB_NB_COL]);
               }
@@ -1556,9 +1570,12 @@ void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char*
 {
   HKEY CleTmp=0;
   DWORD nbValue,i,TailleNomValue,TailleMAXValue;
+  FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
+  SYSTEMTIME SysTime;
+
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
-    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
     {
       if (nbValue>0)
       {
@@ -1566,6 +1583,9 @@ void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char*
         lv_line[0].c[0]=0;
         snprintf(lv_line[1].c,MAX_LINE_SIZE,"%s\\%s",chkey,path);
         strcpy(lv_line[4].c,description);
+
+        if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+          snprintf(lv_line[5].c,DATE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
 
         //lecture des valeurs et données
         for (i=0;i<nbValue;i++)
@@ -1590,9 +1610,12 @@ void reg_liste_DataValeurSpecR(HKEY hkey,char *chkey,char *path,char *exclu,char
 {
   HKEY CleTmp=0;
   DWORD nbSubKey=0,nbValue=0,i,TailleNomValue,TailleMAXValue,TailleNomSubKey;
+  FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
+  SYSTEMTIME SysTime;
+
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
-    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,&nbValue,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
     {
       //les clées directes
       if (nbValue>0)
@@ -1601,6 +1624,9 @@ void reg_liste_DataValeurSpecR(HKEY hkey,char *chkey,char *path,char *exclu,char
         lv_line[0].c[0]=0;
         snprintf(lv_line[1].c,MAX_LINE_SIZE,"%s\\%s",chkey,path);
         strcpy(lv_line[4].c,description);
+
+        if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+          snprintf(lv_line[5].c,DATE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
 
         //lecture des valeurs et données
         for (i=0;i<nbValue;i++)
@@ -1640,9 +1666,12 @@ void reg_liste_DataValeurSpecW(HKEY hkey,char *chkey,char *path,char *exclu,char
 {
   HKEY CleTmp=0;
   DWORD nbValue,i,TailleNomValue,TailleMAXValue;
+  FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
+  SYSTEMTIME SysTime;
+
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
-    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
     {
       if (nbValue>0)
       {
@@ -1650,6 +1679,9 @@ void reg_liste_DataValeurSpecW(HKEY hkey,char *chkey,char *path,char *exclu,char
         lv_line[0].c[0]=0;
         snprintf(lv_line[1].c,MAX_LINE_SIZE,"%s\\%s",chkey,path);
         strcpy(lv_line[4].c,description);
+
+        if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+          snprintf(lv_line[5].c,DATE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
 
         char tmp[MAX_LINE_SIZE];
 
@@ -1680,9 +1712,12 @@ void reg_liste_DataValeurSpecWs(HKEY hkey,char *chkey,char *path,char *exclu,cha
 {
   HKEY CleTmp=0;
   DWORD nbValue,i,TailleNomValue,TailleMAXValue;
+  FILETIME DernierMAJ;// dernière mise a jour ou creation de la cle
+  SYSTEMTIME SysTime;
+
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
-    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
     {
       if (nbValue>0)
       {
@@ -1690,6 +1725,9 @@ void reg_liste_DataValeurSpecWs(HKEY hkey,char *chkey,char *path,char *exclu,cha
         lv_line[0].c[0]=0;
         snprintf(lv_line[1].c,MAX_LINE_SIZE,"%s\\%s",chkey,path);
         strcpy(lv_line[4].c,description);
+
+        if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+          snprintf(lv_line[5].c,DATE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
 
         char tmp[MAX_LINE_SIZE],tmp2[MAX_LINE_SIZE];
 
@@ -1783,12 +1821,12 @@ void LireConfSSID(char *GUID,char *resultat,unsigned int size)
   {
     if (LireDValeur(HKEY_LOCAL_MACHINE,tmp,"LayoutVersion",&u))
     {
-      snprintf(tmp2,MAX_PATH,"ControlFlags: 0x%08X LayoutVersion:0x%08X",v&0xFFFFFFFF,u&0xFFFFFFFF);
-    }else snprintf(tmp2,MAX_PATH,"ControlFlags:0x%0X",v&0xFFFFFFFF);
+      snprintf(tmp2,MAX_PATH,"ControlFlags: 0x%08X LayoutVersion:0x%08X",(unsigned int)(v&0xFFFFFFFF),(unsigned int)(u&0xFFFFFFFF));
+    }else snprintf(tmp2,MAX_PATH,"ControlFlags:0x%0X",(unsigned int)(v&0xFFFFFFFF));
 
     for (i=0;i<256;i++)
     {
-      snprintf(name,MAX_PATH,"Static#%04d",i);//"Static#0000"
+      snprintf(name,MAX_PATH,"Static#%04d",(int)i);//"Static#0000"
 
       if ((t=LireGValeur(HKEY_LOCAL_MACHINE,tmp,name,tmp3))>52)
       {
@@ -2076,6 +2114,7 @@ void registry_users(HANDLE hlv)
               if (Buffer->usri0_name!=0)
               {
                 snprintf(lv_line[2].c,MAX_PATH,"%S",Buffer->usri0_name);
+                lv_line[12].c[0]=0;
                 lv_line[11].c[0]=0;
                 lv_line[10].c[0]=0;
                 lv_line[9].c[0]=0;
@@ -2098,13 +2137,13 @@ void registry_users(HANDLE hlv)
                   };
 
                   //Enable
-                  if (pBuf_info->usri2_flags&0x2)strcpy(lv_line[8].c,"Disable");
-                  else strcpy(lv_line[8].c,"Enable");
+                  if (pBuf_info->usri2_flags&0x2)strcpy(lv_line[9].c,"Disable");
+                  else strcpy(lv_line[9].c,"Enable");
 
-                  if (pBuf_info->usri2_flags&0x10)strcat(lv_line[8].c," and lock\0");
+                  if (pBuf_info->usri2_flags&0x10)strcat(lv_line[9].c," and lock\0");
 
                   #define TIMEQ_FOREVER ((ULONG)-1)
-                  if (pBuf_info->usri2_acct_expires == TIMEQ_FOREVER)strcat(lv_line[8].c," and password never expire\0");
+                  if (pBuf_info->usri2_acct_expires == TIMEQ_FOREVER)strcat(lv_line[9].c," (Password never expire)\0");
                   else
                   {
                     //conversion du ctime en FILETIME
@@ -2113,12 +2152,12 @@ void registry_users(HANDLE hlv)
                     DernierMAJ.dwHighDateTime = ll >>32;
 
                     if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
-                      snprintf(tmp,MAX_PATH,"and expire %02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-                    strcat(lv_line[8].c,tmp);
-                    strcat(lv_line[8].c,"\0");
+                      snprintf(tmp,MAX_PATH," (Password expire %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                    strcat(lv_line[9].c,tmp);
+                    strcat(lv_line[9].c,"\0");
                   }
 
-                  //if (pBuf_info->usri2_acct_expires)strcat(lv_line[8].c," and expire account\0");
+                  //if (pBuf_info->usri2_acct_expires)strcat(lv_line[9].c," and expire account\0");
 
                   //last logon
                   if (pBuf_info->usri2_last_logon != 0)
@@ -2130,7 +2169,23 @@ void registry_users(HANDLE hlv)
 
                     if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
                       snprintf(lv_line[6].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-                  }
+                    else strcpy(lv_line[6].c,"Never");
+
+                  }else strcpy(lv_line[6].c,"Never");
+
+                  //last password change
+                  if (pBuf_info->usri2_password_age != 0)
+                  {
+                    //conversion du ctime en FILETIME
+                    LONGLONG ll = Int32x32To64(pBuf_info->usri2_last_logon, 10000000) + 116444736000000000;
+                    DernierMAJ.dwLowDateTime = (DWORD) ll;
+                    DernierMAJ.dwHighDateTime = ll >>32;
+
+                    if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+                    {
+                      snprintf(lv_line[7].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                    }else strcpy(lv_line[7].c,"Never");
+                  }else strcpy(lv_line[7].c,"Never");
 
                   //nombre de connexion
                   snprintf(lv_line[7].c,MAX_LINE_SIZE,"%lu",pBuf_info->usri2_num_logons);
@@ -2142,7 +2197,7 @@ void registry_users(HANDLE hlv)
                     strncpy(lv_line[3].c,tmp,MAX_PATH);
 
                     if (TestSIDShadowCopy(hlv, tmp))
-                      strcpy(lv_line[10].c,"YES");
+                      strcpy(lv_line[11].c,"YES");
                     //snprintf(lv_line[3].c,MAX_PATH,"%s %s",group,tmp);
                   }
 
@@ -2165,6 +2220,10 @@ void registry_users(HANDLE hlv)
                 }
                 snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
                 AddToLV_Registry2(lv_line[6].c, lv_line[3].c, "Users & groups", tmp_add);
+                snprintf(tmp_add,MAX_PATH,"Last password change : %s,%s",lv_line[2].c,lv_line[4].c);
+                AddToLV_Registry2(lv_line[7].c, lv_line[3].c, "Users & groups", tmp_add);
+                StateH(lv_line, 6, 3);
+                StateH(lv_line, 7, 3);
                 AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
                 Buffer++;
               }else break;
@@ -2389,6 +2448,7 @@ void registry_mru(HANDLE hlv)
   strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\");
   strcpy(lv_line[2].c,"LastKey");
   strcpy(lv_line[4].c,"Last open registry key");
+  LireKeyUpdate(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\", lv_line[5].c, DATE_SIZE);
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
 }
 //------------------------------------------------------------------------------
@@ -2464,7 +2524,7 @@ void RegistryTestDWORD(HKEY hk, char *path, char *value, DWORD ok_v, DWORD nok_v
       HKEY CleTmp;
       if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
       {
-        RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(nok_v));
+        RegSetValueEx(CleTmp, value, 0, REG_DWORD, (LPBYTE) &nok_v, sizeof(nok_v));
         RegCloseKey(CleTmp);
       }
     }else
@@ -2472,7 +2532,7 @@ void RegistryTestDWORD(HKEY hk, char *path, char *value, DWORD ok_v, DWORD nok_v
       HKEY CleTmp;
       if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
       {
-        RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &ok_v, sizeof(ok_v));
+        RegSetValueEx(CleTmp, value, 0, REG_DWORD, (LPBYTE) &ok_v, sizeof(ok_v));
         RegCloseKey(CleTmp);
       }
     }
@@ -2482,11 +2542,11 @@ void RegistryTestDWORD(HKEY hk, char *path, char *value, DWORD ok_v, DWORD nok_v
     HKEY CleTmp = NULL;
     if(RegCreateKeyEx(hk,path,0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&CleTmp,NULL) == ERROR_SUCCESS)
     {
-      RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
+      RegSetValueEx(CleTmp, value, 0, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
       RegCloseKey(CleTmp);
     }else if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
     {
-      RegSetValueEx(CleTmp, value, NULL, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
+      RegSetValueEx(CleTmp, value, 0, REG_DWORD, (LPBYTE) &nok_v, sizeof(ok_v));
       RegCloseKey(CleTmp);
     }
   }
@@ -2503,7 +2563,7 @@ void RegistryTestSTRING(HKEY hk, char *path, char *value, char *ok_v, char *nok_
       HKEY CleTmp;
       if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
       {
-        RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+        RegSetValueEx(CleTmp, value, 0, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
         RegCloseKey(CleTmp);
       }
     }else
@@ -2511,7 +2571,7 @@ void RegistryTestSTRING(HKEY hk, char *path, char *value, char *ok_v, char *nok_
       HKEY CleTmp;
       if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
       {
-        RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) ok_v, strlen(ok_v));
+        RegSetValueEx(CleTmp, value, 0, REG_SZ, (LPCTSTR) ok_v, strlen(ok_v));
         RegCloseKey(CleTmp);
       }
     }
@@ -2521,11 +2581,11 @@ void RegistryTestSTRING(HKEY hk, char *path, char *value, char *ok_v, char *nok_
     HKEY CleTmp = NULL;
     if(RegCreateKeyEx(hk,path,0,NULL,REG_OPTION_NON_VOLATILE,KEY_ALL_ACCESS,NULL,&CleTmp,NULL) == ERROR_SUCCESS)
     {
-      RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+      RegSetValueEx(CleTmp, value, 0, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
       RegCloseKey(CleTmp);
     }else if (RegOpenKey(hk,path,&CleTmp)==ERROR_SUCCESS)
     {
-      RegSetValueEx(CleTmp, value, NULL, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
+      RegSetValueEx(CleTmp, value, 0, REG_SZ, (LPCTSTR) nok_v, strlen(nok_v));
       RegCloseKey(CleTmp);
     }
   }

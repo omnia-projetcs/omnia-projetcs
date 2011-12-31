@@ -300,6 +300,7 @@ BOOL registry_users_extract()
           lv_line[9].c[0]=0;
           lv_line[10].c[0]=0;
           lv_line[11].c[0]=0;
+          lv_line[12].c[0]=0;
 
           int rid;
           for (i=0;i<nbSubKey;i++)
@@ -333,7 +334,7 @@ BOOL registry_users_extract()
                 BYTE b_f[MAX_LINE_SIZE];
                 if (LireGValeur(HKEY_LOCAL_MACHINE,"SAM\\SAM\\Domains\\Account","F",(char*)b_f) > 0x80)
                 {
-                  DecodeSAMHash(sk,lv_line[9].c,rid,lv_line[2].c,b_f);
+                  DecodeSAMHash(sk,lv_line[10].c,rid,lv_line[2].c,b_f);
                 }
 
                 //ajout et shadow copie verification
@@ -341,11 +342,11 @@ BOOL registry_users_extract()
                 for (j=0;j<k;j++)
                 {
                   tmp[0]=0;
-                  ListView_GetItemText(hlv,j,11,tmp,MAX_LINE_SIZE);
-                  if (!strcmp(tmp,lv_line[11].c) && tmp[0]!=0 && lv_line[11].c[0]!=0)
+                  ListView_GetItemText(hlv,j,12,tmp,MAX_LINE_SIZE);
+                  if (!strcmp(tmp,lv_line[12].c) && tmp[0]!=0 && lv_line[12].c[0]!=0)
                   {
-                    ListView_SetItemText(hlv,j,10,"YES");
-                    strcpy(lv_line[10].c,"YES");
+                    ListView_SetItemText(hlv,j,11,"YES");
+                    strcpy(lv_line[11].c,"YES");
                     break;
                   }else
                   {
@@ -353,19 +354,20 @@ BOOL registry_users_extract()
                     ListView_GetItemText(hlv,j,3,tmp,MAX_LINE_SIZE);
                     if (!strcmp(tmp,lv_line[3].c) && tmp[0]!=0 && lv_line[3].c[0]!=0)
                     {
-                      ListView_SetItemText(hlv,j,10,"YES");
-                      strcpy(lv_line[10].c,"YES");
+                      ListView_SetItemText(hlv,j,11,"YES");
+                      strcpy(lv_line[11].c,"YES");
                       break;
                     }
                   }
                 }
                 snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
-                snprintf(user,MAX_PATH,"%s",lv_line[3].c);
+                snprintf(user,MAX_PATH,"%s SID :%s",lv_line[2].c,lv_line[3].c);
                 l = AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
 
                 //traitement des données de connexion
                 lv_line[4].c[0]=0;
                 size = LireGValeur(HKEY_LOCAL_MACHINE,path,"F",lv_line[4].c);
+
                 if(size>0 && lv_line[4].c[0]!=0)
                 {
                   //transformation des données en hexa ^^
@@ -382,7 +384,10 @@ BOOL registry_users_extract()
                   ListView_SetItemText(hlv,l,6,lv_line[6].c);
                   ListView_SetItemText(hlv,l,7,lv_line[7].c);
                   ListView_SetItemText(hlv,l,8,lv_line[8].c);
+                  ListView_SetItemText(hlv,l,9,lv_line[9].c);
                 }
+
+                StateHC(lv_line, 6, user);
                 AddToLV_Registry2(lv_line[6].c, user, "Users & groups", tmp_add);
               }
             }
@@ -417,6 +422,7 @@ BOOL registry_users_extract()
           lv_line[9].c[0]=0;
           lv_line[10].c[0]=0;
           lv_line[11].c[0]=0;
+          lv_line[12].c[0]=0;
 
           NomSubKey[0]=0;
           for (i=0;i<nbSubKey;i++)
@@ -474,6 +480,7 @@ BOOL registry_users_extract()
           lv_line[9].c[0]=0;
           lv_line[10].c[0]=0;
           lv_line[11].c[0]=0;
+          lv_line[12].c[0]=0;
 
           NomSubKey[0]=0;
           for (i=0;i<nbSubKey;i++)

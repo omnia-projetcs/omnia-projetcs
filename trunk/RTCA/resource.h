@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include <commctrl.h>   //composants
+#include <commctrl.h>   // composants
 #include <shlobj.h>     // pour la gestion des browsers
 
 #include <Psapi.h>      //GESTION DES PROCESSUS
@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.21 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.22 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -749,6 +749,8 @@ void LVDelete(unsigned int id_tabl, int lv);
 void LVtoMessage(HANDLE hlv, unsigned short colonne);
 void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char* description,HANDLE hlv);
 
+void StateH(LINE_ITEM *item, int col_date, int col_id);
+void StateHC(LINE_ITEM *item, int col_date, char *user);
 DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img);
 void AddToLV_Registry(LINE_ITEM *item);
 void AddToLV_Registry2(char *date, char *user, char *from, char *data);
@@ -791,6 +793,7 @@ void GetItemPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem, char *path, DW
 void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 
 //registre
+void LireKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
 void OpenRegeditKey(char *key);
 void CheckRegistryFile();

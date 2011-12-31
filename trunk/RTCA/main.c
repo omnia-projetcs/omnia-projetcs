@@ -683,7 +683,7 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         col_size = (mWidth-390)/3;
         redimColumn(hwnd,LV_REGISTRY_LOGICIEL,2,col_size);
         redimColumn(hwnd,LV_REGISTRY_LOGICIEL,3,col_size);
-        redimColumn(hwnd,LV_REGISTRY_LOGICIEL,5,col_size);
+        redimColumn(hwnd,LV_REGISTRY_LOGICIEL,4,col_size);
 
         col_size = (mWidth-330)/3;
         redimColumn(hwnd,LV_REGISTRY_MAJ,2,col_size);
@@ -705,7 +705,9 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         redimColumn(hwnd,LV_REGISTRY_START,2,col_size);
         redimColumn(hwnd,LV_REGISTRY_START,3,col_size);
 
-        redimColumn(hwnd,LV_REGISTRY_LAN,2,mWidth-520);
+        col_size = (mWidth-520)/2;
+        redimColumn(hwnd,LV_REGISTRY_LAN,1,col_size);
+        redimColumn(hwnd,LV_REGISTRY_LAN,7,col_size);
 
         col_size = (mWidth-340)/4;
         redimColumn(hwnd,LV_REGISTRY_USERS,2,col_size);
@@ -717,10 +719,11 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         redimColumn(hwnd,LV_REGISTRY_PASSWORD,4,col_size);
         redimColumn(hwnd,LV_REGISTRY_PASSWORD,5,col_size);
 
-        col_size = (mWidth-190)/3;
+        col_size = (mWidth-190)/4;
         redimColumn(hwnd,LV_REGISTRY_MRU,2,col_size);
         redimColumn(hwnd,LV_REGISTRY_MRU,3,col_size);
         redimColumn(hwnd,LV_REGISTRY_MRU,4,col_size);
+        redimColumn(hwnd,LV_REGISTRY_MRU,5,col_size);
 
         col_size = (mWidth-190)/2;
         redimColumn(hwnd,LV_REGISTRY_PATH,2,col_size);
@@ -836,6 +839,8 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                                           , SendMessage(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),10);break;
           case POPUP_LV_CP_COL12:CopyData(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW)
                                           , SendMessage(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),11);break;
+          case POPUP_LV_CP_COL13:CopyData(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW)
+                                          , SendMessage(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),12);break;
 
           case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
           break;
@@ -1206,7 +1211,12 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);
+      switch(TABL_ID_STATE_VISIBLE)
+      {
+        case 0: c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
+        case 1: c_Tri(GetDlgItem(hwnd,LV_VIEW_CRITICAL),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
+        case 2: c_Tri(GetDlgItem(hwnd,LV_VIEW_H),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
+      }
     }
   }
   return FALSE;
