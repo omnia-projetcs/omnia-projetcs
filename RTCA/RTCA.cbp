@@ -8,7 +8,7 @@
 		<Build>
 			<Target title="Release">
 				<Option output="RtCA" prefix_auto="1" extension_auto="1" />
-				<Option object_output="C:\Documents and Settings\nico\Bureau\RTCA - Forensic\Sources\RTCA2\RTCA\.objs" />
+				<Option object_output="objs" />
 				<Option type="0" />
 				<Option compiler="gcc" />
 				<Compiler>
@@ -56,6 +56,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_configuration.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_files.c">

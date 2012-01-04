@@ -16,11 +16,11 @@
 	<File name="export.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="47457" topLine="1220" />
 	</File>
-	<File name="local_user_extract.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="14018" topLine="368" />
+	<File name="local_user_extract.c" open="1" top="1" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor1 position="14841" topLine="407" />
 	</File>
 	<File name="main.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor1 position="47911" topLine="242" />
+		<Cursor1 position="68033" topLine="56" />
 	</File>
 	<File name="md5.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="2397" topLine="51" />
@@ -29,13 +29,16 @@
 		<Cursor1 position="309" topLine="0" />
 	</File>
 	<File name="proc.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="141904" topLine="2964" />
+		<Cursor1 position="144325" topLine="2967" />
+	</File>
+	<File name="proc_configuration.c" open="1" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor1 position="1104" topLine="0" />
 	</File>
 	<File name="proc_files.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="22600" topLine="519" />
+		<Cursor1 position="22756" topLine="524" />
 	</File>
-	<File name="proc_logs.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="69494" topLine="0" />
+	<File name="proc_logs.c" open="1" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor1 position="149838" topLine="1525" />
 	</File>
 	<File name="proc_logs_evt.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="5820" topLine="0" />
@@ -47,10 +50,10 @@
 		<Cursor1 position="7025" topLine="141" />
 	</File>
 	<File name="proc_process.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="27077" topLine="709" />
+		<Cursor1 position="36192" topLine="991" />
 	</File>
 	<File name="proc_registry.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="75853" topLine="1725" />
+		<Cursor1 position="69983" topLine="1599" />
 	</File>
 	<File name="proc_registry_WCE_bin.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="2549" topLine="52" />
@@ -68,7 +71,7 @@
 		<Cursor1 position="3383" topLine="0" />
 	</File>
 	<File name="proc_registry_search.c" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="43752" topLine="1196" />
+		<Cursor1 position="75575" topLine="2060" />
 	</File>
 	<File name="rc4_enc.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="715" topLine="0" />
@@ -77,12 +80,12 @@
 		<Cursor1 position="0" topLine="89" />
 	</File>
 	<File name="resource.h" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="1420" topLine="0" />
+		<Cursor1 position="1841" topLine="81" />
 	</File>
 	<File name="resource.rc" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="9139" topLine="134" />
+		<Cursor1 position="1036" topLine="0" />
 	</File>
-	<File name="suivie.txt" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
-		<Cursor1 position="4867" topLine="75" />
+	<File name="suivie.txt" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
+		<Cursor1 position="4927" topLine="87" />
 	</File>
 </CodeBlocks_layout_file>

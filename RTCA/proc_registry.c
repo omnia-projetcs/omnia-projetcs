@@ -1564,6 +1564,69 @@ void reg_liste_DataValeur(HKEY hkey,char *chkey,char *path,HANDLE hlv)
   }
 }
 //------------------------------------------------------------------------------
+//lister toutes les valeurs et leurs données sous une clé de  clée
+void reg_liste_KeyDataValeur(HKEY hkey, char *chkey, char *path, char *description, HANDLE hlv)
+{
+  HKEY CleTmp=0, CleTmp2=0;
+  DWORD nbValue,nbSubKey,i,j,TailleNomValue,TailleMAXValue,TailleNomSubKey;
+  char NomSubKey[MAX_PATH];
+  char path_tmp[MAX_PATH];
+  if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
+  {
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      if (nbSubKey >0)
+      {
+        LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+        lv_line[0].c[0]=0;
+        strcpy(lv_line[4].c,description);
+
+        SYSTEMTIME SysTime;
+        FILETIME DernierMAJ;
+
+        for (j=0;j<nbSubKey;j++)
+        {
+          TailleNomSubKey=MAX_PATH;// on reinitialise la taille a chaque fois sinon il ne lit pas la valeur suivant
+          if (RegEnumKeyEx (CleTmp,j,NomSubKey,&TailleNomSubKey,0,0,0,&DernierMAJ)==ERROR_SUCCESS)
+          {
+            //last update
+            if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
+              snprintf(lv_line[5].c,MAX_LINE_SIZE,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+            else lv_line[5].c[0]=0;
+
+            //création du path
+            snprintf(path_tmp,MAX_PATH,"%s\\%s",path,NomSubKey);
+            if (RegOpenKey(hkey,path_tmp,&CleTmp2)==ERROR_SUCCESS)
+            {
+              if (RegQueryInfoKey (CleTmp2,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+              {
+                if (nbValue>0)
+                {
+                  snprintf(lv_line[1].c,MAX_LINE_SIZE,"%s\\%s",chkey,path_tmp);
+
+                  //lecture des valeurs et données
+                  for (i=0;i<nbValue;i++)
+                  {
+                    TailleNomValue = MAX_LINE_SIZE;
+                    TailleMAXValue = MAX_LINE_SIZE;
+                    if (RegEnumValue (CleTmp2,i,lv_line[2].c,&TailleNomValue,0,0,(LPBYTE)lv_line[3].c,&TailleMAXValue)==ERROR_SUCCESS)
+                    {
+                      if (strlen(lv_line[2].c)>0 || strlen(lv_line[3].c)>0)
+                        AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+                    }
+                  }
+                }
+              }
+              RegCloseKey(CleTmp2);
+            }
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+}
+//------------------------------------------------------------------------------
 //lister toutes les valeurs et leurs données sous une clée en ajoutant une description
 // et en enlevant les valeur du nom de exclu
 void reg_liste_DataValeurSpec(HKEY hkey,char *chkey,char *path,char *exclu,char* description,HANDLE hlv)
@@ -2440,6 +2503,9 @@ void registry_mru(HANDLE hlv)
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\MuiCache\\","","MUICache",hlv);
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Microsoft\\Windows\\Shell\\LocalizedResourceName\\","","MUICache",hlv);
 
+  //historique des réseaux déja connectés ^^
+  reg_liste_KeyDataValeur(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\", "Network history", hlv);
+
   //historique : dernière clée de registre ouverte
   LINE_ITEM lv_line[SIZE_UTIL_ITEM];
   lv_line[0].c[0]=0;
@@ -2745,7 +2811,7 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
   }
 
   h_scan_registry = NULL;
-  if (!h_scan_logs && !h_scan_files && !h_scan_registry)
+  if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)
   {
     ScanStart = FALSE;
     SetWindowText(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),"Start");

@@ -544,7 +544,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   SB_add_T(SB_ONGLET_FILES, tmp);
 
   h_scan_files = NULL;
-  if (!h_scan_logs && !h_scan_files && !h_scan_registry)
+  if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)
   {
     ScanStart = FALSE;
     SetWindowText(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),"Start");

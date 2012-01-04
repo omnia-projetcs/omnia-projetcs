@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.22 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.23 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -59,8 +59,9 @@ char console_cmd[MAX_LINE_SIZE];
 #define BT_MAIN_FILES          503
 #define BT_MAIN_REGISTRY       504
 #define BT_MAIN_PROCESS        505
-#define BT_MAIN_STATE          506
-#define SB_MAIN                507
+#define BT_MAIN_CONFIGURATION  506
+#define BT_MAIN_STATE          507
+#define SB_MAIN                508
 
 #define DLG_CONF              1000
 #define TRV_CONF_TESTS        1001
@@ -82,6 +83,7 @@ char console_cmd[MAX_LINE_SIZE];
 #define CHK_CONF_NO_TYPE                 1017
 #define CHK_CONF_MD5                     1018
 #define CHK_CONF_ADS                     1019
+#define CHK_CONF_CONFIGURATION           1020
 BOOL State_Enable;
 BOOL MD5_Enable;
 BOOL ACL_Enable;
@@ -124,6 +126,8 @@ BOOL TV_FILES_VISBLE;
 #define LV_VIEW_H             8103
 #define CB_STATE_VIEW         8104
 
+#define DLG_CONFIGURATION     9000
+
 #define DLG_INFO              5000
 
 #define POPUP_TRV_CONF       10000
@@ -149,6 +153,10 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_POL_SCR        10104
 #define POPUP_POL_SCR_PWD    10105
 #define POPUP_POL_TASKMGR    10106
+#define POPUP_POL_DRIVES     10107
+#define POPUP_POL_DESKTOP    10108
+#define POPUP_POL_DESKTOP_   10109
+#define POPUP_POL_CPL        10110
 
 #define POPUP_LV             11000
 #define POPUP_LV_S_SELECTION 11001
@@ -212,16 +220,17 @@ BOOL TV_FILES_VISBLE;
 #define SB_ONGLET_FILES          2
 #define SB_ONGLET_REGISTRY       3
 
-#define NB_TABL                  8
+#define NB_TABL                  9
 #define TABL_MAIN                0
 #define TABL_CONF                1
 #define TABL_LOGS                2
 #define TABL_FILES               3
 #define TABL_REGISTRY            4
 #define TABL_PROCESS             5
-#define TABL_STATE               6
+#define TABL_CONFIGURATION       6
+#define TABL_STATE               7
 
-#define TABL_INFO                7
+#define TABL_INFO                8
 
 #define TAILLE_TXT_BT           15
 
@@ -247,10 +256,11 @@ unsigned int TABL_ID_STATE_VISIBLE;
 #define LV_REGISTRY_PASSWORD_NB_COL   LV_REGISTRY_CONF_NB_COL+9
 #define LV_REGISTRY_MRU_NB_COL        LV_REGISTRY_CONF_NB_COL+10
 #define LV_REGISTRY_PATH_NB_COL       LV_REGISTRY_CONF_NB_COL+11
-#define LV_INFO_VIEW_NB_COL          28
-#define LV_PROCESS_VIEW_NB_COL       29
-#define LV_STATE_VIEW_NB_COL         30
-#define LV_STATE_H_VIEW_NB_COL       31
+#define LV_INFO_VIEW_NB_COL          20
+#define LV_PROCESS_VIEW_NB_COL       21
+#define LV_STATE_VIEW_NB_COL         22
+#define LV_STATE_H_VIEW_NB_COL       23
+#define LV_CONFIGURATION_NB_COL      24
 unsigned int NB_COLONNE_LV[LV_NB];
 
 #define TRV_CATEGORIES          3
@@ -422,7 +432,7 @@ REG_REF_SEARCH ref_conf_search[NB_MAX_REF_SEARCH_CONF];
 #define NB_MAX_REF_SEARCH_CONF_VAR      54
 REG_REF_SEARCH ref_conf_var_search[NB_MAX_REF_SEARCH_CONF_VAR];
 
-#define NB_MAX_REF_SEARCH_MRU           30
+#define NB_MAX_REF_SEARCH_MRU           31
 REG_REF_SEARCH ref_mru_search[NB_MAX_REF_SEARCH_MRU];
 #define NB_MAX_REF_SEARCH_MRU_VAR        NB_MAX_REF_SEARCH_MRU*2
 REG_REF_SEARCH ref_mru_var_search[NB_MAX_REF_SEARCH_MRU_VAR];
@@ -723,6 +733,17 @@ void EndConfig();
 void ErrorExit(LPTSTR lpszFunction);
 void redimColumn(HANDLE f,int lv,int column,unsigned int col_size);
 
+//gestion du tri
+typedef struct SORT_ST
+{
+  HANDLE hlv;
+  BOOL sort;
+  unsigned int col;
+}sort_st;
+
+int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort);
+void c_Tri(HANDLE hListView, unsigned short colonne_ref);
+
 //fonctions de traitement
 void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio, unsigned int prop_taille_max);
 void GetMyDirectory(char *path, unsigned int TAILLE);
@@ -761,8 +782,10 @@ void AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 HTREEITEM AjouterItemTreeView(HANDLE hdlg, int treeview, char *texte, HTREEITEM hparent);
 HTREEITEM AjouterItemTreeViewFile(HANDLE hdlg, int treeview, char *texte, HTREEITEM hparent,DWORD img_id);
 HTREEITEM AjouterItemTreeViewRep(HANDLE hdlg, int treeview, char *texte, HTREEITEM hparent);
-void EnumProcess(HANDLE hlv, unsigned short nb_colonne);
 BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size);
+
+BOOL enum_en_cours;
+DWORD WINAPI EnumProcess(LPVOID lParam);
 
 void TreeExport(HANDLE htree);
 void ExportLVSelecttoCSV(char *path, unsigned int id_tabl, int lv, unsigned short nb_colonne);
@@ -783,10 +806,6 @@ void AnalyseFichierReg(char *fic);
 void AnalyseFichierRegBin(char *fic);
 void AnalyseFichierRegBin2(char *fic);
 void AnalyseFichierRegWCEBin(char *fic);
-
-HANDLE h_Tc_Tri;
-BOOL Tc_TriStart;
-void c_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne);
 
 //popup treeview
 void GetItemPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem, char *path, DWORD max_size);
@@ -846,11 +865,14 @@ BOOL ScanStart;
 HANDLE h_scan_logs;
 HANDLE h_scan_files;
 HANDLE h_scan_registry;
+HANDLE h_scan_configuration;
+
 DWORD WINAPI Scan(LPVOID lParam);
 DWORD WINAPI StopScan(LPVOID lParam);
 DWORD WINAPI Scan_logs(LPVOID lParam);
 DWORD WINAPI Scan_files(LPVOID lParam);
 DWORD WINAPI Scan_registry(LPVOID lParam);
+DWORD WINAPI Scan_configuration(LPVOID lParam);
 
 //gestion des messages sur les onglets
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -858,6 +880,7 @@ BOOL CALLBACK DialogProc_logs(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 //------------------------------------------------------------------------------
