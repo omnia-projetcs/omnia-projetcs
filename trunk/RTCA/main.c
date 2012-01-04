@@ -31,7 +31,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-150,110,140,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-150,125,140,15,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)     ,mWidth-225,162,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_CONFIGURATION)     ,mWidth-225,147,180,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)      ,mWidth-225,162,140,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF)             ,mWidth-235,182,230,50,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,197,80,15,TRUE);
@@ -279,12 +280,28 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "DisableRegistryTools", 1, 0);
           break;
           case POPUP_POL_CMD:
-            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "DisableCMD", 1, 0);
-            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "DisableCMD", 1, 0);
+            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Policies\\Microsoft\\Windows\\System", "DisableCMD", 1, 0);
+            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Policies\\Microsoft\\WindowsSystem", "DisableCMD", 1, 0);
           break;
           case POPUP_POL_TASKMGR:
             RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "DisableTaskMgr", 1, 0);
             RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "DisableTaskMgr", 1, 0);
+          break;
+          case POPUP_POL_DRIVES:
+            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoDrives", 0x3FFFFFF, 0);
+            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoDrives", 0x3FFFFFF, 0);
+          break;
+          case POPUP_POL_DESKTOP:
+            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoViewContextMenu", 1, 0);
+            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoViewContextMenu", 1, 0);
+          break;
+          case POPUP_POL_DESKTOP_:
+            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoActiveDesktop", 1, 0);
+            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\Explorer", "NoActiveDesktop", 1, 0);
+          break;
+          case POPUP_POL_CPL:
+            RegistryTestDWORD(HKEY_CURRENT_USER, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "NODispCPL", 1, 0);
+            RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System", "NODispCPL", 1, 0);
           break;
 
           case POPUP_POL_USB:     RegistryTestDWORD(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\UsbStor", "Start", 3, 4);break;
@@ -396,7 +413,7 @@ BOOL CALLBACK DialogProc_logs(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
     {
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
-        if (!h_scan_logs)c_Tri(GetDlgItem(hwnd,LV_LOGS_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);
+        if (!h_scan_logs)c_Tri(GetDlgItem(hwnd,LV_LOGS_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);
       }else if (((LPNMHDR)lParam)->code == NM_DBLCLK)
       {
         switch(LOWORD(wParam))
@@ -632,7 +649,7 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
-        if (!h_scan_files)c_Tri(GetDlgItem(hwnd,LV_FILES_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+        if (!h_scan_files)c_Tri(GetDlgItem(hwnd,LV_FILES_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);
       }else if (((LPNMHDR)lParam)->code == EN_CHANGE)
       {
         if (LOWORD(wParam) == ED_SEARCH)pos_search_files = 0;
@@ -878,7 +895,7 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
       if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
       {
         //suivant l'index visible ^^
-        if (!h_scan_registry)c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,SIZE_UTIL_ITEM);
+        if (!h_scan_registry)c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem);
       }else if (((LPNMHDR)lParam)->code == EN_CHANGE)
       {
         if (LOWORD(wParam) == ED_SEARCH)pos_search_registry = 0;
@@ -940,13 +957,13 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
           if(GetOpenFileName(&ofnFile))
           {
             //élévation de privilège
-            SetDebugPrivilege(TRUE);
+            //SetDebugPrivilege(TRUE);
 
             //injection or not ^^
             if (LOWORD(wParam) == ADD_DLL_INJECT_REMOTE_THREAD)DllInjecteurA(pid,tmp);
             else DllEjecteurA(pid,tmp);
 
-            SetDebugPrivilege(FALSE);
+            //SetDebugPrivilege(FALSE);
           }
         }
         break;
@@ -1089,7 +1106,7 @@ BOOL CALLBACK DialogProc_process(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPa
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);
     }if ((LOWORD(wParam) == LV_VIEW) && (((LPNMHDR)lParam)->code == NM_DBLCLK))
     {
       //chargement des infos du processus
@@ -1213,10 +1230,61 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
     {
       switch(TABL_ID_STATE_VISIBLE)
       {
-        case 0: c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
-        case 1: c_Tri(GetDlgItem(hwnd,LV_VIEW_CRITICAL),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
-        case 2: c_Tri(GetDlgItem(hwnd,LV_VIEW_H),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_STATE_VIEW_NB_COL]);break;
+        case 0: c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);break;
+        case 1: c_Tri(GetDlgItem(hwnd,LV_VIEW_CRITICAL),((LPNMLISTVIEW)lParam)->iSubItem);break;
+        case 2: c_Tri(GetDlgItem(hwnd,LV_VIEW_H),((LPNMLISTVIEW)lParam)->iSubItem);break;
       }
+    }
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_SIZE)
+  {
+      unsigned int mWidth = LOWORD(lParam);  // width of client area
+      unsigned int mHeight = HIWORD(lParam);  // width of client area
+      MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
+
+      //redimmensionnement des colonnes
+      unsigned int col_size = (mWidth-40)/3;
+      redimColumn(hwnd,LV_VIEW,2,col_size);
+      redimColumn(hwnd,LV_VIEW,4,col_size);
+
+      redimColumn(hwnd,LV_VIEW,0,col_size/4);
+      redimColumn(hwnd,LV_VIEW,1,col_size/4);
+      redimColumn(hwnd,LV_VIEW,3,col_size/4);
+      redimColumn(hwnd,LV_VIEW,5,col_size/4);
+
+      InvalidateRect(hwnd, NULL, TRUE);
+  }else if (uMsg == WM_COMMAND)
+  {
+    if (HIWORD(wParam) == BN_CLICKED)
+    {
+      switch(LOWORD(wParam))
+      {
+        case POPUP_LV_S_SELECTION : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL], TRUE, FALSE, FALSE);break;
+        case POPUP_LV_S_VIEW : LVSaveAll(TABL_ID_VISIBLE, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL], FALSE, FALSE, FALSE);break;
+        case POPUP_LV_S_DELETE : LVDelete(TABL_ID_VISIBLE, LV_VIEW);break;
+
+        case POPUP_LV_I_VIEW : CreateThread(NULL,0,csvImport,0,0,0);break;
+        case POPUP_LV_C_VIEW : ListView_DeleteAllItems(GetDlgItem(hwnd,LV_VIEW));break;
+
+        case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
+        case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;
+        case POPUP_LV_CP_COL3:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2);break;
+        case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
+        case POPUP_LV_CP_COL5:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),4);break;
+        case POPUP_LV_CP_COL6:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),5);break;
+      }
+    }
+  }else if (uMsg == WM_CONTEXTMENU)TraiterPopupSave(wParam, lParam, hwnd,LV_CONFIGURATION_NB_COL);
+  else if (uMsg == WM_NOTIFY)
+  {
+    if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
+    {
+      if(!h_scan_configuration)c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);
     }
   }
   return FALSE;
@@ -1323,7 +1391,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
   {
     if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)//click sur une entête de colonne
     {
-      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem,NB_COLONNE_LV[LV_INFO_VIEW_NB_COL]);
+      c_Tri(GetDlgItem(hwnd,LV_VIEW),((LPNMLISTVIEW)lParam)->iSubItem);
     }
   }else if (uMsg == WM_CLOSE)ShowWindow(hwnd, SW_HIDE);
 
@@ -1355,6 +1423,7 @@ BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(Tabl[TABL_FILES]   ,0,38,mWidth,mHeight-60,TRUE);
         MoveWindow(Tabl[TABL_REGISTRY],0,38,mWidth,mHeight-60,TRUE);
         MoveWindow(Tabl[TABL_PROCESS],0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_CONFIGURATION],0,38,mWidth,mHeight-60,TRUE);
         MoveWindow(Tabl[TABL_STATE],0,38,mWidth,mHeight-60,TRUE);
 
         //de la status barre
@@ -1379,7 +1448,8 @@ BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           case BT_MAIN_LOGS : ViewTabl(TABL_LOGS);break;
           case BT_MAIN_FILES : ViewTabl(TABL_FILES);break;
           case BT_MAIN_REGISTRY : ViewTabl(TABL_REGISTRY);break;
-          case BT_MAIN_PROCESS : EnumProcess(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);ViewTabl(TABL_PROCESS);break;
+          case BT_MAIN_PROCESS : CreateThread(NULL,0,EnumProcess,0,0,0);ViewTabl(TABL_PROCESS);break;
+          case BT_MAIN_CONFIGURATION : ViewTabl(TABL_CONFIGURATION);break;
           case BT_MAIN_STATE : ViewTabl(TABL_STATE);break;
         }
       }
@@ -1426,6 +1496,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
       case 'e':
       case 'p':
       case 'a':
+      case 'c':
       case 'l':
       case 'g':
       case 'f':
@@ -1462,6 +1533,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
                         "    example: f \"c:\\file_to_read.reg\" \"c:\\directory_to_save\\\"\n\n"
                         "s : Read SAM+SYTEM binary registry from directory and export to CSV.\n"
                         "    example: f \"c:\\SAM_end_SYSTEM_directory\\\" \"c:\\directory_to_save\\\""
+
+                        "c : Read software configuration and export to CSV/XML/HTML.\n"
+                        "    example: c \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
 
                         ,"HELP",MB_OK|MB_TOPMOST);
       break;

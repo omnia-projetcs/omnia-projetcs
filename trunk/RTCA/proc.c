@@ -185,9 +185,10 @@ DWORD WINAPI csvImport(LPVOID lParam)
         unsigned int nb_colonne = 0;
         switch(TABL_ID_VISIBLE)
         {
-          case TABL_LOGS:     hlv = GetDlgItem(Tabl[TABL_LOGS]    ,LV_LOGS_VIEW);nb_colonne = NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL];break;
-          case TABL_FILES:    hlv = GetDlgItem(Tabl[TABL_FILES]   ,LV_FILES_VIEW);nb_colonne = NB_COLONNE_LV[LV_FILES_VIEW_NB_COL];break;
-          case TABL_REGISTRY: hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW);nb_colonne = NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL];break;
+          case TABL_LOGS:           hlv = GetDlgItem(Tabl[TABL_ID_VISIBLE],LV_LOGS_VIEW);     nb_colonne = NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL];break;
+          case TABL_FILES:          hlv = GetDlgItem(Tabl[TABL_ID_VISIBLE],LV_FILES_VIEW);    nb_colonne = NB_COLONNE_LV[LV_FILES_VIEW_NB_COL];break;
+          case TABL_REGISTRY:       hlv = GetDlgItem(Tabl[TABL_ID_VISIBLE],LV_REGISTRY_VIEW); nb_colonne = NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL];break;
+          case TABL_CONFIGURATION:  hlv = GetDlgItem(Tabl[TABL_ID_VISIBLE],LV_VIEW);          nb_colonne = NB_COLONNE_LV[LV_CONFIGURATION_NB_COL];break;
         }
 
         //traitement !
@@ -301,9 +302,10 @@ DWORD WINAPI Scan(LPVOID lParam)
 
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOCAL)==BST_CHECKED)  local     = TRUE;
 
-  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOGS)     ==BST_CHECKED)h_scan_logs     = CreateThread(NULL,0,Scan_logs,(LPVOID)local,0,0);
-  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_FILES)    ==BST_CHECKED)h_scan_files    = CreateThread(NULL,0,Scan_files,(LPVOID)local,0,0);
-  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_REGISTRY) ==BST_CHECKED)h_scan_registry = CreateThread(NULL,0,Scan_registry,(LPVOID)local,0,0);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOGS)           ==BST_CHECKED)h_scan_logs           = CreateThread(NULL,0,Scan_logs,(LPVOID)local,0,0);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_FILES)          ==BST_CHECKED)h_scan_files          = CreateThread(NULL,0,Scan_files,(LPVOID)local,0,0);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_REGISTRY)       ==BST_CHECKED)h_scan_registry       = CreateThread(NULL,0,Scan_registry,(LPVOID)local,0,0);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION)  ==BST_CHECKED)h_scan_configuration  = CreateThread(NULL,0,Scan_configuration,(LPVOID)local,0,0);
 
   //Init de state
   ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW));
@@ -311,7 +313,7 @@ DWORD WINAPI Scan(LPVOID lParam)
   ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H));
 
   //si aucun scan on quitte
-  if (!h_scan_logs && !h_scan_files && !h_scan_registry)
+  if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)
   {
     ScanStart = FALSE;
     SetWindowText(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),"Start");
@@ -342,6 +344,14 @@ DWORD WINAPI StopScan(LPVOID lParam)
     TerminateThread(h_scan_registry,IDThread);
     h_scan_registry = NULL;
     MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_REGISTRY,FALSE);
+  }
+
+  if (h_scan_configuration != NULL)
+  {
+    GetExitCodeThread(h_scan_configuration,&IDThread);
+    TerminateThread(h_scan_configuration,IDThread);
+    h_scan_configuration = NULL;
+    MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_CONFIGURATION,FALSE);
   }
 
   EnableWindow(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),TRUE);
@@ -1163,101 +1173,14 @@ void  AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
   FiltreRegData(item);
 }
 //------------------------------------------------------------------------------
-void DeplacerLignes(DWORD ligne1, DWORD ligne2, HANDLE hListView, unsigned short nb_colonne)
+void c_Tri(HANDLE hListView, unsigned short colonne_ref)
 {
-  char tmp1[MAX_LINE_SIZE];
-  char tmp2[MAX_LINE_SIZE];
-  unsigned short i=0;
+  static sort_st st;
+  st.hlv  = hListView;
+  st.sort = TRUE;
+  st.col  = colonne_ref;
 
-  //gestion des images
-  LVITEM lvItemsrc, lvItemdst;
-  lvItemsrc.mask      = LVIF_PARAM|LVIF_IMAGE;
-  lvItemsrc.iSubItem  = 0;
-  lvItemsrc.lParam    = LVM_SORTITEMS;
-  lvItemdst.mask      = LVIF_PARAM|LVIF_IMAGE;
-  lvItemdst.iSubItem  = 0;
-  lvItemdst.lParam    = LVM_SORTITEMS;
-
-  lvItemsrc.iItem = ligne1;
-  lvItemdst.iItem = ligne2;
-  ListView_GetItem(hListView, &lvItemsrc);
-  ListView_GetItem(hListView, &lvItemdst);
-
-  lvItemsrc.iItem = ligne2;
-  lvItemdst.iItem = ligne1;
-  ListView_SetItem(hListView, &lvItemsrc);
-  ListView_SetItem(hListView, &lvItemdst);
-
-  while (i <nb_colonne)
-  {
-    //le reste
-    ListView_GetItemText(hListView,ligne1,i,tmp1,MAX_LINE_SIZE);
-    ListView_GetItemText(hListView,ligne2,i,tmp2,MAX_LINE_SIZE);
-
-    ListView_SetItemText(hListView,ligne1,i,tmp2);
-    ListView_SetItemText(hListView,ligne2,i,tmp1);
-   i++;
-  }
-}
-//------------------------------------------------------------------------------
-void sc_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
-{
-  DWORD i,min=0,nb = ListView_GetItemCount(hListView);
-  DWORD ref_min;
-
-  char val_min[MAX_LINE_SIZE],
-       tmp[MAX_LINE_SIZE];
-
-  do
-  {
-    ListView_GetItemText(hListView,min,colonne_ref,val_min,MAX_LINE_SIZE);
-    ref_min = min;
-
-    for (i=min+1;i<nb;i++)
-    {
-      ListView_GetItemText(hListView,i,colonne_ref,tmp,MAX_LINE_SIZE);
-
-      //si plus petit
-      if (strcmp(tmp,val_min)<0)
-      {
-        strcpy(val_min,tmp);
-        ref_min = i;
-      }
-    }
-    if (ref_min!=min)DeplacerLignes(min,ref_min,hListView,nb_colonne);
-  }while(++min<nb);
-}
-
-//------------------------------------------------------------------------------
-DWORD WINAPI Tc_Tri(LPVOID lParam)
-{
-  if (!Tc_TriStart)
-  {
-    Tc_TriStart = TRUE;
-    STRI* stri = (STRI*)lParam;
-    sc_Tri(stri->hwndFrom, stri->colonne_ref, stri->nb_colonne);
-  }
-  Tc_TriStart = FALSE;
-  return 0;
-}
-//------------------------------------------------------------------------------
-void c_Tri(HANDLE hListView, unsigned short colonne_ref, unsigned short nb_colonne)
-{
-  if (Tc_TriStart)
-  {
-    Tc_TriStart = FALSE;
-    DWORD IDThread;
-    GetExitCodeThread(h_Tc_Tri,&IDThread);
-    TerminateThread(h_Tc_Tri,IDThread);
-    h_Tc_Tri = NULL;
-  }else
-  {
-    static STRI stri;
-    stri.hwndFrom = hListView;
-    stri.colonne_ref = colonne_ref;
-    stri.nb_colonne = nb_colonne;
-    h_Tc_Tri = CreateThread(NULL,0,Tc_Tri,(LPVOID)&stri,0,0);
-  }
+  ListView_SortItemsEx(st.hlv,CompareStringTri, (LPARAM)&st);
 }
 //------------------------------------------------------------------------------
 void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_col)
@@ -1291,6 +1214,60 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
       }
       return;
     }
+  }else if (TABL_ID_VISIBLE == TABL_CONFIGURATION)
+  {
+    //seulement si au moin un item
+    if (ListView_GetItemCount((HANDLE)wParam))
+    {
+      //affichage du popup menu
+      HMENU hmenu;
+      if ((hmenu = LoadMenu(hInst, MAKEINTRESOURCE(POPUP_LV)))!= NULL)
+      {
+        //si aucune sélection on sauvegarde seulement
+        if (ListView_GetSelectedCount((HANDLE)wParam)<1)
+        {
+          EnableMenuItem(hmenu,POPUP_LV_S_SELECTION,MF_BYCOMMAND|MF_GRAYED);
+          EnableMenuItem(hmenu,POPUP_LV_S_DELETE,MF_BYCOMMAND|MF_GRAYED);
+
+          RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_GRAYED);
+        }else
+        {
+          ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File/Key");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL2,"Copy : Parameter");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL3,"Copy : Data");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL4,"Copy : Type");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Description");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Late update");
+        }
+
+        RemoveMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+        //affichage du popup menu
+        TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+        DestroyMenu(hmenu);
+      }
+    }else
+    {
+      HMENU hmenu;
+      if ((hmenu = LoadMenu(hInst, MAKEINTRESOURCE(POPUP_LV_I)))!= NULL)
+      {
+        //affichage du popup menu
+        TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+        DestroyMenu(hmenu);
+      }
+    }
+    return;
   }
 
   //si au moin un item ^^
@@ -2092,6 +2069,8 @@ void InitConfig(HWND hwnd)
   InitCommonControls();
   InitializeCriticalSection(&Sync);
 
+  SetDebugPrivilege(TRUE); //utilisation des droits system !!!
+
   //disable 64b redirection
   OldValue_W64b = FALSE;
 
@@ -2122,15 +2101,15 @@ void InitConfig(HWND hwnd)
   h_scan_logs = NULL;
   h_scan_files = NULL;
   h_scan_registry = NULL;
-
-  Tc_TriStart = FALSE;
-  h_Tc_Tri = NULL;
+  h_scan_configuration = NULL;
 
   pos_search_logs = -1;
   pos_search_files = -1;
   pos_search_registry = -1;
   TV_REGISTRY_VISIBLE = FALSE;
   TV_FILES_VISBLE = FALSE;
+
+  enum_en_cours = FALSE;
 
   //par défaut le bouton state est masqué
   ShowWindow(GetDlgItem(Tabl[TABL_MAIN],BT_MAIN_STATE), SW_HIDE);
@@ -2141,12 +2120,13 @@ void InitConfig(HWND hwnd)
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hInst, MAKEINTRESOURCE(ICON_APP)));
 
   //chargement des différents onglets
-  Tabl[TABL_CONF]     = CreateDialog(0, MAKEINTRESOURCE(DLG_CONF)     ,Tabl[TABL_MAIN],DialogProc_conf);
-  Tabl[TABL_LOGS]     = CreateDialog(0, MAKEINTRESOURCE(DLG_LOGS)     ,Tabl[TABL_MAIN],DialogProc_logs);
-  Tabl[TABL_FILES]    = CreateDialog(0, MAKEINTRESOURCE(DLG_FILES)    ,Tabl[TABL_MAIN],DialogProc_files);
-  Tabl[TABL_REGISTRY] = CreateDialog(0, MAKEINTRESOURCE(DLG_REGISTRY) ,Tabl[TABL_MAIN],DialogProc_registry);
-  Tabl[TABL_PROCESS]  = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS)  ,Tabl[TABL_MAIN],DialogProc_process);
-  Tabl[TABL_STATE]    = CreateDialog(0, MAKEINTRESOURCE(DLG_STATE)    ,Tabl[TABL_MAIN],DialogProc_state);
+  Tabl[TABL_CONF]           = CreateDialog(0, MAKEINTRESOURCE(DLG_CONF)           ,Tabl[TABL_MAIN],DialogProc_conf);
+  Tabl[TABL_LOGS]           = CreateDialog(0, MAKEINTRESOURCE(DLG_LOGS)           ,Tabl[TABL_MAIN],DialogProc_logs);
+  Tabl[TABL_FILES]          = CreateDialog(0, MAKEINTRESOURCE(DLG_FILES)          ,Tabl[TABL_MAIN],DialogProc_files);
+  Tabl[TABL_REGISTRY]       = CreateDialog(0, MAKEINTRESOURCE(DLG_REGISTRY)       ,Tabl[TABL_MAIN],DialogProc_registry);
+  Tabl[TABL_PROCESS]        = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS)        ,Tabl[TABL_MAIN],DialogProc_process);
+  Tabl[TABL_CONFIGURATION]  = CreateDialog(0, MAKEINTRESOURCE(DLG_CONFIGURATION)  ,Tabl[TABL_MAIN],DialogProc_configuration);
+  Tabl[TABL_STATE]          = CreateDialog(0, MAKEINTRESOURCE(DLG_STATE)          ,Tabl[TABL_MAIN],DialogProc_state);
 
   //fenêtre Info ^^
   Tabl[TABL_INFO]     = CreateDialog(0, MAKEINTRESOURCE(DLG_INFO)    ,Tabl[TABL_MAIN],DialogProc_info);
@@ -2675,6 +2655,27 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_INFO],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
   NB_COLONNE_LV[LV_INFO_VIEW_NB_COL] = 8;
 
+  //CONFIGURATION des application
+  lvc.cx = 100;       //taille colonne
+  lvc.pszText = "File/Key"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
+  lvc.cx = 300;       //taille colonne
+  lvc.pszText = "Parameter"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
+  lvc.cx = 60;       //taille colonne
+  lvc.pszText = "Data"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
+  lvc.cx = 60;       //taille colonne
+  lvc.pszText = "Type"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
+  lvc.cx = 10;       //taille colonne
+  lvc.pszText = "Description"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
+  lvc.pszText = "Last update"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+  NB_COLONNE_LV[LV_CONFIGURATION_NB_COL] = 6;
+
   //treeview
   TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
   TRV_HTREEITEM[TRV_FILES] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Files path",TVI_ROOT);
@@ -2971,6 +2972,7 @@ void InitConfig(HWND hwnd)
   strcpy(ref_mru_search[i++].v,"ShellNoRoam\\MUICache");
   strcpy(ref_mru_search[i++].v,"Shell\\MuiCache");
   strcpy(ref_mru_search[i++].v,"Shell\\LocalizedResourceName");
+  strcpy(ref_mru_search[i++].v,"Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\");
 
   i=0;
   strcpy(ref_mru_var_search[i++].v,"MRUList");
@@ -3033,6 +3035,9 @@ void InitConfig(HWND hwnd)
   strcpy(ref_mru_var_search[i++].v,"MUICache");
   strcpy(ref_mru_var_search[i++].v,"");
   strcpy(ref_mru_var_search[i++].v,"MUICache");
+  strcpy(ref_mru_var_search[i++].v,"Source");
+  strcpy(ref_mru_var_search[i++].v,"Network history");
+
 
 //FireWall configuration
 //HKLM\SYSTEM\ControlSet001\Services\SharedAccess\Parameters\FirewallPolicy\StandardProfile\AuthorizedApplications\List
@@ -3101,6 +3106,9 @@ void InitConfig(HWND hwnd)
                         "l : Read audit file (evt, evtx) and export to CSV/XML/HTML.\n"
                         "    example: l \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
 
+                        "c : Read software configuration and export to CSV/XML/HTML.\n"
+                        "    example: c \"c:\\file_to_read.evt\" \"c:\\file_to_save.csv\"\n\n"
+
                         "g : Read local registry and export to CSV/XML/HTML.\n"
                         "    example: g \"c:\\directory_to_save\\\"\n\n"
                         "f : Read registry file (reg, binary registry) and export to CSV.\n"
@@ -3146,7 +3154,7 @@ void InitConfig(HWND hwnd)
       //Process
       case 'p':
         //énumération des process
-        EnumProcess(GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW), NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL]);
+        EnumProcess(NULL);
         //export
         switch(path_f[strlen(path_f)-3])
         {
@@ -3170,6 +3178,21 @@ void InitConfig(HWND hwnd)
           case 't':
           case 'T':ExportLVtoHTML(path_f, TABL_LOGS, LV_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
           default:ExportLVtoCSV(path_f, TABL_LOGS, LV_VIEW, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL]);break;
+        }
+      break;
+
+      //audit log
+      case 'c':
+        //audit
+        Scan_configuration((LPVOID)TRUE);
+        //export
+        switch(path_f[strlen(path_f)-3])
+        {
+          case 'x':
+          case 'X':ExportLVtoXML(path_f, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);break;
+          case 't':
+          case 'T':ExportLVtoHTML(path_f, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);break;
+          default:ExportLVtoCSV(path_f, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);break;
         }
       break;
       case 'l':

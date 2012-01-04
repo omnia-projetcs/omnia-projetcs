@@ -1608,7 +1608,7 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
   }
 
   h_scan_logs = NULL;
-  if (!h_scan_logs && !h_scan_files && !h_scan_registry)
+  if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)
   {
     ScanStart = FALSE;
     SetWindowText(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),"Start");

@@ -6,13 +6,28 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// Comparaison de deux chaines en fonction de leur ordre alphabétique
+int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
+{
+  sort_st *st = (sort_st *)lParam3;
+
+  static char buf1[MAX_LINE_SIZE], buf2[MAX_LINE_SIZE];
+
+  ListView_GetItemText(st->hlv, lParam1, st->col, buf1, MAX_LINE_SIZE);
+  ListView_GetItemText(st->hlv, lParam2, st->col, buf2, MAX_LINE_SIZE);
+
+  if (st->sort) return (strcmp(buf1, buf2));
+  else return (strcmp(buf1, buf2)*-1);
+}
+//------------------------------------------------------------------------------
 //dump de la mémoire d'un processus
 DWORD WINAPI DumpProcessMemory(LPVOID lParam)
 {
   DWORD pid = (DWORD)lParam;
 
   //Récupération des privilèges Debug
-  SetDebugPrivilege(TRUE);
+//  SetDebugPrivilege(TRUE);
 
   //ouvrir le process
   HANDLE hProc = OpenProcess(PROCESS_VM_READ|PROCESS_QUERY_INFORMATION, FALSE, pid);//PROCESS_ALL_ACCESS
@@ -81,7 +96,7 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
   }
 
   //disable right
-  SetDebugPrivilege(FALSE);
+  //SetDebugPrivilege(FALSE);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -254,7 +269,7 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column)
   ListView_GetItemText(hlv,id,column,tmp,MAX_LINE_SIZE);
 
   //passage en mode privilèges
-  SetDebugPrivilege(TRUE);
+  //SetDebugPrivilege(TRUE);
 
   //kill
   HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, FALSE, atoi(tmp));
@@ -263,7 +278,7 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column)
     if (TerminateProcess(hProcess, 0))SupSItem(hlv ,column, tmp);
     CloseHandle(hProcess);
   }
-  SetDebugPrivilege(FALSE);
+  //SetDebugPrivilege(FALSE);
 }
 //------------------------------------------------------------------------------
 int __stdcall GetIconProcess(HANDLE hlv,char * szProcessPath)
@@ -831,7 +846,6 @@ void EnumProcessAndThread(HANDLE hlv, unsigned short nb_colonne, unsigned int la
   DWORD i, j, k, cbNeeded;
 
   //enable privilège pour accéder aux process système
-  SetDebugPrivilege(TRUE);
 
   HANDLE hProcess,hProcess2;
   HMODULE hMod[MAX_PATH];
@@ -987,17 +1001,22 @@ void EnumProcessAndThread(HANDLE hlv, unsigned short nb_colonne, unsigned int la
       CloseHandle(hProcess);
     }
   }
-  SetDebugPrivilege(FALSE);
 }
 //------------------------------------------------------------------------------
-void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
+DWORD WINAPI EnumProcess(LPVOID lParam)
 {
+  if (enum_en_cours)return 0;
+  enum_en_cours = TRUE;
+
+  HANDLE hlv                = GetDlgItem(Tabl[TABL_PROCESS],LV_VIEW);
+  unsigned short nb_colonne = NB_COLONNE_LV[LV_PROCESS_VIEW_NB_COL];
+
   ListView_DeleteAllItems(hlv);
   //liste des processus
   DWORD j, k, cbNeeded;
 
   //enable privilège pour accéder aux process système
-  SetDebugPrivilege(TRUE);
+  //SetDebugPrivilege(TRUE);
 
   PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
   HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS|TH32CS_SNAPTHREAD, 0);
@@ -1144,5 +1163,7 @@ void EnumProcess(HANDLE hlv, unsigned short nb_colonne)
     }
     CloseHandle(hCT);
   }
-  SetDebugPrivilege(FALSE);
+  //SetDebugPrivilege(FALSE);
+  enum_en_cours = FALSE;
+  return 0;
 }
