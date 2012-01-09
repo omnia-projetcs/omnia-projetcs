@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.23 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.1.24 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -370,7 +370,7 @@ typedef struct line_item
 {
   char c[MAX_LINE_SIZE];
 }LINE_ITEM;
-#define SIZE_UTIL_ITEM    13
+#define SIZE_UTIL_ITEM    16
 
 #define MAX_PROC_LINE_ITEM_SIZE 20
 typedef struct line_proc_item
@@ -775,6 +775,7 @@ void StateHC(LINE_ITEM *item, int col_date, char *user);
 DWORD AddToLVICON(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, int img);
 void AddToLV_Registry(LINE_ITEM *item);
 void AddToLV_Registry2(char *date, char *user, char *from, char *data);
+void AddToLV_RegistryCritical(char *date, char *user, char *from, char *data);
 DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL critical);
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 DWORD AddToLV(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
@@ -810,6 +811,7 @@ void AnalyseFichierRegWCEBin(char *fic);
 //popup treeview
 void GetItemPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem, char *path, DWORD max_size);
 void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
+void OpenTVRegistryPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 
 //registre
 void LireKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
@@ -858,7 +860,13 @@ DWORD WINAPI AutoSearchFiles(LPVOID lParam);
 HANDLE h_Export;
 BOOL ExportStart;
 DWORD WINAPI Export(LPVOID lParam);
+
+BOOL logIsCritcal(char *id, char *src);
 DWORD WINAPI csvImport(LPVOID lParam);
+
+//pour les threads d'information d'énumération de fichiers
+//#define MAX_THREAD_FILES_INFO   1
+//HANDLE hs_files_info;
 
 //Scan
 BOOL ScanStart;

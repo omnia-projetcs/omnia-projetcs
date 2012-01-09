@@ -1318,6 +1318,111 @@ BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned sh
   return FALSE;
 }
 //------------------------------------------------------------------------------
+//test pour l'import si un journal est critical
+BOOL logIsCritcal(char *id, char *src)
+{
+  if (strlen(id) > 5)
+  {
+
+     if (!strcmp(src,"src") ||
+        !strcmp(src,"Dhcp") ||
+        !strcmp(src,"EventLog") ||
+        !strcmp(src,"W32Time") ||
+        !strcmp(src,"Microsoft-Windows-Time-Service") ||
+        !strcmp(src,"Microsoft-Windows-Security-Auditing") ||
+        !strcmp(src,"Security"))
+    {
+      char id_s[6];
+      id_s[0] = id[0];
+      id_s[1] = id[1];
+      id_s[2] = id[2];
+      id_s[3] = id[3];
+      id_s[4] = id[4];
+      id_s[5] = 0;
+
+      switch(atoi(id_s))
+      {
+        case 35 :
+        case 36 :
+        case 512 :
+        case 513 :
+        case 517 :
+        case 520 :
+        case 528 :
+        case 529 :
+        case 530 :
+        case 531 :
+        case 532 :
+        case 533 :
+        case 534 :
+        case 535 :
+        case 536 :
+        case 537 :
+        case 538 :
+        case 539 :
+        case 540 :
+        case 551 :
+        case 552 :
+        case 576 :
+        case 608 :
+        case 612 :
+        case 624 :
+        case 625 :
+        case 626 :
+        case 627 :
+        case 628 :
+        case 629 :
+        case 630 :
+        case 642 :
+        case 644 :
+        case 645 :
+        case 646 :
+        case 647 :
+        case 671 :
+        case 680 :
+        case 681 :
+        case 682 :
+        case 683 :
+        case 685 :
+        case 686 :
+        case 1000 :
+        case 1100 :
+        case 1102 :
+        case 1104 :
+        case 1108 :
+        case 3260 :
+        case 4608 :
+        case 4609 :
+        case 4616 :
+        case 4624 :
+        case 4625 :
+        case 4634 :
+        case 4648 :
+        case 4719 :
+        case 4720 :
+        case 4722 :
+        case 4723 :
+        case 4724 :
+        case 4725 :
+        case 4726 :
+        case 4738 :
+        case 4740 :
+        case 4741 :
+        case 4742 :
+        case 4743 :
+        case 4800 :
+        case 4801 :
+        case 6005 :
+        case 6006 :return TRUE;
+      }
+
+
+
+    }
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
 //traitement des chaines de description
 char *TraiterDescriptionLog(char *buffer,unsigned short taille, char *resultat, unsigned short taille_resultat)
 {

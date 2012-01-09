@@ -13,7 +13,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
     if (uMsg == WM_SIZE)
     {
-        unsigned int mWidth = LOWORD(lParam);  // width of client area
+        unsigned int mWidth = LOWORD(lParam)-4;  // width of client area
         unsigned int mHeight = HIWORD(lParam);  // width of client area
 
         MoveWindow(GetDlgItem(hwnd,TRV_CONF_TESTS),5,0,mWidth-245,mHeight-5,TRUE);
@@ -22,14 +22,14 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOGS),mWidth-225,15,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_FILES),mWidth-225,35,60,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-150,35,130,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-150,50,130,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-150,65,100,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ADS)    ,mWidth-150,80,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-154,35,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-154,50,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-154,65,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_ADS)    ,mWidth-154,80,130,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REGISTRY),mWidth-225,110,60,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-150,110,140,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-150,125,140,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_GLOBAL_LOCAL) ,mWidth-154,110,144,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_REG_FILE_RECOVERY),mWidth-154,125,140,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_CONFIGURATION)     ,mWidth-225,147,180,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_ENABLE_STATE)      ,mWidth-225,162,140,15,TRUE);
@@ -447,26 +447,26 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
         unsigned int col_size = (mWidth-210)/7;
         if (col_size>100)
         {
-          col_size = (mWidth-510)/5;
+          col_size = (mWidth-570)/5;
           redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
-          redimColumn(hwnd,LV_FILES_VIEW,10,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,11,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,12,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,13,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,14,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,15,col_size);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,100);
           redimColumn(hwnd,LV_FILES_VIEW,5,100);
           redimColumn(hwnd,LV_FILES_VIEW,6,100);
         }else
         {
-          col_size = (mWidth-310)/5;
+          col_size = (mWidth-370)/5;
           redimColumn(hwnd,LV_FILES_VIEW,1,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,3,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
-          redimColumn(hwnd,LV_FILES_VIEW,10,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,11,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,12,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,13,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,14,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,15,col_size);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,33);
           redimColumn(hwnd,LV_FILES_VIEW,5,33);
@@ -685,7 +685,7 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         MoveWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH),mWidth/4+10,mHeight-26,100,21,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_TREE_VIEW),mWidth/4+120,mHeight-26,100,21,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,CB_REGISTRY_VIEW),mWidth/4+225,mHeight-26,200,200,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CB_REGISTRY_VIEW),mWidth/4+225,mHeight-26,200,220,TRUE);
 
         //redimmensionnement des colonnes
         unsigned int col_size = (mWidth-290)/2;
@@ -743,7 +743,9 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
         redimColumn(hwnd,LV_REGISTRY_MRU,5,col_size);
 
         col_size = (mWidth-190)/2;
-        redimColumn(hwnd,LV_REGISTRY_PATH,2,col_size);
+        redimColumn(hwnd,LV_REGISTRY_PATH,0,50);
+        redimColumn(hwnd,LV_REGISTRY_PATH,1,col_size);
+        redimColumn(hwnd,LV_REGISTRY_PATH,2,100);
         redimColumn(hwnd,LV_REGISTRY_PATH,3,col_size);
 
         InvalidateRect(hwnd, NULL, TRUE);
@@ -860,6 +862,8 @@ BOOL CALLBACK DialogProc_registry(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lP
                                           , SendMessage(GetDlgItem(hwnd,TABL_ID_REG_VISIBLE==0?LV_REGISTRY_VIEW:TABL_ID_REG_VISIBLE+LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),12);break;
 
           case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
+          case POPUP_TV_OPEN:OpenTVRegistryPath(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
+
           break;
           }
         break;
@@ -1410,24 +1414,24 @@ BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
       unsigned int mHeight = HIWORD(lParam);  // width of client area
 
       //controle de la taille minimum
-      if (mWidth<584 ||mHeight<444)
+      if (mWidth<584 ||mHeight<524)
       {
         RECT Rect;
         GetWindowRect(hwnd, &Rect);
-        MoveWindow(hwnd,Rect.left,Rect.top,584+8,444+34,TRUE);
+        MoveWindow(hwnd,Rect.left,Rect.top,584+20,524+64,TRUE);
       }else
       {
         //redimmensionnement des onglets ^^
-        MoveWindow(Tabl[TABL_CONF]    ,0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_LOGS]    ,0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_FILES]   ,0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_REGISTRY],0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_PROCESS],0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_CONFIGURATION],0,38,mWidth,mHeight-60,TRUE);
-        MoveWindow(Tabl[TABL_STATE],0,38,mWidth,mHeight-60,TRUE);
+        MoveWindow(Tabl[TABL_CONF]    ,0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_LOGS]    ,0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_FILES]   ,0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_REGISTRY],0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_PROCESS],0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_CONFIGURATION],0,38,mWidth,mHeight-65,TRUE);
+        MoveWindow(Tabl[TABL_STATE],0,38,mWidth,mHeight-65,TRUE);
 
         //de la status barre
-        MoveWindow(GetDlgItem(hwnd,SB_MAIN), 0, mHeight, mWidth,0, TRUE);
+        MoveWindow(GetDlgItem(hwnd,SB_MAIN), 0, mHeight-5, mWidth,0, TRUE);
         //init de la barre de status
         int TaillePart[4];
         TaillePart[0] = mWidth/4; // messages d'information

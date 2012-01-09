@@ -452,6 +452,7 @@ void registry_configuration(HANDLE hlv)
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
+/*
   //Open
   lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\exefile\\shell\\open\\command");
@@ -462,6 +463,96 @@ void registry_configuration(HANDLE hlv)
   {
   }else strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\batfile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\batfile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a batch file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\batfile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\comfile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\comfile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a com file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\comfile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\regfile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\regfile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a registry file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\regfile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\scrfile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\scrfile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a screen saver file (SCR)");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\scrfile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\piffile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\piffile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a PIF file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\piffile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\VBSFile\\shell\\Open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\VBSFile\\shell\\Open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a VBS file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\VBSFile\\shell\\Open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\VBSFile\\shell\\Open2\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\VBSFile\\shell\\Open2\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a VBS file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\VBSFile\\shell\\Open2\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\txtfile\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\txtfile\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of a TXT file");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\txtfile\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Classes\\Shell\\shell\\open\\command");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\Shell\\shell\\open\\command", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"");
+  strcpy(lv_line[4].c,"(malware) Run at the start of Explorer");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\Shell\\shell\\open\\command","",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);*/
 
   //Guide de sécurité
   char tmp[MAX_PATH]="";
@@ -1568,7 +1659,7 @@ void reg_liste_DataValeur(HKEY hkey,char *chkey,char *path,HANDLE hlv)
 void reg_liste_KeyDataValeur(HKEY hkey, char *chkey, char *path, char *description, HANDLE hlv)
 {
   HKEY CleTmp=0, CleTmp2=0;
-  DWORD nbValue,nbSubKey,i,j,TailleNomValue,TailleMAXValue,TailleNomSubKey;
+  DWORD nbValue,nbSubKey,i,j,k,TailleNomValue,TailleMAXValue,TailleNomSubKey;
   char NomSubKey[MAX_PATH];
   char path_tmp[MAX_PATH];
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
@@ -1579,10 +1670,12 @@ void reg_liste_KeyDataValeur(HKEY hkey, char *chkey, char *path, char *descripti
       {
         LINE_ITEM lv_line[SIZE_UTIL_ITEM];
         lv_line[0].c[0]=0;
+        lv_line[6].c[0]=0;
         strcpy(lv_line[4].c,description);
 
         SYSTEMTIME SysTime;
         FILETIME DernierMAJ;
+        DWORD type;
 
         for (j=0;j<nbSubKey;j++)
         {
@@ -1609,10 +1702,60 @@ void reg_liste_KeyDataValeur(HKEY hkey, char *chkey, char *path, char *descripti
                   {
                     TailleNomValue = MAX_LINE_SIZE;
                     TailleMAXValue = MAX_LINE_SIZE;
-                    if (RegEnumValue (CleTmp2,i,lv_line[2].c,&TailleNomValue,0,0,(LPBYTE)lv_line[3].c,&TailleMAXValue)==ERROR_SUCCESS)
+                    lv_line[2].c[0]=0;
+                    lv_line[3].c[0]=0;
+
+                    if (RegEnumValue (CleTmp2,i,lv_line[2].c,&TailleNomValue,0,(LPDWORD)&type,(LPBYTE)lv_line[3].c,&TailleMAXValue)==ERROR_SUCCESS)
                     {
-                      if (strlen(lv_line[2].c)>0 || strlen(lv_line[3].c)>0)
-                        AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+                      switch(type)
+                      {
+                        //unicode
+                        case REG_LINK:
+                          snprintf(lv_line[0].c,MAX_LINE_SIZE,"%S",lv_line[3].c);
+                          strcpy(lv_line[3].c,lv_line[0].c);
+                          lv_line[0].c[0]=0;
+
+                        //chaine
+                        case REG_EXPAND_SZ:
+                        case REG_SZ:
+                        case REG_MULTI_SZ:
+                          if (strlen(lv_line[2].c)>0 || strlen(lv_line[3].c)>0)
+                            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+                        break;
+
+                        //number
+                        case 0x00000000 :
+                        case 0x00000004 :
+                        case 0x00000005 :
+                        case 0x0000000b :
+                          for (k=0;k<TailleMAXValue;k++)
+                          {
+                            snprintf(lv_line[0].c,9,"%02X",lv_line[3].c[k]&0xff);
+                            strncat(lv_line[6].c,lv_line[0].c,MAX_LINE_SIZE);
+                          }
+                          strncat(lv_line[6].c,"\0",MAX_LINE_SIZE);
+                          strcpy(lv_line[3].c,lv_line[6].c);
+                          lv_line[6].c[0]=0;
+                          lv_line[0].c[0]=0;
+
+                          if (strlen(lv_line[2].c)>0 || strlen(lv_line[3].c)>0)
+                            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+                        break;
+                        default : //le reste en binaire
+                          for (k=0;k<TailleMAXValue;k++)
+                          {
+                            snprintf(lv_line[0].c,9,"%02X",lv_line[3].c[k]&0xff);
+                            strncat(lv_line[6].c,lv_line[0].c,MAX_LINE_SIZE);
+                          }
+                          strncat(lv_line[6].c,"\0",MAX_LINE_SIZE);
+                          strcpy(lv_line[3].c,lv_line[6].c);
+                          lv_line[6].c[0]=0;
+                          lv_line[0].c[0]=0;
+
+                          if (strlen(lv_line[2].c)>0 || strlen(lv_line[3].c)>0)
+                            AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_START_NB_COL]);
+                        break;
+                      }
                     }
                   }
                 }
@@ -2283,8 +2426,12 @@ void registry_users(HANDLE hlv)
                 }
                 snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
                 AddToLV_Registry2(lv_line[6].c, lv_line[3].c, "Users & groups", tmp_add);
+                AddToLV_RegistryCritical(lv_line[6].c, lv_line[3].c, "Users & groups", tmp_add);
+
                 snprintf(tmp_add,MAX_PATH,"Last password change : %s,%s",lv_line[2].c,lv_line[4].c);
                 AddToLV_Registry2(lv_line[7].c, lv_line[3].c, "Users & groups", tmp_add);
+                AddToLV_RegistryCritical(lv_line[7].c, lv_line[3].c, "Users & groups", tmp_add);
+
                 StateH(lv_line, 6, 3);
                 StateH(lv_line, 7, 3);
                 AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
@@ -2504,6 +2651,7 @@ void registry_mru(HANDLE hlv)
   reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","Software\\Microsoft\\Windows\\Shell\\LocalizedResourceName\\","","MUICache",hlv);
 
   //historique des réseaux déja connectés ^^
+  reg_liste_KeyDataValeur(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Managed\\", "Network history", hlv);
   reg_liste_KeyDataValeur(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\", "Network history", hlv);
 
   //historique : dernière clée de registre ouverte
@@ -2517,6 +2665,25 @@ void registry_mru(HANDLE hlv)
   LireKeyUpdate(HKEY_CURRENT_USER,"Software\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit\\", lv_line[5].c, DATE_SIZE);
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
 }
+
+
+
+
+//------------------------------------------------------------------------------
+void LireKeyPass(char *path, HANDLE hlv)
+{
+  LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+
+  lv_line[0].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\");
+  strncat(lv_line[1].c,path,MAX_LINE_SIZE);
+  strncat(lv_line[1].c,"\0",MAX_LINE_SIZE);
+  lv_line[2].c[0]=0;
+  if (LireGValeur(HKEY_LOCAL_MACHINE,path,"",lv_line[3].c))
+  {
+    AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+  }
+}
 //------------------------------------------------------------------------------
 void registry_path(HANDLE hlv)
 {
@@ -2525,23 +2692,45 @@ void registry_path(HANDLE hlv)
   HKEY CleTmp=0;
   DWORD i,nbSubKey=0, TailleNomSubKey;
   char path[MAX_PATH], NomSubKey[MAX_PATH];
-  if (RegOpenKey((HKEY)HKEY_USERS,"",&CleTmp)!=ERROR_SUCCESS)return;
-
-  //liste des sous clés ^^
-  //nombre de sous clés
-  if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+  if (RegOpenKey((HKEY)HKEY_USERS,"",&CleTmp)==ERROR_SUCCESS)
   {
-    for (i=0;i<nbSubKey;i++)
+    //liste des sous clés ^^
+    //nombre de sous clés
+    if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
     {
-      TailleNomSubKey = MAX_PATH;
-      if (RegEnumKeyEx (CleTmp,i,NomSubKey,(LPDWORD)&TailleNomSubKey,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+      for (i=0;i<nbSubKey;i++)
       {
-        snprintf(path,MAX_PATH,"%s\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",NomSubKey);
-        reg_liste_DataValeur(HKEY_USERS,"HKEY_USERS",path,hlv);
+        TailleNomSubKey = MAX_PATH;
+        if (RegEnumKeyEx (CleTmp,i,NomSubKey,(LPDWORD)&TailleNomSubKey,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+        {
+          snprintf(path,MAX_PATH,"%s\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders",NomSubKey);
+          reg_liste_DataValeur(HKEY_USERS,"HKEY_USERS",path,hlv);
+        }
+      }
+      nbSubKey = 0;
+    }
+    RegCloseKey(CleTmp);
+  }
+
+  //liste de tous les chemins d'excutions sur la machine !!!
+  if (RegOpenKey((HKEY)HKEY_LOCAL_MACHINE,"SOFTWARE\\Classes\\",&CleTmp)==ERROR_SUCCESS)
+  {
+    //liste des sous clés ^^
+    //nombre de sous clés
+    if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+    {
+      for (i=0;i<nbSubKey;i++)
+      {
+        TailleNomSubKey = MAX_PATH;
+        if (RegEnumKeyEx (CleTmp,i,NomSubKey,(LPDWORD)&TailleNomSubKey,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
+        {
+          snprintf(path,MAX_PATH,"SOFTWARE\\Classes\\%s\\shell\\open\\command\\",NomSubKey);
+          LireKeyPass(path,hlv);
+        }
       }
     }
+    RegCloseKey(CleTmp);
   }
-  RegCloseKey(CleTmp);
 }
 //------------------------------------------------------------------------------
 void registry_syskey(HANDLE hlv, char*sk)

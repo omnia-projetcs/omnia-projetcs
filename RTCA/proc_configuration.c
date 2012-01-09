@@ -42,6 +42,7 @@ Applications a prendre en compte :
   - AD
   - Bind/DNS
   - Bluetooth
+  - exchange
   - fichiers temporaire
 */
 

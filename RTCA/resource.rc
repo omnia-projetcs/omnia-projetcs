@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,23
-PRODUCTVERSION 0,0,1,23
+FILEVERSION 0,0,1,24
+PRODUCTVERSION 0,0,1,24
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.23\0"
-      VALUE "ProductVersion", "0.0.1.23\0"
+      VALUE "FileVersion", "0.0.1.24\0"
+      VALUE "ProductVersion", "0.0.1.24\0"
     END
   END
 END
@@ -64,15 +64,15 @@ BEGIN
   CONTROL "Setup"         ,GRP_CONF_CONF        ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
   CONTROL "Stay on top"   ,CHK_CONF_TOP         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
-  CONTROL "Dump local registry (low)"           ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Dump local registry (slow)"           ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Registry recovery mode"              ,CHK_CONF_REG_FILE_RECOVERY        ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable software configuration"       ,CHK_CONF_CONFIGURATION            ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
-  CONTROL "Enable state (low)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable state (slow)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ADS search"                   ,CHK_CONF_ADS                      ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
-  CONTROL "MD5 files hash"                      ,CHK_CONF_MD5                       ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "MD5 files hash (slow)"                ,CHK_CONF_MD5                       ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
   CONTROL "About"         ,GRP_CONF_ABOUT       ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
   CONTROL "Read to Catch All :\n"
@@ -314,8 +314,9 @@ BEGIN
   POPUP "Popup_tv"
     BEGIN
     MENUITEM "Copy complet path"    ,POPUP_TV_CP_COMPLET_PATH
+    MENUITEM "Open registry path"   ,POPUP_TV_OPEN
     /*MENUITEM SEPARATOR
-    MENUITEM "Edit"                 ,POPUP_TV_OPEN
+
     MENUITEM "Delete"               ,POPUP_TV_DELETE*/
     END
 END

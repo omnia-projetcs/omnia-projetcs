@@ -100,6 +100,9 @@
 		<Unit filename="proc_registry_search.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="proc_state.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="rc4_enc.c">
 			<Option compilerVar="CC" />
 		</Unit>

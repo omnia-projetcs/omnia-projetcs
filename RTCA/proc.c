@@ -228,7 +228,43 @@ DWORD WINAPI csvImport(LPVOID lParam)
               while (buffer[i++] != '\r' && i<t_taille_fic)i++;
 
               //tous les 10 megas ^^
-              if(i%DIXM)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
+              //if(i%DIXM)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
+            }
+          }else if (TABL_ID_VISIBLE == TABL_LOGS)
+          {
+            LINE_ITEM lv_line[SIZE_UTIL_ITEM];
+            char tmp[MAX_LINE_SIZE];
+
+            //puis on traite
+            for (i=0;i<t_taille_fic;i++)
+            {
+              //nombre d'élément
+              for (j=0;j<nb_colonne;j++)
+              {
+                k=0;
+                while((buffer[i] != '"' || buffer[i+1] != ';') && k<(MAX_LINE_SIZE-1) && i<t_taille_fic)tmp[k++] = buffer[i++];
+
+                if (buffer[i] == '"')
+                {
+                  if (k>0)
+                  {
+                    tmp[k]=0;
+                    strcpy(lv_line[j].c,tmp+1);
+                  }else lv_line[j].c[0]=0;
+                  i+=2;
+                }
+              }
+
+              //tests si critical +
+              //ajout de l'item
+              if (!first_line)AddToLV_log(hlv, lv_line, NB_COLONNE_LV[LV_LOGS_VIEW_NB_COL],logIsCritcal(lv_line[2].c,lv_line[4].c));
+              else first_line = FALSE;
+
+              //on passe à la ligne suivante
+              while (buffer[i++] != '\r' && i<t_taille_fic)i++;
+
+              //tous les 10 megas ^^
+              //if(i%DIXM)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
             }
           }else //ajout normal pour les autres ^^
           {
@@ -355,6 +391,7 @@ DWORD WINAPI StopScan(LPVOID lParam)
   }
 
   EnableWindow(GetDlgItem(Tabl[TABL_CONF],BT_CONF_START),TRUE);
+  LeaveCriticalSection(&Sync);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -403,6 +440,32 @@ void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem)
       SetClipboardData(CF_TEXT, hGlobal);
     }
     CloseClipboard();
+  }
+}
+
+//------------------------------------------------------------------------------
+BOOL TVimgIsDirectory(HANDLE hparent, DWORD treeview, HTREEITEM hitem)
+{
+  //test le type d'icone !!!
+  TV_ITEM tvi;
+  tvi.mask = TVIF_IMAGE;
+  tvi.iImage = -1;
+  tvi.hItem = hitem;
+  if (SendDlgItemMessage(hparent, treeview, TVM_GETITEM, (WPARAM)NULL, (LPARAM)(long)&tvi))
+  {
+    if(tvi.iImage == 0) return TRUE;
+  }
+  return FALSE;
+}
+
+//------------------------------------------------------------------------------
+void OpenTVRegistryPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem)
+{
+  if (TVimgIsDirectory(hparent, treeview, hitem))
+  {
+    char tmp[MAX_PATH];
+    GetItemPath(hparent, treeview, hitem, tmp, MAX_PATH);
+    OpenRegeditKey(tmp);
   }
 }
 //------------------------------------------------------------------------------
@@ -605,28 +668,11 @@ void AddToLV_Registry(LINE_ITEM *item)
   if (strlen(item[5].c)>=DATE_SIZE/2)
   {
     EnterCriticalSection(&Sync);
-    //recherche de l'emplacement par date ^^
+
     //si aucun item dans la liste on en ajoute
     HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW);
-    DWORD nb_items = ListView_GetItemCount(hlv_r);
-    DWORD ref_item =0,i;
+    DWORD ref_item = ListView_GetItemCount(hlv_r);
     char tmp[MAX_LINE_SIZE];
-
-    //date de création
-    if (nb_items > 0)
-    {
-      //on boucle tous les items jusqu'a avoir item > au notre
-      for (i=0;i<nb_items;i++)
-      {
-        tmp[0]=0;
-        ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-        if (strcmp(item[5].c,tmp)<0)
-        {
-          ref_item = i;
-          break;
-        }
-      }
-    }
 
     //ajout de l'item
     LVITEM lvi;
@@ -655,28 +701,11 @@ void AddToLV_Registry2(char *date, char *user, char *from, char *data)
 {
   if (!State_Enable || date[0]==0 || date[0]=='N')return;
   EnterCriticalSection(&Sync);
-  //recherche de l'emplacement par date ^^
+
   //si aucun item dans la liste on en ajoute
   HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW);
-  DWORD nb_items = ListView_GetItemCount(hlv_r);
-  DWORD ref_item =0,i;
+  DWORD ref_item = ListView_GetItemCount(hlv_r);
   char tmp[MAX_LINE_SIZE];
-
-  //date de création
-  if (nb_items > 0)
-  {
-    //on boucle tous les items jusqu'a avoir item > au notre
-    for (i=0;i<nb_items;i++)
-    {
-      tmp[0]=0;
-      ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-      if (strcmp(date,tmp)<0)
-      {
-        ref_item = i;
-        break;
-      }
-    }
-  }
 
   //ajout de l'item
   LVITEM lvi;
@@ -698,6 +727,34 @@ void AddToLV_Registry2(char *date, char *user, char *from, char *data)
   LeaveCriticalSection(&Sync);
 }
 //------------------------------------------------------------------------------
+void AddToLV_RegistryCritical(char *date, char *user, char *from, char *data)
+{
+  if (!State_Enable || date[0]==0 || date[0]=='N')return;
+
+  //si aucun item dans la liste on en ajoute
+  HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_CRITICAL);
+  char tmp[MAX_LINE_SIZE];
+
+  //ajout de l'item
+  LVITEM lvi;
+  lvi.mask = LVIF_TEXT|LVIF_PARAM;
+  lvi.iSubItem = 0;
+  lvi.lParam = LVM_SORTITEMS;
+  lvi.pszText="";
+  DWORD ref_item = ListView_GetItemCount(hlv_r);
+  lvi.iItem = ref_item;
+  ListView_InsertItem(hlv_r, &lvi);
+  //Date
+  ListView_SetItemText(hlv_r,ref_item,0,date);
+  //Source
+  ListView_SetItemText(hlv_r,ref_item,1,"Registry");
+  //User
+  ListView_SetItemText(hlv_r,ref_item,3,user);
+  //Description
+  snprintf(tmp,MAX_LINE_SIZE,"[Key update] Data from : %s ; %s",from,data);
+  ListView_SetItemText(hlv_r,ref_item,2,tmp);
+}
+//------------------------------------------------------------------------------
 DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
 {
   if (!State_Enable)return AddToLV(hlv, item, nb_colonne);
@@ -705,35 +762,21 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
   //recherche de l'emplacement par date ^^
   //si aucun item dans la liste on en ajoute
   HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW);
-  DWORD nb_items = ListView_GetItemCount(hlv_r);
-  DWORD ref_item =0,i;
+  DWORD ref_item;
+  //DWORD ref_item =0,i;
   char tmp[MAX_LINE_SIZE];
   LVITEM lvi;
+  lvi.mask = LVIF_TEXT|LVIF_PARAM;
+  lvi.iSubItem = 0;
+  lvi.lParam = LVM_SORTITEMS;
+  lvi.pszText="";
+
+  EnterCriticalSection(&Sync);
 
   if (strlen(item[4].c)>=DATE_SIZE/2)
   {
-    EnterCriticalSection(&Sync);
     //date de création
-    if (nb_items > 0)
-    {
-      //on boucle tous les items jusqu'a avoir item > au notre
-      for (i=0;i<nb_items;i++)
-      {
-        tmp[0]=0;
-        ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-        if (strcmp(item[4].c,tmp)<0)
-        {
-          ref_item = i;
-          break;
-        }
-      }
-    }
-
-    //ajout de l'item
-    lvi.mask = LVIF_TEXT|LVIF_PARAM;
-    lvi.iSubItem = 0;
-    lvi.lParam = LVM_SORTITEMS;
-    lvi.pszText="";
+    ref_item = ListView_GetItemCount(hlv_r);
     lvi.iItem = ref_item;
     ListView_InsertItem(hlv_r, &lvi);
     //Date
@@ -745,33 +788,12 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
     //Description
     snprintf(tmp,MAX_LINE_SIZE,"[Create] %s%s",item[0].c,item[1].c);
     ListView_SetItemText(hlv_r,ref_item,2,tmp);
-    LeaveCriticalSection(&Sync);
+    StateH(item,4,3);
   }
 
   if (strlen(item[5].c)>=DATE_SIZE/2)
   {
-    EnterCriticalSection(&Sync);
-    //date de modification
-    nb_items = ListView_GetItemCount(hlv_r);
-    ref_item =0;
-    if (nb_items > 0)
-    {
-      //on boucle tous les items jusqu'a avoir item > au notre
-      for (i=0;i<nb_items;i++)
-      {
-        tmp[0]=0;
-        ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-        if (strcmp(item[5].c,tmp)<0)
-        {
-          ref_item = i;
-          break;
-        }
-      }
-    }
-    lvi.mask = LVIF_TEXT|LVIF_PARAM;
-    lvi.iSubItem = 0;
-    lvi.lParam = LVM_SORTITEMS;
-    lvi.pszText="";
+    ref_item = ListView_GetItemCount(hlv_r);
     lvi.iItem = ref_item;
     ListView_InsertItem(hlv_r, &lvi);
     //Date
@@ -783,33 +805,12 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
     //Description
     snprintf(tmp,MAX_LINE_SIZE,"[Write] %s%s",item[0].c,item[1].c);
     ListView_SetItemText(hlv_r,ref_item,2,tmp);
-    LeaveCriticalSection(&Sync);
+    StateH(item,5,3);
   }
 
   if (strlen(item[6].c)>=DATE_SIZE/2)
   {
-    EnterCriticalSection(&Sync);
-    //date de dernière utilisation
-    nb_items = ListView_GetItemCount(hlv_r);
-    ref_item =0;
-    if (nb_items > 0)
-    {
-      //on boucle tous les items jusqu'a avoir item > au notre
-      for (i=0;i<nb_items;i++)
-      {
-        tmp[0]=0;
-        ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-        if (strcmp(item[6].c,tmp)<0)
-        {
-          ref_item = i;
-          break;
-        }
-      }
-    }
-    lvi.mask = LVIF_TEXT|LVIF_PARAM;
-    lvi.iSubItem = 0;
-    lvi.lParam = LVM_SORTITEMS;
-    lvi.pszText="";
+    ref_item = ListView_GetItemCount(hlv_r);
     lvi.iItem = ref_item;
     ListView_InsertItem(hlv_r, &lvi);
     //Date
@@ -821,268 +822,13 @@ DWORD AddToLV_File(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
     //Description
     snprintf(tmp,MAX_LINE_SIZE,"[Access] %s%s",item[0].c,item[1].c);
     ListView_SetItemText(hlv_r,ref_item,2,tmp);
-    LeaveCriticalSection(&Sync);
+    StateH(item,6,3);
   }
+  LeaveCriticalSection(&Sync);
 
   //ajout d'item
   return AddToLV(hlv, item, nb_colonne);
 }
-//------------------------------------------------------------------------------
-void StateHC(LINE_ITEM *item, int col_date, char *user)
-{
-  if (col_date<0 || !State_Enable)return;
-  if (!strlen(item[col_date].c) || item[col_date].c[0]=='N')return;
-
-    //correlation pour ajout dans l'onglet state
-    #define DATE_SIZE 20
-    #define COL_START 0
-    #define COL_END   1
-    //si une date est présente
-    //si aucun item dans la liste on en ajoute
-    HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
-    DWORD nb_items = ListView_GetItemCount(hlv_r);
-    if (nb_items == 0)
-    {
-      //ajout de l'item
-      LVITEM lvi;
-      lvi.mask = LVIF_TEXT|LVIF_PARAM;
-      lvi.iSubItem = 0;
-      lvi.lParam = LVM_SORTITEMS;
-      lvi.pszText="";
-      lvi.iItem = 0;
-      ListView_InsertItem(hlv_r, &lvi);
-
-      ListView_SetItemText(hlv_r,0,COL_START,item[col_date].c);
-      ListView_SetItemText(hlv_r,0,COL_END,item[col_date].c);
-      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
-
-      ListView_SetItemText(hlv_r,0,3,user);
-    }else
-    {
-      DWORD i, duree;
-      BOOL trouve = FALSE;
-      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
-      for (i=0;i<nb_items && !trouve;i++)
-      {
-        //On test l'ensemble des items présents afin de vérifier
-        //si il n'est pas plus récent ou plus ancien
-        //même jour ?
-        date_start[0]=0;
-        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
-        if (date_start[0]!=0)
-        {
-          //année + séparateur + mois + jours
-          if (date_start[0] == item[col_date].c[0] && date_start[1] == item[col_date].c[1] && date_start[2] == item[col_date].c[2] && date_start[3] == item[col_date].c[3] &&
-              date_start[4] == item[col_date].c[4] && date_start[7] == item[col_date].c[7] && //les séparateurs ^^
-              date_start[5] == item[col_date].c[5] && date_start[6] == item[col_date].c[6] && date_start[8] == item[col_date].c[8] && date_start[9] == item[col_date].c[9])
-          {
-            date_end[0]=0;
-            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
-
-            //même jour
-            trouve = TRUE;
-
-            //on vérifie si inférieur au start
-            if ((date_start[11] > item[col_date].c[11]) || (date_start[12] > item[col_date].c[12] && date_start[11] == item[col_date].c[11]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] > item[col_date].c[14])  ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] > item[col_date].c[15]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] > item[col_date].c[17]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] == item[col_date].c[17] && date_start[18] > item[col_date].c[18]))
-            {
-              ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
-              strcpy(date_start,item[col_date].c);
-
-              ListView_SetItemText(hlv_r,i,3,user);
-
-              //calcul de  la durée
-              if (date_start[0]!=0 && date_end[0]!=0)
-              {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                ListView_SetItemText(hlv_r,i,2,tmp_date);
-              }
-            }else //ou supérieur au end ^^
-            {
-              if (date_end[0]!=0)
-              {
-                //on vérifie si supérieur à end
-                if ((date_end[11] < item[col_date].c[11]) || (date_end[12] < item[col_date].c[12] && date_end[11] == item[col_date].c[11]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] < item[col_date].c[14])  ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] < item[col_date].c[15]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] < item[col_date].c[17]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] == item[col_date].c[17] && date_end[18] < item[col_date].c[18]))
-                {
-                  ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
-                  strcpy(date_end,item[col_date].c);
-
-                  ListView_SetItemText(hlv_r,i,3,user);
-
-                  //calcul de  la durée
-                  if (date_start[0]!=0 && date_end[0]!=0)
-                  {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                    ListView_SetItemText(hlv_r,i,2,tmp_date);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      //si pas identifié on ajoute l'item
-      if (!trouve)
-      {
-        //ajout de l'item
-        LVITEM lvi;
-        lvi.mask = LVIF_TEXT|LVIF_PARAM;
-        lvi.iSubItem = 0;
-        lvi.lParam = LVM_SORTITEMS;
-        lvi.pszText="";
-        lvi.iItem = ListView_GetItemCount(hlv_r);
-        i = ListView_InsertItem(hlv_r, &lvi);
-
-        ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
-        ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
-
-        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
-
-        ListView_SetItemText(hlv_r,i,3,user);
-      }
-    }
-  }
-//------------------------------------------------------------------------------
-void StateH(LINE_ITEM *item, int col_date, int col_id)
-{
-  if (col_date<0 || !State_Enable)return;
-  if (!strlen(item[col_date].c) || (!strlen(item[col_id].c) && col_id!=-1) || item[col_date].c[0]=='N')return;
-
-    //correlation pour ajout dans l'onglet state
-    #define DATE_SIZE 20
-    #define COL_START 0
-    #define COL_END   1
-    //si une date est présente
-    //si aucun item dans la liste on en ajoute
-    HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H);
-    DWORD nb_items = ListView_GetItemCount(hlv_r);
-    if (nb_items == 0)
-    {
-      //ajout de l'item
-      LVITEM lvi;
-      lvi.mask = LVIF_TEXT|LVIF_PARAM;
-      lvi.iSubItem = 0;
-      lvi.lParam = LVM_SORTITEMS;
-      lvi.pszText="";
-      lvi.iItem = 0;
-      ListView_InsertItem(hlv_r, &lvi);
-
-      ListView_SetItemText(hlv_r,0,COL_START,item[col_date].c);
-      ListView_SetItemText(hlv_r,0,COL_END,item[col_date].c);
-      ListView_SetItemText(hlv_r,0,2,"00:00:00");         //durée
-
-      if(col_id>-1)ListView_SetItemText(hlv_r,0,3,item[col_id].c);
-    }else
-    {
-      DWORD i, duree;
-      BOOL trouve = FALSE;
-      char date_start[DATE_SIZE],date_end[DATE_SIZE],tmp_date[DATE_SIZE];
-      for (i=0;i<nb_items && !trouve;i++)
-      {
-        //On test l'ensemble des items présents afin de vérifier
-        //si il n'est pas plus récent ou plus ancien
-        //même jour ?
-        date_start[0]=0;
-        ListView_GetItemText(hlv_r,i,COL_START,date_start,DATE_SIZE);
-        if (date_start[0]!=0)
-        {
-          //année + séparateur + mois + jours
-          if (date_start[0] == item[col_date].c[0] && date_start[1] == item[col_date].c[1] && date_start[2] == item[col_date].c[2] && date_start[3] == item[col_date].c[3] &&
-              date_start[4] == item[col_date].c[4] && date_start[7] == item[col_date].c[7] && //les séparateurs ^^
-              date_start[5] == item[col_date].c[5] && date_start[6] == item[col_date].c[6] && date_start[8] == item[col_date].c[8] && date_start[9] == item[col_date].c[9])
-          {
-            date_end[0]=0;
-            ListView_GetItemText(hlv_r,i,COL_END,date_end,DATE_SIZE);
-
-            //même jour
-            trouve = TRUE;
-
-            //on vérifie si inférieur au start
-            if ((date_start[11] > item[col_date].c[11]) || (date_start[12] > item[col_date].c[12] && date_start[11] == item[col_date].c[11]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] > item[col_date].c[14])  ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] > item[col_date].c[15]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] > item[col_date].c[17]) ||
-                (date_start[11] == item[col_date].c[11] && date_start[12] == item[col_date].c[12] && date_start[14] == item[col_date].c[14] && date_start[15] == item[col_date].c[15] && date_start[17] == item[col_date].c[17] && date_start[18] > item[col_date].c[18]))
-            {
-              ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
-              strcpy(date_start,item[col_date].c);
-
-              if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
-
-              //calcul de  la durée
-              if (date_start[0]!=0 && date_end[0]!=0)
-              {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                ListView_SetItemText(hlv_r,i,2,tmp_date);
-              }
-            }else //ou supérieur au end ^^
-            {
-              if (date_end[0]!=0)
-              {
-                //on vérifie si supérieur à end
-                if ((date_end[11] < item[col_date].c[11]) || (date_end[12] < item[col_date].c[12] && date_end[11] == item[col_date].c[11]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] < item[col_date].c[14])  ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] < item[col_date].c[15]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] < item[col_date].c[17]) ||
-                    (date_end[11] == item[col_date].c[11] && date_end[12] == item[col_date].c[12] && date_end[14] == item[col_date].c[14] && date_end[15] == item[col_date].c[15] && date_end[17] == item[col_date].c[17] && date_end[18] < item[col_date].c[18]))
-                {
-                  ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
-                  strcpy(date_end,item[col_date].c);
-
-                  if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
-
-                  //calcul de  la durée
-                  if (date_start[0]!=0 && date_end[0]!=0)
-                  {
-                    duree = (CharToInt(date_end[11])*36000   + CharToInt(date_end[12])*3600   + CharToInt(date_end[14])*600    + CharToInt(date_end[15])*60   + CharToInt(date_end[17])*10   + CharToInt(date_end[18]))
-                          - (CharToInt(date_start[11])*36000 + CharToInt(date_start[12])*3600 + CharToInt(date_start[14])*600  + CharToInt(date_start[15])*60 + CharToInt(date_start[17])*10 + CharToInt(date_start[18]));
-
-                    snprintf(tmp_date,DATE_SIZE,"%02lu:%02lu:%02lu",duree/3600,(duree%3600)/60,(duree%3600)%60);
-                    ListView_SetItemText(hlv_r,i,2,tmp_date);
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      //si pas identifié on ajoute l'item
-      if (!trouve)
-      {
-        //ajout de l'item
-        LVITEM lvi;
-        lvi.mask = LVIF_TEXT|LVIF_PARAM;
-        lvi.iSubItem = 0;
-        lvi.lParam = LVM_SORTITEMS;
-        lvi.pszText="";
-        lvi.iItem = ListView_GetItemCount(hlv_r);
-        i = ListView_InsertItem(hlv_r, &lvi);
-
-        ListView_SetItemText(hlv_r,i,COL_START,item[col_date].c);
-        ListView_SetItemText(hlv_r,i,COL_END,item[col_date].c);
-
-        ListView_SetItemText(hlv_r,i,2,"00:00:00");         //durée
-
-        if(col_id>-1)ListView_SetItemText(hlv_r,i,3,item[col_id].c);
-      }
-    }
-  }
 //------------------------------------------------------------------------------
 DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL critical)
 {
@@ -1092,28 +838,13 @@ DWORD AddToLV_log(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne, BOOL c
     //recherche de l'emplacement par date ^^
     //si aucun item dans la liste on en ajoute
     HANDLE hlv_r = GetDlgItem(Tabl[TABL_STATE],LV_VIEW);
-    DWORD nb_items = ListView_GetItemCount(hlv_r);
-    DWORD ref_item =0;
+    DWORD ref_item;
     char tmp[MAX_LINE_SIZE];
 
     EnterCriticalSection(&Sync);
-    if (nb_items > 0)
-    {
-      //on boucle tous les items jusqu'a avoir item > au notre
-      DWORD i =0;
-      for (i=0;i<nb_items;i++)
-      {
-        tmp[0]=0;
-        ListView_GetItemText(hlv_r,i,0,tmp,MAX_LINE_SIZE);
-        if (strcmp(item[3].c,tmp)<0)
-        {
-          ref_item = i;
-          break;
-        }
-      }
-    }
 
     //ajout de l'item
+    ref_item = ListView_GetItemCount(hlv_r);
     LVITEM lvi;
     lvi.mask = LVIF_TEXT|LVIF_PARAM;
     lvi.iSubItem = 0;
@@ -1208,12 +939,18 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
       HMENU hmenu;
       if ((hmenu = LoadMenu(hInst, MAKEINTRESOURCE(POPUP_TV_R)))!= NULL)
       {
+        //cas ou nous somme bien sur unn répertoire
+        if (!TVimgIsDirectory(hwnd, TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0)))
+        {
+          RemoveMenu(hmenu,POPUP_TV_OPEN,MF_BYCOMMAND|MF_GRAYED);
+        }
+
         //affichage du popup menu
         TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
         DestroyMenu(hmenu);
       }
       return;
-    }
+    }else return;
   }else if (TABL_ID_VISIBLE == TABL_CONFIGURATION)
   {
     //seulement si au moin un item
@@ -1516,6 +1253,22 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Description");
                   ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Parent key update");
 
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                break;
+                case LV_REGISTRY_PATH_NB_COL:
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL2,"Copy : Key");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL3,"Copy : Value");
+                  ModifyMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL4,"Copy : Data");
+
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
@@ -2103,6 +1856,8 @@ void InitConfig(HWND hwnd)
   h_scan_registry = NULL;
   h_scan_configuration = NULL;
 
+  //hs_files_info = CreateSemaphore(NULL,MAX_THREAD_FILES_INFO,MAX_THREAD_FILES_INFO,NULL);
+
   pos_search_logs = -1;
   pos_search_files = -1;
   pos_search_registry = -1;
@@ -2194,7 +1949,7 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Users & groups");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Accounts & passwords");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"MRU & MUICache & history");
-  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All Path (Registry dump or offline)");
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All path & open command");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_SETCURSEL,(WPARAM)0, (LPARAM)0);
 
   //initialisation des combobox state
@@ -2263,16 +2018,26 @@ void InitConfig(HWND hwnd)
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)8, (LPARAM)&lvc);
   lvc.pszText = "System"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)9, (LPARAM)&lvc);
+  lvc.pszText = "Archive/Compressed"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
+  lvc.pszText = "Encrypted"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
+  lvc.pszText = "Tempory"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)12, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "MD5"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)10, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)13, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "Size"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)11, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)14, (LPARAM)&lvc);
   lvc.pszText = "ADS"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)12, (LPARAM)&lvc);
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)15, (LPARAM)&lvc);
+
+
+
+
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 13;
+  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 16;
 
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW), SW_SHOW);
@@ -2734,56 +2499,56 @@ void InitConfig(HWND hwnd)
   //test si le fichier ini existe
   if (FichierExiste(path))
   {
-    GetPrivateProfileString("FILES","OFFICE","doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp",tmp_DOCUMENT,MAX_PATH,path);
+    GetPrivateProfileString("FILES","OFFICE","doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp,pod",tmp_DOCUMENT,MAX_PATH,path);
     GetPrivateProfileString("FILES","VIDEO","avi,mpg,mpeg,mp3,wma,wmv,flv,ogg,ogm,mp4,mkv,wav",tmp_VIDEO,MAX_PATH,path);
-    GetPrivateProfileString("FILES","IMAGE","jpg,jpeg,bmp,png,gif,ico",tmp_IMAGE,MAX_PATH,path);
-    GetPrivateProfileString("FILES","APPLICATION","exe,com,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh",tmp_EXE,MAX_PATH,path);
+    GetPrivateProfileString("FILES","IMAGE","jpg,jpeg,bmp,png,gif,ico,ani,cur,svg",tmp_IMAGE,MAX_PATH,path);
+    GetPrivateProfileString("FILES","APPLICATION","exe,com,msi,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh,rsh,jar,script",tmp_EXE,MAX_PATH,path);
     GetPrivateProfileString("FILES","CRYPT","tc,zed,gpg,pgp,cry,box,axx",tmp_CRYPT,MAX_PATH,path);
     GetPrivateProfileString("FILES","MAIL","msf,eml,dbx",tmp_MAIL,MAX_PATH,path);
 
-    GetPrivateProfileString("FILES","SOURCE_CODE","c,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb",tmp_SOURCE_CODE,MAX_PATH,path);
+    GetPrivateProfileString("FILES","SOURCE_CODE","c,cc,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb,cbp,java",tmp_SOURCE_CODE,MAX_PATH,path);
     GetPrivateProfileString("FILES","LINK","lnk",tmp_LINK,MAX_PATH,path);
     GetPrivateProfileString("FILES","COMPRESSE","zip,rar,arj,tar,gz,bzip,7z,wim,tgz,ace",tmp_COMPRESSE,MAX_PATH,path);
-    GetPrivateProfileString("FILES","WEB","htm,html,xml,xsl,css,js,asm,dtd,php,asp,asp",tmp_WEB,MAX_PATH,path);
-    GetPrivateProfileString("FILES","CONFIGURATION","cfg,ini,conf,reg",tmp_CONFIGURATION,MAX_PATH,path);
-    GetPrivateProfileString("FILES","BDD","db,sqlite",tmp_BDD,MAX_PATH,path);
+    GetPrivateProfileString("FILES","WEB","htm,html,xml,xsl,css,js,asm,dtd,php,asp,aspx,url",tmp_WEB,MAX_PATH,path);
+    GetPrivateProfileString("FILES","CONFIGURATION","cfg,ini,conf,reg,inf,config,def",tmp_CONFIGURATION,MAX_PATH,path);
+    GetPrivateProfileString("FILES","BDD","db,sqlite,sql,wab,dbf,odb,wmdb",tmp_BDD,MAX_PATH,path);
     GetPrivateProfileString("FILES","AUDIT","log,evt,evtx",tmp_AUDIT,MAX_PATH,path);
 
     GetPrivateProfileString("FILES","OTHER","",tmp_OTHER,MAX_PATH,path);
   }else
   {
     //chargement manuel en mémoire et sauvegarde dans fichier de configuration
-    WritePrivateProfileString("FILES","OFFICE","doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp",path);
+    WritePrivateProfileString("FILES","OFFICE","doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp,pod",path);
     WritePrivateProfileString("FILES","VIDEO","avi,mpg,mpeg,mp3,wma,wmv,flv,ogg,ogm,mp4,mkv,wav",path);
-    WritePrivateProfileString("FILES","IMAGE","jpg,jpeg,bmp,png,gif,ico",path);
-    WritePrivateProfileString("FILES","APPLICATION","exe,com,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh",path);
+    WritePrivateProfileString("FILES","IMAGE","jpg,jpeg,bmp,png,gif,ico,ani,cur,svg",path);
+    WritePrivateProfileString("FILES","APPLICATION","exe,com,msi,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh,rsh,jar,script",path);
     WritePrivateProfileString("FILES","CRYPT","tc,zed,gpg,pgp,cry,box,axx",path);
     WritePrivateProfileString("FILES","MAIL","msf,eml,dbx",path);
 
-    WritePrivateProfileString("FILES","SOURCE_CODE","c,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb",path);
+    WritePrivateProfileString("FILES","SOURCE_CODE","c,cc,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb,cbp,java",path);
     WritePrivateProfileString("FILES","LINK","lnk",path);
     WritePrivateProfileString("FILES","COMPRESSE","zip,rar,arj,tar,gz,bzip,7z,wim,tgz,ace",path);
-    WritePrivateProfileString("FILES","WEB","htm,html,xml,xsl,css,js,asm,dtd,php,asp,asp",path);
-    WritePrivateProfileString("FILES","CONFIGURATION","cfg,ini,conf,reg",path);
-    WritePrivateProfileString("FILES","BDD","db,sqlite",path);
+    WritePrivateProfileString("FILES","WEB","htm,html,xml,xsl,css,js,asm,dtd,php,asp,aspx,url",path);
+    WritePrivateProfileString("FILES","CONFIGURATION","cfg,ini,conf,reg,inf,config,def",path);
+    WritePrivateProfileString("FILES","BDD","db,sqlite,sql,wab,dbf,odb,wmdb",path);
     WritePrivateProfileString("FILES","AUDIT","log,evt,evtx",path);
 
     WritePrivateProfileString("FILES","OTHER","",path);
 
     //chargement en mémoire
-    strcpy(tmp_DOCUMENT,"doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp");
+    strcpy(tmp_DOCUMENT,"doc,docx,docm,pdf,xls,xlsx,xlsm,odp,odt,ods,ppt,pptx,pptm,pps,rtf,sdw,csv,txt,chm,mht,hlp,pod");
     strcpy(tmp_VIDEO,"avi,mpg,mpeg,mp3,wma,wmv,flv,ogg,ogm,mp4,mkv,wav");
-    strcpy(tmp_IMAGE,"jpg,jpeg,bmp,png,gif,ico");
-    strcpy(tmp_EXE,"exe,com,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh");
+    strcpy(tmp_IMAGE,"jpg,jpeg,bmp,png,gif,ico,ani,cur,svg");
+    strcpy(tmp_EXE,"exe,com,msi,cmd,ps1,ps2,vbs,bat,pl,py,rb,sh,rsh,jar,script");
     strcpy(tmp_CRYPT,"tc,zed,gpg,pgp,cry,box,axx");
     strcpy(tmp_MAIL,"msf,eml,dbx");
 
-    strcpy(tmp_SOURCE_CODE,"c,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb");
+    strcpy(tmp_SOURCE_CODE,"c,cc,cpp,h,hpp,rc,dev,o,res,layout,a,depend,cs,vb,cbp,java");
     strcpy(tmp_LINK,"lnk");
     strcpy(tmp_COMPRESSE,"zip,rar,arj,tar,gz,bzip,7z,wim,tgz,ace");
-    strcpy(tmp_WEB,"htm,html,xml,xsl,css,js,asm,dtd,php,asp,aspx");
-    strcpy(tmp_CONFIGURATION,"cfg,ini,conf,reg");
-    strcpy(tmp_BDD,"db,sqlite");
+    strcpy(tmp_WEB,"htm,html,xml,xsl,css,js,asm,dtd,php,asp,aspx,url");
+    strcpy(tmp_CONFIGURATION,"cfg,ini,conf,reg,inf,config,def");
+    strcpy(tmp_BDD,"db,sqlite,sql,wab,dbf,odb,wmdb");
     strcpy(tmp_AUDIT,"log,evt,evtx");
 
     strcpy(tmp_OTHER,"");
@@ -2972,7 +2737,7 @@ void InitConfig(HWND hwnd)
   strcpy(ref_mru_search[i++].v,"ShellNoRoam\\MUICache");
   strcpy(ref_mru_search[i++].v,"Shell\\MuiCache");
   strcpy(ref_mru_search[i++].v,"Shell\\LocalizedResourceName");
-  strcpy(ref_mru_search[i++].v,"Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\");
+  strcpy(ref_mru_search[i++].v,"Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\");
 
   i=0;
   strcpy(ref_mru_var_search[i++].v,"MRUList");
@@ -3437,6 +3202,9 @@ void EndConfig()
   //reinit W64 redirect
   typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID OldValue);
   WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
+
+  //libération des sémaphores
+  //CloseHandle(hs_files_info);
 
   HMODULE hDLL = LoadLibrary( "KERNEL32.dll");
   if (hDLL != NULL)
