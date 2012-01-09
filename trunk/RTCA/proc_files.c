@@ -6,46 +6,91 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
-void EnumADS(char *file, char *resultat, DWORD size)
+//from : http://rootkitanalytics.com/userland/Exploring-Alternate-Data-Streams.php
+DWORD EnumADS(char *file, char *resultat, DWORD size)
 {
-  char buffer[MAX_PATH];
-  IO_STATUS_BLOCK ioStatus;
-  char tmp[MAX_PATH];
-
-  BOOL first =TRUE;
+  PVOID streamContext = 0;
+  DWORD dwReadBytes, seek_high;
+  WIN32_STREAM_ID streamHeader;
+  WCHAR strStreamName[MAX_PATH];
+  char strBuffer[1024];
+  BOOL first = TRUE;
+  DWORD nb_ads = 0;
 
   resultat[0]=0;
-  //Open file (0 pour bypasser les ouvertures exclusives)
-  HANDLE Hfic = CreateFile(file, 0, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-  if(Hfic != INVALID_HANDLE_VALUE)
+
+  HANDLE Hfic = CreateFile(file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  if( Hfic == INVALID_HANDLE_VALUE )return 0;
+
+  while(1)
   {
-    //9 for rescupe name information : FileNameInformation
-    if (!NtQueryInformationFile(Hfic, &ioStatus, buffer, MAX_PATH, FileStreamInformation))
+    //check if we have reached the end of file....
+    if ( FALSE == BackupRead(Hfic, (LPBYTE)&streamHeader, (LPBYTE)&streamHeader.cStreamName-(LPBYTE)&streamHeader, &dwReadBytes, FALSE, FALSE, &streamContext))break;
+
+    //check if we have read the stream header properly...
+    if( (long)dwReadBytes != (LPBYTE)&streamHeader.cStreamName-(LPBYTE)&streamHeader )
+    break;
+
+    //we are interested only in alternate data streams....
+    if(streamHeader.dwStreamId == BACKUP_ALTERNATE_DATA)
     {
-      //traitement des stream une par une
-      FILE_STREAM_INFORMATION *fsi = (FILE_STREAM_INFORMATION *) buffer;
-
-      while(1)
+      if (streamHeader.dwStreamNameSize != 0 )
       {
-        snprintf(tmp,MAX_PATH,"%S",fsi->StreamName);
-        if (strcmp(tmp,"::$DATA"))//si différent de la valeur par défaut
+        if( BackupRead(Hfic, (LPBYTE)strStreamName, streamHeader.dwStreamNameSize, &dwReadBytes, FALSE, FALSE, &streamContext))
         {
-          tmp[fsi->StreamNameLength/2]=0;
-          if (tmp[strlen(tmp)-5]=='$')tmp[strlen(tmp)-6]=0;
+          strStreamName[streamHeader.dwStreamNameSize/2]=L'\0';
 
-          strncat(resultat,tmp,size);
-          if (!first)strncat(resultat," | ",size);
-          else first =FALSE;
+          //Reformat the stream file name ... :stream.txt:$DATA
+          snprintf(strBuffer, 1024, "%S", &strStreamName[1]);
+          char *ptr = strchr(strBuffer, ':');
+          if( ptr != NULL )
+          *ptr = '\0';
+
+          if (first)
+          {
+            first = FALSE;
+            strncat(resultat,":",size);
+            strncat(resultat,strBuffer,size);
+            strncat(resultat,"\0",size);
+          }else
+          {
+            strncat(resultat," | :",size);
+            strncat(resultat,strBuffer,size);
+            strncat(resultat,"\0",size);
+          }
+          nb_ads++;
         }
-
-        //on passe à la suite
-        if (!fsi->NextEntryOffset)break;
-        fsi = (FILE_STREAM_INFORMATION *) (fsi->NextEntryOffset + (byte *)fsi);
       }
     }
-  }
+
+    // jump to the next stream header
+    if (BackupSeek(Hfic, ~0, ~0, &dwReadBytes, &seek_high, &streamContext) == FALSE)
+    {
+      //for any errors other than seek break out of loop
+      if (GetLastError() != ERROR_SEEK)
+      {
+        // terminate BackupRead() loop
+        BackupRead(Hfic, 0, 0, &dwReadBytes, TRUE, FALSE, &streamContext);
+        break;
+      }
+
+      streamHeader.Size.QuadPart -= dwReadBytes;
+      streamHeader.Size.HighPart -= seek_high;
+      BYTE buffer[4096];
+
+      while(streamHeader.Size.QuadPart > 0)
+      {
+        if (dwReadBytes!=sizeof(buffer) || !BackupRead(Hfic, buffer, sizeof(buffer), &dwReadBytes, FALSE, FALSE, &streamContext))break;
+        streamHeader.Size.QuadPart -= dwReadBytes;
+      }
+    }
+  } //main while loop
+
+  //Finally clean up the buffers use for seeking
+  if (streamContext) BackupRead(Hfic, 0, 0, &dwReadBytes, TRUE, FALSE, &streamContext);
+
   CloseHandle(Hfic);
-  strncat(resultat,"\0",size);
+  return nb_ads;
 }
 //------------------------------------------------------------------------------
 void FileToMd5(char *path, char *md5)
@@ -151,31 +196,6 @@ void SidtoUser(PSID psid, char *user, char *sid, unsigned int taille_user,unsign
 //-----------------------------------------------------------------------------
 void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio, unsigned int prop_taille_max)
 {
-  //récupération du propriétaire du fichier
-  DWORD ssd = 0;
-  GetFileSecurity(file, OWNER_SECURITY_INFORMATION, NULL, 0, &ssd);
-  if (ssd != 0)
-  {
-    PSECURITY_DESCRIPTOR psd = NULL;
-    psd = HeapAlloc(GetProcessHeap(), 0, ssd);
-    if (!psd)return;
-
-    if(proprio && GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
-    {
-      PSID psid = NULL;
-      BOOL pFlag = FALSE;
-      GetSecurityDescriptorOwner(psd, &psid, &pFlag);
-
-      char cuser[MAX_PATH]="",csid[MAX_PATH]="";
-      SidtoUser(psid, cuser, csid, MAX_PATH,MAX_PATH,FALSE);
-
-      strncpy(proprio,cuser,prop_taille_max);
-      strncat(proprio,csid,prop_taille_max);
-      strncat(proprio,"\0",prop_taille_max);
-    }
-    HeapFree(GetProcessHeap(), 0, psd);
-  }
-
   //droits sur le fichier
   SECURITY_DESCRIPTOR *sd;
   unsigned long size_sd = 0;
@@ -262,6 +282,31 @@ void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio,
       HeapFree(GetProcessHeap(), 0, sd);
     }
   }
+
+  //récupération du propriétaire du fichier
+  DWORD ssd = 0;
+  GetFileSecurity(file, OWNER_SECURITY_INFORMATION, NULL, 0, &ssd);
+  if (ssd != 0)
+  {
+    PSECURITY_DESCRIPTOR psd = NULL;
+    psd = HeapAlloc(GetProcessHeap(), 0, ssd);
+    if (!psd)return;
+
+    if(proprio && GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
+    {
+      PSID psid = NULL;
+      BOOL pFlag = FALSE;
+      GetSecurityDescriptorOwner(psd, &psid, &pFlag);
+
+      char cuser[MAX_PATH]="",csid[MAX_PATH]="";
+      SidtoUser(psid, cuser, csid, MAX_PATH,MAX_PATH,FALSE);
+
+      strncpy(proprio,cuser,prop_taille_max);
+      strncat(proprio,csid,prop_taille_max);
+      strncat(proprio,"\0",prop_taille_max);
+    }
+    HeapFree(GetProcessHeap(), 0, psd);
+  }
 }
 //------------------------------------------------------------------------------
 void TypeFile(char *cFileName,char *result)
@@ -304,17 +349,63 @@ void TypeFile(char *cFileName,char *result)
   for (i=0;i<nb_ext_audit;i++){if (!strcmp(ext_audit[i].ext,myext)){strcpy(result,"Audit\0");return;}}
 }
 //-----------------------------------------------------------------------------
-void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *filesys)
+DWORD WINAPI File_info(LPVOID lParam)
+{
+  DWORD id = (DWORD)lParam;
+  HANDLE hlv = GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW);
+  char rep[MAX_PATH]="", fic[MAX_PATH]="", tmp[MAX_LINE_SIZE]="", owner[MAX_LINE_SIZE];
+
+  //WaitForSingleObject(hs_files_info,INFINITE);
+
+  //récupération du chemin  + nomp du fichier
+  ListView_GetItemText(hlv,id,0,rep,MAX_PATH);
+  ListView_GetItemText(hlv,id,1,fic,MAX_PATH);
+
+  if (fic[0]!=0) //cas d'un répertoire
+  {
+    strncat(rep,fic,MAX_PATH);
+    strncat(rep,"\0",MAX_PATH);
+
+    //type
+    if (Type_Enable)
+    {
+      TypeFile(fic,tmp);
+      ListView_SetItemText(hlv,id,2,tmp);
+      tmp[0]=0;
+    }
+
+    //MD5
+    if (MD5_Enable)
+    {
+      FileToMd5(rep, tmp);
+      ListView_SetItemText(hlv,id,13,tmp);
+      tmp[0]=0;
+    }
+  }
+
+  //ACLS
+  if (ACL_Enable)
+  {
+    fic[0]=0;
+    tmp[0]=0;
+    GetACLS(rep, tmp, MAX_LINE_SIZE, owner, MAX_LINE_SIZE);
+    ListView_SetItemText(hlv,id,3,owner);//owner
+    ListView_SetItemText(hlv,id,7,tmp);//ACLS
+  }
+
+  //ReleaseSemaphore(hs_files_info,1,NULL);
+  return 0;
+}
+//-----------------------------------------------------------------------------
+void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL ntfs, char *filesys, LINE_ITEM *lv_line)
 {
   WIN32_FIND_DATA data;
   HANDLE hfic = FindFirstFile(path, &data);
   FILETIME LocalFileTime;
   SYSTEMTIME SysTimeCreation,SysTimeModification,SysTimeAcces;
   char Rep [MAX_PATH];
-  DWORD FileAttributes;
+  DWORD nb_ads;
 
-  LINE_ITEM lv_line[NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]];
-  lv_line[10].c[0]=0;
 
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -343,6 +434,16 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
         strcpy(Rep,path);
         Rep[strlen(path)-3]=0;
 
+        //attributs
+        //http://msdn.microsoft.com/en-us/library/windows/desktop/gg258117%28v=vs.85%29.aspx
+        if ((data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN))strcpy(lv_line[8].c,"H");else lv_line[8].c[0]=0;//fichier caché
+        if ((data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM))strcpy(lv_line[9].c,"S");else lv_line[9].c[0]=0;//fichier système
+
+        snprintf(lv_line[10].c,MAX_LINE_SIZE,"%c/%c",(data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE)?'A':'-',(data.dwFileAttributes & FILE_ATTRIBUTE_COMPRESSED)?'C':'-');
+
+        if ((data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED))strcpy(lv_line[11].c,"E");else lv_line[11].c[0]=0;//fichier chiffré
+        if ((data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY))strcpy(lv_line[12].c,"T");else lv_line[12].c[0]=0;//fichier temporaire
+
         //un répertoire
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
@@ -353,33 +454,34 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
 
           strcpy(lv_line[2].c,"Directory");
 
-          //type d'attribut
-          FileAttributes = GetFileAttributes(Rep);
-          if ((FileAttributes&0x2) == 0x2)strcpy(lv_line[8].c,"H"); else lv_line[8].c[0] = 0;//fichier caché
-          if ((FileAttributes&0x4)== 0x4)strcpy(lv_line[9].c,"S"); else lv_line[9].c[0] = 0;//fichier système
-
           //copie du nom du répertoire et du fichier
           strcpy(lv_line[0].c,Rep);
           lv_line[1].c[0] = 0;
 
-          //ACLS
-          lv_line[3].c[0] = 0;
-          if (!fat)strcpy(lv_line[7].c,filesys);
-          else
+          //test + énumération des ADS
+          if(ADS && ntfs)
           {
-            //lecture des ACLS
-            lv_line[7].c[0] = 0;
-            if (ACL_Enable)GetACLS(Rep, lv_line[7].c, MAX_LINE_SIZE, lv_line[3].c, MAX_LINE_SIZE);
+            nb_ads = EnumADS(Rep, lv_line[15].c, MAX_LINE_SIZE);
+            if (lv_line[15].c[0]!=0 && nb_ads)
+            {
+              if (nb_ads == 1)
+              {
+                //pour ajouter au treeview
+                snprintf(Rep,MAX_PATH,"%s%s",data.cFileName,lv_line[15].c);
+                AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,Rep,hparent,ICON_FILE);
+              }else
+              {
+                //découpage ...
+              }
+            }
           }
-          //ajout à la listeview
-          lv_line[10].c[0]=0;
-          lv_line[11].c[0]=0;
-          lv_line[12].c[0]=0;
-          AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+          else lv_line[15].c[0]=0;
+
+          File_info((LPVOID)AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]));
 
           //on traite les autres répertoires
           strncat(Rep,"*.*\0",MAX_PATH);
-          Scan_files_Rep(Rep, hlv, hitem, fat,filesys);
+          Scan_files_Rep(Rep, hlv, hitem, ntfs,filesys,lv_line);
           SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)hitem);
         }else // un fichier
         {
@@ -391,50 +493,36 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL fat, char *f
           strncat(Rep,"\0",MAX_PATH);
 
           AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,data.cFileName,hparent,ICON_FILE);
-
-          //file type
-          if (Type_Enable)TypeFile(data.cFileName,lv_line[2].c);
-          else lv_line[2].c[0]=0;
-
-          //type d'attribut
-          FileAttributes = GetFileAttributes(Rep);
-          if ((FileAttributes&0x2) == 0x2)strcpy(lv_line[8].c,"H"); else lv_line[8].c[0] = 0;//fichier caché
-          if ((FileAttributes&0x4) == 0x4)strcpy(lv_line[9].c,"S"); else lv_line[9].c[0] = 0;//fichier système
-
-          if (MD5_Enable)
-          {
-            FileToMd5(Rep, lv_line[10].c);
-          }
+          lv_line[2].c[0]=0;
 
           //size
-          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uTo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uGo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uMo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
-          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uKo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
-          else snprintf(lv_line[11].c,MAX_LINE_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
-
-          //ACLS
-          lv_line[3].c[0] = 0;
-
-          //lecture des ACLS
-          lv_line[7].c[0] = 0;
-          if (ACL_Enable)GetACLS(Rep, lv_line[7].c, MAX_LINE_SIZE, lv_line[3].c, MAX_LINE_SIZE);
+          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(lv_line[14].c,MAX_LINE_SIZE,"%uTo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(lv_line[14].c,MAX_LINE_SIZE,"%uGo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(lv_line[14].c,MAX_LINE_SIZE,"%uMo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(lv_line[14].c,MAX_LINE_SIZE,"%uKo",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+          else snprintf(lv_line[14].c,MAX_LINE_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
 
           //test + énumération des ADS
-          if(ADS && fat)
+          if(ADS && ntfs)
           {
-            EnumADS(Rep, lv_line[12].c, MAX_LINE_SIZE);
-            if (lv_line[12].c[0]!=0)
+            nb_ads = EnumADS(Rep, lv_line[15].c, MAX_LINE_SIZE);
+            if (lv_line[15].c[0]!=0 && nb_ads)
             {
-              //pour ajouter au treeview
-              snprintf(Rep,MAX_PATH,"%s%s",data.cFileName,lv_line[12].c);
-              AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,Rep,hparent,ICON_FILE);
+              if (nb_ads == 1)
+              {
+                //pour ajouter au treeview
+                snprintf(Rep,MAX_PATH,"%s%s",data.cFileName,lv_line[15].c);
+                AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,Rep,hparent,ICON_FILE);
+              }else
+              {
+                //découpage ...
+              }
             }
           }
-          else lv_line[12].c[0]=0;
+          else lv_line[15].c[0]=0;
 
           //ajout à la listeview
-          AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]);
+          File_info((LPVOID)AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]));
         }
       }
     }while(FindNextFile (hfic,&data)); //récupération des fichiers 1 par 1
@@ -492,7 +580,8 @@ DWORD WINAPI Scan_files(LPVOID lParam)
             strcpy(tmp_path,"_:\\*.*\0");
             tmp_path[0]=tmp[i];
             hitem = AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,lettre,TVI_ROOT,ICON_FILE_DOSSIER);
-            Scan_files_Rep(tmp_path, hlv, hitem, bACL, FileSysName);
+            LINE_ITEM lv_line[NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]];
+            Scan_files_Rep(tmp_path, hlv, hitem, bACL, FileSysName,lv_line);
             SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)hitem);
           break;
         }
@@ -534,7 +623,8 @@ DWORD WINAPI Scan_files(LPVOID lParam)
         strncat(tmp,"*.*\0",MAX_PATH);
 
         hitem = AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,lettre,TVI_ROOT,ICON_FILE_DOSSIER);
-        Scan_files_Rep(tmp, hlv, hitem, bACL, FileSysName);
+        LINE_ITEM lv_line[NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]];
+        Scan_files_Rep(tmp, hlv, hitem, bACL, FileSysName,lv_line);
         SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)hitem);
       }
     }while((hitem = (HTREEITEM)SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)) && ScanStart);
@@ -542,6 +632,10 @@ DWORD WINAPI Scan_files(LPVOID lParam)
 
   snprintf(tmp,MAX_PATH,"load %u files/dirs",ListView_GetItemCount(hlv));
   SB_add_T(SB_ONGLET_FILES, tmp);
+
+  /*unsigned int a;
+  for(a=0;a<MAX_THREAD_FILES_INFO;a++){WaitForSingleObject(hs_files_info,INFINITE);};
+  CloseHandle(hs_files_info);*/
 
   h_scan_files = NULL;
   if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)

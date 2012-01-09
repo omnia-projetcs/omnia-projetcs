@@ -344,7 +344,7 @@ BOOL GetAppVersion( char *file, char *version, unsigned int max_size)
         free (lpData);
         return FALSE;
       }
-      if(VerQueryValue(lpData, "\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
+      if(VerQueryValue(lpData, (LPSTR)"\\", (LPVOID *) &pFileInfo, (PUINT)&BufLen ) )
       {
         snprintf(version,max_size,"%d.%d.%d.%d",
                  HIWORD(pFileInfo->dwFileVersionMS),
