@@ -138,6 +138,32 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
             TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
             TRV_HTREEITEM[TRV_FILES] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Files path",TVI_ROOT);
             TRV_HTREEITEM[TRV_REGISTRY] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Registry files",TVI_ROOT);
+            TRV_HTREEITEM[TRV_CONF] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Applications files",TVI_ROOT);
+          break;
+          //déplacer un item !!!
+          case POPUP_TRV_MV_LOGS:
+          {
+            char tmp[MAX_PATH];
+            GetItemTxt(hitem,hwnd, TRV_CONF_TESTS,tmp, MAX_PATH);
+            AjouterItemTreeView(hwnd, TRV_CONF_TESTS, tmp, TRV_HTREEITEM[TRV_LOGS]);
+            SendDlgItemMessage(hwnd,TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)hitem);
+          }
+          break;
+          case POPUP_TRV_MV_REGISTRY:
+          {
+            char tmp[MAX_PATH];
+            GetItemTxt(hitem,hwnd, TRV_CONF_TESTS,tmp, MAX_PATH);
+            AjouterItemTreeView(hwnd, TRV_CONF_TESTS, tmp, TRV_HTREEITEM[TRV_REGISTRY]);
+            SendDlgItemMessage(hwnd,TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)hitem);
+          }
+          break;
+          case POPUP_TRV_MV_CONF:
+          {
+            char tmp[MAX_PATH];
+            GetItemTxt(hitem,hwnd, TRV_CONF_TESTS,tmp, MAX_PATH);
+            AjouterItemTreeView(hwnd, TRV_CONF_TESTS, tmp, TRV_HTREEITEM[TRV_CONF]);
+            SendDlgItemMessage(hwnd,TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)hitem);
+          }
           break;
           case POPUP_TRV_CONF_AUTO_SEARCH_FILES:
             if (AutoSearchFilesStart)
@@ -153,15 +179,18 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+              SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
 
               SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_FILES]);
               SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_LOGS]);
               SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_REGISTRY]);
+              SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_CONF]);
 
               //on affiche les résultats
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
               SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+              SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
 
             }else
             {
@@ -171,6 +200,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
           break;
           case POPUP_TRV_CONF_EXPORT_LIST_FILES:TreeExport(GetDlgItem(hwnd, TRV_CONF_TESTS));break;
           case POPUP_BACKUP: CreateThread(NULL,0,BackupRegFile,0,0,0);break;
+          case POPUP_BACKUP_LOGS : CreateThread(NULL,0,BackupEvtFile,0,0,0);break;
           case POPUP_TRV_CONF_P:
           {
             //récupération de la sélection
@@ -1254,12 +1284,14 @@ BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
       //redimmensionnement des colonnes
       unsigned int col_size = (mWidth-40)/3;
       redimColumn(hwnd,LV_VIEW,2,col_size);
-      redimColumn(hwnd,LV_VIEW,4,col_size);
+      redimColumn(hwnd,LV_VIEW,5,col_size);
 
-      redimColumn(hwnd,LV_VIEW,0,col_size/4);
-      redimColumn(hwnd,LV_VIEW,1,col_size/4);
-      redimColumn(hwnd,LV_VIEW,3,col_size/4);
-      redimColumn(hwnd,LV_VIEW,5,col_size/4);
+      redimColumn(hwnd,LV_VIEW,0,col_size/6);
+      redimColumn(hwnd,LV_VIEW,1,col_size/6);
+      redimColumn(hwnd,LV_VIEW,3,col_size/6);
+      redimColumn(hwnd,LV_VIEW,4,col_size/6);
+      redimColumn(hwnd,LV_VIEW,6,col_size/6);
+      redimColumn(hwnd,LV_VIEW,7,col_size/6);
 
       InvalidateRect(hwnd, NULL, TRUE);
   }else if (uMsg == WM_COMMAND)
@@ -1281,6 +1313,8 @@ BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
         case POPUP_LV_CP_COL4:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),3);break;
         case POPUP_LV_CP_COL5:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),4);break;
         case POPUP_LV_CP_COL6:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),5);break;
+        case POPUP_LV_CP_COL7:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),6);break;
+        case POPUP_LV_CP_COL8:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),7);break;
       }
     }
   }else if (uMsg == WM_CONTEXTMENU)TraiterPopupSave(wParam, lParam, hwnd,LV_CONFIGURATION_NB_COL);
@@ -1477,6 +1511,7 @@ BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
          SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
          SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
          SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+         SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
       }
     break;
     case WM_INITDIALOG:InitConfig(hwnd); break;

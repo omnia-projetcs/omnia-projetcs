@@ -19,7 +19,7 @@ DWORD EnumADS(char *file, char *resultat, DWORD size)
 
   resultat[0]=0;
 
-  HANDLE Hfic = CreateFile(file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  HANDLE Hfic = CreateFile(file, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if( Hfic == INVALID_HANDLE_VALUE )return 0;
 
   while(1)
@@ -97,7 +97,7 @@ void FileToMd5(char *path, char *md5)
 {
   //ouverture du fichier en lecture partagé
   md5[0]=0;
-  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic != INVALID_HANDLE_VALUE)
   {
     DWORD taille_fic = GetFileSize(Hfic,NULL);
@@ -344,7 +344,7 @@ void TypeFile(char *cFileName,char *result)
   for (i=0;i<nb_ext_lnk;i++){if (!strcmp(ext_link[i].ext,myext)){strcpy(result,"Link\0");return;}}
   for (i=0;i<nb_ext_compresse;i++){if (!strcmp(ext_compresse[i].ext,myext)){strcpy(result,"Compresse\0");return;}}
   for (i=0;i<nb_ext_web;i++){if (!strcmp(ext_web[i].ext,myext)){strcpy(result,"Web\0");return;}}
-  for (i=0;i<nb_ext_configuration;i++){if (!strcmp(ext_configurationr[i].ext,myext)){strcpy(result,"Configuration\0");return;}}
+  for (i=0;i<nb_ext_configuration;i++){if (!strcmp(ext_configurationr[i].ext,myext)){strcpy(result,"Settings\0");return;}}
   for (i=0;i<nb_ext_bdd;i++){if (!strcmp(ext_bdd[i].ext,myext)){strcpy(result,"BDD\0");return;}}
   for (i=0;i<nb_ext_audit;i++){if (!strcmp(ext_audit[i].ext,myext)){strcpy(result,"Audit\0");return;}}
 }
@@ -477,10 +477,14 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL ntfs, char *
           }
           else lv_line[15].c[0]=0;
 
+          lv_line[13].c[0]=0;
+          lv_line[14].c[0]=0;
           File_info((LPVOID)AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]));
 
           //on traite les autres répertoires
           strncat(Rep,"*.*\0",MAX_PATH);
+
+
           Scan_files_Rep(Rep, hlv, hitem, ntfs,filesys,lv_line);
           SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)hitem);
         }else // un fichier
@@ -623,6 +627,35 @@ DWORD WINAPI Scan_files(LPVOID lParam)
         strncat(tmp,"*.*\0",MAX_PATH);
 
         hitem = AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,lettre,TVI_ROOT,ICON_FILE_DOSSIER);
+
+        //si une arborescence, on crée l'arborescence ^^
+        if (tmp[3]!=0)
+        {
+          char path[MAX_PATH];
+          unsigned int s = strlen(tmp),i=3,j;
+          do
+          {
+            strcpy(path,tmp+i);
+            if (path[0]=='\\' || (path[0]=='*' && path[1]=='.' && path[2]=='*'))break;
+
+            //traitement des données
+            //copy du chemin et ajout dans le treeview
+            j=0;
+            while(path[j]!=0 && path[j]!='\\')j++;
+            if (path[j]=='\\')
+            {
+              path[j]=0;
+              hitem = AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,path,hitem,ICON_FILE_DOSSIER);
+            }else
+            {
+              path[j]=0;
+              hitem = AjouterItemTreeViewFile(Tabl[TABL_FILES], TV_VIEW,path,hitem,ICON_FILE_DOSSIER);
+              break;
+            }
+            i+=j+1;
+          }while (i<s);
+        }
+
         LINE_ITEM lv_line[NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]];
         Scan_files_Rep(tmp, hlv, hitem, bACL, FileSysName,lv_line);
         SendDlgItemMessage(Tabl[TABL_FILES],TV_VIEW, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)hitem);

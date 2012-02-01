@@ -260,7 +260,7 @@
 1320764295 source:z:\svn_omnia\rtca\clean.c
 	"resource.h"
 
-1326103989 z:\svn_omnia\rtca\resource.h
+1327843331 z:\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -293,13 +293,13 @@
 
 1320764295 z:\svn_omnia\rtca\d3des.h
 
-1325187547 source:z:\svn_omnia\rtca\export.c
+1326229962 source:z:\svn_omnia\rtca\export.c
 	"resource.h"
 
 1326058633 source:z:\svn_omnia\rtca\local_user_extract.c
 	"resource.h"
 
-1326105245 source:z:\svn_omnia\rtca\main.c
+1327835150 source:z:\svn_omnia\rtca\main.c
 	"resource.h"
 
 1320764295 source:z:\svn_omnia\rtca\md5.c
@@ -321,47 +321,47 @@
 
 1320764295 z:\svn_omnia\rtca\md32_common.h
 
-1326105301 source:z:\svn_omnia\rtca\proc.c
+1327853166 source:z:\svn_omnia\rtca\proc.c
 	"resource.h"
 
-1326102914 source:z:\svn_omnia\rtca\proc_files.c
+1327843784 source:z:\svn_omnia\rtca\proc_files.c
 	"resource.h"
 
 1326061036 source:z:\svn_omnia\rtca\proc_logs.c
 	"resource.h"
 
-1325191699 source:z:\svn_omnia\rtca\proc_logs_evt.c
+1327137369 source:z:\svn_omnia\rtca\proc_logs_evt.c
 	"resource.h"
 
-1325248073 source:z:\svn_omnia\rtca\proc_logs_evtx.c
+1327137369 source:z:\svn_omnia\rtca\proc_logs_evtx.c
 	"resource.h"
 
-1325182168 source:z:\svn_omnia\rtca\proc_logs_log.c
+1327137369 source:z:\svn_omnia\rtca\proc_logs_log.c
 	"resource.h"
 
-1325962055 source:z:\svn_omnia\rtca\proc_process.c
+1327137338 source:z:\svn_omnia\rtca\proc_process.c
 	"resource.h"
 
-1326100371 source:z:\svn_omnia\rtca\proc_registry.c
+1327843780 source:z:\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 
-1320764295 source:z:\svn_omnia\rtca\proc_registry_wce_bin.c
+1327137370 source:z:\svn_omnia\rtca\proc_registry_wce_bin.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\proc_registry_bin.c
+1327137369 source:z:\svn_omnia\rtca\proc_registry_bin.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\proc_registry_bin2.c
+1327137369 source:z:\svn_omnia\rtca\proc_registry_bin2.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\proc_registry_files.c
+1327137370 source:z:\svn_omnia\rtca\proc_registry_files.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\proc_registry_guide.c
+1327137370 source:z:\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 
-1326100684 source:z:\svn_omnia\rtca\proc_registry_search.c
+1327843778 source:z:\svn_omnia\rtca\proc_registry_search.c
 	"resource.h"
 
 1320764295 source:z:\svn_omnia\rtca\rc4_enc.c
@@ -371,12 +371,69 @@
 	"rc4.h"
 	"opensslv.h"
 
-1326103872 source:z:\svn_omnia\rtca\resource.rc
+1327843902 source:z:\svn_omnia\rtca\resource.rc
 	"resource.h"
 
-1325962086 source:z:\svn_omnia\rtca\proc_configuration.c
+1327843793 source:z:\svn_omnia\rtca\proc_configuration.c
 	"resource.h"
 
 1325965322 source:z:\svn_omnia\rtca\proc_state.c
 	"resource.h"
+
+1327873051 source:z:\svn_omnia\rtca\proc_configuration_firefox.c
+	"resource.h"
+	"sqlite3.h"
+
+1327843785 source:z:\svn_omnia\rtca\proc_configuration_ie.c
+	"resource.h"
+
+1326722694 source:z:\svn_omnia\rtca\sqlite3.c
+	"config.h"
+	<stdint.h>
+	<inttypes.h>
+	<tcl.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<stddef.h>
+	<windows.h>
+	<os2safe.h>
+	<os2.h>
+	<uconv.h>
+	<ctype.h>
+	<time.h>
+	<sys/sysctl.h>
+	<malloc/malloc.h>
+	<libkern/OSAtomic.h>
+	<malloc.h>
+	<pthread.h>
+	<math.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<fcntl.h>
+	<unistd.h>
+	<sys/time.h>
+	<errno.h>
+	<sys/mman.h>
+	<sys/ioctl.h>
+	<semaphore.h>
+	<limits.h>
+	<sys/file.h>
+	<sys/param.h>
+	<sys/mount.h>
+	<utime.h>
+	<dlfcn.h>
+	<sys/cygwin.h>
+	"sqlite3rtree.h"
+	<unicode/utypes.h>
+	<unicode/uregex.h>
+	<unicode/ustring.h>
+	<unicode/ucol.h>
+	<unicode/ubrk.h>
+	<unicode/utf16.h>
+
+1326722694 z:\svn_omnia\rtca\sqlite3.h
+	<stdarg.h>
 

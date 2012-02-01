@@ -335,7 +335,7 @@ DWORD Traiter_RegBin_nk(char *fic, DWORD position, DWORD taille_fic, char *buffe
 void AnalyseFichierRegBin2(char *fic)
 {
   //ouverture du fichier
-  HANDLE Hfic = CreateFile(fic,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hfic = CreateFile(fic,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic == INVALID_HANDLE_VALUE)
   {
     SB_add_T(TABL_CONF-1, "REG : File access error");

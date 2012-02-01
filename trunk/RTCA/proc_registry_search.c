@@ -977,7 +977,11 @@ void FiltreRegData(LINE_ITEM *item)
   AddToLV_Registry(item);
 
   //Path sans quitter (spécial)
-  if (!strcmp(item[2].c,"Path") || !strcmp(item[2].c,"InstallerLocation") || !strcmp(item[2].c,"Installation Sources") || Contient(item[1].c,"Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders"))
+  if (!strcmp(item[2].c,"Path")
+      || !strcmp(item[2].c,"InstallerLocation")
+      || !strcmp(item[2].c,"Installation Sources")
+      || Contient(item[1].c,"Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders")
+      || Contient(item[1].c,"Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders"))
   {
     AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH), item, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
   }
@@ -985,6 +989,12 @@ void FiltreRegData(LINE_ITEM *item)
   {
     AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH), item, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
   }
+  if (item[2].c != 0 && (Contient(item[1].c,"HKEY_CURRENT_USER\\Environment")))
+  {
+    AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH), item, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
+  }
+
+
 
   //Autoruns
   for (i=0;i<NB_MAX_REF_SEARCH_AUTORUN;i++)
@@ -1012,7 +1022,7 @@ void FiltreRegData(LINE_ITEM *item)
     }
   }
 
-  //Configuration
+  //Settings
   if (item[3].c[0]!=0)
   {
     for (i=0;i<NB_MAX_REF_SEARCH_CONF;i++)
@@ -1688,7 +1698,7 @@ void FiltreRegData(LINE_ITEM *item)
     test_ok = FALSE;
 
     char tmp_GUID[50];
-    snprintf(tmp_GUID,"%s",&(item[1].c[strlen(item[1].c)-37]));
+    snprintf(tmp_GUID,50,"%s",&(item[1].c[strlen(item[1].c)-37]));
 
     for (l=0;l<k;l++)
     {
@@ -2109,6 +2119,13 @@ void FiltreRegData(LINE_ITEM *item)
   {
     hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU);
     strcpy(item[4].c,"Last open registry key");
+    AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
+    return;
+  }
+  if (Contient(item[1].c,"Installer\\Products\\") && (!strcmp(item[2].c,"PackageName") || !strcmp(item[2].c,"LastUsedSource")))
+  {
+    hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU);
+    strcpy(item[4].c,"Install history (name/source)");
     AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_MRU_NB_COL]);
     return;
   }

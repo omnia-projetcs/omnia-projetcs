@@ -22,7 +22,7 @@ void SupChar(char*src,char*dst, char separateur,unsigned int size)
 void AnalyseFichierReg(char *fic)
 {
   //ouverture du fichier
-  HANDLE Hfic = CreateFile(fic,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hfic = CreateFile(fic,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic == INVALID_HANDLE_VALUE)return;
 
   //taille du fichier
