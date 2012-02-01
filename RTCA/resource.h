@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.1.24 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.2.0 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -140,11 +140,15 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_TRV_CONF_M     10007
 #define POPUP_TRV_CONF_OFP   10008
 #define POPUP_TRV_CONF_EXPORT_LIST_FILES  10010
+#define POPUP_TRV_MV_LOGS    10011
+#define POPUP_TRV_MV_REGISTRY 10012
+#define POPUP_TRV_MV_CONF    10013
 
 #define POPUP_BACKUP         10020
 #define POPUP_REG_CHECK      10021
 #define POPUP_CLEAN_REGISTRY 10022
 #define POPUP_CLEAN_LOGS     10023
+#define POPUP_BACKUP_LOGS    10024
 
 //popup règles REG
 #define POPUP_POL_REG        10100
@@ -219,6 +223,7 @@ BOOL TV_FILES_VISBLE;
 #define SB_ONGLET_LOGS           1
 #define SB_ONGLET_FILES          2
 #define SB_ONGLET_REGISTRY       3
+#define SB_ONGLET_CONF           4
 
 #define NB_TABL                  9
 #define TABL_MAIN                0
@@ -263,10 +268,11 @@ unsigned int TABL_ID_STATE_VISIBLE;
 #define LV_CONFIGURATION_NB_COL      24
 unsigned int NB_COLONNE_LV[LV_NB];
 
-#define TRV_CATEGORIES          3
+#define TRV_CATEGORIES          4
 #define TRV_LOGS                0
 #define TRV_FILES               1
 #define TRV_REGISTRY            2
+#define TRV_CONF                3
 HTREEITEM TRV_HTREEITEM [TRV_CATEGORIES];
 //------------------------------------------------------------------------------
 //structure pour les recherches de fichiers/ext...
@@ -745,6 +751,7 @@ int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 void c_Tri(HANDLE hListView, unsigned short colonne_ref);
 
 //fonctions de traitement
+unsigned int CharToInt(char c);
 void GetACLS(char *file, char *acls, unsigned int res_taille_max, char* proprio, unsigned int prop_taille_max);
 void GetMyDirectory(char *path, unsigned int TAILLE);
 BOOL Compare(char*src,char*dst);
@@ -814,6 +821,7 @@ void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 void OpenTVRegistryPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem);
 
 //registre
+int LireValeur(HKEY ENTETE,char *chemin,char *nom,char *val,unsigned int taille_max);
 void LireKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
 int LireGValeur(HKEY ENTETE,char *chemin,char *nom,char *Valeur);
 void OpenRegeditKey(char *key);
@@ -831,6 +839,8 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column);
 
 //fonction d'extractions syskey + hash
 DWORD WINAPI BackupRegFile(LPVOID lParam);
+DWORD WINAPI BackupEvtFile(LPVOID lParam);
+
 char HexaToDecS(char *hexa);
 int TraiterUserDataFromSAM_V(LINE_ITEM *item);
 void TraiterUserDataFromSAM_F(LINE_ITEM *item);
@@ -846,6 +856,23 @@ BOOL EventIdtoDscr(unsigned int eventId, char *source, char *result, unsigned sh
 void TraiterlogFile(char *path, HANDLE hlv);
 void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv);
 void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv);
+
+//fichiers
+void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search, HTREEITEM hitem);
+
+//configuration
+void AddToLVConf(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
+void EnumRegToConfValues(HKEY hkey, char *chkey, char *path, char *source, char *type, char *desc, HANDLE hlv);
+void LireValueRegToConf(HKEY hkey, char *chkey, char *path, char *value, char *source, char *type, char *desc, HANDLE hlv);
+
+//configuration IE
+void ReadDATFile(char *file, HANDLE hlv, char *description);
+void Enum_IE_conf(HANDLE hlv);
+//configuration Firefox
+void OpenSQLite(HANDLE hlv, char *file, DWORD);
+
+
+
 
 //clean
 void clean_registry();

@@ -5,6 +5,73 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "resource.h"
+
+//------------------------------------------------------------------------------
+void CopyFileFromTo(char *from, char *to, unsigned int ext_size)
+{
+  //énumération des fichier
+  WIN32_FIND_DATA data;
+  char src[MAX_PATH], dst[MAX_PATH];
+  HANDLE hfic = FindFirstFile(from, &data);
+  if (hfic != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      strcpy(src,from);
+      src[strlen(src)-ext_size] =0;
+      strncat(src,data.cFileName,MAX_PATH);
+
+      snprintf(dst,MAX_PATH,"%s%s",to,data.cFileName);
+
+      //copy
+      CopyFile(src,dst,FALSE);
+    }while(FindNextFile (hfic,&data));
+  }
+}
+//------------------------------------------------------------------------------
+DWORD WINAPI BackupEvtFile(LPVOID lParam)
+{
+  //choix du répertoire de destination ^^
+  BROWSEINFO browser;
+  LPITEMIDLIST lip;
+  char tmp[MAX_PATH+1]="";
+  char path[MAX_PATH]="", path2[MAX_PATH]="";
+  browser.hwndOwner = Tabl[TABL_MAIN];;
+  browser.pidlRoot = 0;
+  browser.lpfn = 0;
+  browser.iImage = 0;
+  browser.ulFlags = BIF_NEWDIALOGSTYLE; //permet la création d'un dossier
+  browser.lParam = 0;
+  browser.pszDisplayName = tmp;  //résultat ici
+  browser.lpszTitle = "Directory to save :";
+  lip = SHBrowseForFolder(&browser);
+  if (lip != NULL)
+  {
+    SHGetPathFromIDList(lip,tmp);
+    if (strlen(tmp)>0)
+    {
+      //récupération du chemin du système
+      if(LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\","SystemRoot",path))
+      {
+        if (path[0]!=0)
+        {
+          strncat(tmp,"\\\0",MAX_PATH);
+
+          //on copie les fichier evt
+          snprintf(path2,MAX_PATH,"%s\\system32\\config\\*.evt",path);
+          CopyFileFromTo(path2, tmp, 5);
+
+          //le fichiers evtx
+          snprintf(path2,MAX_PATH,"%s\\system32\\winevt\\Logs\\*.evtx",path);
+          CopyFileFromTo(path2, tmp, 6);
+        }
+      }
+      MessageBox(0,tmp,"Done - Event file copy to:",MB_OK|MB_TOPMOST);
+    }
+  }
+  return 0;
+}
+
 //------------------------------------------------------------------------------
 DWORD WINAPI BackupRegFile(LPVOID lParam)
 {

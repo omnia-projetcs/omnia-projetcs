@@ -11,7 +11,7 @@
 void TraiterlogFile(char *path, HANDLE hlv)
 {
   //ouverture du fichier
-  HANDLE Hlog = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hlog = CreateFile(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //lecture du contenu

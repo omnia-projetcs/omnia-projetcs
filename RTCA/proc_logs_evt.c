@@ -11,7 +11,7 @@
 void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
 {
   //ouverture du fichier en lecture partagé
-  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //test de la taille

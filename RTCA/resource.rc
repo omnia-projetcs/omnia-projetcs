@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,1,24
-PRODUCTVERSION 0,0,1,24
+FILEVERSION 0,0,2,00
+PRODUCTVERSION 0,0,2,00
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.1.24\0"
-      VALUE "ProductVersion", "0.0.1.24\0"
+      VALUE "FileVersion", "0.0.2.00\0"
+      VALUE "ProductVersion", "0.0.2.00\0"
     END
   END
 END
@@ -40,11 +40,11 @@ FONT 8,"Arial",0,0
 STYLE 0x10CF0800
 EXSTYLE WS_EX_ACCEPTFILES
 BEGIN
-  CONTROL "Options"       ,BT_MAIN_CONF         ,"Button",0x5001800B| WS_TABSTOP,2,1,50,17
+  CONTROL "Settings"      ,BT_MAIN_CONF         ,"Button",0x5001800B| WS_TABSTOP,2,1,50,17
   CONTROL "Audit logs"    ,BT_MAIN_LOGS         ,"Button",0x5001800B| WS_TABSTOP,65,1,50,17
   CONTROL "Files"         ,BT_MAIN_FILES        ,"Button",0x5001800B| WS_TABSTOP,117,1,50,17
   CONTROL "Registry/AD"   ,BT_MAIN_REGISTRY     ,"Button",0x5001800B| WS_TABSTOP,169,1,50,17
-  CONTROL "Configuration" ,BT_MAIN_CONFIGURATION,"Button",0x5001800B| WS_TABSTOP,221,1,50,17
+  CONTROL "Applications" ,BT_MAIN_CONFIGURATION,"Button",0x5001800B| WS_TABSTOP,221,1,50,17
   CONTROL "State"         ,BT_MAIN_STATE        ,"Button",0x5001800B| WS_TABSTOP,273,1,50,17
 
   CONTROL "Process"       ,BT_MAIN_PROCESS      ,"Button",0x5001800B| WS_TABSTOP,336,1,50,17
@@ -64,10 +64,10 @@ BEGIN
   CONTROL "Setup"         ,GRP_CONF_CONF        ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
   CONTROL "Stay on top"   ,CHK_CONF_TOP         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
-  CONTROL "Dump local registry (slow)"           ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Dump local registry (slow)"          ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Registry recovery mode"              ,CHK_CONF_REG_FILE_RECOVERY        ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable software configuration"       ,CHK_CONF_CONFIGURATION            ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
-  CONTROL "Enable state (slow)"                  ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Enable state (slow)"                 ,CHK_CONF_ENABLE_STATE             ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ACL check"                    ,CHK_CONF_NO_ACL                   ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable file type check"              ,CHK_CONF_NO_TYPE                  ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Enable ADS search"                   ,CHK_CONF_ADS                      ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
@@ -159,12 +159,18 @@ END
 //------------------------------------------------------------------------------
 POPUP_TRV_CONF MENU DISCARDABLE
 BEGIN
-  POPUP "Configuration"
+  POPUP "Applications"
     BEGIN
     POPUP "Add"
     BEGIN
       MENUITEM "Add file"     ,POPUP_TRV_CONF_ADD_FILE
       MENUITEM "Add path"     ,POPUP_TRV_CONF_ADD_PATH
+    END
+    POPUP "Move item to..."
+    BEGIN
+      MENUITEM "Audit logs"         ,POPUP_TRV_MV_LOGS
+      MENUITEM "Registry files"     ,POPUP_TRV_MV_REGISTRY
+      MENUITEM "Applications files" ,POPUP_TRV_MV_CONF
     END
     MENUITEM "Remove"        ,POPUP_TRV_CONF_REMOVE
     MENUITEM "Clean all"     ,POPUP_TRV_CONF_CLEAN
@@ -179,7 +185,11 @@ BEGIN
     POPUP "Advanced"
     BEGIN
       MENUITEM "Check REG file <-> local configuration" ,POPUP_REG_CHECK
-      MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
+      POPUP "Backup"
+      BEGIN
+        MENUITEM "Backup registry files (include current user)" ,POPUP_BACKUP
+        MENUITEM "Backup event files" ,POPUP_BACKUP_LOGS
+      END
       POPUP "Modify local policy"
       BEGIN
       //http://www.zonewindows.com/astuces-xp-windowsxp.php

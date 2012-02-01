@@ -54,7 +54,7 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
 
     if (GetSaveFileName(&ofn)==TRUE)
     {
-      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+      HANDLE MyhFile = CreateFile(path, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
       if (MyhFile != INVALID_HANDLE_VALUE)
       {
         DWORD copiee;

@@ -61,6 +61,12 @@
 		<Unit filename="proc_configuration.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="proc_configuration_Firefox.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_configuration_IE.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="proc_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -113,6 +119,10 @@
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="sqlite3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="sqlite3.h" />
 		<Unit filename="suivie.txt" />
 		<Extensions>
 			<code_completion />

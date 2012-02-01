@@ -148,7 +148,7 @@ DWORD WINAPI csvImport(LPVOID lParam)
       //ouverture du fichier
       char *buffer=NULL;
       DWORD t_taille_fic = 0, i=0, j, k;
-      HANDLE Hsrc = CreateFile(fichier,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+      HANDLE Hsrc = CreateFile(fichier,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
       if (Hsrc != INVALID_HANDLE_VALUE)
       {
         //on récupère le contenu du fichier dans un buffer
@@ -972,19 +972,21 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
           RemoveMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_GRAYED);
           RemoveMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_GRAYED);
           RemoveMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
+          RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
         }else
         {
           ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File/Key");
           ModifyMenu(hmenu,POPUP_LV_CP_COL2,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL2,"Copy : Parameter");
           ModifyMenu(hmenu,POPUP_LV_CP_COL3,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL3,"Copy : Data");
-          ModifyMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL4,"Copy : Type");
-          ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Description");
-          ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Late update");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL4,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL4,"Copy : Source");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL5,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL5,"Copy : Type");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Description");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL7,"Copy : Create time");
+          ModifyMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL8,"Copy : Laste update");
         }
 
         RemoveMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_GRAYED);
-        RemoveMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_GRAYED);
-        RemoveMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
@@ -1414,7 +1416,7 @@ void MultiFileTypeSearc(char *path,SEARCH_C*ext,DWORD nb_search,HTREEITEM hparen
   FindClose(hfic);
 }
 //------------------------------------------------------------------------------
-void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search)
+void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search, HTREEITEM hitem)
 {
   WIN32_FIND_DATA data;
   HANDLE hfic = FindFirstFile(path, &data);
@@ -1437,7 +1439,7 @@ void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search)
            //on gère les répertoires fils
            strncat(Rep,data.cFileName,MAX_PATH);
            strncat(Rep,"\\*.*\0",MAX_PATH);
-           MultiFileSearc(Rep, fic,nb_search);
+           MultiFileSearc(Rep, fic,nb_search,hitem);
         }else // un fichier
         {
           for (i=0;i<nb_search;i++)
@@ -1447,7 +1449,7 @@ void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search)
               strcpy(path_final,Rep);
               strncat(path_final,data.cFileName,MAX_PATH);
               strncat(path_final,"\0",MAX_PATH);
-              AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,path_final,TRV_HTREEITEM[TRV_REGISTRY]);
+              AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,path_final,hitem);
               break;
             }
           }
@@ -1494,7 +1496,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
   //liste des lecteurs
   //recherche des différents lecteurs et ajout à la liste si un disque
   char tmp[MAX_PATH], tmp_path[MAX_PATH];
-  int i,j=0,k=0,l=0,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
+  int i,j=0,k=0,l=0,m=0,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
 
   if (nblecteurs>0)
   {
@@ -1537,11 +1539,30 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
     /*strcpy(exts[k++].c,"log");
     strcpy(exts[k++].c,"LOG");*/
 
+    SEARCH_C files_conf[13];
+    //IE
+    strcpy(files_conf[m++].c,"index.dat");
+    //Firefox
+    strcpy(files_conf[m++].c,"content-prefs.sqlite");
+    strcpy(files_conf[m++].c,"addons.sqlite");
+    strcpy(files_conf[m++].c,"extensions.sqlite");
+    strcpy(files_conf[m++].c,"cookies.sqlite");
+    strcpy(files_conf[m++].c,"downloads.sqlite");
+    strcpy(files_conf[m++].c,"formhistory.sqlite");
+    strcpy(files_conf[m++].c,"places.sqlite");
+    strcpy(files_conf[m++].c,"signons.sqlite");
+    //chrome
+    strcpy(files_conf[m++].c,"Archived History");
+    strcpy(files_conf[m++].c,"History");
+    strcpy(files_conf[m++].c,"Cookies");
+    strcpy(files_conf[m++].c,"Web Data");
+
     //init du treeview
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
     TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
     TRV_HTREEITEM[TRV_FILES] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Files path",TVI_ROOT);
     TRV_HTREEITEM[TRV_REGISTRY] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Registry files",TVI_ROOT);
+    TRV_HTREEITEM[TRV_CONF] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Applications files",TVI_ROOT);
 
     //recherche
     for (i=0;i<nblecteurs;i+=4)
@@ -1563,7 +1584,10 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
           MultiFileTypeSearc(tmp_path,exts,k,TRV_HTREEITEM[TRV_LOGS]);
           MultiFileTypeSearc(tmp_path,exts_reg,l,TRV_HTREEITEM[TRV_REGISTRY]);
           //fichiers de base de registre
-          MultiFileSearc(tmp_path,files,j);
+          MultiFileSearc(tmp_path,files,j,TRV_HTREEITEM[TRV_REGISTRY]);
+
+          //configuration
+          MultiFileSearc(tmp_path,files_conf,m,TRV_HTREEITEM[TRV_CONF]);
         break;
       }
     }
@@ -1571,15 +1595,18 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+    SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
 
     SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_FILES]);
     SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_LOGS]);
     SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_REGISTRY]);
+    SupDoublon(Tabl[TABL_CONF],TRV_CONF_TESTS,TRV_HTREEITEM[TRV_CONF]);
 
     //on affihe les résultats
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+    SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
   }
 
   AutoSearchFilesStart = FALSE;
@@ -1591,10 +1618,17 @@ void FileToTreeView(char *c_path)
   unsigned short i, size = strlen(c_path);
   if (size >3)
   {
-   if (c_path[size-4] == '.')
+   if (c_path[size-3] == '.')//db
+   {
+     if ((c_path[size-2] == 'd' || c_path[size-2] == 'D') && (c_path[size-1] == 'b' || c_path[size-1] == 'B'))
+     {
+        AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_CONF]);
+        CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION,BST_CHECKED);
+     }
+   }else if (c_path[size-4] == '.')
    {
      //si un fichier de base de registre
-     if (((c_path[size-3] == 'd' || c_path[size-3] == 'D') && (c_path[size-2] == 'a' || c_path[size-2] == 'A') && (c_path[size-1] == 't' || c_path[size-1] == 'T')) ||
+     if (((c_path[size-3] == 'd' || c_path[size-3] == 'D') && (c_path[size-2] == 'a' || c_path[size-2] == 'A') && (c_path[size-1] == 't' || c_path[size-1] == 'T') && (c_path[size-5] != 'x' && c_path[size-5] != 'X')) ||
          ((c_path[size-3] == 's' || c_path[size-3] == 'S') && (c_path[size-2] == 'a' || c_path[size-2] == 'A') && (c_path[size-1] == 'v' || c_path[size-1] == 'V')) ||
          ((c_path[size-3] == 'r' || c_path[size-3] == 'R') && (c_path[size-2] == 'e' || c_path[size-2] == 'E') && (c_path[size-1] == 'g' || c_path[size-1] == 'G')))
       {
@@ -1603,10 +1637,15 @@ void FileToTreeView(char *c_path)
     //sinon des journaux d'audit
      }else if (((c_path[size-3] == 'l' || c_path[size-3] == 'L') && (c_path[size-2] == 'o' || c_path[size-2] == 'O') && (c_path[size-1] == 'g' || c_path[size-1] == 'G')) ||
          ((c_path[size-3] == 'e' || c_path[size-3] == 'E') && (c_path[size-2] == 'v' || c_path[size-2] == 'V') && (c_path[size-1] == 't' || c_path[size-1] == 'T')))
-      {
+     {
         AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_LOGS]);
         CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_LOGS,BST_CHECKED);
-      }
+     }else if ((c_path[size-3] == 'd' || c_path[size-3] == 'D') && (c_path[size-2] == 'a' || c_path[size-2] == 'A') && (c_path[size-1] == 't' || c_path[size-1] == 'T') && (c_path[size-5] == 'x' || c_path[size-5] == 'X'))
+     {
+       //file index.dat
+        AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_CONF]);
+        CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION,BST_CHECKED);
+     }
      return;
    }else if (size > 5)
    {
@@ -1616,11 +1655,16 @@ void FileToTreeView(char *c_path)
        AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_LOGS]);
        CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_LOGS,BST_CHECKED);
        return;
-     }else if ((c_path[size-3] == '.') && (c_path[size-2] == 'h' || c_path[size-2] == 'H') && (c_path[size-1] == 'v' || c_path[size-1] == 'V'))
+     }/*else if ((c_path[size-3] == '.') && (c_path[size-2] == 'h' || c_path[size-2] == 'H') && (c_path[size-1] == 'v' || c_path[size-1] == 'V'))
      {
        //registry WIN_CE !!!
         AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_REGISTRY]);
         CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_REGISTRY,BST_CHECKED);
+     }*/else if ((c_path[size-7] == '.') && (c_path[size-6] == 's' || c_path[size-6] == 'S') && (c_path[size-5] == 'q' || c_path[size-5] == 'Q'))
+     {
+       //sqlite : Firefox/chrome
+        AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,c_path,TRV_HTREEITEM[TRV_CONF]);
+        CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION,BST_CHECKED);
      }
    }
 
@@ -1654,14 +1698,19 @@ void AddFile()
   ofn.hwndOwner = Tabl[TABL_MAIN];
   ofn.lpstrFile = tmp;
   ofn.nMaxFile = MAX_PATH;
-  ofn.lpstrFilter ="All files (*.*)\0*.*\0Audit (*.evt)\0*.evt\0Audit (*.evtx)\0*.evtx\0Audit (*.log)\0*.log\0Registry (*.reg)\0*.reg\0Registry (*.dat)\0*.dat\0Registry (*.sav)\0*.sav\0Registry (*)\0*.hv\0Windows CE registry (*.hv)\0*\0Directory (*)\0*\0";
+  ofn.lpstrFilter ="All files (*.*)\0*.*\0Audit (*.evt)\0*.evt\0Audit (*.evtx)\0*.evtx\0Audit (*.log)\0*.log\0"
+                   "Registry (*.reg)\0*.reg\0Registry (*.dat)\0*.dat\0Registry (*.sav)\0*.sav\0Registry (*)\0*\0"
+                   "IE History (*index.dat)\0*.dat\0"
+                   "Firefox/Chrome History (*.sqlite)\0*.sqlite\0"
+                   "Android sqlite conf (*.db\0*.db\0"
+                   "Directory (*)\0*\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST| OFN_ALLOWMULTISELECT | OFN_EXPLORER;
   ofn.lpstrDefExt ="*.*\0";
 
   if (GetOpenFileName(&ofn)==TRUE)
   {
-    if (ofn.nFileOffset > 0)
+    if (tmp[0] != 0)//ofn.nFileOffset > 0)
     {
       //on test si un seul ou plusieurs
       if (tmp[strlen(tmp)+1]==0) //si un seul 2 0 après
@@ -1688,7 +1737,11 @@ void AddFile()
       SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
       SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_LOGS]);
       SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
-      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TVI_ROOT);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_CONF]);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TRV_HTREEITEM[TRV_FILES]);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TRV_HTREEITEM[TRV_LOGS]);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TRV_HTREEITEM[TRV_REGISTRY]);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TRV_HTREEITEM[TRV_CONF]);
     }
   }
 }
@@ -1724,6 +1777,7 @@ void AddRep()
           CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_FILES,BST_CHECKED);
       }
       SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM[TRV_FILES]);
+      SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_SORTCHILDREN,(WPARAM)TRUE, (LPARAM)TRV_HTREEITEM[TRV_FILES]);
     }
   }
 }
@@ -1938,7 +1992,7 @@ void InitConfig(HWND hwnd)
 
   //initialisation des combobox
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"All");
-  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Configuration");
+  SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Settings");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Software");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Update/Packages");
   SendDlgItemMessage(Tabl[TABL_REGISTRY],CB_REGISTRY_VIEW, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"Service/Driver");
@@ -2431,20 +2485,26 @@ void InitConfig(HWND hwnd)
   lvc.pszText = "Data"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
   lvc.cx = 60;       //taille colonne
-  lvc.pszText = "Type"; //texte de la colonne
+  lvc.pszText = "Source"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
+  lvc.cx = 60;       //taille colonne
+  lvc.pszText = "Type"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "Description"; //texte de la colonne
-  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
-  lvc.pszText = "Last update"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)5, (LPARAM)&lvc);
+  lvc.pszText = "Create time"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)6, (LPARAM)&lvc);
+  lvc.pszText = "Last update/Parent key update"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_INSERTCOLUMN,(WPARAM)7, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_CONFIGURATION],LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_CONFIGURATION_NB_COL] = 6;
+  NB_COLONNE_LV[LV_CONFIGURATION_NB_COL] = 8;
 
   //treeview
   TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
   TRV_HTREEITEM[TRV_FILES] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Files path",TVI_ROOT);
   TRV_HTREEITEM[TRV_REGISTRY] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Registry files",TVI_ROOT);
+  TRV_HTREEITEM[TRV_CONF] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Applications files",TVI_ROOT);
 
   ShowWindow(GetDlgItem(Tabl[TABL_REGISTRY],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW), SW_SHOW);
