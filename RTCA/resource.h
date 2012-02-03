@@ -19,7 +19,7 @@
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.2.0 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.2.76 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -285,6 +285,7 @@ HFONT PoliceGras; //bouton en gras !
 long int pos_search_logs;
 long int pos_search_files;
 long int pos_search_registry;
+long int pos_search_conf;
 //------------------------------------------------------------------------------
 //pour le tri de colonne
 typedef struct stri
@@ -861,6 +862,7 @@ void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv);
 void MultiFileSearc(char *path, SEARCH_C*fic,DWORD nb_search, HTREEITEM hitem);
 
 //configuration
+void ConvertWA(char *tmp);
 void AddToLVConf(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 void EnumRegToConfValues(HKEY hkey, char *chkey, char *path, char *source, char *type, char *desc, HANDLE hlv);
 void LireValueRegToConf(HKEY hkey, char *chkey, char *path, char *value, char *source, char *type, char *desc, HANDLE hlv);
@@ -870,9 +872,6 @@ void ReadDATFile(char *file, HANDLE hlv, char *description);
 void Enum_IE_conf(HANDLE hlv);
 //configuration Firefox
 void OpenSQLite(HANDLE hlv, char *file, DWORD);
-
-
-
 
 //clean
 void clean_registry();

@@ -6,6 +6,39 @@
 //------------------------------------------------------------------------------
 #include "resource.h"
 //------------------------------------------------------------------------------
+//convert WILD caractères to ANSI
+void ConvertWA(char *tmp)
+{
+  unsigned int i,j,s = strlen(tmp);
+  for (i=0,j=0;i<s;i++,j++)
+  {
+    if ((tmp[i] & 0xff) == 0xC3)
+    {
+           if ((tmp[i+1] & 0xff) == 0xA0){tmp[j]='à';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xA2){tmp[j]='â';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xA4){tmp[j]='ä';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xA8){tmp[j]='è';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xA9){tmp[j]='é';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xAA){tmp[j]='ê';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xAB){tmp[j]='ë';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xAE){tmp[j]='î';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xAF){tmp[j]='ï';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xB4){tmp[j]='ô';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xB6){tmp[j]='ö';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xB9){tmp[j]='ù';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xBB){tmp[j]='û';i++;}
+      else if ((tmp[i+1] & 0xff) == 0xA7){tmp[j]='ç';i++;}
+      else j--;
+    }else if ((tmp[i] & 0xff) == 0xC2)
+    {
+      if ((tmp[i+1] & 0xff) == 0xA9){tmp[j]='ç';i++;}
+      else j--;
+    }else if ((tmp[i] & 0xff) < 0x20 || (tmp[i] & 0xff) > 0x7E)j--;
+    else tmp[j]=tmp[i];
+  }
+  tmp[j]=0;
+}
+//------------------------------------------------------------------------------
 void FiltreConfData(LINE_ITEM *item)
 {
   if (!State_Enable)return;

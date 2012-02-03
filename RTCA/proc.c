@@ -337,6 +337,11 @@ DWORD WINAPI Scan(LPVOID lParam)
   secret_c[0]=0;
 
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOCAL)==BST_CHECKED)  local     = TRUE;
+  else
+  {
+    //test local si par défaut aucun item et pas local lors du start
+    if (SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) == 4)local = TRUE;
+  }
 
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOGS)           ==BST_CHECKED)h_scan_logs           = CreateThread(NULL,0,Scan_logs,(LPVOID)local,0,0);
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_FILES)          ==BST_CHECKED)h_scan_files          = CreateThread(NULL,0,Scan_files,(LPVOID)local,0,0);
@@ -1496,7 +1501,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
   //liste des lecteurs
   //recherche des différents lecteurs et ajout à la liste si un disque
   char tmp[MAX_PATH], tmp_path[MAX_PATH];
-  int i,j=0,k=0,l=0,m=0,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
+  int i,j=0,k=0,l=0,m=0,n=0,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
 
   if (nblecteurs>0)
   {
@@ -1557,6 +1562,10 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
     strcpy(files_conf[m++].c,"Cookies");
     strcpy(files_conf[m++].c,"Web Data");
 
+    SEARCH_C exts_conf[2];
+    strcpy(exts_conf[n++].c,"sqlite\0");
+    strcpy(exts_conf[n++].c,"db\0");
+
     //init du treeview
     SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
     TRV_HTREEITEM[TRV_LOGS] = AjouterItemTreeView(Tabl[TABL_CONF], TRV_CONF_TESTS,"Audit logs",TVI_ROOT);
@@ -1588,6 +1597,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
 
           //configuration
           MultiFileSearc(tmp_path,files_conf,m,TRV_HTREEITEM[TRV_CONF]);
+          MultiFileTypeSearc(tmp_path,exts_conf,n,TRV_HTREEITEM[TRV_CONF]);
         break;
       }
     }
