@@ -1279,7 +1279,9 @@ BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
   {
       unsigned int mWidth = LOWORD(lParam);  // width of client area
       unsigned int mHeight = HIWORD(lParam);  // width of client area
-      MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-5,TRUE);
+      MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,0,mWidth-10,mHeight-31,TRUE);
+      MoveWindow(GetDlgItem(hwnd,ED_SEARCH),5,mHeight-26,mWidth/4,21,TRUE);
+      MoveWindow(GetDlgItem(hwnd,BT_VIEW_SEARCH),mWidth/4+10,mHeight-26,100,21,TRUE);
 
       //redimmensionnement des colonnes
       unsigned int col_size = (mWidth-40)/3;
@@ -1306,6 +1308,21 @@ BOOL CALLBACK DialogProc_configuration(HWND hwnd, UINT uMsg, WPARAM wParam, LPAR
 
         case POPUP_LV_I_VIEW : CreateThread(NULL,0,csvImport,0,0,0);break;
         case POPUP_LV_C_VIEW : ListView_DeleteAllItems(GetDlgItem(hwnd,LV_VIEW));break;
+
+        case POPUP_LV_AS_VIEW :
+        {
+          char tmp[MAX_PATH];
+          SendDlgItemMessage(hwnd,ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
+          LVAllSearch(GetDlgItem(hwnd,LV_VIEW), NB_COLONNE_LV[LV_CONFIGURATION_NB_COL], tmp);
+        }
+        break;
+        case BT_VIEW_SEARCH:
+        {
+          char tmp[MAX_PATH];
+          SendDlgItemMessage(hwnd,ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
+          pos_search_conf = LVSearch(GetDlgItem(hwnd,LV_VIEW), NB_COLONNE_LV[LV_CONFIGURATION_NB_COL], tmp, pos_search_conf);
+        }
+        break;
 
         case POPUP_LV_CP_COL1:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0);break;
         case POPUP_LV_CP_COL2:CopyData(GetDlgItem(hwnd,LV_VIEW), SendMessage(GetDlgItem(hwnd,LV_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1);break;

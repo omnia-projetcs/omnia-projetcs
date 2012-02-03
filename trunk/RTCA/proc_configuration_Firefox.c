@@ -42,7 +42,7 @@
 #define SQLITE_TYPE_ANDROID_APP_FAVORIS                 0x00800000
 #define SQLITE_TYPE_ANDROID_APP_CACHE                   0x00800001
 #define SQLITE_TYPE_ANDROID_APP_CACHE_URL               0x00800002
-#define SQLITE_TYPE_ANDROID_APP_MEDIA                   0x00800004
+
 #define SQLITE_TYPE_ANDROID_APP_MAP                     0x00800008
 #define SQLITE_TYPE_ANDROID_APP_MAIL                    0x00800010
 #define SQLITE_TYPE_ANDROID_APP_RSS                     0x00800011
@@ -57,6 +57,9 @@
 #define SQLITE_TYPE_ANDROID_APP_TWEET_CONTACT           0x08000001
 #define SQLITE_TYPE_ANDROID_APP_TWEET_SEARCH            0x08000002
 #define SQLITE_TYPE_ANDROID_APP_TWEET_MP                0x08000004
+#define SQLITE_TYPE_ANDROID_APP_MEDIA                   0x10000000
+#define SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO             0x10000001
+#define SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO             0x10000002
 
 #define SQLITE_TYPE_ALL                                 0xFFFFFFFF
 typedef struct
@@ -66,24 +69,6 @@ typedef struct
   HANDLE hlv;
 }FORMAT_CALBAK_INFO;
 
-/*
-  // The sample buffer contains "©ha®a©te®s" in UTF-8
-    unsigned char buffer[15] = { 0xc2, 0xa9, 0x68, 0x61, 0xc2, 0xae, 0x61, 0xc2, 0xa9, 0x74, 0x65, 0xc2, 0xae, 0x73, 0x00 };
-    // utf8 is the pointer to your UTF-8 string
-    char* utf8 = (char*)buffer;
-    // convert multibyte UTF-8 to wide string UTF-16
-    int length = MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)utf8, -1, NULL, 0);
-    if (length > 0)
-    {
-        wchar_t* wide = new wchar_t[length];
-        MultiByteToWideChar(CP_UTF8, 0, (LPCSTR)utf8, -1, wide, length);
-
-        // convert it to ANSI, use setlocale() to set your locale, if not set
-        size_t convertedChars = 0;
-        char* ansi = new char[length];
-        wcstombs_s(&convertedChars, ansi, length, wide, _TRUNCATE);
-    }
-*/
 //------------------------------------------------------------------------------
 void convertFirefoxDatetoStr(char *fdate, char*resultat, unsigned int size_max)
 {
@@ -122,6 +107,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     //datas
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s) %s",argv[0],argv[1],argv[2],argv[3]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_DOWNLOAD && argc>=5)
   {
@@ -135,6 +121,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     //datas
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
 
   }else if (type == SQLITE_TYPE_FORMHISTORY && argc>=5)
@@ -148,6 +135,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[4], lv_line[7].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (use;%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_PLACES && argc>=4)
   {
@@ -158,6 +146,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[3], lv_line[7].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (use:%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ADDONS && argc>=5)
   {
@@ -166,6 +155,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"name,version,homepageURL,creator,description",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s %s:%s (%s) %s",argv[0],argv[1],argv[2],argv[3],argv[4]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_EXTENSION && argc>=5)
   {
@@ -179,12 +169,14 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[4], lv_line[7].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_PREFS && argc>=2)
   {
     strncpy(lv_line[4].c,"Settings",MAX_LINE_SIZE);
     strncpy(lv_line[1].c,"name,value",MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s=%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_PASSWORD)
   {
@@ -193,6 +185,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     //hostname,formSubmitURL,usernameField,passwordField,encryptedUsername,encryptedPassword,guid,encType
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
 //Chrome
   }else if (type == SQLITE_TYPE_CH_URL_HISTORY && argc>=4)
@@ -205,6 +198,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[3], lv_line[7].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (use:%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_CH_DOWNLOAD && argc>=3)
   {
@@ -217,6 +211,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     //datas
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_CH_COOKIES && argc>=6)
   {
@@ -231,6 +226,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     //datas
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s) %s",argv[0],argv[1],argv[2],argv[3]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_CH_FORM_KEY && argc>=4)
   {
@@ -244,6 +240,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[3], lv_line[7].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_CH_FORM_WD && argc>=3)
   {
@@ -255,6 +252,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[2], lv_line[6].c, MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_CONF && argc>=2)
   {
@@ -263,6 +261,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"name,value",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_OP && argc>=2)
   {
@@ -272,6 +271,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"full,plmn",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s)",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_FAVORIS && argc>=1)
   {
@@ -283,6 +283,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
     if (!strcmp(lv_line[2].c,"(null)"))return 0;
 
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_ACCOUNTS && argc>=3)
   {
@@ -291,6 +292,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"name,password,type",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[0],argv[2],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_BROWSER_FORM && argc>=3)
   {
@@ -299,6 +301,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"name,value,url/domain",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_BROWSER_FORM_AUTH && argc>=3)
   {
@@ -307,6 +310,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"username,password,host",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[1],argv[2],argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_CACHE && argc>=3)
   {
@@ -315,14 +319,17 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"url,responseURL,headers",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s)",argv[0],argv[1],argv[2]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_CACHE_URL && argc>=2)
   {
     strncpy(lv_line[3].c,"Android",MAX_LINE_SIZE);
     strncpy(lv_line[5].c,"Applications Cache",MAX_LINE_SIZE);
-    strncpy(lv_line[1].c,"title,url_img",MAX_LINE_SIZE);
+    strncpy(lv_line[1].c,"title,url_img,lat,lng,ts",MAX_LINE_SIZE);
+    convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
 
-    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s)",argv[1],argv[0]);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"[%s:%s] %s (%s)",argv[3],argv[4],argv[1],argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_CONTACT2 && argc>=11)
   {
@@ -332,6 +339,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[4], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_CALLENDAR && argc>=8)
   {
@@ -340,7 +348,8 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"_sync_account,title,eventLocation,description,lastDate",MAX_LINE_SIZE);
 
     convertFirefoxDatetoStr(argv[1], lv_line[4].c, MAX_LINE_SIZE);
-    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s) %s",argv[0],argv[1],argv[2],argv[3]);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s [%s] %s",argv[0],argv[1],argv[2],argv[3]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_SMS && argc>=5)
   {
@@ -349,6 +358,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"number,name,type",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s)",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_MMS && argc>=5)
   {
@@ -358,6 +368,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[4], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_GPS_POS && argc>=3)
   {
@@ -366,7 +377,8 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"latitude,longitude,timestamp",MAX_LINE_SIZE);
 
     convertFirefoxDatetoStr(argv[2], lv_line[6].c, MAX_LINE_SIZE);
-    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"[%s:%s]",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_MAP && argc>=3)
   {
@@ -376,6 +388,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[2], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_MEMO && argc>=3)
   {
@@ -389,6 +402,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[1], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
+    ConvertWA(lv_line[2].c);
   }else if (type == SQLITE_TYPE_ANDROID_DOC && argc>=5)
   {
     strncpy(lv_line[3].c,"Android",MAX_LINE_SIZE);
@@ -398,6 +412,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[3], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[4], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s)",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_SEARCH && argc>=5)
   {
@@ -407,6 +422,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[5], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s:%s:%s)",argv[0],argv[1],argv[2],argv[3],argv[4]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_HISTORY && argc>=2)
   {
@@ -416,6 +432,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[1], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_BROWSER && argc>=4)
   {
@@ -426,6 +443,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[3], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_BROWSER_SEARCH && argc>=2)
   {
@@ -435,6 +453,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[1], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_BROWSER_CACHE && argc>=2)
   {
@@ -446,6 +465,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     //snprintf(lv_line[7].c,MAX_LINE_SIZE,"%s",argv[1]);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_MEDIA && argc>=3)
   {
@@ -456,6 +476,30 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[1], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
+    ConvertWA(lv_line[2].c);
+    AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
+
+  }else if (type == SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO && argc>=6)
+  {
+    strncpy(lv_line[3].c,"Android",MAX_LINE_SIZE);
+    strncpy(lv_line[5].c,"Movie",MAX_LINE_SIZE);
+    strncpy(lv_line[1].c,"_display_name,_data, date_added,datetaken,latitude,longitude",MAX_LINE_SIZE);
+
+    convertFirefoxDatetoStr(argv[3], lv_line[6].c, MAX_LINE_SIZE);
+    convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"[%s:%s] %s (%s)",argv[4],argv[5],argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
+    AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
+  }else if (type == SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO && argc>=6)
+  {
+    strncpy(lv_line[3].c,"Android",MAX_LINE_SIZE);
+    strncpy(lv_line[5].c,"Image",MAX_LINE_SIZE);
+    strncpy(lv_line[1].c,"_display_name,_data, date_added,datetaken,latitude,longitude",MAX_LINE_SIZE);
+
+    convertFirefoxDatetoStr(argv[3], lv_line[6].c, MAX_LINE_SIZE);
+    convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"[%s:%s] %s (%s)",argv[4],argv[5],argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_MAIL && argc>=6)
   {
@@ -466,6 +510,8 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[4], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[5], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s->%s) %s",argv[0],argv[1],argv[2],argv[3]);
+
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_RSS && argc>=4)
   {
@@ -476,16 +522,18 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[2], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[3], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s)",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_EVERNOTE && argc>=3)
   {
     strncpy(lv_line[3].c,"Android",MAX_LINE_SIZE);
     strncpy(lv_line[5].c,"Evernote",MAX_LINE_SIZE);
-    strncpy(lv_line[1].c,"title,created,updated",MAX_LINE_SIZE);
+    strncpy(lv_line[1].c,"title,created,updated,latitude,longitude",MAX_LINE_SIZE);
 
     convertFirefoxDatetoStr(argv[1], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[2], lv_line[7].c, MAX_LINE_SIZE);
-    snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s",argv[0]);
+    snprintf(lv_line[2].c,MAX_LINE_SIZE,"[%s:%s] %s",argv[3],argv[4],argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_LINKEDIN && argc>=5)
   {
@@ -494,6 +542,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     strncpy(lv_line[1].c,"first_name,last_name,headline",MAX_LINE_SIZE);
 
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s %s (%s)",argv[0],argv[1],argv[3]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_TWEET && argc>=5)
   {
@@ -503,6 +552,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[4], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s (%s) %s",argv[1],argv[0],argv[2],argv[3]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_TWEET_CONTACT && argc>=7)
   {
@@ -513,6 +563,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
     convertFirefoxDatetoStr(argv[5], lv_line[6].c, MAX_LINE_SIZE);
     convertFirefoxDatetoStr(argv[6], lv_line[7].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s) %s (%s) %s",argv[0],argv[1],argv[2],argv[3],argv[4]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_TWEET_CONTACT && argc>=3)
   {
@@ -522,6 +573,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[2], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s:%s",argv[0],argv[1]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }else if (type == SQLITE_TYPE_ANDROID_APP_TWEET_MP && argc>=4)
   {
@@ -531,6 +583,7 @@ static int callback_sqlite(void *param, int argc, char **argv, char **azColName)
 
     convertFirefoxDatetoStr(argv[1], lv_line[6].c, MAX_LINE_SIZE);
     snprintf(lv_line[2].c,MAX_LINE_SIZE,"%s (%s) %s",argv[2],argv[3],argv[0]);
+    ConvertWA(lv_line[2].c);
     AddToLVConf(hlv, lv_line, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
   }
 
@@ -637,6 +690,7 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
       sqlite3_exec(db, "SELECT name,value  FROM main;", callback_sqlite, &fci, NULL);
       sqlite3_exec(db, "SELECT name,value  FROM secure;", callback_sqlite, &fci, NULL);
       sqlite3_exec(db, "SELECT name,value  FROM system;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT key, value  FROM extras;", callback_sqlite, &fci, NULL);
     }
 
     if (type & SQLITE_TYPE_ANDROID_CONTACT2)//contacts2.db
@@ -649,6 +703,7 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     {
       fci.type = SQLITE_TYPE_ANDROID_ACCOUNTS;
       sqlite3_exec(db, "SELECT name, type, password FROM accounts;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT name, authtokens.type,authtoken FROM authtokens,accounts WHERE accounts_id=accounts ._id;", callback_sqlite, &fci, NULL);
     }
 
     if (type & SQLITE_TYPE_ANDROID_CALLENDAR)//calendar.db
@@ -721,7 +776,7 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     if ((type & SQLITE_TYPE_ANDROID_APP_CACHE_URL) == SQLITE_TYPE_ANDROID_APP_CACHE_URL)//beamy.db
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_CACHE_URL;
-      sqlite3_exec(db, "SELECT url_img,title FROM list_entry;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT url_img,title,strftime('%Y/%m/%d-%H:%M:%S',ts/1000, 'unixepoch', 'localtime'),lat,lng FROM list_entry;", callback_sqlite, &fci, NULL);
     }
 
     if ((type & SQLITE_TYPE_ANDROID_APP_BROWSER) == SQLITE_TYPE_ANDROID_APP_BROWSER)//browser.db
@@ -763,7 +818,18 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA;
       sqlite3_exec(db, "SELECT _data,strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',date_modified, 'unixepoch', 'localtime')  FROM audio_meta;", callback_sqlite, &fci, NULL);
-      sqlite3_exec(db, "SELECT _data,strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',date_modified, 'unixepoch', 'localtime')  FROM video;", callback_sqlite, &fci, NULL);
+    }
+
+    if ((type & SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO) == SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO)//internal.db
+    {
+      fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO;
+      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken, 'unixepoch', 'localtime'),latitude,longitude FROM video;", callback_sqlite, &fci, NULL);
+    }
+
+    if ((type & SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO) == SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO)//internal.db
+    {
+      fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO;
+      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken, 'unixepoch', 'localtime'),latitude,longitude FROM images;", callback_sqlite, &fci, NULL);
     }
 
     if ((type & SQLITE_TYPE_ANDROID_APP_MAP) == SQLITE_TYPE_ANDROID_APP_MAP)//local_active_places.db
@@ -787,7 +853,7 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     if (type & SQLITE_TYPE_ANDROID_APP_EVERNOTE)//Evernote.db
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_EVERNOTE;
-      sqlite3_exec(db, "SELECT title,strftime('%Y/%m/%d-%H:%M:%S',created/1000, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',updated/1000, 'unixepoch', 'localtime') FROM notes;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT title,strftime('%Y/%m/%d-%H:%M:%S',created/1000, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',updated/1000, 'unixepoch', 'localtime'),latitude,longitude FROM notes;", callback_sqlite, &fci, NULL);
     }
 
     if (type & SQLITE_TYPE_ANDROID_APP_LINKEDIN)//linkedin.db

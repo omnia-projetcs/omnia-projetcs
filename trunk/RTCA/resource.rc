@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,2,00
-PRODUCTVERSION 0,0,2,00
+FILEVERSION 0,0,2,76
+PRODUCTVERSION 0,0,2,76
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.2.00\0"
-      VALUE "ProductVersion", "0.0.2.00\0"
+      VALUE "FileVersion", "0.0.2.76\0"
+      VALUE "ProductVersion", "0.0.2.76\0"
     END
   END
 END
@@ -137,7 +137,9 @@ DLG_CONFIGURATION DIALOGEX 0,24,389,237
 FONT 8,"Arial",0,0
 STYLE 0x40080000
 BEGIN
-  CONTROL ""              ,LV_VIEW        ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
+  CONTROL "Search"        ,BT_VIEW_SEARCH       ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
 END
 //------------------------------------------------------------------------------
 DLG_PROCESS DIALOGEX 0,24,389,237
