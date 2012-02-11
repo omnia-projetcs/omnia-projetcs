@@ -1882,7 +1882,7 @@ void FiltreRegData(LINE_ITEM *item)
   }
 
   //Users
-  //lecture du secret, utilisé avec la syskey pour obtenir les hash md5
+  //lecture du secret, utilisé avec la syskey pour obtenir les hash
   if (Contient(item[1].c,"\\Domains\\Account") && item[2].c[0]=='F')
   {
     DWORD size = strlen(item[1].c);

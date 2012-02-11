@@ -2816,19 +2816,22 @@ DWORD WINAPI Scan_registry(LPVOID lParam)
 {
   //init
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_REGISTRY,TRUE);
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MAJ));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_SERVICES));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_HISTORIQUE));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USB));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_START));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_LAN));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH));
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)
+  {
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_VIEW));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_LOGICIEL));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MAJ));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_SERVICES));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_HISTORIQUE));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USB));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_START));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_LAN));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_USERS));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_MRU));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH));
+  }
 
   SendDlgItemMessage(Tabl[TABL_REGISTRY],TV_VIEW,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
   char tmp[MAX_PATH];

@@ -196,7 +196,7 @@ DWORD WINAPI Scan_configuration(LPVOID lParam)
   if (lParam == FALSE || lParam == TRUE)
   {
     local        = (BOOL)lParam;
-    ListView_DeleteAllItems(hlv);
+    if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)ListView_DeleteAllItems(hlv);
   }
 
   char tmp[MAX_PATH];

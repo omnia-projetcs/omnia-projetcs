@@ -18,8 +18,9 @@
 #include <iphlpapi.h>
 #include <tlhelp32.h>
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
+#include <wininet.h>    //pour la gestion avec VirusTotal
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.2.76 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.2.77 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -81,11 +82,12 @@ char console_cmd[MAX_LINE_SIZE];
 #define CHK_CONF_ENABLE_STATE            1015
 #define CHK_CONF_NO_ACL                  1016
 #define CHK_CONF_NO_TYPE                 1017
-#define CHK_CONF_MD5                     1018
+#define CHK_CONF_SHA256                  1018
 #define CHK_CONF_ADS                     1019
 #define CHK_CONF_CONFIGURATION           1020
+#define CHK_CONF_CLEAN                   1021
 BOOL State_Enable;
-BOOL MD5_Enable;
+BOOL SHA256_Enable;
 BOOL ACL_Enable;
 BOOL Type_Enable;
 BOOL ADS;
@@ -186,13 +188,14 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_LV_CP_COL11    11020
 #define POPUP_LV_CP_COL12    11021
 #define POPUP_LV_CP_COL13    11022
+#define POPUP_LV_CP_COL14    11023
 
-#define ADD_DLL_INJECT_REMOTE_THREAD  11023
 #define REM_DLL_INJECT_REMOTE_THREAD  11024
 #define POPUP_LV_PROPERTIES           11025
 #define POPUP_KILL_PROCESS            11026
 #define POPUP_DUMP_MEMORY             11027
-//#define POPUP_ALL_PROCESS_AND_THREAD  11028
+#define ADD_DLL_INJECT_REMOTE_THREAD  11028
+//#define POPUP_ALL_PROCESS_AND_THREAD  11029
 
 #define POPUP_TV_EXPAND_ALL  11030
 #define POPUP_LV_P_VIEW      11031
@@ -212,6 +215,11 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_E_CSV          11102
 #define POPUP_E_HTML         11103
 #define POPUP_E_XML          11104
+
+HANDLE h_VIRUSTTAL, h_AVIRUSTTAL;
+BOOL VIRUSTTAL, AVIRUSTTAL;
+#define POPUP_LV_VIRUSTTAL   11110
+#define POPUP_LV_AVIRUSTTAL  11111
 
 //type d'export
 #define CSV_TYPE             0
@@ -242,7 +250,6 @@ BOOL TV_FILES_VISBLE;
 HWND Tabl[NB_TABL];
 HINSTANCE hInst;
 unsigned int TABL_ID_VISIBLE;
-
 unsigned int TABL_ID_REG_VISIBLE;
 unsigned int TABL_ID_STATE_VISIBLE;
 
@@ -377,7 +384,7 @@ typedef struct line_item
 {
   char c[MAX_LINE_SIZE];
 }LINE_ITEM;
-#define SIZE_UTIL_ITEM    16
+#define SIZE_UTIL_ITEM    17
 
 #define MAX_PROC_LINE_ITEM_SIZE 20
 typedef struct line_proc_item
@@ -907,6 +914,9 @@ DWORD WINAPI Scan_logs(LPVOID lParam);
 DWORD WINAPI Scan_files(LPVOID lParam);
 DWORD WINAPI Scan_registry(LPVOID lParam);
 DWORD WINAPI Scan_configuration(LPVOID lParam);
+
+DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
+DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 
 //gestion des messages sur les onglets
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

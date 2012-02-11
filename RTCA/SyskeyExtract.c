@@ -9,7 +9,7 @@
 #include "md5.h"
 // inspiré de bkhive et samdump2 Nicola Cuomo - ncuomo@studenti.unina.it
 //------------------------------------------------------------------------------
-//décodage afin d'obtenir le hash md5 des mots de passe
+//décodage afin d'obtenir le hash des mots de passe
 void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
 {
   if (b_f != NULL)

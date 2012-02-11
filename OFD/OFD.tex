@@ -390,7 +390,7 @@ puis on copie la signature d'EICAR dans un fichier .txt que l'on renomme en diff
 \\L'Address R\'esolution Protocol, est un protocole de r\'esolution d'adresse IP en addresse physique (MAC), il est utilis\'e dans dans le cas de transactions IP.
 }
 {
-\textit{Mise en place de table ARP statique sous syst\`emes Windows et Linux (afin de ce prot\'eger contre de l'empoisonnement de cache ARP (MITM, spoofing\dots{}). Attention cette m\'ethode est \`a utiliser seulement sur de petits r\'eseaux, plus le r\'eseau est important, plus difficile est la mise \`a jour.
+\textit{Mise en place de table ARP statique sous syst\`emes Windows et Linux (afin de se prot\'eger contre de l'empoisonnement de cache ARP (MITM, spoofing\dots{}). Attention cette m\'ethode est \`a utiliser seulement sur de petits r\'eseaux, plus le r\'eseau est important, plus difficile est la mise \`a jour.
  Pour les syst\`emes Unix/Linux, pour utiliser la commande \textbf{ip} on utilise les paquets \textbf{net-tools} et \textbf{iproute2}.}\\
 
 \textbf{Afficher la table ARP (sous Windows et Linux) :}\\
@@ -542,7 +542,7 @@ puis on copie la signature d'EICAR dans un fichier .txt que l'on renomme en diff
 }
 {
 \\La firme Hayes, fabricant de modems, a d\'evelopp\'e un protocole pour la commande d'un modem externe \`a partir d'un ordinateur.
-Les noms utilis\'es : Commandes AT/Commandes Hayes. Les connexions au modem ce font en hyperterminal/GtkTerm sur le port tty du modem ({\sl \color{blue}dmesg} pour afficher les p\'eriph\'eriques ou dans le gestionnaire de p\'eriph\'erique Windows) ou avec {\sl \color{blue}wvdial} (directe sans commande AT). \\ Configuration terminal : Bps:9600, Data bt:8, parity:none, Stop bits:1, Flow ctrl:none.
+Les noms utilis\'es : Commandes AT/Commandes Hayes. Les connexions au modem se font en hyperterminal/GtkTerm sur le port tty du modem ({\sl \color{blue}dmesg} pour afficher les p\'eriph\'eriques ou dans le gestionnaire de p\'eriph\'erique Windows) ou avec {\sl \color{blue}wvdial} (directe sans commande AT). \\ Configuration terminal : Bps:9600, Data bt:8, parity:none, Stop bits:1, Flow ctrl:none.
 }
 {
 \begin{footnotesize}
@@ -991,7 +991,7 @@ Compatible avec les filtres Tcpdump.
     \item[$\Square$] Toujours v\'erifier que la configuration en m\'emoire et sauvegard\'e soient les m\^emes.
     \item[$\Square$] La pr\'esence d'un compte et mot de passe diff\'erents par niveau d'exploitation (comptes d'administration, compte enable, r\'epartiteur, c\oe ur de r\'eseau\dots{}).
     \item[$\Square$] Le mot de passe des utilisateurs et le \textbf{enable} doivent \^etre stock\'es de mani\`ere non r\'eversible (secret 5) de CISCO.
-    \item[$\Square$] Pour les service utiliser les comptes locaux pour ce connecter plut\^ot que le PASSWORD 7.
+    \item[$\Square$] Pour les service utiliser les comptes locaux pour se connecter plut\^ot que le PASSWORD 7.
     \item[$\Square$] D\'esactiver les services inutiles (TELNET, HTTP, SNMP, TFTP, proxy ARP\dots{}).
     \item[$\Square$] D\'esactiver les services de broadcast (SCP, CDP, VRRP\dots{}) s'ils ne sont pas utilis\'es\\ (Ils sont utiles dans le cas de redondance, de c\oe ur de r\'eseau et qualit\'e de services).
     \item[$\Square$] D\'esactiver le Protocole Spanning Tree (STP) si aucune boucle r\'eseau n'est pr\'esente.
@@ -1139,7 +1139,7 @@ Compatible avec les filtres Tcpdump.
 		\blockFiche{10cm}{9cm}{Mode console (config) - suite}
 		{
 			\MbFCmd{2.8cm}
-			{Utiliser un compte local pour ce connecter sur le port console (idem : console/aux/vty) avec time-out 1m30s :}
+			{Utiliser un compte local pour se connecter sur le port console (idem : console/aux/vty) avec time-out 1m30s :}
 			{
 				line console 0\\
 				login local\\
@@ -1702,7 +1702,7 @@ L'option \textbf{-l} active l'affichage des informations en liste.}\vskip +0.2cm
 \textbf{D\'efinitions :} 
 \begin{description}
 	\item[IDS] (Intrusion Detection System) est une sonde r\'eseau effectuant de l'\'ecoute furtive, permettant de d\'etecter des activit\'es suspectes.
-	\item[IPS] (Intrusion Prevention System) m\^emes fonctions qu'un IDS mais permet de ce mettre en coupure sur le r\'eseau.
+	\item[IPS] (Intrusion Prevention System) m\^emes fonctions qu'un IDS mais permet de se mettre en coupure sur le r\'eseau.
 	\item[NIDS/NIPS] (Network Based Intrusion Detection/Protection System) \'ecoute au niveau du r\'eseau.
 	\item[HIDS/HIPS] (Host Based Intrusion Detection/\dots{}) \'ecoute au niveau des h\^otes (Apache + Mod\_security).\\
 \end{description}
@@ -4928,7 +4928,7 @@ M	chine vuln\'erable pour tester Metasploit : Metasploitable\\
 	\item \underline{Note :}
 	\begin{itemize}
 		\item Lorsque les tests sont termin\'es, pour exporter les r\'esultats : {\sl \color{blue}db\_export /root/save\_session.xml}
-		\item Ce d\'econnecter : {\sl \color{blue}db\_disconnect}
+		\item Se d\'econnecter : {\sl \color{blue}db\_disconnect}
 		\item Pour vider la base : {\sl \color{blue}db\_destroy root:toor@127.0.0.1/metasploit3}
 	\end{itemize}
 \end{itemize}
@@ -6366,7 +6366,7 @@ mais comme le caract\`ere \%00 indique la fin de la cha\^ine le .php ne sera pas
 \begin{itemize}
 	\item Original : \url{index.php?page=test.php}
 	\item Exemple : \url{index.php?page=/etc/passwd}\\
-			\textit{Note : en g\'en\'eral ce n'est pas possible en cas de CHROOT, ou si le service n'a pas les droits suffisants.\\
+			\textit{Note : en g\'en\'eral se n'est pas possible en cas de CHROOT, ou si le service n'a pas les droits suffisants.\\
 			Fichiers int\'eressants : /proc/version, /etc/apache2/apache2.conf, /etc/passwd, /var/lib/php5/sess\_\$PHPSESSID (ou \$PHPSESSID pour r\'ecup\'erer un id , login, mdp de session)\dots{}}
 	\item Exemple : \url{index.php?page=./secret/.htpasswd}\\
 			\textit{Il est par contre possible d'inclure des fichiers locaux prot\'eg\'es (fichier de protection d'acc\`es, autres fichiers php\dots{})
@@ -6382,7 +6382,7 @@ Exemple de requ\^ete :
 	\item Incorrecte (passera) : ybuyb http://toto.fr/private/ HTTP/1.1
 \end{itemize}
 \vskip+0.2cm
-Pour ce prot\'eger il suffit de supprimer les lignes \textbf{\color{blue}<Limit GET POST>} et \textbf{\color{blue}</Limit>}.
+Pour se prot\'eger il suffit de supprimer les lignes \textbf{\color{blue}<Limit GET POST>} et \textbf{\color{blue}</Limit>}.
 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6565,7 +6565,7 @@ Le principe est d'injecter du code (javascript) dans des variables qui doivent \
 \end{itemize}
 
 \vskip+0.2cm
-\textbf{Ce prot\'eger contre les vols de session (cot\'e serveur) :}\\
+\textbf{Se prot\'eger contre les vols de session (cot\'e serveur) :}\\
 {\small
 Toutes les recommandations pr\'ec\'edentes sont valables, 
 ins\'erer dans l'ID de session un hash de propri\'et\'e intrins\`eque au client (adresse ip : REMOTE\_ADDR, l'ent\^ete HTTP : PROXY\_FORWARDED\_FOR)
@@ -6612,7 +6612,7 @@ actions \`a son insu (exemple : dans le cas d'un administrateur de forum).
 	\end{itemize}
 \end{description}
 \vskip+0.4cm
-\textbf{Ce prot\'eger :}
+\textbf{Se prot\'eger :}
 \begin{description}
    \item[$\Square$] toujours effectuer une validation (si le nombre de message le permet) des messages avant leur poste;
    \item[$\Square$] interdire les scripts (JavaScript/VBScript) ;
@@ -6621,7 +6621,7 @@ actions \`a son insu (exemple : dans le cas d'un administrateur de forum).
    \item[$\Square$] l'affichage du contenu des messages doit \^etre trait\'e par des fonctions de transcodages des caract\`eres (\textbf{mysql\_real\_escape\_string()}, \textbf{addslashes()}, \textbf{htmlentities(}), \textbf{htmlspecialchars()});
 
    \item[$\Square$] inclure un capchat complexe pour \'eviter les automates ;
-   \item[$\Square$] ne ce connecter sur un site/forum avec les droits d'administration que pour des t\^aches d'administration, 
+   \item[$\Square$] ne se connecter sur un site/forum avec les droits d'administration que pour des t\^aches d'administration, 
 passer par un profil de simple utilisateur le reste du temps.
    \item[$\Square$] pour des besoins de supervisions sur un forum pr\'ef\'erer un passage temporaire aux droits sp\'ecifiques (via mot de passe) pour effectuer les t\^aches (suppression, modification de comptes, messages\dots{}) ;
    \item[$\Square$] pour les utilisateurs : 
@@ -7122,7 +7122,7 @@ Il faut cr\'eer un fichier de configuration personnalis\'e (exemple : {\sl \colo
 \end{tabular}
 \vskip+0.4cm
 
-\textbf{Pour ce connecter en HTTP sur un serveur en HTTPS (peut \^etre utile pour utiliser des application HTTP sur du HTTPS) :}\\
+\textbf{Pour se connecter en HTTP sur un serveur en HTTPS (peut \^etre utile pour utiliser des application HTTP sur du HTTPS) :}\\
 Il faut cr\'eer un fichier de configuration personnalis\'e (exemple : {\sl \color{blue}/etc/stunnel/test.conf}) :\\
 \textit{Ici on configure le service qui va rediriger la connexion HTTP vers le serveur HTTPS.}\vskip+0.1cm
 \begin{tabular}{ll}
@@ -7487,7 +7487,7 @@ Montage de la partition :\\
 {
 {\Large \textbf{WebScarab-NG}} (version simple d'utilisation)\\
 \textit{Afin d'utiliser WebScarab-NG, il faut configurer le proxy du navigateur pour utiliser WebScarb : \textbf{localhost:8008}\\
-La modification du proxy ce fait dans le menu : \textbf{WebScarab-NG->Plugin->Proxy->Proxy listeners}.}\vskip+0.2cm
+La modification du proxy se fait dans le menu : \textbf{WebScarab-NG->Plugin->Proxy->Proxy listeners} ou \textbf{Proxy->Listeners}}\vskip+0.2cm
 
 \textbf{Format de la fen\^etre :}
 \begin{itemize}
@@ -7788,7 +7788,7 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
 \\Windows Management Instrumentation (WMI) est un syst\`eme de gestion d'administration interne \`a Windows.
 }
 {
-   \textit{\small Ce sont des utilitaires natifs, permettant la lecture et la modification d'informations syst\`eme.}\vskip +0.2cm
+   \textit{\small Se sont des utilitaires natifs, permettant la lecture et la modification d'informations syst\`eme.}\vskip +0.2cm
    \textbf{WMIC }{\sl \color{blue} c:$\backslash$Windows$\backslash$system32$\backslash$wbem$\backslash$wmic.exe}\\
    \textbf{WBEMtest }{\sl \color{blue} c:$\backslash$Windows$\backslash$system32$\backslash$wbem$\backslash$WBEMtest.exe}\\
    \textbf{MOFcomp }{\sl \color{blue} c:$\backslash$Windows$\backslash$system32$\backslash$wbem$\backslash$MOFcomp.exe}\\
@@ -7864,7 +7864,7 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
  \textbf{Pour quitter : } {\sl \color{blue}q}\\
  
  \textbf{\Large MitM avec le protocole STP :}\\ 
- \textit{L'objectif est de ce faire passer pour une route.\\ Pour que cela fonctionne il faut activer plusieurs interfaces r\'eseaux.}\vskip+0.1cm
+ \textit{L'objectif est de se faire passer pour une route.\\ Pour que cela fonctionne il faut activer plusieurs interfaces r\'eseaux.}\vskip+0.1cm
  \textbf{Ex\'ecuter Yersinia en mode console : } {\sl \color{blue} yersinia -I}\\
  \textbf{S\'electionner l'interface r\'eseau : } {\sl \color{blue}i}\\
  \textbf{S\'electionner le protocole STP : } {\sl \color{blue}g} et s\'electionner STP.\\

@@ -93,7 +93,7 @@ DWORD EnumADS(char *file, char *resultat, DWORD size)
   return nb_ads;
 }
 //------------------------------------------------------------------------------
-void FileToMd5(char *path, char *md5)
+/*void FileToMd5(char *path, char *md5)
 {
   //ouverture du fichier en lecture partagé
   md5[0]=0;
@@ -134,6 +134,55 @@ void FileToMd5(char *path, char *md5)
       unsigned short i;
       for(i=0;i<16;i++)snprintf(md5+i*2,3,"%02X",digest[i]);
       md5[32]=0;
+      HeapFree(GetProcessHeap(), 0,buffer);
+    }
+    CloseHandle(Hfic);
+  }
+}*/
+//------------------------------------------------------------------------------
+#include "sha2.h"
+void FileToSHA256(char *path, char *sha256)
+{
+  //ouverture du fichier en lecture partagé
+  sha256[0]=0;
+  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (Hfic != INVALID_HANDLE_VALUE)
+  {
+    DWORD taille_fic = GetFileSize(Hfic,NULL);
+    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
+    {
+      unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      if (buffer == NULL)
+      {
+        CloseHandle(Hfic);
+        return;
+      }
+
+      //lecture du fichier
+      DWORD copiee, position = 0, increm = 0;
+      if (taille_fic > DIXM)increm = DIXM;
+      else increm = taille_fic;
+
+      while (position<taille_fic && increm!=0)//gestion pour éviter les bug de sync permet une ouverture de fichiers énormes ^^
+      {
+        copiee = 0;
+        ReadFile(Hfic, buffer+position, increm,&copiee,0);
+        position +=copiee;
+        if (taille_fic-position < increm)increm = taille_fic-position ;
+      }
+
+      //traitement en SHA256
+      sha256_ctx    m_sha256;
+      char          digest[32];
+
+      sha256_begin(&m_sha256);
+      sha256_hash(buffer, taille_fic, &m_sha256);
+      sha256_end(digest, &m_sha256);
+
+      //génération du SHA256 en chaine
+      unsigned short i;
+      for(i=0;i<32;i++)snprintf(sha256+i*2,3,"%02x",digest[i]&0xFF);
+      sha256[64]=0;
       HeapFree(GetProcessHeap(), 0,buffer);
     }
     CloseHandle(Hfic);
@@ -374,10 +423,10 @@ DWORD WINAPI File_info(LPVOID lParam)
       tmp[0]=0;
     }
 
-    //MD5
-    if (MD5_Enable)
+    //SHA256
+    if (SHA256_Enable)
     {
-      FileToMd5(rep, tmp);
+      FileToSHA256(rep, tmp);
       ListView_SetItemText(hlv,id,13,tmp);
       tmp[0]=0;
     }
@@ -539,8 +588,11 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   //on vide les listeview + treeview
   HANDLE hlv        = GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW);
   HANDLE htv        = GetDlgItem(Tabl[TABL_FILES],TV_VIEW);
-  ListView_DeleteAllItems(hlv);
-  SendMessage(htv,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)
+  {
+    ListView_DeleteAllItems(hlv);
+    SendMessage(htv,TVM_DELETEITEM,(WPARAM)0, (LPARAM)TVI_ROOT);
+  }
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_FILES,TRUE);
 

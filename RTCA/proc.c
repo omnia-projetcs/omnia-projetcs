@@ -343,15 +343,18 @@ DWORD WINAPI Scan(LPVOID lParam)
     if (SendDlgItemMessage(Tabl[TABL_CONF],TRV_CONF_TESTS, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) == 4)local = TRUE;
   }
 
+  //Init de state
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)
+  {
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_CRITICAL));
+    ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H));
+  }
+
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_LOGS)           ==BST_CHECKED)h_scan_logs           = CreateThread(NULL,0,Scan_logs,(LPVOID)local,0,0);
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_FILES)          ==BST_CHECKED)h_scan_files          = CreateThread(NULL,0,Scan_files,(LPVOID)local,0,0);
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_REGISTRY)       ==BST_CHECKED)h_scan_registry       = CreateThread(NULL,0,Scan_registry,(LPVOID)local,0,0);
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION)  ==BST_CHECKED)h_scan_configuration  = CreateThread(NULL,0,Scan_configuration,(LPVOID)local,0,0);
-
-  //Init de state
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_CRITICAL));
-  ListView_DeleteAllItems(GetDlgItem(Tabl[TABL_STATE],LV_VIEW_H));
 
   //si aucun scan on quitte
   if (!h_scan_logs && !h_scan_files && !h_scan_registry && !h_scan_configuration)
@@ -997,6 +1000,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
         RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
         //affichage du popup menu
         TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
         DestroyMenu(hmenu);
@@ -1040,6 +1046,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
         RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
         RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+        RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
       }else
       {
         switch(nb_col)
@@ -1061,6 +1070,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
             RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+            RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+            RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+            RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
           break;
           case LV_FILES_VIEW_NB_COL://10
             //on modifie les titre et on supprime les colonnes en trop
@@ -1072,13 +1084,17 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
             ModifyMenu(hmenu,POPUP_LV_CP_COL6,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL6,"Copy : Last write time");
             ModifyMenu(hmenu,POPUP_LV_CP_COL7,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL7,"Copy : Last access Time");
             ModifyMenu(hmenu,POPUP_LV_CP_COL8,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL8,"Copy : ACL");
+            ModifyMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL11,"Copy : SHA256");
             ModifyMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : Size");
             ModifyMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL13,"Copy : ADS");
+            ModifyMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL14,"Copy : VirusTotal");
             ModifyMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_STRING,POPUP_LV_P_VIEW,"Open path");
+
+            if (VIRUSTTAL)ModifyMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_VIRUSTTAL,"Stop : Check file to VirusTotal");
+            if (AVIRUSTTAL)ModifyMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_AVIRUSTTAL,"Stop : Check all file to VirusTotal");
 
             RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
-            RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
           break;
           case LV_REGISTRY_CONF_NB_COL:
             switch(TABL_ID_REG_VISIBLE)
@@ -1101,6 +1117,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                 RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                 RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                 RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
               break;
               default :
                 RemoveMenu(hmenu,POPUP_LV_I_VIEW,MF_BYCOMMAND|MF_GRAYED);
@@ -1122,6 +1141,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_USERS_NB_COL:
                   //on modifie les titre et on supprime les colonnes en trop
@@ -1139,6 +1161,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   ModifyMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL12,"Copy : F Binary data");
 
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_MAJ_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1155,6 +1180,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_SERVICES_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1171,6 +1199,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_HISTORIQUE_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1187,6 +1218,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_USB_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1203,6 +1237,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_START_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1219,6 +1256,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_LAN_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1235,6 +1275,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_PASSWORD_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1251,6 +1294,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_MRU_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1267,6 +1313,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 case LV_REGISTRY_PATH_NB_COL:
                   ModifyMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL1,"Copy : File");
@@ -1283,6 +1332,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 default :
                   RemoveMenu(hmenu,POPUP_LV_CP_COL1,MF_BYCOMMAND|MF_GRAYED);
@@ -1298,6 +1350,9 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
                   RemoveMenu(hmenu,POPUP_LV_CP_COL11,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL12,MF_BYCOMMAND|MF_GRAYED);
                   RemoveMenu(hmenu,POPUP_LV_CP_COL13,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+                  RemoveMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
                 break;
                 }
               break;
@@ -1886,6 +1941,10 @@ void InitConfig(HWND hwnd)
   InitCommonControls();
   InitializeCriticalSection(&Sync);
 
+  //init réseau
+  //WSADATA wsaData;//variable pour initialisé la connexion
+  //WSAStartup(0x0202,&wsaData);
+
   SetDebugPrivilege(TRUE); //utilisation des droits system !!!
 
   //disable 64b redirection
@@ -1908,7 +1967,7 @@ void InitConfig(HWND hwnd)
   AutoSearchFilesStart = FALSE;
   h_AutoSearchFiles = NULL;
   State_Enable = FALSE;
-  MD5_Enable = FALSE;
+  SHA256_Enable = FALSE;
 
   nb_process_SE_DEBUG = FALSE;
   ExportStart = FALSE;
@@ -1919,6 +1978,9 @@ void InitConfig(HWND hwnd)
   h_scan_files = NULL;
   h_scan_registry = NULL;
   h_scan_configuration = NULL;
+
+  VIRUSTTAL = FALSE;
+  AVIRUSTTAL= FALSE;
 
   //hs_files_info = CreateSemaphore(NULL,MAX_THREAD_FILES_INFO,MAX_THREAD_FILES_INFO,NULL);
 
@@ -1958,6 +2020,7 @@ void InitConfig(HWND hwnd)
   ShowWindow(Tabl[TABL_STATE], SW_HIDE);
   ShowWindow(Tabl[TABL_CONF], SW_SHOW);
   TABL_ID_VISIBLE = TABL_CONF;
+  CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CLEAN,BST_CHECKED);
 
   //test si nous sommes sur un environnement émulé (wine)
   if (isWine())
@@ -2089,19 +2152,17 @@ void InitConfig(HWND hwnd)
   lvc.pszText = "Tempory"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)12, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
-  lvc.pszText = "MD5"; //texte de la colonne
+  lvc.pszText = "SHA256"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)13, (LPARAM)&lvc);
   lvc.cx = 10;       //taille colonne
   lvc.pszText = "Size"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)14, (LPARAM)&lvc);
   lvc.pszText = "ADS"; //texte de la colonne
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)15, (LPARAM)&lvc);
-
-
-
-
+  lvc.pszText = "VirusTotal"; //texte de la colonne
+  SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_INSERTCOLUMN,(WPARAM)16, (LPARAM)&lvc);
   SendDlgItemMessage(Tabl[TABL_FILES],LV_FILES_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 16;
+  NB_COLONNE_LV[LV_FILES_VIEW_NB_COL] = 17;
 
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],TV_VIEW), SW_HIDE);
   ShowWindow(GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW), SW_SHOW);
@@ -3287,6 +3348,10 @@ void EndConfig()
 
   if(hDLL_NTDLL!=NULL)FreeLibrary(hDLL_NTDLL);
   EndDialog(Tabl[TABL_MAIN], 0);
+
+  //init réseau
+  //WSACleanup();
+
   DeleteObject(PoliceGras);
   DeleteCriticalSection(&Sync);
 }
