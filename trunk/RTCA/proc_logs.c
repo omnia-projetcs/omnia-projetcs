@@ -1635,7 +1635,7 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
 {
   //on vide les listeview
   HANDLE hlv        = GetDlgItem(Tabl[TABL_LOGS],LV_LOGS_VIEW);
-  ListView_DeleteAllItems(hlv);
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)ListView_DeleteAllItems(hlv);
   char tmp[MAX_PATH];
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_LOGS,TRUE);

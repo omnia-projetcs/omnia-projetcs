@@ -260,7 +260,7 @@
 1320764295 source:z:\svn_omnia\rtca\clean.c
 	"resource.h"
 
-1328292360 z:\svn_omnia\rtca\resource.h
+1328980771 z:\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -271,8 +271,9 @@
 	<iphlpapi.h>
 	<tlhelp32.h>
 	<lm.h>
+	<wininet.h>
 
-1320764295 source:z:\svn_omnia\rtca\syskeyextract.c
+1328972563 source:z:\svn_omnia\rtca\syskeyextract.c
 	"resource.h"
 	"rc4.h"
 	"md5.h"
@@ -299,7 +300,7 @@
 1326058633 source:z:\svn_omnia\rtca\local_user_extract.c
 	"resource.h"
 
-1328289476 source:z:\svn_omnia\rtca\main.c
+1328978765 source:z:\svn_omnia\rtca\main.c
 	"resource.h"
 
 1320764295 source:z:\svn_omnia\rtca\md5.c
@@ -321,13 +322,14 @@
 
 1320764295 z:\svn_omnia\rtca\md32_common.h
 
-1328283562 source:z:\svn_omnia\rtca\proc.c
+1328977578 source:z:\svn_omnia\rtca\proc.c
 	"resource.h"
 
-1327843784 source:z:\svn_omnia\rtca\proc_files.c
+1328978621 source:z:\svn_omnia\rtca\proc_files.c
 	"resource.h"
+	"sha2.h"
 
-1326061036 source:z:\svn_omnia\rtca\proc_logs.c
+1328450979 source:z:\svn_omnia\rtca\proc_logs.c
 	"resource.h"
 
 1327137369 source:z:\svn_omnia\rtca\proc_logs_evt.c
@@ -342,7 +344,7 @@
 1327137338 source:z:\svn_omnia\rtca\proc_process.c
 	"resource.h"
 
-1327843780 source:z:\svn_omnia\rtca\proc_registry.c
+1328451010 source:z:\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 
@@ -361,7 +363,7 @@
 1327137370 source:z:\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 
-1327843778 source:z:\svn_omnia\rtca\proc_registry_search.c
+1328972602 source:z:\svn_omnia\rtca\proc_registry_search.c
 	"resource.h"
 
 1320764295 source:z:\svn_omnia\rtca\rc4_enc.c
@@ -371,10 +373,10 @@
 	"rc4.h"
 	"opensslv.h"
 
-1328289239 source:z:\svn_omnia\rtca\resource.rc
+1328980758 source:z:\svn_omnia\rtca\resource.rc
 	"resource.h"
 
-1328289125 source:z:\svn_omnia\rtca\proc_configuration.c
+1328450938 source:z:\svn_omnia\rtca\proc_configuration.c
 	"resource.h"
 
 1325965322 source:z:\svn_omnia\rtca\proc_state.c
@@ -436,4 +438,23 @@
 
 1326722694 z:\svn_omnia\rtca\sqlite3.h
 	<stdarg.h>
+
+1328980625 source:z:\svn_omnia\rtca\proc_files_virsutotal.c
+	"resource.h"
+
+1328462367 z:\svn_omnia\rtca\sha2.h
+	<limits.h>
+
+1328462359 source:z:\svn_omnia\rtca\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
 

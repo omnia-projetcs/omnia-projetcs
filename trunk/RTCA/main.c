@@ -24,7 +24,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_FILES),mWidth-225,35,60,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_ACL),mWidth-154,35,130,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_NO_TYPE),mWidth-154,50,130,15,TRUE);
-        MoveWindow(GetDlgItem(hwnd,CHK_CONF_MD5)    ,mWidth-154,65,130,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_SHA256)    ,mWidth-154,65,144,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_ADS)    ,mWidth-154,80,130,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_REGISTRY),mWidth-225,110,60,15,TRUE);
@@ -37,6 +37,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_CONF)             ,mWidth-235,182,230,50,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_LOCAL)            ,mWidth-225,197,80,15,TRUE);
         MoveWindow(GetDlgItem(hwnd,CHK_CONF_TOP)              ,mWidth-225,212,80,15,TRUE);
+        MoveWindow(GetDlgItem(hwnd,CHK_CONF_CLEAN)            ,mWidth-120,197,110,15,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF_ABOUT),mWidth-235,232,230,110,TRUE);
         MoveWindow(GetDlgItem(hwnd,ST_CONF_ABOUT),mWidth-225,247,210,90,TRUE);
@@ -71,8 +72,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam
               if (IsDlgButtonChecked(hwnd,CHK_CONF_ENABLE_STATE) ==BST_CHECKED)State_Enable = TRUE;
               else State_Enable = FALSE;
 
-              if (IsDlgButtonChecked(hwnd,CHK_CONF_MD5) ==BST_CHECKED)MD5_Enable = TRUE;
-              else MD5_Enable = FALSE;
+              if (IsDlgButtonChecked(hwnd,CHK_CONF_SHA256) ==BST_CHECKED)SHA256_Enable = TRUE;
+              else SHA256_Enable = FALSE;
 
               if (IsDlgButtonChecked(hwnd,CHK_CONF_NO_ACL) ==BST_CHECKED)ACL_Enable = TRUE;
               else ACL_Enable = FALSE;
@@ -483,7 +484,8 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,13,col_size/2);
           redimColumn(hwnd,LV_FILES_VIEW,14,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,15,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,15,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,16,col_size/2);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,100);
           redimColumn(hwnd,LV_FILES_VIEW,5,100);
@@ -496,7 +498,8 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           redimColumn(hwnd,LV_FILES_VIEW,7,col_size);
           redimColumn(hwnd,LV_FILES_VIEW,13,col_size/2);
           redimColumn(hwnd,LV_FILES_VIEW,14,col_size/2);
-          redimColumn(hwnd,LV_FILES_VIEW,15,col_size);
+          redimColumn(hwnd,LV_FILES_VIEW,15,col_size/2);
+          redimColumn(hwnd,LV_FILES_VIEW,16,col_size/2);
 
           redimColumn(hwnd,LV_FILES_VIEW,4,33);
           redimColumn(hwnd,LV_FILES_VIEW,5,33);
@@ -519,6 +522,32 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
               char tmp[MAX_PATH];
               SendDlgItemMessage(hwnd,ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
               LVAllSearch(GetDlgItem(hwnd,LV_FILES_VIEW), NB_COLONNE_LV[LV_FILES_VIEW_NB_COL], tmp);
+            }
+          break;
+          case POPUP_LV_VIRUSTTAL :
+            if (VIRUSTTAL)
+            {
+              DWORD IDThread;
+              GetExitCodeThread(h_VIRUSTTAL,&IDThread);
+              TerminateThread(h_VIRUSTTAL,IDThread);
+              VIRUSTTAL = FALSE;
+            }else
+            {
+              VIRUSTTAL = TRUE;
+              h_VIRUSTTAL = CreateThread(NULL,0,CheckSelectedItemToVirusTotal,0,0,0);
+            }
+          break;
+          case POPUP_LV_AVIRUSTTAL :
+            if (AVIRUSTTAL)
+            {
+              DWORD IDThread;
+              GetExitCodeThread(h_AVIRUSTTAL,&IDThread);
+              TerminateThread(h_AVIRUSTTAL,IDThread);
+              AVIRUSTTAL = FALSE;
+            }else
+            {
+              AVIRUSTTAL = TRUE;
+              h_AVIRUSTTAL = CreateThread(NULL,0,CheckAllFileToVirusTotal,0,0,0);
             }
           break;
           case BT_VIEW_SEARCH:
@@ -555,10 +584,10 @@ BOOL CALLBACK DialogProc_files(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lPara
           case POPUP_LV_CP_COL8:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),7);break;
           case POPUP_LV_CP_COL9:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),8);break;
           case POPUP_LV_CP_COL10:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),9);break;
-          case POPUP_LV_CP_COL11:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),10);break;
-          case POPUP_LV_CP_COL12:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),11);break;
-          case POPUP_LV_CP_COL13:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),12);break;
-
+          case POPUP_LV_CP_COL11:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),13);break;
+          case POPUP_LV_CP_COL12:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),14);break;
+          case POPUP_LV_CP_COL13:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),15);break;
+          case POPUP_LV_CP_COL14:CopyData(GetDlgItem(hwnd,LV_FILES_VIEW), SendMessage(GetDlgItem(hwnd,LV_FILES_VIEW),LVM_GETNEXTITEM,-1,LVNI_FOCUSED),16);break;
           //popup treeview
           case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
           case POPUP_TV_OPEN:

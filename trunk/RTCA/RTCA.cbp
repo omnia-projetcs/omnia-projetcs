@@ -19,6 +19,7 @@
 					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libcomctl32.a" />
 					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libpsapi.a" />
 					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libws2_32.a" />
+					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libwininet.a" />
 				</Linker>
 			</Target>
 		</Build>
@@ -70,6 +71,9 @@
 		<Unit filename="proc_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="proc_files_virsutotal.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="proc_logs.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -119,6 +123,8 @@
 		<Unit filename="resource.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
+		<Unit filename="sha2.cpp" />
+		<Unit filename="sha2.h" />
 		<Unit filename="sqlite3.c">
 			<Option compilerVar="CC" />
 		</Unit>
