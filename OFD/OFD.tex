@@ -265,12 +265,12 @@
 Ces informations sont divulgu\'ees \`a titre d'instruction, l'auteur ne peut \^etre rendu responsable de ce que vous en faites!}
 \end{minipage}}
 }
-
-\author{}
+\author{\footnotesize Sous licence GPLv3 \url{http://www.gnu.org/licenses/gpl.html}}
 \date{ }
 \maketitle
 \thispagestyle{empty}
 }{}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \tableofcontents
@@ -284,23 +284,24 @@ Ces informations sont divulgu\'ees \`a titre d'instruction, l'auteur ne peut \^e
 \url{http://g0tmi1k.blogspot.com}
 }
 {
-\\Bo\^ite \`a outils (Linux) pour d\'eterminer les cl\'es WEP/WPA d'un r\'eseau Wifi.\\
-Outils de sniff et d\'ecouverte Wifi, kismet : \url{http://www.kismetwireless.net/}
+\\Bo\^ite \`a outils (Linux) pour d\'eterminer les cl\'es WEP/WPA d'un r\'eseau WiFi.\\
+Outils de sniff et d\'ecouverte WiFi, kismet : \url{http://www.kismetwireless.net/}\\
+Cassage de WPA utilisant la technologie WPS : \url{http://code.google.com/p/reaver-wps/}
 }
 {
-\textit{On commence par s\'electionner l'interface r\'eseau Wifi.}\\
+\textit{On commence par s\'electionner l'interface r\'eseau WiFi.}\\
 \textbf{Lister les interfaces r\'eseau disponibles : } {\sl \color{blue}airmon-ng}\addcontentsline{toc}{subsubsection}{Airmon-ng}\vskip +0.05cm 
 \textbf{Modifier le d\'ebit d'une carte : } {\sl \color{blue}iwconfig wlan0 rate 36M}\vskip +0.1cm
-\textbf{Activer le mode monitoring sur une interface r\'eseau s: }{\sl \color{blue}airmon-ng start Interface\_Wifi0}\vskip +0.05cm 
-\textit{Il faut maintenant identifier le r\'eseau WIFI, r\'ecup\'erer le syst\`eme de chiffrement, le nom (ESSID), l'adresse MAC
+\textbf{Activer le mode monitoring sur une interface r\'eseau s: }{\sl \color{blue}airmon-ng start Interface\_WiFi0}\vskip +0.05cm 
+\textit{Il faut maintenant identifier le r\'eseau WiFi, r\'ecup\'erer le syst\`eme de chiffrement, le nom (ESSID), l'adresse MAC
 du point d'acc\`es (BSSID) et celle de ses clients.}\\
-\textbf{Capture dans un fichier du dialogue Wifi : } {\sl \color{blue}airodump-ng {-}{-}write fichier\_sortie Interface\_mon0}
+\textbf{Capture dans un fichier du dialogue WiFi : } {\sl \color{blue}airodump-ng {-}{-}write fichier\_sortie Interface\_mon0}
 
 %Cassage de cl\'e WEP
 \vskip+0.2cm
 \begin{LARGE}Cassage de cl\'e WEP : \end{LARGE}\vskip +0.05cm 
 \textit{Le cassage de cl\'e WEP se fait par statistique \`a partir des vecteurs d'initialisation (IVS).}\addcontentsline{toc}{subsubsection}{Airodump-ng}\\
-\textbf{Capture dans un fichier du dialogue Wifi : }\\{\sl \color{blue}airodump-ng  {-}{-}write fichier\_sortie {-}{-}channel 9 {-}{-}bssid 00:AA:BB:CC:DD:EE mon0}\vskip +0.05cm 
+\textbf{Capture dans un fichier du dialogue WiFi : }\\{\sl \color{blue}airodump-ng  {-}{-}write fichier\_sortie {-}{-}channel 9 {-}{-}bssid 00:AA:BB:CC:DD:EE mon0}\vskip +0.05cm 
 \textit{Nous allons maintenant augmenter le trafic r\'eseau pour acc\'el\'erer le cassage.}\\
 \addcontentsline{toc}{subsubsection}{Aireplay-ng}\textbf{G\'en\'eration de trafic r\'eseau entre le PA et un client : }\\{\sl \color{blue}aireplay-ng -1 5 -e Nom\_ESSID -a adrMAC\_PA -h adrMAC\_machine mon0}\vskip +0.05cm 
 \textbf{G\'en\'eration de trafic par injection entre le PA et un client : }\\{\sl \color{blue}aireplay-ng -3 -e Nom\_ESSID -a adrMAC\_PA -h adrMAC\_machine mon0}\vskip +0.05cm 
@@ -312,7 +313,7 @@ du point d'acc\`es (BSSID) et celle de ses clients.}\\
 \vskip+0.2cm
 \begin{LARGE}Cassage de cl\'e WPA (1 et 2 en PSK) : \end{LARGE}\vskip +0.05cm 
 \textit{Le cassage de cl\'e en WPA se fait par r\'ecup\'eration d'un Handshake (cl\'e pour l'authentification) et par test par dictionnaire ou brute-force. Il faut maintenant d\'esauthentifier des stations connect\'ees sur le point d'acc\`es pour r\'ecup\'erer un Handshake.}\\
-\textbf{D\'esauthentification de station : }\\{\sl \color{blue}aireplay-ng -0 1 -a Adresse\_MAC\_Point\_Wifi -c Adresse\_MAC\_Station\_Cible mon0}\vskip +0.05cm 
+\textbf{D\'esauthentification de station : }\\{\sl \color{blue}aireplay-ng -0 1 -a Adresse\_MAC\_Point\_WiFi -c Adresse\_MAC\_Station\_Cible mon0}\vskip +0.05cm 
 
 \textbf{Cassage par dictionnaire : }\\{\sl \color{blue}aircrack-ng -a 2 -w Fichier\_Dictionnaire -0 *.cap}\addcontentsline{toc}{subsubsection}{Cowpatty}
 \textit{ou }{\sl \color{blue}cowpatty -s ESSID -f Fichier\_Dictionnaire -r wpa.cap}\vskip +0.05cm 
@@ -332,12 +333,12 @@ du point d'acc\`es (BSSID) et celle de ses clients.}\\
 
 %d\'echiffrement de paquet
 \vskip+0.2cm
-\begin{LARGE}\'Ecoute WIFI avec d\'echiffrement : \end{LARGE}\vskip +0.1cm
+\begin{LARGE}\'Ecoute WiFi avec d\'echiffrement : \end{LARGE}\vskip +0.1cm
 \addcontentsline{toc}{subsubsection}{Airdecap-ng}
-\textbf{D\'echiffrer des paquets PCAP de capture WIFI (-p pour la cl\'e WPA): }\\ {\sl \color{blue}airdecap-ng -b Adresse\_MAC\_Point\_Wifi -e ESSID -w CLE\_WEP\_HEXA *.cap}\vskip +0.1cm
-\textbf{D\'echiffrer des paquets WIFI \`a la vol\'e : } \textit{(-r pour lire \`a partir d'un fichier)}\\
+\textbf{D\'echiffrer des paquets PCAP de capture WiFi (-p pour la cl\'e WPA): }\\ {\sl \color{blue}airdecap-ng -b Adresse\_MAC\_Point\_WiFi -e ESSID -w CLE\_WEP\_HEXA *.cap}\vskip +0.1cm
+\textbf{D\'echiffrer des paquets WiFi \`a la vol\'e : } \textit{(-r pour lire \`a partir d'un fichier)}\\
 \addcontentsline{toc}{subsubsection}{Airtun-ng}
-{\sl \color{blue}airtun-ng -a Adresse\_MAC\_Point\_Wifi -w CLE\_WEP\_HEXA -i mon0}
+{\sl \color{blue}airtun-ng -a Adresse\_MAC\_Point\_WiFi -w CLE\_WEP\_HEXA -i mon0}
 %Airbase-ng permet de cr\'eer un soft ap, (un v\'eritable point d'acc\`es) 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -383,6 +384,84 @@ puis on copie la signature d'EICAR dans un fichier .txt que l'on renomme en diff
 
 \textbf{Site permettant de tester un fichier par les antivirus les plus connus :}\\
 \url{http://www.virustotal.com/fr/}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{APT}{protocole.png}{\url{http://doc.ubuntu-fr.org/ppa}}
+{
+\\APT est la commande de gestion des paquets sous les environnements Debian/Ubuntu\dots{}\\
+Toutes les commandes ci-dessous n\'ecessitent des droits root (acc\'essible avec la commande sudo).
+}
+{
+\textit{Afin d'installer ou mettre \`a jour le syst\`eme, l'application se base sur la liste des d\'ep\^ots.}\\
+\textbf{Fichier de configuration des d\'ep\^ots :}\\
+{\sl \color{blue}/etc/apt/sources.list}\vskip+0.1cm
+
+\textit{Les d\'ep\^ots PPA (Personal Package Archives) fournis par des \'editeurs d'applications particulier sont situ\'ees dans :} 
+{\sl \color{blue}/etc/apt/sources.list.d/}\vskip+0.2cm
+
+\textbf{Format d'une ligne dans le fichier sources.list :}\\
+{\sl \color{blue}deb http://url <branche> <section>}\\
+Exemple : {\sl \color{blue}deb http://extras.ubuntu.com/ubuntu maverick main}\vskip+0.1cm
+
+\textbf{Ajout d'un d\'ep\^ot PPA :}\\
+{\sl \color{blue}add-apt-repository ppa:<nom\_du\_d\'ep\^ot>}\vskip+0.1cm
+
+\textbf{Supprimer un d\'ep\^ot PPA :}\\
+{\sl \color{blue}add-apt-repository {-}{-}remove ppa:<nom\_du\_d\'ep\^ot>}\vskip+0.2cm
+
+\textit{Certains d\'ep\^ots n\'ecessitent une cl\'e public GPG, il faut alors importer cette cl\'e pour se connecter au d\'ep\^ot.}\\
+\textbf{Importer une cl\'e :}\\
+{\sl \color{blue}
+% gpg {-}{-}keyserver <serveur>:<port> {-}{-}recv <ID cl\'e>\\
+% gpg {-}{-}export {-}{-}armor <ID cl\'e> | apt-key add -\\
+% {\color{black}ou :}\\
+ wget <URL>/<KEY>.asc -O - | apt-key add -
+}\vskip+0.2cm
+
+\textbf{Utilisation de proxy :}\\
+\textit{Pour utiliser un proxy, il faut modifier le fichier {\sl \color{blue}/etc/apt/apt.conf} et ajouter le format de ligne suivant :}\\
+{\sl \color{blue}Acquire::http::Proxy "http://user:password@IP\_du\_Proxy:Port\_du\_Proxy";}\vskip+0.1cm
+Pour afficher la configuration locale du proxy : {\sl \color{blue}env | grep -i proxy}\vskip+0.2cm
+
+\textbf{Liste des commandes utiles :}
+\begin{itemize}
+	\item Mise \`a jour de la liste des paqu\^ets : {\sl \color{blue}apt-get update}
+	\item Mise \`a jour de tous les paqu\^ets : {\sl \color{blue}apt-get upgrade}
+	\item Mise \`a jour de la distribution : {\sl \color{blue}apt-get dist-upgrade}\vskip+0.1cm
+	
+	\item Supprimer les paqu\^ets inutiles : {\sl \color{blue}apt-get autoremove}
+	\item Supprimer les paqu\^ets inutiles et leurs fichiers de configuration : {\sl \color{blue}apt-get purge}
+	\item Supprimer les paqu\^ets inutiles du cache : {\sl \color{blue}apt-get autoclean}
+	\item Supprimer tous les paqu\^ets t\'el\'echarg\'es du cache : {\sl \color{blue}apt-get clean}\vskip+0.1cm
+	
+	\item V\'erifier et r\'eparer les erreurs de d\'ependances : {\sl \color{blue}apt-get check}\vskip+0.1cm
+	
+	\item Rechercher un paqu\^et dans le cache : {\sl \color{blue}apt-cache search <paquet>}
+	\item Afficher les informations sur un paqu\^et : {\sl \color{blue}apt-cache show <paquet>}\vskip+0.1cm
+		
+	\item Installer un paqu\^et : {\sl \color{blue}apt-get install <paquet>}
+	\item D\'esinstaller un paqu\^et : {\sl \color{blue}apt-get remove <paquet>}\vskip+0.2cm
+\end{itemize}
+
+\textbf{Liste de d\'ep\^ots int\'eressants :}
+\begin{itemize}
+	\item \textbf{Backtrack 5 :}\\
+	{\sl \color{blue}
+	deb http://all.repository.backtrack-linux.org revolution main microverse non-free testing\\
+	wget -q http://all.repository.backtrack-linux.org/backtrack.gpg -O- | apt-key add
+	}\vskip+0.1cm
+	\item \textbf{Remastersys :} \textit{outil de sauvegarde et cr\'eation de distribution Linux.}\\	
+	{\sl \color{blue}
+	deb http://www.remastersys.com/repository lucid/\\
+	wget -O - http://www.remastersys.com/ubuntu/remastersys.gpg.key | apt-key add -
+	}\vskip+0.1cm
+	\item \textbf{Ubuntu tweak :}\\	
+	{\sl \color{blue}
+	deb http://ppa.launchpad.net/kokoto-java/omgubuntu-stuff/ubuntu\\
+	wget -O - http://ubuntu-tweak.com/source/kokoto-java-omgubuntu-stuff/key/ | apt-key add -
+	}
+\end{itemize}
+
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{ARP statique}{protocole.png}{\O}
@@ -591,7 +670,7 @@ Les noms utilis\'es : Commandes AT/Commandes Hayes. Les connexions au modem se f
 \url{http://tools.securitytube.net/index.php?title=Main_Page}
 }
 {
-\\Distribution tout-en-un, d'audit de s\'ecurit\'e, tests d'intrusion, cassage Wifi\dots{} Il est possible de cr\'eer des live-cd \`a partir de syst\`emes install\'e avec l'outil remastersys.\\
+\\Distribution tout-en-un, d'audit de s\'ecurit\'e, tests d'intrusion, cassage WiFi\dots{} Il est possible de cr\'eer des live-cd \`a partir de syst\`emes install\'e avec l'outil remastersys.\\
 Ci-dessous un exemple d'outils pr\'esents.
 }
 {
@@ -868,7 +947,8 @@ En cas d'erreur il est possible d'utiliser les options {\sl \color{blue}-v} et {
 {\url{http://sourceforge.net/projects/dirbuster/}}
 {
 \\Application Java (multi-OS Windows, Linux et Mac) de la fondation OWASP, spider/crawler de site Web \`a base de dictionnaire. 
-L'application peut \^etre utilis\'ee en mode graphique, ou en mode console.
+L'application peut \^etre utilis\'ee en mode graphique, ou en mode console.\\
+Un autre fuzze Web : Freakin' Simple Fuzzer \url{http://code.google.com/p/fm-fsf/}
 }{
 \textbf{Ex\'ecuter Dirbuster en ligne de commande :}
 \begin{itemize}
@@ -994,7 +1074,6 @@ Compatible avec les filtres Tcpdump.
     \item[$\Square$] Pour les service utiliser les comptes locaux pour se connecter plut\^ot que le PASSWORD 7.
     \item[$\Square$] D\'esactiver les services inutiles (TELNET, HTTP, SNMP, TFTP, proxy ARP\dots{}).
     \item[$\Square$] D\'esactiver les services de broadcast (SCP, CDP, VRRP\dots{}) s'ils ne sont pas utilis\'es\\ (Ils sont utiles dans le cas de redondance, de c\oe ur de r\'eseau et qualit\'e de services).
-    \item[$\Square$] D\'esactiver le Protocole Spanning Tree (STP) si aucune boucle r\'eseau n'est pr\'esente.
     \item[$\Square$] En cas d'exploitation d'un service non chiffr\'e pour administrer l'\'el\'ement, il faut limiter son acc\`es et utiliser une m\'ethode d'authentification, ou en cas d'impossibilit\'e utiliser un VLAN d\'edi\'e.
     \item[$\Square$] Mettre en place des VLAN entre les diff\'erentes parties du r\'eseau (clients, serveurs, postes d'administration\dots{}).
     \item[$\Square$] Le VLAN 1 est le VLAN par d\'efaut ou sont plac\'es les ports, il ne doit pas \^etre utilis\'e.
@@ -2267,6 +2346,7 @@ Copier un fichier \`a partir/vers du serveur FTP : {\color{blue}get monbeaufichi
 	\item Yahoo recherche avanc\'ee (page web): \url{http://fr.search.yahoo.com/web/advanced}
 	\item Goolag Scanner : \url{http://www.goolag.org/}
 	\item MetaGooFil : \url{http://www.edge-security.com/metagoofil.php}
+	\item Vos traces sur Google : \url{https://www.google.com/settings/ads/onweb/}
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4369,7 +4449,7 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 		\blockFiche{8cm}{9cm}{Configuration r\'eseau}
 		{
 			\MbFCmd{1.2cm}
-			{Configuration du r\'eseau filaire + wifi :}
+			{Configuration du r\'eseau filaire + WiFi :}
 			{
 			/etc/network/interface {\color{black} ou} ifconfig {\color{black} ou} dhclient\\
 			ifconfig wlan0 scan
@@ -5991,7 +6071,7 @@ Il est aussi possible d'utiliser les interfaces TAP : \url{http://en.wikibooks.o
 \url{http://www.aircrack-ng.org/}\\
 \url{http://www.offensive-security.com/metasploit-unleashed/Karmetasploit}\\
 \url{http://bricowifi.blogspot.com}\\
-}{\\Consiste \`a mettre en place un faux point d'accs Wifi, afin d'intercepter les donnes de utilisateurs, ou prendre le contrle des machines des utilisateurs.}
+}{\\Consiste \`a mettre en place un faux point d'accs WiFi, afin d'intercepter les donnes de utilisateurs, ou prendre le contrle des machines des utilisateurs.}
 {
 \textbf{Identification de l'AP :} {\sl \color{blue}airodump-ng wlan0}\vskip+0.2cm
 
@@ -6036,18 +6116,18 @@ iptables -A FORWARD -i at0 -j ACCEPT
 {\sl \color{blue}sessions -i 1}\vskip+0.2cm
 
 
-\textbf{Capture de flux Wifi :}\\
-\textit{On peut aussi utiliser tcpdump, wireshark ou airodump-ng sur mon0 (BSSID = adresse MAC de la borne Wifi) :}\\
+\textbf{Capture de flux WiFi :}\\
+\textit{On peut aussi utiliser tcpdump, wireshark ou airodump-ng sur mon0 (BSSID = adresse MAC de la borne WiFi) :}\\
 {\sl \color{blue}airodump-ng {-}{-}write fichier\_resultat {-}{-}channel 8 {-}{-}bssid 00:11:22:33:44:55 mon0}\vskip+0.2cm
 
 \textbf{Cartographie de points d'acc\`es :}
 \begin{itemize}
 	\item Kismet : \url{http://www.kismetwireless.net/} \url{http://ilpleut.be/code-kismet} \url{http://www.larsen-b.com/Article/212.html}
 	\item Ekahau HeatMapper (payant) : \url{http://www.ekahau.com/products/heatmapper/overview.html}
-	\item Outils de visualisation du r\'eseau Wifi : \url{http://www.metageek.net/docs/wireless-networking-tools/}
+	\item Outils de visualisation du r\'eseau WiFi : \url{http://www.metageek.net/docs/wireless-networking-tools/}
 \end{itemize}
 \vskip+0.2cm
-\textbf{Configurer la carte Wifi du client (sous Linux) :}\\
+\textbf{Configurer la carte WiFi du client (sous Linux) :}\\
 \textit{Cr\'eation d'un fichier de configuration : }{\sl \color{blue}wpa\_passphrase ESSID ASCCI\_PASSPHRASE > wpa.conf}\\
 \textit{Connexion : }{\sl \color{blue}wpa\_supplicant -Dwext -iwlan0 wpa.conf}
 }
@@ -6693,6 +6773,7 @@ Outils d'envoi de mails Anomails \url{http://omni.a.free.fr/Sources/AnoMails_exe
 \begin{LARGE}Points \`a v\'erifier : \end{LARGE}\vskip +0.2cm
 \begin{description}
     \item[$\Square$] Le message de connexion au serveur ne doit pas \^etre verbeux (OS, application, version).
+    \item[$\Square$] Seule une connexion SSL/TLS doit \^etre autoris\'ee.
     \item[$\Square$] L'envoi de mail ne doit \^etre autoris\'e qu'apr\`es authentification.
     \item[$\Square$] Lors de l'envoi de mail l'exp\'editeur doit \^etre l'utilisateur authentifi\'e.
     \item[$\Square$] Lors de l'envoi de mail le destinataire doit \^etre v\'erifi\'e sinon le message doit \^etre supprim\'e.
@@ -6974,7 +7055,7 @@ Pour g\'en\'erer des donn\'ees pour remplir une base test : \url{http://www.gene
 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\HACKfiche{}{SQLmap}{sqlmap.png}{\url{http://sqlmap.sourceforge.net/features.html}}
+\HACKfiche{}{SQLmap - Commandes}{sqlmap.png}{\url{http://sqlmap.sourceforge.net/features.html}}
 {
 Logiciel de test de p\'en\'etration pour automatiser la d\'etection et l'exploitation d'injection SQL.
  Sous licence Open Source et multi plate-forme (Windows, Linux, MAC).\\
@@ -7029,6 +7110,37 @@ Pour plus de documentation voir le r\'epertoire \textbf{doc} de l'installation.
 
 \textbf{Les r\'esultats sont enregistr\'es dans :}\\
 {\sl \color{blue}sqlmap-0.8\_exe$\backslash$output$\backslash$SITE\_EN\_TEST$\backslash$session} et {\sl \color{blue}log}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\HACKfiche{}{SQLmap - par fichier de configuration}{sqlmap.png}{\url{http://sqlmap.sourceforge.net/features.html}}
+{
+Logiciel de test de p\'en\'etration pour automatiser la d\'etection et l'exploitation d'injection SQL.
+ Sous licence Open Source et multi plate-forme (Windows, Linux, MAC).\\
+Pour plus de documentation voir le r\'epertoire \textbf{doc} de l'installation.
+}
+{
+\textit{Par d\'efaut le fichier de configuration est situ\'e dans le m\^eme r\'epertoire que SQLmap (Sous Backtrack : {\sl \color{blue}/pentest/database/sqlmap/sqlmap.conf}).}\\
+\textbf{Ex\'ecuter SQLmap avec un fichier de configuration :}\\
+{\sl \color{blue}./sqlmap.py -c sqlmap.conf}\vskip+0.2cm
+
+\textbf{Liste param\`etres importants :}
+\begin{itemize}
+	\item URL cible : {\sl \color{blue}url = \color{red}http://\dots{}}
+	\item Proxy : {\sl \color{blue}proxy = \color{red}http://<IP>:<PORT>}	
+	\item Param\^etres POST : {\sl \color{blue}data = \color{red}login=toto\&mdp=\dots{}}
+	\item Cookie : {\sl \color{blue}cookie = \color{red}id=65BE00\dots{}}
+	\item User agent : {\sl \color{blue}agent = \color{red}Firefox\dots{}}
+	\item URL de r\'ef\'erence : {\sl \color{blue}referer = \color{red}http://\dots{}}
+	\item Nombre de tests simultan\'es : {\sl \color{blue}threads = \color{red}5}\vskip+0.1cm
+
+	\item Sp\'ecifier le param\`etre \`a cibler : {\sl \color{blue}testParameter = \color{red}login\dots{}}
+	\item Sp\'ecifier un fichier de sortie des tests : {\sl \color{blue}wFile = \color{red}/home/resultats\_SQLmap.txt\dots{}}
+	\item Sp\'ecifier le niveau de verbosit\'e : {\sl \color{blue}verbose = \color{red}2}\vskip+0.1cm
+	
+	\item L'extraction des donn\'ees se param\`etre dans la section : {\sl \color{blue}[Enumeration]}
+	\item Activer l'utilisation de Shell SQL en cas de faille: {\sl \color{blue}osShell = \color{red}True{}}
+	\item Utiliser Metasploit, il faut pr\'eciser sont emplacement : {\sl \color{blue}msfPath = \color{red}/pentest/metasploit3{}}\vskip+0.1cm
+\end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{SSH}{openssh.png}
@@ -7510,7 +7622,7 @@ Les boutons \textbf{GET->POST} et \textbf{POST->GET} permettent de modifier la m
 
 {\Large \textbf{WebScarab}}\\
 \textit{Pour commencer il nous faut activer toutes les fonctionnalit\'es de WebScarab puis red\'emarrer, menu :\\ \textbf{Tools->Use~Full-featured Interface}}\\
-Puis activer l'authentification, menu : \textbf{Tools->Credentials}, cocher la case \textbf{Ask when required}.\vskip+0.1cm
+Puis activer l'authentification, menu : \textbf{Tools->Credentials}, cocher la case \textbf{Ask when required}.\\
 
 \textbf{Liste des onglets :}
 \begin{itemize}
@@ -7530,13 +7642,6 @@ Puis activer l'authentification, menu : \textbf{Tools->Credentials}, cocher la c
 	\item \textbf{Search} : recherches avanc\'es sur un site/Internet.\vskip+0.2cm
 \end{itemize}
 
-\textbf{Utilisation en Proxy :} (Onglet \textbf{Proxy})
-\begin{itemize}
-	\item \textbf{Listeners} : permet de configurer le proxy ;
-	\item \textbf{Manual Edit} : interception des requ\^etes, s\'election des types de requ\^ete et des exceptions de fichiers ;
-	\item \textbf{Bean Shell} : pour scripter une modification automatique des requ\^etes ;
-	\item \textbf{Miscellaneous} : options compl\'ementaires ;\vskip+0.2cm
-\end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Wget}{gnu_grub.jpg}
@@ -7604,6 +7709,45 @@ Pour d\'esactiver la prise en compte des fichiers d'exclusions robots.txt (\url{
 8 : Erreur du serveur. 
 }
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{WiFi}{protocol.png}{\O}
+{
+\\Plusieurs types de r\'eseaux existent :
+\begin{itemize}
+	\item Les r\'eseaux domestiques
+	\item Les r\'eseaux professionnels d'Intranet
+	\item Les r\'eseaux invit\'es
+\end{itemize}
+}
+{
+\begin{LARGE}Points \`a v\'erifier : \end{LARGE}\vskip +0.2cm
+\begin{description}
+    \item[$\Square$] Le nom du r\'eseau (eSSID) doit \^etre masqu\'e.
+    \item[$\Square$] L'eSSID ne doit pas \^etre facilement identifiable.
+    \item[$\Square$] Proscrire les technologies de chiffrement WEP, WPA/WPA2 PSK, WPA/WPA2 WPS, pr\'ef\'erer WPA entreprise.
+    \item[$\Square$] En cas d'utilisation de cl\'e, celle-ci doit \^etre complexe et difficile \`a identifier.
+    \item[$\Square$] Cloisonner les clients (un client WiFi ne doit pas pouvoir contacter un autre client WiFi).
+    \item[$\Square$] L'acc\`es au r\'eseau \`a partir du WiFi doit \^etre cloisonn\'e par un proxy ou firewall.
+    \item[$\Square$] Seuls les protocoles d\'efinis dans la charte doivent \^etre autoris\'es.
+    \item[$\Square$] Les utilisateurs ne doivent pas pouvoir acc\'eder aux interfaces d'administration des \'equipements et serveurs.
+    \item[$\Square$] Utiliser une syst\`eme de d\'etection de \nameref{Rogue AP/Fake AP}.
+    \item[$\Square$] Une journalisation des actions des clients distants doit \^etre impl\'ement\'ee.
+    \item[$\Square$] Les journaux doivent \^etre sauvegard\'es pour une dur\'ee au moins \'egale \`a une ann\'ee.
+    \item[$\Square$] Le signal doit \^etre limit\'e au strict minimum.\\
+\end{description}
+
+\begin{LARGE}Cas de r\'eseaux invit\'e : \end{LARGE}\vskip +0.2cm
+\begin{description}
+    \item[$\Square$] M\^eme pour un acc\`es Internet, l'acc\'es doit \^etre chiffr\'e ou les utilisateurs doivent \^etre infirm\'es que le r\'eseau n'est pas s\^ur et qu'ils doivent utiliser des protocoles s\'ecuris\'es.
+    \item[$\Square$] Une charte doit \'etre accept\'e par les utilisateurs pour acc\'eder au r\'eseau. Elle doit stipuler les risques et amendes encourus (notamment pour Hadopi et en cas d'action de malveillance), qu'ils sont responsables de leurs actes et que leur trafique est journalis\'e.
+    \item[$\Square$] Les utilisateurs doivent \^etre identifi\'es et authentifi\'es.
+    \item[$\Square$] Une seul connexion simultan\'e par compte doit \^etre autoris\'es.\\
+\end{description}
+
+\textbf{Remarque :}\\
+Attention, les portails captifs peuvent souvent \^etre contourn\'es en usurpant l'adresse IP et l'adresse MAC d'un utilisateur autoris\'e.
+}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Windows - Base de registre}{microsoft.png}
 {\url{http://www.beginningtoseethelight.org/ntsecurity/index.php}}
@@ -7898,7 +8042,7 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 \vskip+0.1cm
 \small
 \begin{tabular}{l|l}
-\begin{minipage}[t][25cm][t]{9cm}
+\begin{minipage}[t][26.5cm][t]{9cm}
 \begin{itemize}
 	\item \textbf{Administration et d\'eveloppement :}
 	\begin{itemize}
@@ -7981,7 +8125,7 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 	\end{itemize}	
 \end{itemize}
 \end{minipage} & 
-\begin{minipage}[t][25cm][t]{9cm}
+\begin{minipage}[t][26.5cm][t]{9cm}
 \begin{itemize}	
 \item \textbf{Outils et ressources :}
 	\begin{itemize}
@@ -8008,14 +8152,17 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 		\item \url{http://www.securitytube.net}
 		\item \url{http://g0tmi1k.blogspot.com}
 		\item \url{http://wire.less.dk}
-		\item \url{http://hackguide4u.blogspot.com/}
+		\item \url{http://hackguide4u.blogspot.com}
 		\item \url{http://hackbbs.org} et \url{ftp://hackbbs.org}
+		\item \url{http://www.robvanderwoude.com}
+		\item \url{http://www.tarasco.org/security/tools.html}
 		\item \url{http://allhotkeys.com}\vskip+0.2cm
 	\end{itemize}
 	
 \item \textbf{Fuzzing \& dictionnaires :}
 	\begin{itemize}
 		\item \url{http://code.google.com/p/fuzzdb/}
+		\item \url{http://www.mavitunasecurity.com/blog/svn-digger-better-lists-for-forced-browsing/}
 		\item \url{http://www.edge-security.com/wfuzz.php}
 		\item \url{http://sourceforge.net/projects/powerfuzzer/files/powerfuzzer/}
 		\item \url{ftp://ftp.ox.ac.uk/pub/wordlists/}
@@ -8033,15 +8180,6 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 		\item \url{http://en.wikipedia.org/wiki/Wikipedia_database}
 		\item \url{http://dictionary-thesaurus.com/wordlists.html}\vskip+0.2cm
 	\end{itemize}
-
-	\item \textbf{News :}
-	\begin{itemize}
-		\item \url{http://www.korben.info}
-		\item \url{http://www.hamza.ma}
-		\item \url{http://www.secuobs.com}
-		\item \url{http://geeksource.fr}
-		\item \url{http://www.zataz.com}\vskip+0.2cm
-	\end{itemize}
 \end{itemize}
 \end{minipage}\\
 
@@ -8053,16 +8191,26 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 \vskip+0.1cm
 \small
 \begin{tabular}{l|l}
-\begin{minipage}[t][25cm][t]{9cm}
+\begin{minipage}[t][26.5cm][t]{9cm}
 \begin{itemize}
+	\item \textbf{News :}
+	\begin{itemize}
+		\item \url{http://www.korben.info}
+		\item \url{http://www.hamza.ma}
+		\item \url{http://www.secuobs.com}
+		\item \url{http://geeksource.fr}
+		\item \url{http://www.zataz.com}\vskip+0.2cm
+	\end{itemize}
 	\item \textbf{Ezines :}
 	\begin{itemize}
 		\item \url{http://www.phrack.com/issues.html}
+		\item \url{http://thehackernews.com/p/magazine.html}
+		\item \url{http://www.hackerzvoice.net/mags}
 		\item \url{http://arsouyes.org/phrack/index.html}\vskip+0.2cm
 	\end{itemize}
 \end{itemize}
 \end{minipage} & 
-\begin{minipage}[t][25cm][t]{9cm}
+\begin{minipage}[t][26.5cm][t]{9cm}
 \begin{itemize}	
 	\item \textbf{Divers :}
 	\begin{itemize}
