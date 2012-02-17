@@ -5491,7 +5491,7 @@ x - exclue les tests suivants}\\
 }
 {
 \textit{Scan par ping \textbf{(-sP)} ou sans \textbf{(-P0)}, par d\'efaut le scan de port se fait en \textbf{vanilla TCP connect} sur les ports les plus utilis\'es (1697 ports). On peut aussi effectuer un scan sur un seul port \textbf{(-p num\_port}). L'option \textbf{(-vv)} permet d'activer les informations de d\'eroulement. \textbf{(-oX)} permet d'enregistrer les informations au format XML, le fichier de style pour le rendu \'etant dans le r\'epertoire Nmap \textbf{(nmap.xsl)}.}\\
-\textbf{D\'ecouvrir les machines du r\'eseau : }\\
+\textbf{D\'ecouvrir les machines du r\'eseau :}\\
 {\sl \color{blue}nmap -vv -sP 192.168.0.1-254}\\
 {\sl \color{blue}nmap -vv -P0 -p 25,80 192.168.0.1-254}\\
 {\sl \color{blue}nmap -vv -P0 192.168.0.1-254 -oX FichierResultat.xml}\vskip +0.15cm
@@ -5512,18 +5512,18 @@ ou\\
 {\sl \color{blue}nmap -PN -p 139 {-}{-}packet-trace -sI 192.168.0.100:50000 192.168.0.1}\\
 {\sl \color{blue}nmap -PN -P0 -p 139 -b 192.168.0.100 192.168.0.1}\vskip +0.15cm
 
-\textbf{FTP bounce attack (Attaque par rebond)}\\
+\textbf{FTP bounce attack (Attaque par rebond) :}\\
 \textit{Cet attaque consiste \`a utiliser un serveur FTP anonyme (imprimante, serveur\dots{}) comme relais pour se connecter \`a d'autres serveurs FTP ou effectuer des scannes de ports.}\\
 {\sl \color{blue}nmap -b IpServeurFTPAnonyme 192.168.0.0-255}\vskip +0.15cm
 
-\textbf{Idle Scan (par rebond)}\\
+\textbf{Idle Scan (par rebond) :}\\
 {\sl \color{blue}nmap -PN -p- -sI IpMachineRebond IpMachineCible}\vskip +0.15cm
 
-\textbf{Scan FIN et NULL}\\
+\textbf{Scan FIN et NULL :}\\
 \textit{Consiste en l'envoi de paquets TCP avec le flag FIN (-sF), ou aucun pour le NULL (-sN).}\\
 {\sl \color{blue}nmap -sF IpMachineCible}\vskip +0.15cm
 
-\textbf{Scan Xmas (scan de No\"el)}\\
+\textbf{Scan Xmas (scan de No\"el) :}\\
 \textit{Consiste en l'envoi de paquets TCP avec les flags FIN/URG/PUSH activ\'es.}\\
 {\sl \color{blue}nmap -sX IpMachineCible}\vskip +0.15cm
 
@@ -5537,52 +5537,52 @@ ou\\
 \\Outil (Windows, Unix/Linux et MacOS) d'exploration r\'eseau et scanneur de ports/s\'ecurit\'e (utilise la lib Pcap), il permet d'effectuer du SYN scan, du scan de machine par rebond, d'identifier les services\dots{}
 }
 {
-Des options de suivi de scan : 
-\begin{description}
-    \item[{-}{-}version-trace] permet d'afficher les actions qu'effectue Nmap.
-    \item[{-}{-}version-trace] permet de visualiser les paquets envoys.
-    \item[{-}{-}reason] ajoute une colonne au rsultat pour indiquer quel r\'esultat Nmap a interpr\'et\'e.\vskip +0.15cm
-\end{description}
+\textbf{Options de suivi de scan :}\\
+{\sl \color{blue}{-}{-}version-trace} permet d'afficher les actions qu'effectue Nmap.\\
+{\sl \color{blue}{-}{-}reason} ajoute une colonne au r\'esultat pour indiquer quel r\'esultat Nmap a interpr\'et\'e.\vskip +0.1cm
+    
+\textbf{G\'en\'eration de liste d'IP sans les scanner :}\\
+{\sl \color{blue}nmap -sL 192.168.0.0/24 | grep "\^ Host" | cut -d '(' -f2 | cut -d ')' -f1}\vskip +0.2cm
 
-{\Large Tests de filtrage}\\
+\textbf{Tests de filtrage :}\\
 L'objectif est de d\'eterminer si nous sommes en face d'une solution de filtrage \textbf{statefull} ou \textbf{unstatefull}.\\
 Un pare-feu \textbf{statefull} surveille et n'autorise que les connexions duement \'etablies, il est plus lourd et risque de planter plus facilement (donc de tous laisser passer ou de faire tomber la connexion). Les services les plus utilis\'es ne sont pas filtr\'es en g\'eneral pour all\'eger la charge.\\
-Un pare-feu \textbf{unstatefull} ne surveille pas si la connexion a d\'eja \'et\'e \'etablie, en cas de scanne de type ACK, il laisse les h\^otes distant r\'epondres.\\
+Un pare-feu \textbf{unstatefull} ne surveille pas si la connexion a d\'eja \'et\'e \'etablie, en cas de scanne de type ACK, il laisse les h\^otes distant r\'epondres.\vskip +0.1cm
 
-On effectue un scan TCP-SYN :\\
+\textbf{On effectue un scan TCP-SYN :}\\
 \textit{Les ports en open/closed indiquent que les services identifi\'es existent ou qu'ils ne sont pas filtr\'es.}\\
-{\sl \color{blue}nmap -sS -p- IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sS -p- IpMachineCible}\vskip +0.1cm
 
-On effectue un scan TCP-ACK :\\
+\textbf{On effectue un scan TCP-ACK :}\\
 \textit{Si nous avons des ports qui sont \textbf{filtered}, nous sommes dans un cas de pare-feu \textbf{statefull}.\\
 Les ports ayant un \'etat \textbf{unfiltered} indiquent qu'aucune r\`egle de filtrage n'est pr\'esente pour ces ports.}\\
-{\sl \color{blue}nmap -sA -p- IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sA -p- IpMachineCible}\vskip +0.1cm
 
-Pour passer un IDS/IPS/pare-feu il existe de multiples solutions :\\
+\textbf{Pour passer un IDS/IPS/pare-feu il existe de multiples solutions :}\\
 \textit{En utilisant la fragmentation de paquets ({-}{-}mtu 10 permet de sp\'ecifier la taille en octet) .}\\
-{\sl \color{blue}nmap -sS -f -p- IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sS -f -p- IpMachineCible}\vskip +0.1cm
 
 \textit{En modifiant l'adresse source de port (dans le cas notamment de pare-feu unstatefull).}\\
-{\sl \color{blue}nmap -sS -g 80 -p- IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sS -g 80 -p- IpMachineCible}\vskip +0.1cm
 
 \textit{En modifiant l'adresse IP et MAC source (si la valeur est 0 l'adresse MAC est g\'en\'er\'e de mani\`ere al\'eatoire).}\\
-{\sl \color{blue}nmap -sS -S 192.168.0.1 {-}{-}spoof-mac 01:02:03:04:05:06 -p- IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sS -S 192.168.0.1 {-}{-}spoof-mac 01:02:03:04:05:06 -p- IpMachineCible}\vskip +0.1cm
 
 \textit{On peut aussi v\'erifier si la sonde d\'etecte les sommes de contr\^ole \'eronn\'ees.}\\
-{\sl \color{blue}nmap -sS {-}{-}badsum -p- IpMachineCible}\\
+{\sl \color{blue}nmap -sS {-}{-}badsum -p- IpMachineCible}\vskip +0.2cm
 
-{\Large Utilisation des scripts}\\
+\textbf{Utilisation des scripts :}\\
 \textit{Nmap comporte aussi des scripts qui permettent d'apporter des 
 informations compl\'ementaires, pour tout activer :}\\
-{\sl \color{blue}nmap -sV -p- {-}{-}script all IpMachineCible}\vskip +0.15cm
+{\sl \color{blue}nmap -sV -p- {-}{-}script all IpMachineCible}\vskip +0.1cm
 
-Ex\'ecuter un script sp\'ecifique (par d\'efaut ils sont dans /usr/share/nmap/) :\\
-{\sl \color{blue}nmap -sV -p80 {-}{-}script monScript.nbe IpMachineCible}\vskip +0.15cm
+\textit{Ex\'ecuter un script sp\'ecifique (par d\'efaut ils sont dans /usr/share/nmap/) :}\\
+{\sl \color{blue}nmap -sV -p80 {-}{-}script monScript.nbe IpMachineCible}\vskip +0.1cm
 
-Ex\'ecuter les scripts non intrusifs :\\
-{\sl \color{blue}nmap -sV -p80 {-}{-}script "not intrusive" IpMachineCible}\\
+\textit{Ex\'ecuter les scripts non intrusifs :}\\
+{\sl \color{blue}nmap -sV -p80 {-}{-}script "not intrusive" IpMachineCible}\vskip +0.2cm
 
-{\Large Scan UDP}\\
+\textbf{Scan UDP :}\\
 Le scan UDP peut \^etre tr\`es long (avec l'augmentation de probs), il est donc possible de le limiter (ici a 100ms et 3 tests max).\\
 {\sl \color{blue}nmap {-}{-}max-rtt-timeout 100ms {-}{-}max-retries 3 -sU  -p- IpMachineCible}\\
 }
