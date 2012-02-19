@@ -1088,15 +1088,687 @@ Compatible avec les filtres Tcpdump.
     \item[$\Square$] La journalisation des erreurs doit \^etre activ\'ee.
     \item[$\Square$] V\'erifier la synchronisation horaire (NTP) pour les journaux d'audit.
 \end{description}\vskip+0.1cm
-%\begin{LARGE}Comptes et mots de passes par d\'efaut : \end{LARGE}
-%\footnotesize
-%\begin{description}
-%    \item[3COM] : manager/manager , debug/synnet , tech/tech , adm/<vide> , recover/recover , security/security
-%    \item[CISCO] : Cisco/Cisco , cisco/cisco , admin/admin , admin/cisco , enable/cisco , <vide>/c
-%    \item[ENTERASYS] admin/netadmin , admin/<vide> , <vide>/netadmin
-%    \item[DELL] : Dell/<vide> , Admin/<vide>
-%    \item[HP] : hewlpack/<vide> , admin/admin , admin/<vide>
-%\end{description}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Cfiche{}{\'El\'ements actifs : 3COM (1/3)}
+{
+\vskip -0.5cm
+ {
+	\hskip - 0.5cm
+	\begin{tabular}{cc}
+		\blockFiche{8cm}{9cm}{Comptes par d\'efaut}
+		{\vskip - 0.2cm
+			\MbFCmd{0.7cm}
+			{TELNET :}
+			{
+					login:admin
+					mdp:
+			}\\
+			\MbFCmd{0.7cm}
+			{(1100-5500) Usine :}
+			{
+					login:3comcso
+					mdp:RIP000
+			}\\
+			\MbFCmd{0.7cm}
+			{(3900/9300) Usine :}
+			{
+					login:admin
+					mdp:lanplex
+			}\\
+			\MbFCmd{1.1cm}
+			{R\'einitialiser la configuration :}
+			{
+					\url{http://community.spiceworks.com/topic/9609-forgot-admin-password}
+			}\\
+			\hline
+			\rowcolor[gray]{.9} \textbf{SAVE/LOAD configuration}\\\hline
+			\MbFCmd{0.65cm}
+			{(1100-4400)Exporter/importer une configuration :}
+			{
+				system/backupconfig/ [restore, save]
+			}\\	
+			\MbFCmd{0.65cm}
+			{(1100-4400)Mise \`a jour firmware :}
+			{
+				system/control/softwareupgrade	
+			}\\	
+			\MbFCmd{0.65cm}
+			{(5500)Sauvegarder la configuration locale :}
+			{
+				save config5.cfg
+			}\\						
+			\hline
+			\rowcolor[gray]{.9} \textbf{R\'einitialisation}\\\hline
+			\MbFCmd{0.65cm}
+			{(1100-3300)Red\'emarrage sur la config courrante :}
+			{
+				system/reset
+			}\\	
+			\MbFCmd{0.65cm}
+			{(1100-3300)Red\'emarrage sur la config par d\'efaut :}
+			{
+				system/initialize	
+			}\\	
+			
+			\MbFCmd{0.65cm}
+			{(3870-4400)Red\'emarrage sur la config locale :}
+			{
+				system/control/reboot
+			}\\	
+			\MbFCmd{0.65cm}
+			{(3870-4400)Red\'emarrage sur la config par d\'efaut :}
+			{
+				system/control/initialize	
+			}\\		
+			\MbFCmd{0.65cm}
+			{(5500)Red\'emarrage sur un nouveau firmware :}
+			{
+				boot boot-loader xxx.app
+			}\\				
+			\MbFCmd{0.65cm}
+			{(5500)Red\'emarrage sur la config locale :}
+			{
+				startup saved-configuration config5.cfg
+			}\\				
+			\MbFCmd{0.65cm}
+			{(5500)Chargement du BIOS :}
+			{
+				boot boot-rom    .btm	
+			}\\					
+
+			\hline
+			
+			\rowcolor[gray]{.9} \textbf{Configuration r\'eseau}\\\hline
+			\MbFCmd{0.65cm}
+			{(1100-3300)Configuration IP :}
+			{
+				ip/interface/define
+			}\\	
+			\MbFCmd{1.15cm}
+			{(3870-4400)Configuration IP :}
+			{
+				protocol/ip/interface/modify\\
+				protocol/ip/route/default
+			}\\
+			\MbFCmd{1.15cm}
+			{(5500)Configuration IP :}
+			{
+				interface interface-type <interface-number>\\
+				ip address ip-address { mask, mask-length } [ sub ]
+			}\\
+			\MbFCmd{0.65cm}
+			{(1100-4400)R\'einitialiser la configuration IP :}
+			{
+				ip/initializeconfig
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{SNMP (1100-3300)}\\\hline
+			\MbFCmd{0.65cm}
+			{Cr\'eer un nom de communaut\'e :}
+			{
+				snmp/community	
+			}\\	
+			\MbFCmd{0.65cm}
+			{Cr\'eer/modifier/supprimer des traps SNMP :}
+			{
+				snmp/trap/ [define, modify, remove]	
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{SNMP (3870-4400)}\\\hline
+			\MbFCmd{0.65cm}
+			{Cr\'eer un nom de communaut\'e :}
+			{
+				system/management/snmp/community	
+			}\\	
+			\MbFCmd{0.2cm}
+			{Cr\'eer/modifier/supprimer des traps SNMP :}
+			{
+				\small system/management/snmp/trap/ [create, modify, delete]	
+			}\\														
+		}
+	&
+		\blockFiche{10cm}{9cm}{SNMP (5500)}
+		{
+			\MbFCmd{1.25cm}
+			{Cr\'eer et configurer un nom de communaut\'e :}
+			{
+				\small snmp-agent community [read, write] community-name [acl~acl-number, mib-view View-name]
+			}\\	
+			\MbFCmd{2.1cm}
+			{Pr\'eciser l'IP pour la remont\'ee des traps SNMP:}
+			{
+\small snmp-agent target-host trap address udp-domain ip-address [udp-port port-number] params\\
+securityname security-string [v1, v2, v3 [authentication, privacy]]		
+			}\\				
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Configuration (1100-3300)}\\\hline
+			\MbFCmd{0.7cm}
+			{Configuration syst\`eme :}
+			{
+				system/information		
+			}\\
+			\MbFCmd{0.7cm}
+			{Cr\'er/modifier/supprimer un utilisateur :}
+			{
+				system/security/user/ [define, modify, remove]
+			}\\			
+			\MbFCmd{0.7cm}
+			{Modifier les droits des utilisateurs :}
+			{
+				system/security/access/modify		
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Configuration (3870-4400)}\\\hline
+			\MbFCmd{2.1cm}
+			{Configuration syst\`eme :}
+			{
+				system/management/name\\
+				system/management/location\\
+				system/management/contact	\\
+				system/time/localization/timezone		
+			}\\
+			\MbFCmd{0.7cm}
+			{Cr\'er/modifier/supprimer un utilisateur :}
+			{
+				security/device/user/ [create, modify, remove]
+			}\\			
+			\MbFCmd{0.7cm}
+			{Modifier les droits des utilisateurs :}
+			{
+				system/security/access/modify		
+			}\\			
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Configuration (5500)}\\\hline
+			\MbFCmd{1.7cm}
+			{Configuration syst\`eme :}
+			{
+				[sysname, syscontact, syslocation] <string>\\
+				header [incoming, legal, login, shell]\\
+				clock datetime 12:55:00 2012/02/19
+			}\\
+			\MbFCmd{1.15cm}
+			{Changement de profil :}
+			{
+				<Sysname> system-view\\
+				<Sysname> user-interface aux 0
+			}\\			
+			\MbFCmd{1.45cm}
+			{Verrouillage de session automatique :}
+			{
+				password-control login-attempt login-times [exceed {lock, unlock, lock-time} <time>]
+			}			
+			\MbFCmd{0.7cm}
+			{Cr\'eer un utilisateur :}
+			{
+				local-user <user>
+			}\\			
+			\MbFCmd{0.7cm}
+			{Modifier les droits des utilisateurs :}
+			{
+				local-user <user> [user-xxxxxx] level [1, 2, 3]		
+			}\\	
+			\MbFCmd{1.15cm}
+			{Modifier le mot de passe d'un utilisateur :}
+			{
+				local-user <user> [user-xxxxxx] [password simple (clair), cipher (hash)]		
+			}\\					
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Services (5500)}\\\hline
+			\MbFCmd{2.2cm}
+			{Activer/d\'esactiver un service (SSH, TELNET\dots{}) (autoris\'es par d\'efaut) :}
+			{
+				service-type [terminal, telnet, ssh]\\
+				undo ip http shut-down\\
+				protocol inbound [all, ssh, telnet]		
+			}\\				
+			\MbFCmd{0.40cm}
+			{Activer/d\'esactiver STP :}
+			{
+				stp [enable, disable]		
+			}\\							
+		}\\
+	\end{tabular}
+ }
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Cfiche{}{\'El\'ements actifs : 3COM (2/3)}
+{
+\vskip -0.5cm
+ {
+	\hskip - 0.5cm
+	\begin{tabular}{cc}
+		\blockFiche{8cm}{9cm}{Services (1100-3300)}
+		{\vskip - 0.2cm
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver un service (SSH, TELNET\dots{}) :}
+			{
+				security/access/modify		
+			}\\	
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver BOOTP :}
+			{
+				ip/interface/bootp		
+			}\\				
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver STP :}
+			{
+				bridge/stpstate		
+			}\\		
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Services (3870-4400)}\\\hline
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver un service (SSH, TELNET\dots{}) :}
+			{
+				security/device/access/modify		
+			}\\	
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver BOOTP :}
+			{
+				protocol/ip/interface/bootp		
+			}\\				
+			\MbFCmd{0.7cm}
+			{Activer/d\'esactiver STP :}
+			{
+				bridge/spanningTree/stpState		
+			}\\		
+			\hline		
+			\rowcolor[gray]{.9} \textbf{VLAN et ports (1100-3300)}\\\hline
+			\MbFCmd{0.7cm}
+			{Cr\'eer/nommer/Supprimer un VLAN :}
+			{
+				bridge/vlan/ [create, modify/name, delete]
+			}\\					
+			\MbFCmd{0.7cm}
+			{Ajouter/Supprimer un port d'un VLAN :}
+			{
+				bridge/vlan/ [addport, removePort]	
+			}\\				
+			\MbFCmd{0.7cm}
+			{Bloquer/d\'ebloquer/forcer un port :}
+			{
+				ethernet/ [portState, portMode]	
+			}\\	
+			\MbFCmd{1.2cm}
+			{Ajouter/d\'emarrer/arr\^eter/supprimer un port mirroring :}
+			{
+				feature/analyser/ [add, start, stop, remove]		
+			}\\			
+			\hline		
+			\rowcolor[gray]{.9} \textbf{VLAN et ports (3870-4400)}\\\hline
+			\MbFCmd{0.7cm}
+			{Cr\'eer/nommer/Supprimer un VLAN :}
+			{
+				bridge/vlan/ [create, modify/name, delete]
+			}\\						
+			\MbFCmd{0.7cm}
+			{Ajouter/Supprimer un port d'un VLAN :}
+			{
+				bridge/vlan/modify/ [addport, removePort]	
+			}\\				
+			\MbFCmd{0.7cm}
+			{Bloquer/d\'ebloquer/forcer un port :}
+			{
+				physicalinterface/ethernet/ [portState, portMode]	
+			}\\	
+			\MbFCmd{1.2cm}
+			{Ajouter/d\'emarrer/arr\^eter/supprimer un port mirroring :}
+			{
+				feature/rovinganalysis/ [add, start, stop, remove]		
+			}\\	
+			\MbFCmd{0.2cm}
+			{Configurer le portsecurity :}
+			{
+				security/network/access/portsecurity	
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{ICMP (5500)}\\\hline
+			\MbFCmd{1.2cm}
+			{Activer/d\'esactiver la redirection ICMP :}
+			{
+				icmp redirect send\\
+				undo icmp redirect send
+			}\\		
+			\MbFCmd{1.2cm}
+			{Activer/d\'esactiver les r\'eponses "non joignable" ICMP :}
+			{
+				icmp unreach send \\
+				undo icmp unreach send 
+			}\\				
+			\hline		
+			\rowcolor[gray]{.9} \textbf{OSPF (5500)}\\\hline
+			\MbFCmd{1.2cm}
+			{Afficher la configuration ABR (routeur de bordure d'air) et ASBR :}
+			{
+				display ospf abr-asbr	
+			}\\	
+			\MbFCmd{1.2cm}
+			{Afficher le r\'esume\'e et les sauts OSPF :}
+			{
+				display ospf brief\\
+				display ospf nexthop		
+			}\\		
+			\MbFCmd{0.35cm}
+			{Afficher la table de routage OSPF :}
+			{
+				display ospf routing	
+			}\\															
+		}
+	&
+		\blockFiche{10cm}{9cm}{STP (5500)}
+		{
+			\MbFCmd{0.65cm}
+			{Afficher la configuration STP :}
+			{
+				display [stp, stp root]\\
+			}\\		
+			\MbFCmd{1.15cm}
+			{D\'efinit le co\^ut d'une route MSTI 2 \`a 200 :}
+			{
+				interface GigabitEthernet 1/0/3\\
+				stp instance 2 cost 200	
+			}\\	
+			\MbFCmd{2.15cm}
+			{D\'efinit le mode STP :}
+			{
+				RSTP = meilleur temps de convergence\\
+				MSTP =  RSTP sur plusieurs r\'eseaux reli\'es par switchs / qd on met en oeuvre du VLAN.\\
+				stp mode [stp, mstp, rstp]
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{VLAN et ports (5500)}\\\hline
+			\MbFCmd{1.5cm}
+			{Cr\'eer/modifier un VLAN :}
+			{
+				interface Vlan-interface <vlan-id>\\
+				name <text>\\
+				description <text>
+			}\\	
+			\MbFCmd{1.15cm}
+			{Activer/d\'esactiver un VLAN :}
+			{
+				Shutdown\\
+				undo shutdown
+			}\\							
+			\MbFCmd{1.5cm}
+			{Attribuer une IP \`a un VLAN :}
+			{			
+				system-view\\
+				interface vlan-interface <id>\\
+				ip address 192.168.0.1 255.255.255.0	
+			}\\	
+			\MbFCmd{1.15cm}
+			{Ajouter/enlever un port de VLAN :}
+			{			
+				port access vlan 3\\
+				undo port access vlan 3
+			}\\						
+			\MbFCmd{0.65cm}
+			{Activer/D\'esactiver un port:}
+			{			
+				[undo shutdown, shutdown]
+			}\\				
+			\MbFCmd{1.5cm}
+			{Tagger un port:}
+			{			
+				interface GigabitEthernet 1/0/1\\
+				port link-type hybrid\\
+				port hybrid vlan 2 4 50 to 100 tagged
+			}\\			
+			\MbFCmd{1.15cm}
+			{Activer/d\'esactiver Nombre d'adresse MAC autori\'ee par port :}
+			{			
+				mac-address max-mac-count 1\\
+				undo mac-address max-mac-count	
+			}\\		
+			\hline		
+			\rowcolor[gray]{.9} \textbf{ACL (5500)}\\\hline		
+			\MbFCmd{0.65cm}
+			{Afficher une ACL :}
+			{
+				display acl 2000
+			}\\
+			\MbFCmd{0.65cm}
+			{D\'efinir une ACL :}
+			{
+				rule <id> [deny, permit] <chaine>
+			}\\								
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Lecture de la configuration (3870-4400)}\\\hline		
+			\MbFCmd{0.65cm}
+			{Version et param\`etres g\'en\'eraux :}
+			{
+				system/summary
+			}\\
+			\MbFCmd{0.65cm}
+			{Configuration au d\'emarrage et liste des utilisateurs :}
+			{
+				security/device/user/summary
+			}\\					
+			\MbFCmd{0.65cm}
+			{Param\`etres utilisateurs :}
+			{
+				security/device/access/summary
+			}\\										
+			\MbFCmd{1.15cm}
+			{Configuration r\'eseau :}
+			{
+				protocol/ip/interface/summary\\
+				protocol/ip/route/summary
+			}\\						
+			\MbFCmd{1.35cm}
+			{Configuration des ports :}
+			{
+				bridge/port/ [summary, detail]\\
+				security/network/access/portsecurity\\
+				feature/rovinganalysis/summary
+			}\\	
+		}\\
+	\end{tabular}
+ }
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\Cfiche{}{\'El\'ements actifs : 3COM (3/3)}
+{
+\vskip -0.5cm
+ {
+	\hskip - 0.5cm
+	\begin{tabular}{cc}
+		\blockFiche{8cm}{9cm}{Lecture de la configuration (1100-3300)}
+		{\vskip - 0.2cm
+			\MbFCmd{0.7cm}
+			{Version et param\`etres g\'en\'eraux :}
+			{
+				system/display
+			}\\
+			\MbFCmd{0.7cm}
+			{Configuration au d\'emarrage et liste des utilisateurs :}
+			{
+				system/security/user/display
+			}\\					
+			\MbFCmd{0.7cm}
+			{Param\`etres utilisateurs :}
+			{
+				system/security/access/display
+			}\\										
+			\MbFCmd{0.7cm}
+			{Configuration r\'eseau :}
+			{
+				ip/interface/display\\
+			}\\						
+			\MbFCmd{1.7cm}
+			{Configuration des ports :}
+			{
+				bridge/port/ [summary, detail]\\
+				feature/analyser/display\\
+				(port security interface Web uniquement)
+			}\\						
+			\MbFCmd{0.7cm}
+			{Configuration des VLAN :}
+			{
+				bridge/vlan/ [summary, detail]
+			}\\					
+			\MbFCmd{0.7cm}
+			{Configuration SNMP :}
+			{
+				snmp/ [community, trap/display]
+			}\\							
+			\MbFCmd{0.7cm}
+			{Configuration des VLAN :}
+			{
+				bridge/vlan/ [summary, detail]			
+			}\\					
+			\MbFCmd{0.7cm}
+			{Configuration SNMP :}
+			{
+				\small system/management/snmp/ [community, trap/summary]					
+			}\\	
+			\hline		
+			\rowcolor[gray]{.9} \textbf{ACL - exemples (5500)}\\\hline	
+			\MbFCmd{0.7cm}
+			{Format d'ACL :}
+			{
+				rule <rule-id> [deny, permit] protocol <rule-string>
+			}\\	
+			\MbFCmd{2.8cm}
+			{ACL simpe nb 2000 avec une r\`egle pour interdire les paquets provenant de 192.168.0.1 :}
+			{
+				system-view\\
+				acl number 2000\\
+				rule 1 deny source 192.168.0.1 0\\
+				quit
+			}\\	
+			\MbFCmd{1.8cm}
+			{ACL simple nb 2001 avec une r\`egle pour interdire tous les paquets fragment\'es :}
+			{
+				acl number 2001\\
+				rule 1 deny fragment
+			}\\				
+			\MbFCmd{1.8cm}
+			{ACL simple nb 2002 avec une r\`egle pour interdire tous les paquets sur une p\'eriode de temps time\_name :}
+			{
+				acl number 2002\\
+				rule 1 deny time-range time\_name
+			}\\				
+			\MbFCmd{1.8cm}
+			{ACL avanc\'ee nb 3000 avec une r\`egle pour interdire les paquets de 192.168.0.1 et la priorit\'e DSCP 46 :}
+			{
+				acl number 3000\\
+				rule 1 deny ip source 192.168.0.1 0 dscp 46
+			}\\			
+			\MbFCmd{2.92cm}
+			{ACL avanc\'ee nb 3001 avec une r\`egle pour autoris\'e les paquets du r\'eseau 172.16.0.0/16 \`a destination du port TCP/80 du r\'eseau 200.100.50.0/24 :}
+			{
+				acl number 3001\\
+				rule 1 permit tcp source 172.16.0.0 0.0.255.255 destination 200.100.50.0 0.0.0.255 destination-port eq 80
+			}\\								
+		}
+	&
+		\blockFiche{10cm}{9cm}{Lecture de la configuration (5500)}
+		{
+			\MbFCmd{1.7cm}
+			{Configuration courante :}
+			{
+				display current-configuration\\					
+				display saved-configuration\\					
+				display this	
+			}\\
+			\MbFCmd{1.2cm}
+			{Configuration au d\'emarrage :}
+			{
+				display boot-loader\\
+				display startup
+			}\\			
+			\MbFCmd{1.2cm}
+			{Liste et param\'etres des utilisateurs :}
+			{
+				display user-interface [type num, num] [summary]\\					
+				display users all	
+			}\\												
+			\MbFCmd{2.6cm}
+			{Configuration r\'eseau :}
+			{
+				display ip interface\\																										
+				display mac-address\\				
+				display ip routing-table [{begin/exclude/include} regular-expression]\\					
+				display radius scheme\\					
+			}\\						
+			\MbFCmd{1.2cm}
+			{Configuration des ports :}
+			{
+				display interface gigabitethernet x/0/xx\\
+				display port-security [interface interface-list]
+			}\\						
+			\MbFCmd{3.6cm}
+			{Configuration des VLAN :}
+			{
+				display current-configuration vlan [vlan\_id]\\
+				display vlan all\\
+				display mac-address security [interface interface-type interface-number/vlan vlan-id/count]\\
+				display interface Vlan-interface <id>\\
+				display port-security\\
+				display vlan <id>
+			}\\					
+			\MbFCmd{1.2cm}
+			{Configuration SNMP :}
+			{
+				display snmp-agent community\\
+				display snmp-agent trap-list
+			}\\	
+			\MbFCmd{0.7cm}
+			{Visualiser les fichiers :}
+			{
+				dir
+			}\\	
+			\MbFCmd{1.2cm}
+			{Visualiser une agr\'egation de liens :}
+			{
+				display link-aggregation summary\\
+				display link-aggregation verbose
+			}\\														
+			\MbFCmd{0.65cm}
+			{Visualiser l'historique des commandes :}
+			{
+				display history-command	
+			}\\
+			\hline		
+			\rowcolor[gray]{.9} \textbf{Comptes et mots de passe par d\'efaut}\\\hline				
+			\MbFCmd{1.2cm}
+			{3COM :}
+			{
+				adm/<vide>, debug/synnet, manager/manager\\
+				tech/tech, recover/recover, security/security	
+			}\\
+			\MbFCmd{1.2cm}
+			{CISCO :}
+			{
+				Cisco/Cisco, cisco/cisco, admin/admin\\
+				admin/cisco, enable/cisco, <vide>/cisco
+			}\\	
+			\MbFCmd{0.7cm}
+			{DELL :}
+			{
+				Admin/<vide>, Dell/<vide>
+			}\\	
+			\MbFCmd{0.7cm}
+			{ENTERASYS :}
+			{
+				admin/<vide>, admin/netadmin, <vide>/netadmin	
+			}\\	
+			\MbFCmd{0.2cm}
+			{HP :}
+			{
+				admin/<vide>, admin/admin, hewlpack/<vide>	
+			}\\			
+
+%			\MbFCmd{0.65cm}
+%			{Appliquer un mot de passe sur VTY 0 "123" :}
+%			{
+%				[Sysname-ui-vty0] set authentication password simple 123		
+%			}\\		
+		}\\
+	\end{tabular}
+ }
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \Cfiche{}{\'El\'ements actifs : CISCO (1/3)}
@@ -7375,8 +8047,8 @@ Pour supprimer l'autorun d'un support il suffit de supprimer \`a la racine du su
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{VirtualBox}{vbox.png}
 {
-\url{http://www.virtualbox.org/}, \url{http://virtualboximages.com/}\\
-\url{http://virtualboxes.org/images/}
+\url{http://dlc.sun.com.edgesuite.net/virtualbox/} \url{http://www.virtualbox.org/}\\
+\url{http://virtualboximages.com/} \url{http://virtualboxes.org/images/}
 %https://cds.sun.com/is-bin/INTERSHOP.enfinity/WFS/CDS-CDS_SMI-Site/en_US/-/USD/ViewProductDetail-Start?ProductRef=virtualbox-s10U8-x86-G-F@CDS-CDS_SMI
 }
 {
