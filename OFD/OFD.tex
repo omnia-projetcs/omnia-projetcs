@@ -5120,28 +5120,28 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 	\begin{tabular}{cc}
 		\blockFiche{8cm}{9cm}{Configuration r\'eseau}
 		{
-			\MbFCmd{1.2cm}
+			\MbFCmd{1.15cm}
 			{Configuration du r\'eseau filaire + WiFi :}
 			{
 			/etc/network/interface {\color{black} ou} ifconfig {\color{black} ou} dhclient\\
 			ifconfig wlan0 scan
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Configuration du r\'eseau sans fils :}
 			{
 			iwconfig {\color{black} ou} iwpriv
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Modifier le serveur DNS :}
 			{
 			/etc/resolv.conf
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Cache ARP de la machine locale :}
 			{
 				arp -a
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Arr\^eter / d\'emarrer une interface r\'eseau :}
 			{
 			ifdown \textit{[interface]} {\color{black} /} ifup \textit{[interface]}
@@ -5152,7 +5152,13 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 				services network restart\\
 				/etc/init.d/networking restart
 			}\\
-			\MbFCmd{0.76cm}
+			\MbFCmd{1.15cm}
+			{Utilisation de proxy :}
+			{
+			export http\_proxy=http://user:mdp@ip\_proxy:3128/\\
+			{\color{black}\`a faire pour :} ftp\_proxy, https\_proxy {\color{black}et en majuscule.}
+			}\\	
+			\MbFCmd{0.65cm}
 			{Application pour utiliser un modem :}
 			{
 			WVDIAL
@@ -5164,7 +5170,7 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			{
 				iptables -L -n -v
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1.15cm}
 			{Sauvegarde / restauration des r\`egles de filtrage :}
 			{
 			iptables-save\\
@@ -5172,28 +5178,28 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			}\\
 			\hline
 			\rowcolor[gray]{.9} \textbf{Monter / d\'emonter une cl\'e USB}\\\hline
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.7cm}
 			{Identifier le p\'eriph\'erique \`a monter :}
 			{
 			sfdisk -l {\color{black}ou} fdisk -l
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1.23cm}
 			{ou en regardant dans les messages syst\`eme (ici on affiche les 15 derni\`eres lignes) :}
 			{
 			dmesg | tail -15
 			}\\
-			\MbFCmd{1.8cm}
+			\MbFCmd{1.7cm}
 			{Monter une cl\'e USB (penser \`a cr\'eer le r\'epertoire de montage avec les droits suffisants) :}
 			{
 			mount -t vfat /dev/sda1 /mnt/Cle\_FAT\\
 			mount -t ntfs-3g /dev/sda1 /mnt/Cle\_NTFS\\
 			}\\
-			\MbFCmd{1.3cm}
+			\MbFCmd{1.15cm}
 			{D\'emonter une cl\'e USB (penser \`a supprimer le r\'epertoire de montage une fois celui-ci d\'emont\'e) :}
 			{
 			umount /mnt/Ma\_Cle\_Usb 
 			}\\
-			\MbFCmd{0.8cm}
+			\MbFCmd{0.65cm}
 			{Synchronisation de la copie des fichiers :}
 			{
 			sync
