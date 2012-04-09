@@ -712,13 +712,13 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
       sqlite3_exec(db, "SELECT DISTINCT _sync_account, title, eventLocation, description, strftime('%Y/%m/%d-%H:%M:%S',lastDate/1000, 'unixepoch', 'localtime') FROM Events;", callback_sqlite, &fci, NULL);
     }
 
-    if (type & SQLITE_TYPE_ANDROID_SMS == SQLITE_TYPE_ANDROID_SMS)//logs.db
+    if ((type & SQLITE_TYPE_ANDROID_SMS) == SQLITE_TYPE_ANDROID_SMS)//logs.db
     {
       fci.type = SQLITE_TYPE_ANDROID_SMS;
       sqlite3_exec(db, "SELECT number,name,duration,type,m_content FROM logs;", callback_sqlite, &fci, NULL);
     }
 
-    if (type & SQLITE_TYPE_ANDROID_MMS == SQLITE_TYPE_ANDROID_MMS)//mmssms.db
+    if ((type & SQLITE_TYPE_ANDROID_MMS) == SQLITE_TYPE_ANDROID_MMS)//mmssms.db
     {
       fci.type = SQLITE_TYPE_ANDROID_MMS;
       sqlite3_exec(db, "SELECT address,body,service_center,read,strftime('%Y/%m/%d-%H:%M:%S',date/1000, 'unixepoch', 'localtime') FROM sms;", callback_sqlite, &fci, NULL);

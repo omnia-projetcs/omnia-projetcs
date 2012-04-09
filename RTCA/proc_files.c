@@ -173,7 +173,7 @@ void FileToSHA256(char *path, char *sha256)
 
       //traitement en SHA256
       sha256_ctx    m_sha256;
-      char          digest[32];
+      unsigned char digest[32];
 
       sha256_begin(&m_sha256);
       sha256_hash(buffer, taille_fic, &m_sha256);
@@ -574,6 +574,7 @@ void Scan_files_Rep(char *path, HANDLE hlv, HTREEITEM hparent, BOOL ntfs, char *
           }
           else lv_line[15].c[0]=0;
 
+          lv_line[16].c[0]=0;
           //ajout à la listeview
           File_info((LPVOID)AddToLV_File(hlv, lv_line, NB_COLONNE_LV[LV_FILES_VIEW_NB_COL]));
         }

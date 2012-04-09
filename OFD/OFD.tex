@@ -2854,8 +2854,8 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 \vskip+0.2cm
 \textbf{Copie du disque dur bit \`a bit :}\\
 \begin{footnotesize} (GUI pour dd/dc3dd : \url{http://www.cryptolife.org/index.php/AIR_-_Automated_Image_and_Restore})\\\end{footnotesize}
-\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, les options \textbf{ibs} et \textbf{bs} permettent d'optimiser la copie, ici pour un disk-buffer de 4mo  (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
-{\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw ibs=4096 bs=4096}
+\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour un disk-buffer de 4mo  (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
+{\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw bs=4096}
 
 \vskip+0.2cm
 \textbf{Checksum du disque :}\\
@@ -5223,7 +5223,7 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			\MbFCmd{0.7cm}
 			{Affiche le chemin d'une commande :}
 			{
-			whiche \textit{[commande]}
+			which \textit{[commande]}
 			}\\
 			\MbFCmd{0.7cm}
 			{Recherche d'un fichier index\'e :}

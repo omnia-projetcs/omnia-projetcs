@@ -16,10 +16,10 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libcomctl32.a" />
-					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libpsapi.a" />
-					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libws2_32.a" />
-					<Add library="C:\Program Files\CodeBlocks\MinGW\lib\libwininet.a" />
+					<Add library="comctl32" />
+					<Add library="psapi" />
+					<Add library="ws2_32" />
+					<Add library="wininet" />
 				</Linker>
 			</Target>
 		</Build>
@@ -42,9 +42,6 @@
 		</Unit>
 		<Unit filename="d3des.h" />
 		<Unit filename="export.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="local_user_extract.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="main.c">
@@ -72,6 +69,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_files_virsutotal.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_local_conf.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_logs.c">
@@ -107,7 +107,13 @@
 		<Unit filename="proc_registry_guide.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="proc_registry_local_user_extract.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="proc_registry_search.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc_registry_user_cache_dump.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="proc_state.c">
@@ -125,6 +131,9 @@
 		</Unit>
 		<Unit filename="sha2.cpp" />
 		<Unit filename="sha2.h" />
+		<Unit filename="shadow_copy.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="sqlite3.c">
 			<Option compilerVar="CC" />
 		</Unit>

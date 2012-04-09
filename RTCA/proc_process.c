@@ -87,12 +87,11 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
           //région suivante :
           mem = (LPVOID)((DWORD)mbi.BaseAddress + (DWORD)mbi.RegionSize);
         }
-      }
+        MessageBox(0,path,"Memory dump done",MB_OK|MB_TOPMOST);
+      }else MessageBox(0,path,"Fail to memory dump",MB_OK|MB_TOPMOST);
       CloseHandle(MyhFile);
     }
     CloseHandle(hProc);
-
-    MessageBox(0,path,"Memory Dump done",MB_OK|MB_TOPMOST);
   }
 
   //disable right

@@ -100,12 +100,21 @@ void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
       sf25( obfkey, (int*)&rid, fb );
 
       //transformation des données en hexa ^^
+      result[0]=0;
       for (j=0;j<0x10;j++)
       {
         snprintf(tmp,10,"%.2X",fb[j]);
-        strncat(hsc,tmp,MAX_LINE_SIZE);
+        strncat(result,tmp,MAX_LINE_SIZE);
       }
-      strncat(hsc,":\0",MAX_LINE_SIZE);
+      strncat(result,"\0",MAX_LINE_SIZE);
+
+      if (!strcmp(result,"AAD3B435B51404EEAAD3B435B51404EE"))
+        strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
+      else
+      {
+        strncat(hsc,result,MAX_LINE_SIZE);
+        strncat(hsc,":\0",MAX_LINE_SIZE);
+      }
     }else strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
 
     if (b_NT[0]!= 0)

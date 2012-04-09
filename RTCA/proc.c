@@ -61,6 +61,14 @@ BOOL isWine()
     RegCloseKey(CleTmp);
     return TRUE;
   }
+
+  //deuxième cas
+  char tmp[MAX_PATH]="";
+  if(LireValeur(HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug","Debugger",tmp,MAX_PATH))
+  {
+    if (Contient(tmp,"winedbg"))return TRUE;
+  }
+
   return FALSE;
 }
 
@@ -277,49 +285,91 @@ DWORD WINAPI csvImport(LPVOID lParam)
             lvi.pszText="";
             lvi.iItem = ListView_GetItemCount(hlv);
 
-            //puis on traite
-            for (i=0;i<t_taille_fic;i++)
+            //vérification du format ?
+            if (buffer[0] == '"')
             {
-              //création de la ligne
-              if (!first_line)
+              //puis on traite
+              for (i=0;i<t_taille_fic;i++)
               {
-                itemPosP = ListView_InsertItem(hlv, &lvi);
-                lvi.iItem = lvi.iItem+1;
-              }
-
-              //nombre d'élément
-              for (j=0;j<nb_colonne;j++)
-              {
-                k=0;
-                while((buffer[i] != '"' || buffer[i+1] != ';') && k<(MAX_LINE_SIZE-1) && i<t_taille_fic)tmp[k++] = buffer[i++];
-
-                if (buffer[i] == '"')
+                //création de la ligne
+                if (!first_line)
                 {
-                  if (k>0)
-                  {
-                    tmp[k]=0;
-                    if (!first_line)
-                    {
-                      strcpy(tmp2,tmp+1);  //on passe le "
-                      //remplissage de la ligne
-                      ListView_SetItemText(hlv,itemPosP,j,tmp2);
-                    }
-                  }
-                  i+=2;
+                  itemPosP = ListView_InsertItem(hlv, &lvi);
+                  lvi.iItem = lvi.iItem+1;
                 }
-              }
-              if (first_line)first_line=FALSE;
-              //on passe à la ligne suivante
-              while (buffer[i++] != '\r' && i<t_taille_fic)i++;
 
-              //tous les 10 megas ^^
-              //if(i%DIXM == 1)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
+                //nombre d'élément
+                for (j=0;j<nb_colonne;j++)
+                {
+                  k=0;
+                  while((buffer[i] != '"' || buffer[i+1] != ';') && k<(MAX_LINE_SIZE-1) && i<t_taille_fic)tmp[k++] = buffer[i++];
+
+                  if (buffer[i] == '"')
+                  {
+                    if (k>0)
+                    {
+                      tmp[k]=0;
+                      if (!first_line)
+                      {
+                        strcpy(tmp2,tmp+1);  //on passe le "
+                        //remplissage de la ligne
+                        ListView_SetItemText(hlv,itemPosP,j,tmp2);
+                      }
+                    }
+                    i+=2;
+                  }
+                }
+                if (first_line)first_line=FALSE;
+                //on passe à la ligne suivante
+                while (buffer[i++] != '\r' && i<t_taille_fic)i++;
+
+                //tous les 10 megas ^^
+                //if(i%DIXM == 1)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
+              }
+            }else//format csv simple
+            {
+              //puis on traite
+              for (i=0;i<t_taille_fic;i++)
+              {
+                //création de la ligne
+                if (!first_line)
+                {
+                  itemPosP = ListView_InsertItem(hlv, &lvi);
+                  lvi.iItem = lvi.iItem+1;
+                }
+
+                //nombre d'élément
+                for (j=0;j<nb_colonne;j++)
+                {
+                  k=0;
+                  while((buffer[i] != ';') && k<(MAX_LINE_SIZE-1) && i<t_taille_fic)tmp[k++] = buffer[i++];
+                  if (buffer[i] == ';')
+                  {
+                    if (k>0)
+                    {
+                      tmp[k]=0;
+                      if (!first_line)
+                      {
+                        //remplissage de la ligne
+                        ListView_SetItemText(hlv,itemPosP,j,tmp);
+                      }
+                    }
+                    i++;
+                  }
+                }
+                if (first_line)first_line=FALSE;
+                //on passe à la ligne suivante
+                while (buffer[i++] != '\r' && i<t_taille_fic)i++;
+
+                //tous les 10 megas ^^
+                //if(i%DIXM == 1)SB_add(TABL_CONF-1, "CSV LOADING",i,t_taille_fic);
+              }
             }
           }
         }else SB_add_T(TABL_CONF-1, "CSV LOADING : LSV error");
         //libération de la mémoire
         LocalFree(buffer);
-      }
+      }else SB_add_T(TABL_CONF-1, "CSV LOADING : Buffer error");
     }
   }
   return 0;
@@ -1090,8 +1140,12 @@ void TraiterPopupSave(WPARAM wParam, LPARAM lParam, HWND hwnd, unsigned int nb_c
             ModifyMenu(hmenu,POPUP_LV_CP_COL14,MF_BYCOMMAND|MF_STRING,POPUP_LV_CP_COL14,"Copy : VirusTotal");
             ModifyMenu(hmenu,POPUP_LV_P_VIEW,MF_BYCOMMAND|MF_STRING,POPUP_LV_P_VIEW,"Open path");
 
-            if (VIRUSTTAL)ModifyMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_VIRUSTTAL,"Stop : Check file to VirusTotal");
-            if (AVIRUSTTAL)ModifyMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_AVIRUSTTAL,"Stop : Check all file to VirusTotal");
+            if (AVIRUSTTAL)
+            {
+              ModifyMenu(hmenu,POPUP_LV_AVIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_AVIRUSTTAL,"Stop : Check all file to VirusTotal");
+              RemoveMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_GRAYED);
+            }else if (VIRUSTTAL)ModifyMenu(hmenu,POPUP_LV_VIRUSTTAL,MF_BYCOMMAND|MF_STRING,POPUP_LV_VIRUSTTAL,"Stop : Check file to VirusTotal");
+
 
             RemoveMenu(hmenu,POPUP_LV_CP_COL9,MF_BYCOMMAND|MF_GRAYED);
             RemoveMenu(hmenu,POPUP_LV_CP_COL10,MF_BYCOMMAND|MF_GRAYED);
@@ -1560,13 +1614,19 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
 
   if (nblecteurs>0)
   {
-    SEARCH_C files[25];
+    SEARCH_C files[31];
     strcpy(files[j++].c,"SAM\0");
     strcpy(files[j++].c,"sam\0");
     strcpy(files[j++].c,"software\0");
     strcpy(files[j++].c,"SOFTWARE\0");
     strcpy(files[j++].c,"software.sav\0");
     strcpy(files[j++].c,"SOFTWARE.SAV\0");
+    strcpy(files[j++].c,"security\0");
+    strcpy(files[j++].c,"SECURITY\0");
+    strcpy(files[j++].c,"security.dat\0");
+    strcpy(files[j++].c,"SECURITY.DAT\0");
+    strcpy(files[j++].c,"security.sav\0");
+    strcpy(files[j++].c,"SECURITY.SAV\0");
     strcpy(files[j++].c,"system\0");
     strcpy(files[j++].c,"SYSTEM\0");
     strcpy(files[j++].c,"system.dat\0");
@@ -1982,6 +2042,9 @@ void InitConfig(HWND hwnd)
   VIRUSTTAL = FALSE;
   AVIRUSTTAL= FALSE;
 
+  pos_search_state=0;
+  B_SAFE_MODE = 0;
+
   //hs_files_info = CreateSemaphore(NULL,MAX_THREAD_FILES_INFO,MAX_THREAD_FILES_INFO,NULL);
 
   pos_search_logs = -1;
@@ -2020,6 +2083,16 @@ void InitConfig(HWND hwnd)
   ShowWindow(Tabl[TABL_STATE], SW_HIDE);
   ShowWindow(Tabl[TABL_CONF], SW_SHOW);
   TABL_ID_VISIBLE = TABL_CONF;
+
+  CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_LOGS,BST_CHECKED);
+  CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_FILES,BST_CHECKED);
+    CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_NO_ACL,BST_CHECKED);
+    CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_NO_TYPE,BST_CHECKED);
+    CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_ADS,BST_CHECKED);
+
+  CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_REGISTRY,BST_CHECKED);
+  CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CONFIGURATION,BST_CHECKED);
+
   CheckDlgButton(Tabl[TABL_CONF],CHK_CONF_CLEAN,BST_CHECKED);
 
   //test si nous sommes sur un environnement émulé (wine)
@@ -2774,6 +2847,8 @@ void InitConfig(HWND hwnd)
   strcpy(ref_conf_search[i++].v,"\\Control\\Lsa");
   strcpy(ref_conf_search[i++].v,"CurrentVersion\\Policies\\System");
   strcpy(ref_conf_search[i++].v,"Control Panel\\Desktop");
+  strcpy(ref_conf_search[i++].v,"CurrentControlSet\\Services\\NTDS\\Parameters");
+  strcpy(ref_conf_search[i++].v,"Windows NT\\CurrentVersion\\Winlogon");
 
   i=0;
   strcpy(ref_conf_var_search[i++].v,"ProductName");
@@ -2782,6 +2857,8 @@ void InitConfig(HWND hwnd)
   strcpy(ref_conf_var_search[i++].v,"(configuration) Service Pack");
   strcpy(ref_conf_var_search[i++].v,"SystemRoot");
   strcpy(ref_conf_var_search[i++].v,"(configuration) System path");
+  strcpy(ref_conf_var_search[i++].v,"DSA Database file");
+  strcpy(ref_conf_var_search[i++].v,"Domaine file (NTDIS.DIT)");
 
   strcpy(ref_conf_var_search[i++].v,"AppInit_DLLs");
   strcpy(ref_conf_var_search[i++].v,"(malware) DLL load in GUI Windows");
@@ -2821,6 +2898,8 @@ void InitConfig(HWND hwnd)
   strcpy(ref_conf_var_search[i++].v,"(authentication) Message title for user attempting to log on");
   strcpy(ref_conf_var_search[i++].v,"legalnoticecaption");
   strcpy(ref_conf_var_search[i++].v,"(authentication) Message for user attempting to log on");
+  strcpy(ref_conf_var_search[i++].v,"cachedlogonscount");
+  strcpy(ref_conf_var_search[i++].v,"(authentication) Number of cached MSCache");
 
   strcpy(ref_conf_var_search[i++].v,"auditbaseobjects");
   strcpy(ref_conf_var_search[i++].v,"(audit) Audit the access of global system objects, 0x01:Enable");
@@ -3137,7 +3216,7 @@ void InitConfig(HWND hwnd)
         strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
-        strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+        strncat(tmp,"_REG_CONFIGURATION.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
         strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
@@ -3205,7 +3284,7 @@ void InitConfig(HWND hwnd)
         strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
-        strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+        strncat(tmp,"_REG_CONFIGURATION.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
         strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
@@ -3279,7 +3358,7 @@ void InitConfig(HWND hwnd)
         strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
-        strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+        strncat(tmp,"_REG_CONFIGURATION.csv",MAX_PATH);
         ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         strcpy(tmp,path);
         strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
@@ -3318,7 +3397,7 @@ void InitConfig(HWND hwnd)
         //export de la base SAM :
         strcpy(tmp,path);
         strncat(tmp,"_REG_ACCOUNT.pwdump",MAX_PATH);
-        ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 9);
+        ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 10);
       }
       break;
     }

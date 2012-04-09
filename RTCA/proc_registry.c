@@ -131,7 +131,7 @@ int LireValeur(HKEY ENTETE,char *chemin,char *nom,char *val,unsigned int taille_
     }
     HeapFree(GetProcessHeap(), 0, Valeur);
 
-    return TRUE;
+    return taille_val;
 }
 //------------------------------------------------------------------------------
 HTREEITEM AddItemTvAndLv(LINE_ITEM *lv_line, unsigned int id_icon , HANDLE hlv, HTREEITEM hparent)
@@ -677,6 +677,16 @@ void registry_configuration(HANDLE hlv)
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
   lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon");
+  LireKeyUpdate(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", lv_line[5].c, DATE_SIZE);
+  strcpy(lv_line[2].c,"cachedlogonscount");
+  strcpy(lv_line[4].c,"(authentication) Number of cached MSCache");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon","cachedlogonscount",lv_line[3].c))
+  {
+  }else strcpy(lv_line[3].c,"<NO VALUE>");
+  AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
+  lv_line[3].c[0]=0;
   strcpy(lv_line[1].c,"HKEY_CURRENT_USER\\Control Panel\\Desktop");
   LireKeyUpdate(HKEY_CURRENT_USER,"Control Panel\\Desktop", lv_line[5].c, DATE_SIZE);
   strcpy(lv_line[2].c,"ScreenSaveActive");
@@ -701,8 +711,18 @@ void registry_configuration(HANDLE hlv)
     strcpy(lv_line[3].c,"<NO VALUE>");
   AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
 
+  lv_line[3].c[0]=0;
+  strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters");
+  strcpy(lv_line[2].c,"DSA Database file");
+  strcpy(lv_line[4].c,"(configuration) Domaine file (NTDIS.DIT).");
+  if (LireGValeur(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters","DSA Database file",lv_line[3].c))
+    AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+
   //registry hive path
   reg_liste_DataValeurSpec(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SYSTEM\\CurrentControlSet\\Control\\hivelist\\","","(configuration) Registry hive path",hlv);
+
+  //liste des Microsoft Antimalware Exclusions
+  reg_liste_DataValeurSpec(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Microsoft Antimalware\\Exclusions\\","","(configuration) Microsoft Antimalware Exclusions",hlv);
 }
 //------------------------------------------------------------------------------
 //liste des applications installées + date de maj + filtre de validation
@@ -2450,7 +2470,7 @@ void registry_password(HANDLE hlv)
   lv_line[0].c[0] = 0; //file
 
   //VNC :
-  char tmp[MAX_PATH]="";
+  char tmp[MAX_LINE_SIZE]="";
 
   if (!LireValeur(HKEY_CURRENT_USER,"SOFTWARE\\ORL\\WinVNC3\\","Password",tmp,MAX_PATH))
   {
@@ -2465,8 +2485,8 @@ void registry_password(HANDLE hlv)
     vncpwd((u_char *)tmp,8);
 
     strcpy(lv_line[2].c,"Password");
-    strcpy(lv_line[4].c,"VNC");
-    strcpy(lv_line[5].c,tmp);
+    strcpy(lv_line[5].c,"VNC");
+    strcpy(lv_line[4].c,tmp);
     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
   }
 
@@ -2484,7 +2504,7 @@ void registry_password(HANDLE hlv)
     if (taille>256)taille=256;
     strcpy(lv_line[2].c,"ScreenSave_Data");
     strcpy(lv_line[3].c,tmp);
-    strcpy(lv_line[4].c,"Screen saver");
+    strcpy(lv_line[5].c,"Screen saver");
 
     for (i=0; i<taille/2; i++)
     {
@@ -2499,7 +2519,7 @@ void registry_password(HANDLE hlv)
       tmp[i] = k;
     }
     tmp[taille/2] = 0;
-    strcpy(lv_line[5].c,tmp);
+    strcpy(lv_line[4].c,tmp);
     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
   }
 
@@ -2516,8 +2536,8 @@ void registry_password(HANDLE hlv)
   {
     strcpy(lv_line[2].c,"password");
     strcpy(lv_line[3].c,tmp);
-    strcpy(lv_line[4].c,"Terminal Server");
-    strcpy(lv_line[5].c,tmp);
+    strcpy(lv_line[5].c,"Terminal Server");
+    strcpy(lv_line[4].c,tmp);
     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
   }
 
@@ -2533,10 +2553,24 @@ void registry_password(HANDLE hlv)
     strcpy(lv_line[1].c,"HKEY_LOCAL_MACHINE\\Software\\Windows NT\\CurrentVersion\\Winlogon\\");
     strcpy(lv_line[2].c,"DefaultUserName/DefaultPassword/DefaultDomainName");
     sprintf(lv_line[3].c,"%s/%s/%s",tmp,tmp1,tmp2);
-    strcpy(lv_line[4].c,"Windows auto-logon");
-    strcpy(lv_line[5].c,tmp1);
+    strcpy(lv_line[5].c,"Windows auto-logon");
+    strcpy(lv_line[4].c,tmp1);
     AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
   }
+
+//hash user cache (cache des mots de passes des comptes s'étant connecté à partir du réseau)
+  set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\Cache");
+  unsigned int size;
+  for (i=1;i<11;i++)
+  {
+    tmp[0] = 0, tmp1[0]=0;
+    snprintf(tmp1,6,"NL$%d",i);
+    size = LireGValeur(HKEY_LOCAL_MACHINE,"SECURITY\\Cache\\",tmp1,tmp);
+
+    //traitement des données
+    if (size >0)registry_user_cache_dump_MSCASH(hlv, "", "HKEY_LOCAL_MACHINE\\SECURITY\\Cache\\", tmp1, tmp, size);
+  }
+  restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\Cache");
 }
 //------------------------------------------------------------------------------
 void registry_mru(HANDLE hlv)

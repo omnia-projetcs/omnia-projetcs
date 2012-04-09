@@ -1535,18 +1535,21 @@ void LireEvent(HANDLE Heventlog, char *eventname, HANDLE hlv, DWORD cRecords)
 
           //description
           memset(lv_line[5].c, 0, MAX_LINE_SIZE);
-          taille_tmp = (pevlr->Length) * sizeof(char) - sizeof(EVENTLOGRECORD) - strlen(lv_line[4].c);
-          if (taille_tmp  > 0)
+          if(!B_SAFE_MODE)
           {
-            pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-            if (pStrings != NULL)
+            taille_tmp = (pevlr->Length) * sizeof(char) - sizeof(EVENTLOGRECORD) - strlen(lv_line[4].c);
+            if (taille_tmp  > 0)
             {
-              memset(pStrings, 0, taille_tmp);
-              memcpy(pStrings, (LPBYTE)pevlr+sizeof(EVENTLOGRECORD)+strlen(lv_line[4].c), taille_tmp);
-              TraiterDescriptionLog(pStrings,taille_tmp-1,lv_line[5].c,MAX_LINE_SIZE);
+              pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
+              if (pStrings != NULL)
+              {
+                memset(pStrings, 0, taille_tmp);
+                memcpy(pStrings, (LPBYTE)pevlr+sizeof(EVENTLOGRECORD)+strlen(lv_line[4].c), taille_tmp);
+                TraiterDescriptionLog(pStrings,taille_tmp-1,lv_line[5].c,MAX_LINE_SIZE);
 
-              if (strlen(pStrings)>3)strncpy(lv_line[5].c,pStrings,MAX_LINE_SIZE);
-              HeapFree(GetProcessHeap(), 0, pStrings);
+                if (strlen(pStrings)>3)strncpy(lv_line[5].c,pStrings,MAX_LINE_SIZE);
+                HeapFree(GetProcessHeap(), 0, pStrings);
+              }
             }
           }
 
@@ -1637,6 +1640,9 @@ DWORD WINAPI Scan_logs(LPVOID lParam)
   HANDLE hlv        = GetDlgItem(Tabl[TABL_LOGS],LV_LOGS_VIEW);
   if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)ListView_DeleteAllItems(hlv);
   char tmp[MAX_PATH];
+
+  //gestion des bugs possibles
+  if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_SAFE)==BST_CHECKED)B_SAFE_MODE=TRUE;
 
   MiseEnGras(Tabl[TABL_MAIN],BT_MAIN_LOGS,TRUE);
 
