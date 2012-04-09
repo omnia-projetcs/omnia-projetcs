@@ -146,56 +146,60 @@ void TraiterEventlogFileEvt(char * eventfile, HANDLE hlv)
               //Description + infos
               //NumStrings, StringOffset
               memset(lv_line[5].c, 0, MAX_LINE_SIZE);
-              taille_tmp = (pevlr->Length) * sizeof(char);
-              if (taille_tmp > 56)
+              if (!B_SAFE_MODE)
               {
-                pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-                if (pStrings != NULL)
+                taille_tmp = (pevlr->Length) * sizeof(char);
+                if (taille_tmp > 56)
                 {
-                  memset(pStrings, 0, taille_tmp);
-                  memcpy(pStrings, (LPBYTE)pevlr+56, (pevlr->Length-56));
+                  pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
+                  if (pStrings != NULL)
+                  {
+                    memset(pStrings, 0, taille_tmp);
+                    memcpy(pStrings, (LPBYTE)pevlr+56, (pevlr->Length-56));
 
-                  //on remplace tous les 0 :
-                  replace_to_char(pStrings, pevlr->Length-58,'/');
-                  if (strlen(pStrings)>0)
-                  {
-                    snprintf(lv_line[5].c,MAX_LINE_SIZE,"%S ",(wchar_t*)pStrings);
+                    //on remplace tous les 0 :
+                    replace_to_char(pStrings, pevlr->Length-58,'/');
+                    if (strlen(pStrings)>0)
+                    {
+                      snprintf(lv_line[5].c,MAX_LINE_SIZE,"%S ",(wchar_t*)pStrings);
+                    }
+                    HeapFree(GetProcessHeap(), 0,pStrings);
                   }
-                  HeapFree(GetProcessHeap(), 0,pStrings);
                 }
-              }
-              taille_tmp = pevlr->DataOffset-pevlr->StringOffset * sizeof(char);
-              if (taille_tmp > 0)
-              {
-                pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-                if (pStrings != NULL)
+                taille_tmp = pevlr->DataOffset-pevlr->StringOffset * sizeof(char);
+                if (taille_tmp > 0)
                 {
-                  memset(pStrings, 0, taille_tmp);
-                  memcpy(pStrings, (LPBYTE)pevlr + pevlr->StringOffset, (pevlr->DataOffset-pevlr->StringOffset));
-                  if (strlen(pStrings)>0)
+                  pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
+                  if (pStrings != NULL)
                   {
-                    snprintf(tmp_t,MAX_LINE_SIZE,"%S ",(wchar_t*)pStrings);
-                    strncat(lv_line[5].c,tmp_t,MAX_LINE_SIZE);
+                    memset(pStrings, 0, taille_tmp);
+                    memcpy(pStrings, (LPBYTE)pevlr + pevlr->StringOffset, (pevlr->DataOffset-pevlr->StringOffset));
+                    if (strlen(pStrings)>0)
+                    {
+                      snprintf(tmp_t,MAX_LINE_SIZE,"%S ",(wchar_t*)pStrings);
+                      strncat(lv_line[5].c,tmp_t,MAX_LINE_SIZE);
+                    }
+                    HeapFree(GetProcessHeap(), 0,pStrings);
                   }
-                  HeapFree(GetProcessHeap(), 0,pStrings);
                 }
-              }
-              taille_tmp = pevlr->DataLength * sizeof(char);
-              if (taille_tmp>0 && pevlr->DataOffset>0)
-              {
-                pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
-                if (pStrings != NULL)
+                taille_tmp = pevlr->DataLength * sizeof(char);
+                if (taille_tmp>0 && pevlr->DataOffset>0)
                 {
-                  memset(pStrings, 0, taille_tmp);
-                  memcpy(pStrings, (LPBYTE)pevlr+pevlr->DataOffset, (pevlr->DataLength));
-                  if (strlen(pStrings)>0)
+                  pStrings = (char*)HeapAlloc(GetProcessHeap(), 0, taille_tmp+1);
+                  if (pStrings != NULL)
                   {
-                    strncat(lv_line[5].c,pStrings,MAX_LINE_SIZE);
+                    memset(pStrings, 0, taille_tmp);
+                    memcpy(pStrings, (LPBYTE)pevlr+pevlr->DataOffset, (pevlr->DataLength));
+                    if (strlen(pStrings)>0)
+                    {
+                      strncat(lv_line[5].c,pStrings,MAX_LINE_SIZE);
+                    }
+                    HeapFree(GetProcessHeap(), 0,pStrings);
                   }
-                  HeapFree(GetProcessHeap(), 0,pStrings);
                 }
+                strncat(lv_line[5].c,"\0",MAX_LINE_SIZE);
               }
-              strncat(lv_line[5].c,"\0",MAX_LINE_SIZE);
+
 
               //Utilisateur + SID
               //récupération du nom d'utilisateur  associés a l'évenement

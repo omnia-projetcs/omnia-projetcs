@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,2,77
-PRODUCTVERSION 0,0,2,77
+FILEVERSION 0,0,2,87
+PRODUCTVERSION 0,0,2,87
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.2.77\0"
-      VALUE "ProductVersion", "0.0.2.77\0"
+      VALUE "FileVersion", "0.0.2.87\0"
+      VALUE "ProductVersion", "0.0.2.87\0"
     END
   END
 END
@@ -44,7 +44,7 @@ BEGIN
   CONTROL "Audit logs"    ,BT_MAIN_LOGS         ,"Button",0x5001800B| WS_TABSTOP,65,1,50,17
   CONTROL "Files"         ,BT_MAIN_FILES        ,"Button",0x5001800B| WS_TABSTOP,117,1,50,17
   CONTROL "Registry/AD"   ,BT_MAIN_REGISTRY     ,"Button",0x5001800B| WS_TABSTOP,169,1,50,17
-  CONTROL "Applications" ,BT_MAIN_CONFIGURATION,"Button",0x5001800B| WS_TABSTOP,221,1,50,17
+  CONTROL "Applications"  ,BT_MAIN_CONFIGURATION,"Button",0x5001800B| WS_TABSTOP,221,1,50,17
   CONTROL "State"         ,BT_MAIN_STATE        ,"Button",0x5001800B| WS_TABSTOP,273,1,50,17
 
   CONTROL "Process"       ,BT_MAIN_PROCESS      ,"Button",0x5001800B| WS_TABSTOP,336,1,50,17
@@ -64,6 +64,7 @@ BEGIN
   CONTROL "Setup"         ,GRP_CONF_CONF        ,"Button",0x50000007| WS_TABSTOP,236,67,148,124
   CONTROL "Stay on top"   ,CHK_CONF_TOP         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Auto clean history"   ,CHK_CONF_CLEAN,"Button",0x50010003| WS_TABSTOP,244,15,184,9
+  CONTROL "Safe mode"    ,CHK_CONF_SAFE,"Button",0x50010003| WS_TABSTOP,244,15,184,9
 
   CONTROL "Dump local registry (slow)"          ,CHK_CONF_REG_GLOBAL_LOCAL         ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
   CONTROL "Registry recovery mode"              ,CHK_CONF_REG_FILE_RECOVERY        ,"Button",0x50010003| WS_TABSTOP,244,15,184,9
@@ -158,6 +159,8 @@ BEGIN
   CONTROL ""              ,LV_VIEW_CRITICAL ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
   CONTROL ""              ,LV_VIEW_H        ,"SysListView32",NOT 0x10000000|0x40810089,4,3,374,204,0x00000200
   CONTROL ""              ,CB_STATE_VIEW    ,"ComboBox",0x50210003| WS_TABSTOP,206,216,166,110
+  CONTROL ""              ,ED_SEARCH            ,"Edit",0x50010080| WS_TABSTOP,4,216,112,13,0x00000200
+  CONTROL "Search"        ,BT_VIEW_SEARCH       ,"Button",0x50010000| WS_TABSTOP,208,216,74,13
 END
 //------------------------------------------------------------------------------
 POPUP_TRV_CONF MENU DISCARDABLE
@@ -208,6 +211,16 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Enable/Disable : screensaver"                           ,POPUP_POL_SCR
         MENUITEM "Enable/Disable : screensaver password"                  ,POPUP_POL_SCR_PWD
+      END
+      MENUITEM SEPARATOR
+      POPUP "Local configuration"
+      BEGIN
+        MENUITEM "Save the Clipboard content" ,POPUP_EXT_CLIPBOARD
+        MENUITEM "Save list of disk"          ,POPUP_EXT_DISK
+        MENUITEM "Save routing table"         ,POPUP_EXT_ROUTING_TABLE
+        MENUITEM "Save list of shares"        ,POPUP_EXT_SHARE
+        MENUITEM "Save local variables"       ,POPUP_EXT_LOCAL_VAR
+        MENUITEM "Save list of pipes"         ,POPUP_EXT_PIPE
       END
       MENUITEM SEPARATOR
       MENUITEM "Clean (local host) registry history" ,POPUP_CLEAN_REGISTRY

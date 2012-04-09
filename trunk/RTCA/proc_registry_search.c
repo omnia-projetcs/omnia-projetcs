@@ -994,8 +994,6 @@ void FiltreRegData(LINE_ITEM *item)
     AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PATH), item, NB_COLONNE_LV[LV_REGISTRY_PATH_NB_COL]);
   }
 
-
-
   //Autoruns
   for (i=0;i<NB_MAX_REF_SEARCH_AUTORUN;i++)
   {
@@ -1100,6 +1098,17 @@ void FiltreRegData(LINE_ITEM *item)
       if (strlen(item[2].c)>0)
       {
         strcpy(item[4].c,"(configuration) Registry hive path");
+        AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF), item, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
+        return;
+      }
+    }
+
+    //liste des Microsoft Antimalware Exclusions
+    if (Contient(item[1].c,"Microsoft\\Microsoft Antimalware\\Exclusions"))
+    {
+      if (strlen(item[2].c)>0)
+      {
+        strcpy(item[4].c,"(configuration) Microsoft Antimalware Exclusions");
         AddToLV(GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_CONF), item, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
         return;
       }
@@ -2098,6 +2107,18 @@ void FiltreRegData(LINE_ITEM *item)
     {
       hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD);
       strcpy(item[5].c,"Terminal Server");
+      item[4].c[0]=0;
+      AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
+    }
+    return;
+  }
+
+  if (Contient(item[1].c,"\\Cache") && Contient(item[2].c,"NL$"))
+  {
+    if (MSCASH_valide(item[3].c))
+    {
+      hlv = GetDlgItem(Tabl[TABL_REGISTRY],LV_REGISTRY_PASSWORD);
+      strcpy(item[5].c,"MSCASH");
       item[4].c[0]=0;
       AddToLV(hlv, item, NB_COLONNE_LV[LV_REGISTRY_PASSWORD_NB_COL]);
     }

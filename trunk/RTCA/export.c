@@ -1098,8 +1098,8 @@ void LVSaveAll(unsigned int id_tabl, int lv,unsigned short nb_colonne,BOOL selec
     {
       if (pwdump)//pwdump
       {
-        if (selection_only)ExportLVSelectColto(path, id_tabl, lv, 9);
-        else ExportLVColto(path, id_tabl, lv, 9);
+        if (selection_only)ExportLVSelectColto(path, id_tabl, lv, 10);
+        else ExportLVColto(path, id_tabl, lv, 10);
       }else //registry
       {
         if (selection_only)ExportLVSelectREG(path, id_tabl, lv,5);
@@ -1244,7 +1244,6 @@ DWORD WINAPI Export(LPVOID lParam)
       strncat(path,tmp,MAX_PATH);
       strncat(path,"]\0",MAX_PATH);
 
-
       switch(type)
       {
         case HTML_TYPE :
@@ -1259,7 +1258,7 @@ DWORD WINAPI Export(LPVOID lParam)
            strncat(tmp,"_REG_REGISTRY.html",MAX_PATH);
            ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
-           strncat(tmp,"_REG_CONGIGURATION.html",MAX_PATH);
+           strncat(tmp,"_REG_CONFIGURATION.html",MAX_PATH);
            ExportLVtoHTML(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
            strncat(tmp,"_REG_SOFTWARE.html",MAX_PATH);
@@ -1306,6 +1305,9 @@ DWORD WINAPI Export(LPVOID lParam)
            strcpy(tmp,path);
            strncat(tmp,"_DAY_STATE.html",MAX_PATH);
            ExportLVtoHTML(tmp, TABL_STATE, LV_VIEW_H, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_APPLICATIONS.html",MAX_PATH);
+           ExportLVtoHTML(tmp, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
         break;
         case XML_TYPE :
            //création des rapports
@@ -1319,7 +1321,7 @@ DWORD WINAPI Export(LPVOID lParam)
            strncat(tmp,"_REG_REGISTRY.xml",MAX_PATH);
            ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
-           strncat(tmp,"_REG_CONGIGURATION.xml",MAX_PATH);
+           strncat(tmp,"_REG_CONFIGURATION.xml",MAX_PATH);
            ExportLVtoXML(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
            strncat(tmp,"_REG_SOFTWARE.xml",MAX_PATH);
@@ -1363,6 +1365,9 @@ DWORD WINAPI Export(LPVOID lParam)
            strcpy(tmp,path);
            strncat(tmp,"_DAY_STATE.xml",MAX_PATH);
            ExportLVtoXML(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_APPLICATIONS.xml",MAX_PATH);
+           ExportLVtoXML(tmp, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
         break;
         case CSV_TYPE :
         default:
@@ -1377,7 +1382,7 @@ DWORD WINAPI Export(LPVOID lParam)
            strncat(tmp,"_REG_REGISTRY.csv",MAX_PATH);
            ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_VIEW, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
-           strncat(tmp,"_REG_CONGIGURATION.csv",MAX_PATH);
+           strncat(tmp,"_REG_CONFIGURATION.csv",MAX_PATH);
            ExportLVtoCSV(tmp, TABL_REGISTRY, LV_REGISTRY_CONF, NB_COLONNE_LV[LV_REGISTRY_CONF_NB_COL]);
            strcpy(tmp,path);
            strncat(tmp,"_REG_SOFTWARE.csv",MAX_PATH);
@@ -1421,12 +1426,15 @@ DWORD WINAPI Export(LPVOID lParam)
            strcpy(tmp,path);
            strncat(tmp,"_DAY_STATE.csv",MAX_PATH);
            ExportLVtoCSV(tmp, TABL_STATE, LV_VIEW, NB_COLONNE_LV[LV_STATE_H_VIEW_NB_COL]);
+           strcpy(tmp,path);
+           strncat(tmp,"_APPLICATIONS.csv",MAX_PATH);
+           ExportLVtoCSV(tmp, TABL_CONFIGURATION, LV_VIEW, NB_COLONNE_LV[LV_CONFIGURATION_NB_COL]);
         break;
       }
       //pwdump
       strcpy(tmp,path);
       strncat(tmp,"_REG_USERS.pwdump",MAX_PATH);
-      ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 9);
+      ExportLVColto(tmp, TABL_REGISTRY, LV_REGISTRY_USERS, 10);
      }
    }
 

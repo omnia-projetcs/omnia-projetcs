@@ -20,7 +20,7 @@
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 #include <wininet.h>    //pour la gestion avec VirusTotal
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.2.77 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.2.87 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -86,6 +86,8 @@ char console_cmd[MAX_LINE_SIZE];
 #define CHK_CONF_ADS                     1019
 #define CHK_CONF_CONFIGURATION           1020
 #define CHK_CONF_CLEAN                   1021
+#define CHK_CONF_SAFE                    1022
+BOOL B_SAFE_MODE;
 BOOL State_Enable;
 BOOL SHA256_Enable;
 BOOL ACL_Enable;
@@ -216,10 +218,18 @@ BOOL TV_FILES_VISBLE;
 #define POPUP_E_HTML         11103
 #define POPUP_E_XML          11104
 
+#define POPUP_EXT_CLIPBOARD  11105
+#define POPUP_EXT_DISK       11106
+#define POPUP_EXT_ROUTING_TABLE 11107
+#define POPUP_EXT_SHARE      11108
+#define POPUP_EXT_LOCAL_VAR  11109
+#define POPUP_EXT_PIPE       11110
+
+
 HANDLE h_VIRUSTTAL, h_AVIRUSTTAL;
 BOOL VIRUSTTAL, AVIRUSTTAL;
-#define POPUP_LV_VIRUSTTAL   11110
-#define POPUP_LV_AVIRUSTTAL  11111
+#define POPUP_LV_VIRUSTTAL   11120
+#define POPUP_LV_AVIRUSTTAL  11121
 
 //type d'export
 #define CSV_TYPE             0
@@ -293,6 +303,7 @@ long int pos_search_logs;
 long int pos_search_files;
 long int pos_search_registry;
 long int pos_search_conf;
+long int pos_search_state;
 //------------------------------------------------------------------------------
 //pour le tri de colonne
 typedef struct stri
@@ -441,9 +452,9 @@ REG_REF_SEARCH ref_service_var_search[NB_MAX_REF_SEARCH_SERVICE_VAR];
 #define NB_MAX_REF_SEARCH_USERS          1
 REG_REF_SEARCH ref_users_search[NB_MAX_REF_SEARCH_USERS];
 
-#define NB_MAX_REF_SEARCH_CONF           8
+#define NB_MAX_REF_SEARCH_CONF          10
 REG_REF_SEARCH ref_conf_search[NB_MAX_REF_SEARCH_CONF];
-#define NB_MAX_REF_SEARCH_CONF_VAR      54
+#define NB_MAX_REF_SEARCH_CONF_VAR      58
 REG_REF_SEARCH ref_conf_var_search[NB_MAX_REF_SEARCH_CONF_VAR];
 
 #define NB_MAX_REF_SEARCH_MRU           31
@@ -554,19 +565,19 @@ typedef struct hbin_cell_nk_header{
   DWORD size;                 // 0xFFFFFFFF - size + le padding (size%8) = la taille
 
   short type;                 //0x6B6E : debut standard de la zone de DATA
-  short format;               //root key = 0x2C, sinon 0x20, pas toujours fiable bien souven 0x20 même si root key
+  short format;               //root key = 0x2C, sinon 0x20
   FILETIME last_write;        //dernière modification
   long int unknow1;
   DWORD parent_key;           //emplacement de la clé parent
   DWORD nb_subkeys;           //nombre de sous clé
   DWORD nb_vl_subkeys;        //nombre de sous clé volatile
-  DWORD lf_offset;           //-1 ou 0xffffffff = vide
+  DWORD lf_offset;            //-1 ou 0xffffffff = vide
 
   DWORD lsk_vol_offset;       //-1 ou 0xffffffff = vide
                               //emplacement de la liste de sk volatile à partir du début du hbin_data
   DWORD nb_values;
   DWORD val_ls_offset;
-  DWORD sk_offset;            //-1 ou 0xffffffff = vide //emplacement de la liste de sk à partir du début du hbin_data
+  DWORD sk_offset;            //-1 ou 0xffffffff = vide //emplacement de la liste de sk à partir du début du hbin
   DWORD class_name_offset;    //classe name offset -1 ou 0xffffffff = vide
   DWORD sbk_name_max_size;
   DWORD sbk_name_cl_max_size;
@@ -849,6 +860,10 @@ void KilllvProcess(HANDLE hlv, DWORD id, unsigned int column);
 DWORD WINAPI BackupRegFile(LPVOID lParam);
 DWORD WINAPI BackupEvtFile(LPVOID lParam);
 
+int set_sam_tree_access( HKEY start, char *pth);
+int restore_sam_tree_access(HKEY start, char *pth);
+BOOL registry_user_cache_dump_MSCASH(HANDLE hlv, char *file, char *key, char *value, char *data, unsigned int size);
+
 char HexaToDecS(char *hexa);
 int TraiterUserDataFromSAM_V(LINE_ITEM *item);
 void TraiterUserDataFromSAM_F(LINE_ITEM *item);
@@ -890,6 +905,7 @@ BOOL AutoSearchFilesStart;
 DWORD WINAPI AutoSearchFiles(LPVOID lParam);
 
 //export des résultats
+void SaveGet(DWORD id);
 HANDLE h_Export;
 BOOL ExportStart;
 DWORD WINAPI Export(LPVOID lParam);

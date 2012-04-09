@@ -193,7 +193,7 @@ DWORD WINAPI Scan_configuration(LPVOID lParam)
   //on vide les listeview
   BOOL local        = FALSE;
   HANDLE hlv        = GetDlgItem(Tabl[TABL_CONFIGURATION],LV_VIEW);
-  if (lParam == FALSE || lParam == TRUE)
+  if (lParam == 0 || lParam == 1)
   {
     local        = (BOOL)lParam;
     if (IsDlgButtonChecked(Tabl[TABL_CONF],CHK_CONF_CLEAN)==BST_CHECKED)ListView_DeleteAllItems(hlv);

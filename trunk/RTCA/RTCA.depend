@@ -257,10 +257,10 @@
 1320604056 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\clean.c
+1320767895 source:z:\svn_omnia\rtca\clean.c
 	"resource.h"
 
-1328980771 z:\svn_omnia\rtca\resource.h
+1333574875 z:\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -273,123 +273,123 @@
 	<lm.h>
 	<wininet.h>
 
-1328972563 source:z:\svn_omnia\rtca\syskeyextract.c
+1328976163 source:z:\svn_omnia\rtca\syskeyextract.c
 	"resource.h"
 	"rc4.h"
 	"md5.h"
 
-1320764295 z:\svn_omnia\rtca\rc4.h
+1320767895 z:\svn_omnia\rtca\rc4.h
 	"opensslconf.h"
 
-1320764295 z:\svn_omnia\rtca\opensslconf.h
+1320767895 z:\svn_omnia\rtca\opensslconf.h
 
-1320764295 z:\svn_omnia\rtca\md5.h
+1320767895 z:\svn_omnia\rtca\md5.h
 	"e_os2.h"
 
-1320764295 z:\svn_omnia\rtca\e_os2.h
+1320767895 z:\svn_omnia\rtca\e_os2.h
 	"opensslconf.h"
 
-1320764295 source:z:\svn_omnia\rtca\d3des.c
+1320767895 source:z:\svn_omnia\rtca\d3des.c
 	"d3des.h"
 
-1320764295 z:\svn_omnia\rtca\d3des.h
+1320767895 z:\svn_omnia\rtca\d3des.h
 
-1326229962 source:z:\svn_omnia\rtca\export.c
+1332615652 source:z:\svn_omnia\rtca\export.c
 	"resource.h"
 
 1326058633 source:z:\svn_omnia\rtca\local_user_extract.c
 	"resource.h"
 
-1328978765 source:z:\svn_omnia\rtca\main.c
+1333036874 source:z:\svn_omnia\rtca\main.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\md5.c
+1320767895 source:z:\svn_omnia\rtca\md5.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\md5_dgst.c
+1320767895 source:z:\svn_omnia\rtca\md5_dgst.c
 	<stdio.h>
 	"opensslv.h"
 	"md5_locl.h"
 
-1320764295 z:\svn_omnia\rtca\opensslv.h
+1320767895 z:\svn_omnia\rtca\opensslv.h
 
-1320764295 z:\svn_omnia\rtca\md5_locl.h
+1320767895 z:\svn_omnia\rtca\md5_locl.h
 	<stdlib.h>
 	<string.h>
 	"e_os2.h"
 	"md5.h"
 	"md32_common.h"
 
-1320764295 z:\svn_omnia\rtca\md32_common.h
+1320767895 z:\svn_omnia\rtca\md32_common.h
 
-1328977578 source:z:\svn_omnia\rtca\proc.c
+1333140457 source:z:\svn_omnia\rtca\proc.c
 	"resource.h"
 
-1328978621 source:z:\svn_omnia\rtca\proc_files.c
+1330539488 source:z:\svn_omnia\rtca\proc_files.c
 	"resource.h"
 	"sha2.h"
 
-1328450979 source:z:\svn_omnia\rtca\proc_logs.c
+1332627679 source:z:\svn_omnia\rtca\proc_logs.c
 	"resource.h"
 
-1327137369 source:z:\svn_omnia\rtca\proc_logs_evt.c
+1332627621 source:z:\svn_omnia\rtca\proc_logs_evt.c
 	"resource.h"
 
-1327137369 source:z:\svn_omnia\rtca\proc_logs_evtx.c
+1332627486 source:z:\svn_omnia\rtca\proc_logs_evtx.c
 	"resource.h"
 
-1327137369 source:z:\svn_omnia\rtca\proc_logs_log.c
+1327140969 source:z:\svn_omnia\rtca\proc_logs_log.c
 	"resource.h"
 
-1327137338 source:z:\svn_omnia\rtca\proc_process.c
+1330198743 source:z:\svn_omnia\rtca\proc_process.c
 	"resource.h"
 
-1328451010 source:z:\svn_omnia\rtca\proc_registry.c
+1333033922 source:z:\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 
-1327137370 source:z:\svn_omnia\rtca\proc_registry_wce_bin.c
+1327140970 source:z:\svn_omnia\rtca\proc_registry_wce_bin.c
 	"resource.h"
 
-1327137369 source:z:\svn_omnia\rtca\proc_registry_bin.c
+1327140969 source:z:\svn_omnia\rtca\proc_registry_bin.c
 	"resource.h"
 
-1327137369 source:z:\svn_omnia\rtca\proc_registry_bin2.c
+1327140969 source:z:\svn_omnia\rtca\proc_registry_bin2.c
 	"resource.h"
 
-1327137370 source:z:\svn_omnia\rtca\proc_registry_files.c
+1327140970 source:z:\svn_omnia\rtca\proc_registry_files.c
 	"resource.h"
 
-1327137370 source:z:\svn_omnia\rtca\proc_registry_guide.c
+1327140970 source:z:\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 
-1328972602 source:z:\svn_omnia\rtca\proc_registry_search.c
+1333140893 source:z:\svn_omnia\rtca\proc_registry_search.c
 	"resource.h"
 
-1320764295 source:z:\svn_omnia\rtca\rc4_enc.c
+1320767895 source:z:\svn_omnia\rtca\rc4_enc.c
 	"rc4.h"
 
-1320764295 source:z:\svn_omnia\rtca\rc4_skey.c
+1320767895 source:z:\svn_omnia\rtca\rc4_skey.c
 	"rc4.h"
 	"opensslv.h"
 
-1328980758 source:z:\svn_omnia\rtca\resource.rc
+1333036104 source:z:\svn_omnia\rtca\resource.rc
 	"resource.h"
 
-1328450938 source:z:\svn_omnia\rtca\proc_configuration.c
+1330539407 source:z:\svn_omnia\rtca\proc_configuration.c
 	"resource.h"
 
-1325965322 source:z:\svn_omnia\rtca\proc_state.c
+1325968922 source:z:\svn_omnia\rtca\proc_state.c
 	"resource.h"
 
-1328292118 source:z:\svn_omnia\rtca\proc_configuration_firefox.c
+1330539488 source:z:\svn_omnia\rtca\proc_configuration_firefox.c
 	"resource.h"
 	"sqlite3.h"
 
-1327843785 source:z:\svn_omnia\rtca\proc_configuration_ie.c
+1327847385 source:z:\svn_omnia\rtca\proc_configuration_ie.c
 	"resource.h"
 
-1326722694 source:z:\svn_omnia\rtca\sqlite3.c
+1326726294 source:z:\svn_omnia\rtca\sqlite3.c
 	"config.h"
 	<stdint.h>
 	<inttypes.h>
@@ -436,16 +436,16 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1326722694 z:\svn_omnia\rtca\sqlite3.h
+1326726294 z:\svn_omnia\rtca\sqlite3.h
 	<stdarg.h>
 
-1328980625 source:z:\svn_omnia\rtca\proc_files_virsutotal.c
+1330876212 source:z:\svn_omnia\rtca\proc_files_virsutotal.c
 	"resource.h"
 
-1328462367 z:\svn_omnia\rtca\sha2.h
+1328465967 z:\svn_omnia\rtca\sha2.h
 	<limits.h>
 
-1328462359 source:z:\svn_omnia\rtca\sha2.cpp
+1328465959 source:z:\svn_omnia\rtca\sha2.cpp
 	<string.h>
 	<stdlib.h>
 	"sha2.h"
@@ -457,4 +457,16 @@
 	<stdlib.h>
 	<stdlib.h>
 	<sys/param.h>
+
+1330881738 source:z:\svn_omnia\rtca\proc_registry_local_user_extract.c
+	"resource.h"
+
+1333141182 source:z:\svn_omnia\rtca\proc_registry_user_cache_dump.c
+	"resource.h"
+
+1333040293 source:z:\svn_omnia\rtca\proc_local_conf.c
+	"resource.h"
+
+1333147986 source:z:\svn_omnia\rtca\shadow_copy.c
+	"resource.h"
 

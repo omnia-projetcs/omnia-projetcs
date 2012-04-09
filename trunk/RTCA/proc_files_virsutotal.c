@@ -17,10 +17,10 @@ typedef struct
 //------------------------------------------------------------------------------
 void GetCSRFToken(VIRUSTOTAL_STR *vts)
 {
-    //init connexion
-    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
     if (M_connexion==NULL)return;
 
+    //init connexion
     HINTERNET M_session = InternetConnect(M_connexion, "www.virustotal.com",443,"","",INTERNET_SERVICE_HTTP,0,0);
     if (M_session==NULL)
     {
@@ -60,7 +60,7 @@ void GetCSRFToken(VIRUSTOTAL_STR *vts)
 void GetSHA256Info(VIRUSTOTAL_STR *vts)
 {
     //init connexion
-    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
     if (M_connexion==NULL)return;
 
     HINTERNET M_session = InternetConnect(M_connexion, "www.virustotal.com",443,"","",INTERNET_SERVICE_HTTP,0,0);
@@ -69,7 +69,6 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
       InternetCloseHandle(M_connexion);
       return;
     }
-    //https://www.virustotal.com/file/upload/?sha256=0a864a03424ac6c2e43fd2dd15a9d57c73dbd5e49e4e2ac40f02931bf7213100
     char request[MAX_PATH] = "/file/upload/?sha256=";
     strncat(request,vts->sha256,MAX_PATH);
     strncat(request,"\0",MAX_PATH);
@@ -88,42 +87,50 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
       InternetCloseHandle(M_session);
       InternetCloseHandle(M_connexion);
       return;
-    }else if (HttpSendRequest(M_requete, cookie, strlen(cookie), NULL, NULL))
+    }else if (HttpSendRequest(M_requete, cookie, strlen(cookie), NULL, 0))
     {
       INTERNET_BUFFERS ib;
       ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
       ib.lpcszHeader        = NULL;
-      ib.dwHeadersLength    = NULL;
-      ib.dwHeadersTotal     = NULL;
-      ib.dwOffsetLow        = NULL;
-      ib.dwOffsetHigh       = NULL;
+      ib.dwHeadersLength    = 0;
+      ib.dwHeadersTotal     = 0;
+      ib.dwOffsetLow        = 0;
+      ib.dwOffsetHigh       = 0;
 
       char resultat[16000];
       ib.lpvBuffer = resultat;
       ib.dwBufferLength = 16000-1;
       ib.dwBufferTotal = 16000-1;
 
-      if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,NULL))
+      if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
       {
-        if (strlen(resultat)>16)
+        if (strlen(resultat)>20)
         {
-          if (resultat[16] == 't') //dans la base
+          if (resultat[16] == 't' && resultat[17] == 'r' && resultat[18] == 'u' && resultat[19] == 'e') //dans la base
           {
             vts->exist = TRUE;
 
             //lecture + convertion : last_analysis_date
             char *c = resultat;
-            while (*c && (*c != 'l' || *(c+1)!='a'))c++;
+            while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='l'|| *(c+4)!='a'))c++;
 
-            if (*c == 'l')
+            if (*c == ',' && *(c+1)==' ' && *(c+2)=='"' && *(c+3)=='l' && *(c+4)=='a')
             {
-              c+=22;
-              strncpy(vts->last_analysis_date,c,19);
+              c+=25;
 
-              vts->last_analysis_date[4]='/';
-              vts->last_analysis_date[7]='/';
-              vts->last_analysis_date[10]='-';
-              vts->last_analysis_date[19]=0;
+              //test si une date ou non !!!
+              if (*c == 'u')strncpy(vts->last_analysis_date,"NULL",5);
+              else
+              {
+                //MessageBox(0,resultat,c,MB_OK|MB_TOPMOST);
+
+                strncpy(vts->last_analysis_date,c,19);
+
+                vts->last_analysis_date[4]='/';
+                vts->last_analysis_date[7]='/';
+                vts->last_analysis_date[10]='-';
+                vts->last_analysis_date[19]=0;
+              }
             }
 
             //lecture : detection_ratio
@@ -159,8 +166,11 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   vts.sha256[0]             = 0;
   vts.last_analysis_date[0] = 0;
   vts.detection_ratio[0]    = 0;
+
+  char tmp[51] = "";
   ListView_GetItemText(hlv,item,column_sha256,vts.sha256,65);
-  if (vts.sha256[0] == 0)return;
+  ListView_GetItemText(hlv,item,colum_sav,tmp,50);
+  if (vts.sha256[0] == 0 || (tmp[0] != 0 && tmp[0] != 'C'))return;
 
   //lecture du token
   if (token == NULL)GetCSRFToken(&vts);
@@ -208,8 +218,10 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
   ST_VIRUSTOTAL sv;
   sv.hlv = GetDlgItem(Tabl[TABL_FILES],LV_FILES_VIEW);
 
-  //sémaphore pour gérer la limitte à 10 thread
-  hSemaphore=CreateSemaphore(NULL,10,10,NULL);
+  //sémaphore pour gérer la limitte à 8 thread = minimum detection and minimum errors
+  #define NB_VIRUTOTAL_THREADS  8
+  //Ratio : 0, 43 (Last analysis : UKtF/RH/IW-VLofR_62) Url : https://www.virustotal.com/file/2842973d15a14323e08598be1dfb87e54bf88a76be8c7bc94c56b079446edf38/analysis/
+  hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS,NB_VIRUTOTAL_THREADS,NULL);
   hSemaphoreItem=CreateSemaphore(NULL,1,1,NULL);
 
   //lecture du token
@@ -227,7 +239,7 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
   }
 
   unsigned int a;
-  for (a=0;a<10;a++)WaitForSingleObject(hSemaphore,INFINITE);
+  for (a=0;a<NB_VIRUTOTAL_THREADS;a++)WaitForSingleObject(hSemaphore,INFINITE);
   CloseHandle(hSemaphore);
   CloseHandle(hSemaphoreItem);
 

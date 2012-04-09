@@ -285,7 +285,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, LINE
       }
 
       //traitement de la description !!
-      TraiterDescription (desc,h_dheader->RecordSize-pos,lv_line[5].c,MAX_LINE_SIZE);
+      if(!B_SAFE_MODE)TraiterDescription (desc,h_dheader->RecordSize-pos,lv_line[5].c,MAX_LINE_SIZE);
     }
 
     /*
