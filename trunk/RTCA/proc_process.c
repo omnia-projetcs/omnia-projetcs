@@ -724,7 +724,7 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
         if (MyGetExtendedUdpTable(pUDPTable, &size, TRUE, AF_INET, UDP_TABLE_OWNER_PID, 0) == NO_ERROR )
         {
           PMIB_UDPTABLE_EX UDP_table = (PMIB_UDPTABLE_EX)pUDPTable;
-          for (i=0; i<UDP_table->dwNumEntries;i++)
+          for (i=0; i<UDP_table->dwNumEntries  && nb_ligne<nb_item_max ;i++)
           {
             if (pid == UDP_table->table[i].dwProcessId)
             {

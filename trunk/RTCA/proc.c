@@ -3347,8 +3347,8 @@ void InitConfig(HWND hwnd)
         *(c+=3) = '_';
         *(c+=4) = '_';
         *(c+=3) = '_';
-        *(c+=3) = 'h';
-        *(c+=3) = 'm';
+        *(c+=3) = ':';
+        *(c+=3) = ':';
         *(c+=3) = '_';
         strncat(path,tmp,MAX_PATH);
         strncat(path,"]\0",MAX_PATH);

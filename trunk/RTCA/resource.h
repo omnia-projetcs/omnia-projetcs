@@ -20,7 +20,7 @@
 #include <lm.h>         //pour le chargement direct de DLL +liste des groupes
 #include <wininet.h>    //pour la gestion avec VirusTotal
 //------------------------------------------------------------------------------
-#define NOM_APPLI             "RtCA v0.2.87 - http://code.google.com/p/omnia-projetcs/"
+#define NOM_APPLI             "RtCA v0.2.88 - http://code.google.com/p/omnia-projetcs/"
 #define CONF_FILE             "RtCA.ini"
 
 #define TAILLE_TMP            256
@@ -40,7 +40,7 @@
 #define ICON_FICHIER_UNKNOW   106
 #define ICON_FICHIER          107
 
-#define SZ_PART_SYSKEY        0x20
+#define SZ_PART_SYSKEY        0x21
 
 #define ICON_FILE_DOSSIER     0
 #define ICON_FILE_BIN         1

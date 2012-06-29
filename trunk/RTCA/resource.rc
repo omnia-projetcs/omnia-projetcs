@@ -16,8 +16,8 @@ ICON_FICHIER_TXT    ICON DISCARDABLE "file_txt.ico"
 ICON_FICHIER_UNKNOW ICON DISCARDABLE "file_unknow.ico"
 //------------------------------------------------------------------------------
 IDR_VERSION VERSIONINFO
-FILEVERSION 0,0,2,87
-PRODUCTVERSION 0,0,2,87
+FILEVERSION 0,2,88,0
+PRODUCTVERSION 0,2,88,0
 FILETYPE 0x00000001
 BEGIN
   BLOCK "StringFileInfo"
@@ -28,8 +28,8 @@ BEGIN
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
-      VALUE "FileVersion", "0.0.2.87\0"
-      VALUE "ProductVersion", "0.0.2.87\0"
+      VALUE "FileVersion", "0.2.88.0"
+      VALUE "ProductVersion", "0.2.88.0"
     END
   END
 END
