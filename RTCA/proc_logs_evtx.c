@@ -307,7 +307,7 @@ void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv)
   {
     //test de la taille
     DWORD taille_fic = GetFileSize(Hlog,NULL);
-    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
+    if (taille_fic>0x1000 && taille_fic!=INVALID_FILE_SIZE)
     {
       unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
       if (buffer == NULL)
@@ -347,7 +347,7 @@ void TraiterEventlogFileEvtx(char *eventfile, HANDLE hlv)
 
       //on test la validité du fichier ^^
       EVENTLOGHEADER_EVTX* h_evtx = (EVENTLOGHEADER_EVTX*)buffer;
-      if (!strcmp(h_evtx->MagicString,"ElfFile") && h_evtx->HeaderSize == 0x80 && h_evtx->MinorVersion>0 && h_evtx->MajorVersion>0)
+      if (strcmp(h_evtx->MagicString,"ElfFile")==0 && h_evtx->HeaderSize == 0x80 && h_evtx->MinorVersion>0 && h_evtx->MajorVersion>0)
       {
         //header d'une zone d'enregistrement
         typedef struct _EVENTLOGCHUNKHEADER_EVTX {

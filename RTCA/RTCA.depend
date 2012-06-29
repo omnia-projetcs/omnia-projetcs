@@ -257,10 +257,10 @@
 1320604056 source:c:\documents and settings\nico\bureau\svn_omnia\rtca\proc_registry_guide.c
 	"resource.h"
 
-1320767895 source:z:\svn_omnia\rtca\clean.c
+1335619797 source:z:\svn_omnia\rtca\clean.c
 	"resource.h"
 
-1333574875 z:\svn_omnia\rtca\resource.h
+1340997168 z:\svn_omnia\rtca\resource.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -273,10 +273,11 @@
 	<lm.h>
 	<wininet.h>
 
-1328976163 source:z:\svn_omnia\rtca\syskeyextract.c
+1334504095 source:z:\svn_omnia\rtca\syskeyextract.c
 	"resource.h"
 	"rc4.h"
 	"md5.h"
+	"des.h"
 
 1320767895 z:\svn_omnia\rtca\rc4.h
 	"opensslconf.h"
@@ -294,7 +295,7 @@
 
 1320767895 z:\svn_omnia\rtca\d3des.h
 
-1332615652 source:z:\svn_omnia\rtca\export.c
+1338554379 source:z:\svn_omnia\rtca\export.c
 	"resource.h"
 
 1326058633 source:z:\svn_omnia\rtca\local_user_extract.c
@@ -322,7 +323,7 @@
 
 1320767895 z:\svn_omnia\rtca\md32_common.h
 
-1333140457 source:z:\svn_omnia\rtca\proc.c
+1334768218 source:z:\svn_omnia\rtca\proc.c
 	"resource.h"
 
 1330539488 source:z:\svn_omnia\rtca\proc_files.c
@@ -335,16 +336,16 @@
 1332627621 source:z:\svn_omnia\rtca\proc_logs_evt.c
 	"resource.h"
 
-1332627486 source:z:\svn_omnia\rtca\proc_logs_evtx.c
+1339146173 source:z:\svn_omnia\rtca\proc_logs_evtx.c
 	"resource.h"
 
 1327140969 source:z:\svn_omnia\rtca\proc_logs_log.c
 	"resource.h"
 
-1330198743 source:z:\svn_omnia\rtca\proc_process.c
+1337332186 source:z:\svn_omnia\rtca\proc_process.c
 	"resource.h"
 
-1333033922 source:z:\svn_omnia\rtca\proc_registry.c
+1339866734 source:z:\svn_omnia\rtca\proc_registry.c
 	"resource.h"
 	"d3des.h"
 
@@ -382,7 +383,7 @@
 1325968922 source:z:\svn_omnia\rtca\proc_state.c
 	"resource.h"
 
-1330539488 source:z:\svn_omnia\rtca\proc_configuration_firefox.c
+1337502995 source:z:\svn_omnia\rtca\proc_configuration_firefox.c
 	"resource.h"
 	"sqlite3.h"
 
@@ -458,15 +459,34 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1330881738 source:z:\svn_omnia\rtca\proc_registry_local_user_extract.c
+1340997067 source:z:\svn_omnia\rtca\proc_registry_local_user_extract.c
 	"resource.h"
 
 1333141182 source:z:\svn_omnia\rtca\proc_registry_user_cache_dump.c
 	"resource.h"
 
-1333040293 source:z:\svn_omnia\rtca\proc_local_conf.c
+1336166925 source:z:\svn_omnia\rtca\proc_local_conf.c
 	"resource.h"
 
-1333147986 source:z:\svn_omnia\rtca\shadow_copy.c
+1334000098 source:z:\svn_omnia\rtca\shadow_copy.c
 	"resource.h"
+
+1334169465 z:\svn_omnia\rtca\des.h
+	"opensslconf.h"
+	"e_os2.h"
+
+1334090190 source:z:\svn_omnia\rtca\des.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"opensslconf.h"
+	<unistd.h>
+	<math.h>
+	<io.h>
+	<time.h>
+	<types.h>
+	<stat.h>
+	<sys/types.h>
+	<sys/stat.h>
+	"des.h"
 

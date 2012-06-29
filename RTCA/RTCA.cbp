@@ -41,6 +41,10 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="d3des.h" />
+		<Unit filename="des.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="des.h" />
 		<Unit filename="export.c">
 			<Option compilerVar="CC" />
 		</Unit>

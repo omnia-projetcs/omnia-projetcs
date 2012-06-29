@@ -187,7 +187,7 @@ void GetShare(char *path)//csv
                 case STYPE_DEVICE: strcpy(tmp,"DEVICE;");break;
                 case STYPE_IPC: strcpy(tmp,"IPC;");break;
                 case STYPE_SPECIAL: strcpy(tmp,"SPECIAL ");break;
-                case 0x40000000/*STYPE_TEMPORARY*/: strcpy(tmp,"TEMPRARY;");break;
+                case 0x40000000/*STYPE_TEMPORARY*/: strcpy(tmp,"TEMPORARY;");break;
                 case -2147483645: strcpy(tmp,"RPC;");break;
                 default :snprintf(tmp,MAX_PATH,"Unknow (%l);",p->shi502_type);
               }
@@ -337,7 +337,7 @@ void GetPipe(char *path)
 {
   WIN32_FIND_DATA data;
   HANDLE hfic = FindFirstFile("\\\\.\\pipe\\*", &data);
-  char tmp[MAX_PATH];
+  char tmp[MAX_PATH], tmp2[MAX_PATH],owner[MAX_PATH];
   DWORD copiee;
 
   if (hfic != INVALID_HANDLE_VALUE)
@@ -350,12 +350,20 @@ void GetPipe(char *path)
         snprintf(tmp,MAX_PATH,"\\\\.\\pipe\\%s ",data.cFileName);
         WriteFile(MyhFile,tmp,strlen(tmp),&copiee,0);
 
+        //acls
+        GetACLS(tmp, tmp2, MAX_PATH, owner, MAX_PATH);
+        WriteFile(MyhFile,tmp2,strlen(tmp2),&copiee,0);
+        WriteFile(MyhFile," ",strlen(" "),&copiee,0);
+        WriteFile(MyhFile,owner,strlen(owner),&copiee,0);
+        WriteFile(MyhFile," ",strlen(" "),&copiee,0);
+
         //size
         if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(tmp,MAX_PATH,"(%uTo)\r\n",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
         else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(tmp,MAX_PATH,"(%uGo)\r\n",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
         else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(tmp,MAX_PATH,"(%uMo)\r\n",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
         else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(tmp,MAX_PATH,"(%uKo)\r\n",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
         else snprintf(tmp,MAX_PATH,"(%uo)\r\n",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
         WriteFile(MyhFile,tmp,strlen(tmp),&copiee,0);
 
       }while(FindNextFile (hfic,&data));

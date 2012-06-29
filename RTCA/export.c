@@ -914,14 +914,14 @@ void ExportLVtoXML(char *path, unsigned int id_tabl, int lv, unsigned short nb_c
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(ligne,MAX_LINE_SIZE,"     <%s><![CDATA[%s]]><%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
+              snprintf(ligne,MAX_LINE_SIZE,"     <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
               WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
             }
           }
           WriteFile(MyhFile,"  </Data>\r\n",11,&copiee,0);
         }
         //fin de ligne
-        WriteFile(MyhFile,"</RtCA>",6,&copiee,0);
+        WriteFile(MyhFile,"</RtCA>",7,&copiee,0);
       }
       CloseHandle(MyhFile);
     }
@@ -979,7 +979,7 @@ void ExportLVSelecttoXML(char *path, unsigned int id_tabl, int lv, unsigned shor
               ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
               if (buffer != NULL && strlen(buffer)>0)
               {
-                snprintf(ligne,MAX_LINE_SIZE,"     <%s><![CDATA[%s]]><%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
+                snprintf(ligne,MAX_LINE_SIZE,"     <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
                 WriteFile(MyhFile,ligne,strlen(ligne),&copiee,0);
               }
             }

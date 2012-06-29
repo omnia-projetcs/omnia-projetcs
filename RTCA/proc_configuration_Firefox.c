@@ -703,7 +703,7 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     {
       fci.type = SQLITE_TYPE_ANDROID_ACCOUNTS;
       sqlite3_exec(db, "SELECT name, type, password FROM accounts;", callback_sqlite, &fci, NULL);
-      sqlite3_exec(db, "SELECT name, authtokens.type,authtoken FROM authtokens,accounts WHERE accounts_id=accounts ._id;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT name, authtokens.type,authtoken FROM authtokens,accounts WHERE accounts_id=accounts._id;", callback_sqlite, &fci, NULL);
     }
 
     if (type & SQLITE_TYPE_ANDROID_CALLENDAR)//calendar.db
@@ -817,19 +817,19 @@ void OpenSQLite(HANDLE hlv, char *file, DWORD type)
     if ((type & SQLITE_TYPE_ANDROID_APP_MEDIA) == SQLITE_TYPE_ANDROID_APP_MEDIA)//internal.db
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA;
-      sqlite3_exec(db, "SELECT _data,strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',date_modified, 'unixepoch', 'localtime')  FROM audio_meta;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT _data,strftime('%Y/%m/%d-%H:%M:%S',date_added/1000, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',date_modified/1000, 'unixepoch', 'localtime')  FROM audio_meta;", callback_sqlite, &fci, NULL);
     }
 
     if ((type & SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO) == SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO)//internal.db
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA_VIDEO;
-      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken, 'unixepoch', 'localtime'),latitude,longitude FROM video;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added/1000, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken/1000, 'unixepoch', 'localtime'),latitude,longitude FROM video;", callback_sqlite, &fci, NULL);
     }
 
     if ((type & SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO) == SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO)//internal.db
     {
       fci.type = SQLITE_TYPE_ANDROID_APP_MEDIA_PHOTO;
-      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken, 'unixepoch', 'localtime'),latitude,longitude FROM images;", callback_sqlite, &fci, NULL);
+      sqlite3_exec(db, "SELECT _display_name,_data, strftime('%Y/%m/%d-%H:%M:%S',date_added/1000, 'unixepoch', 'localtime'),strftime('%Y/%m/%d-%H:%M:%S',datetaken/1000, 'unixepoch', 'localtime'),latitude,longitude FROM images;", callback_sqlite, &fci, NULL);
     }
 
     if ((type & SQLITE_TYPE_ANDROID_APP_MAP) == SQLITE_TYPE_ANDROID_APP_MAP)//local_active_places.db

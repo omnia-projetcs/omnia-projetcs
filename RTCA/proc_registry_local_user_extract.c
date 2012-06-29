@@ -277,10 +277,10 @@ BOOL registry_users_extract()
   HKEY CleTmp;
   DWORD nbSubKey = 0,i,j,k,l,TailleNomSubKey, size;
   char path[MAX_PATH],NomSubKey[MAX_PATH],tmp[MAX_LINE_SIZE],tmp_add[MAX_PATH],user[MAX_PATH];
-  LINE_ITEM lv_line[SIZE_UTIL_ITEM];
 
   //modification des droits
   BOOL ok = FALSE;
+  LINE_ITEM lv_line[SIZE_UTIL_ITEM];
   int ret = 0;set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
   if (ret == 0)//ok
   {
@@ -372,7 +372,7 @@ BOOL registry_users_extract()
                 {
                   //transformation des données en hexa ^^
                   lv_line[3].c[0]=0;
-                  for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
+                  for (j=0;j<size && j<MAX_LINE_SIZE/2;j++)
                   {
                     snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
                     strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
@@ -447,7 +447,7 @@ BOOL registry_users_extract()
               {
                 //transformation des données en hexa ^^
                 lv_line[3].c[0]=0;
-                for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
+                for (j=0;j<size && j<MAX_LINE_SIZE/2;j++)
                 {
                   snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
                   strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
@@ -505,7 +505,7 @@ BOOL registry_users_extract()
               {
                 //transformation des données en hexa ^^
                 lv_line[3].c[0]=0;
-                for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
+                for (j=0;j<size && j<MAX_LINE_SIZE/2;j++)
                 {
                   snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
                   strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);

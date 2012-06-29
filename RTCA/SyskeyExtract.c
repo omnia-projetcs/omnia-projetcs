@@ -7,9 +7,262 @@
 #include "resource.h"
 #include "rc4.h"
 #include "md5.h"
+#include "des.h"
+//#include "des_old.h"
 // inspiré de bkhive et samdump2 Nicola Cuomo - ncuomo@studenti.unina.it
+/*#define DES_KEY_SZ 8
+static const unsigned char odd_parity[256]={
+  1,  1,  2,  2,  4,  4,  7,  7,  8,  8, 11, 11, 13, 13, 14, 14,
+ 16, 16, 19, 19, 21, 21, 22, 22, 25, 25, 26, 26, 28, 28, 31, 31,
+ 32, 32, 35, 35, 37, 37, 38, 38, 41, 41, 42, 42, 44, 44, 47, 47,
+ 49, 49, 50, 50, 52, 52, 55, 55, 56, 56, 59, 59, 61, 61, 62, 62,
+ 64, 64, 67, 67, 69, 69, 70, 70, 73, 73, 74, 74, 76, 76, 79, 79,
+ 81, 81, 82, 82, 84, 84, 87, 87, 88, 88, 91, 91, 93, 93, 94, 94,
+ 97, 97, 98, 98,100,100,103,103,104,104,107,107,109,109,110,110,
+112,112,115,115,117,117,118,118,121,121,122,122,124,124,127,127,
+128,128,131,131,133,133,134,134,137,137,138,138,140,140,143,143,
+145,145,146,146,148,148,151,151,152,152,155,155,157,157,158,158,
+161,161,162,162,164,164,167,167,168,168,171,171,173,173,174,174,
+176,176,179,179,181,181,182,182,185,185,186,186,188,188,191,191,
+193,193,194,194,196,196,199,199,200,200,203,203,205,205,206,206,
+208,208,211,211,213,213,214,214,217,217,218,218,220,220,223,223,
+224,224,227,227,229,229,230,230,233,233,234,234,236,236,239,239,
+241,241,242,242,244,244,247,247,248,248,251,251,253,253,254,254};
+
+void DES_set_odd_parity(unsigned char *key)
+	{
+	unsigned int i;
+
+	for (i=0; i<DES_KEY_SZ; i++)
+		key[i]=odd_parity[key[i]];
+	}*/
+/*
+* Convert a 7 byte array into an 8 byte des key with odd parity.
+*/
+
+void str_to_key(unsigned char *str,unsigned char *key)
+{
+      // void des_set_odd_parity(des_cblock *);
+      int i;
+
+      key[0] = str[0]>>1;
+      key[1] = ((str[0]&0x01)<<6) | (str[1]>>2);
+      key[2] = ((str[1]&0x03)<<5) | (str[2]>>3);
+      key[3] = ((str[2]&0x07)<<4) | (str[3]>>4);
+      key[4] = ((str[3]&0x0F)<<3) | (str[4]>>5);
+      key[5] = ((str[4]&0x1F)<<2) | (str[5]>>6);
+      key[6] = ((str[5]&0x3F)<<1) | (str[6]>>7);
+      key[7] = str[6]&0x7F;
+      for (i=0;i<8;i++) {
+            key[i] = (key[i]<<1);
+      }
+      DES_set_odd_parity((DES_cblock *)key);
+      //des_set_odd_parity(key);
+}
+
+/*
+* Function to convert the RID to the first decrypt key.
+*/
+
+void sid_to_key1(unsigned long sid,unsigned char deskey[8])
+{
+      unsigned char s[7];
+
+      s[0] = (unsigned char)(sid & 0xFF);
+      s[1] = (unsigned char)((sid>>8) & 0xFF);
+      s[2] = (unsigned char)((sid>>16) & 0xFF);
+      s[3] = (unsigned char)((sid>>24) & 0xFF);
+      s[4] = s[0];
+      s[5] = s[1];
+      s[6] = s[2];
+
+      str_to_key(s,deskey);
+}
+
+/*
+* Function to convert the RID to the second decrypt key.
+*/
+
+void sid_to_key2(unsigned long sid,unsigned char deskey[8])
+{
+      unsigned char s[7];
+
+      s[0] = (unsigned char)((sid>>24) & 0xFF);
+      s[1] = (unsigned char)(sid & 0xFF);
+      s[2] = (unsigned char)((sid>>8) & 0xFF);
+      s[3] = (unsigned char)((sid>>16) & 0xFF);
+      s[4] = s[0];
+      s[5] = s[1];
+      s[6] = s[2];
+
+      str_to_key(s,deskey);
+}
 //------------------------------------------------------------------------------
 //décodage afin d'obtenir le hash des mots de passe
+void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
+{
+  if (b_f != NULL)
+  {
+    //chargement des fonctions pour l'exploitation DES
+    typedef int (WINAPI *SF)(unsigned char*, int*, unsigned char*);
+
+    HINSTANCE hDLL;
+    SF sf27;
+    SF sf25;
+
+    if((hDLL = LoadLibrary("ADVAPI32.DLL" ))== NULL) return;
+    sf27 = (SF) GetProcAddress( hDLL, "SystemFunction027" );
+    sf25 = (SF) GetProcAddress( hDLL, "SystemFunction025" );
+
+    //transcodage en byte de la sysley
+    BYTE b_sk[16];
+    unsigned int i, ref;
+    for (i=0;i<16;i++)
+    {
+      b_sk[i] = (BYTE)HexaToDecS(&sk[i*2]);
+    }
+
+    //découpage codage en byte des hash
+    BYTE b_LM[16]="",b_NT[16]="";
+
+    //LM
+    if (hsc[0] == '<')ref =18;
+    else
+    {
+      for (i=0;i<16;i++)
+      {
+        b_LM[i] = (BYTE)HexaToDecS(&hsc[i*2+1]); // +1 = on passe le : de début ^^
+      }
+      ref = 34;
+    }
+
+    //NT
+    if (hsc[ref] != '<')
+    {
+      for (i=0;i<16;i++)
+      {
+        b_NT[i] = (BYTE)HexaToDecS(&hsc[i*2+ref]);
+      }
+    }
+
+    //init pour le déchiffrement ^^
+    unsigned char aqwerty[] = "!@#$%^&*()qwertyUIOPAzxcvbnmQQQQQQQQQQQQ)(*@&%";
+    unsigned char anum[] = "0123456789012345678901234567890123456789";
+    unsigned char almpassword[] = "LMPASSWORD";
+    unsigned char antpassword[] = "NTPASSWORD";
+
+    MD5_CTX md5c;
+    unsigned char md5hash[0x10];
+    RC4_KEY rc4k;
+    unsigned char hbootkey[0x20];
+    unsigned char obfkey[0x10];
+    unsigned char fb[0x10];
+    int j;
+    char tmp[11],result[MAX_PATH];
+
+    //init de la clé pour exploitation
+    MD5_Init( &md5c );
+    MD5_Update( &md5c, &b_f[0x70], 0x10 );
+    MD5_Update( &md5c, aqwerty, 0x2f );
+    MD5_Update( &md5c, b_sk, 0x10 );
+    MD5_Update( &md5c, anum, 0x29 );
+    MD5_Final( md5hash, &md5c );
+    RC4_set_key( &rc4k, 0x10, md5hash );
+    RC4( &rc4k, 0x20, &b_f[0x80], hbootkey );
+
+    //traitement des données ^^
+    sprintf(hsc,"%s:%d:",user,rid);
+
+    if (b_LM[0]!= 0)
+    {
+      //décodage ^^
+      /* LANMAN */
+      /* hash the hbootkey and decode lanman password hashes */
+      MD5_Init( &md5c );
+      MD5_Update( &md5c, hbootkey, 0x10 );
+      MD5_Update( &md5c, &rid, 0x4 );
+      MD5_Update( &md5c, almpassword, 0xb );
+      MD5_Final( md5hash, &md5c );
+
+      RC4_set_key( &rc4k, 0x10, md5hash );
+      RC4( &rc4k, 0x10, b_LM, obfkey );
+
+//
+      unsigned char deskey1[MAX_PATH], deskey2[MAX_PATH], ks1[MAX_PATH], ks2[MAX_PATH];
+
+      sid_to_key1(rid,(unsigned char *)deskey1);
+      DES_set_key_checked((const_DES_cblock*)deskey1,(DES_key_schedule*)(ks1));
+      sid_to_key2(rid,(unsigned char *)deskey2);
+      DES_set_key_unchecked((const_DES_cblock*)deskey2,(DES_key_schedule*)(ks2));
+
+      /* Decrypt the lanman password hash as two 8 byte blocks. */
+      DES_ecb_encrypt((const_DES_cblock *)obfkey,(DES_cblock *)fb, (DES_key_schedule*)ks1, 0/*DES_DECRYPT*/);
+      DES_ecb_encrypt((const_DES_cblock *)(obfkey + 8),(DES_cblock *)&fb[8],(DES_key_schedule*)ks2, 0/*DES_DECRYPT*/);
+
+      //sf25( obfkey, (int*)&rid, fb );
+
+      //transformation des données en hexa ^^
+      result[0]=0;
+      for (j=0;j<0x10;j++)
+      {
+        snprintf(tmp,10,"%.2X",fb[j]);
+        strncat(result,tmp,MAX_LINE_SIZE);
+      }
+      strncat(result,"\0",MAX_LINE_SIZE);
+
+      if (!strcmp(result,"AAD3B435B51404EEAAD3B435B51404EE"))
+        strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
+      else
+      {
+        strncat(hsc,result,MAX_LINE_SIZE);
+        strncat(hsc,":\0",MAX_LINE_SIZE);
+      }
+    }else strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
+
+    if (b_NT[0]!= 0)
+    {
+      /* NT */
+      /* hash the hbootkey and decode the nt password hashes */
+      MD5_Init( &md5c );
+      MD5_Update( &md5c, hbootkey, 0x10 );
+      MD5_Update( &md5c, &rid, 0x4 );
+      MD5_Update( &md5c, antpassword, 0xb );
+      MD5_Final( md5hash, &md5c );
+
+      RC4_set_key( &rc4k, 0x10, md5hash );
+      RC4( &rc4k, 0x10,b_NT, obfkey );
+
+      unsigned char deskey1[MAX_PATH], deskey2[MAX_PATH], ks1[MAX_PATH], ks2[MAX_PATH];
+      sid_to_key1(rid,(unsigned char *)deskey1);
+      des_set_key((const_DES_cblock*)deskey1,ks1);
+      sid_to_key2(rid,(unsigned char *)deskey2);
+      des_set_key((const_DES_cblock*)deskey2,ks2);
+
+      DES_ecb_encrypt((const_DES_cblock *)obfkey,(DES_cblock *)fb, (DES_key_schedule*)ks1, 0/*DES_DECRYPT*/);
+      DES_ecb_encrypt((const_DES_cblock *)(obfkey + 8),(DES_cblock *)&fb[8],(DES_key_schedule*)ks2, 0/*DES_DECRYPT*/);
+
+      //sf27( obfkey, (int*)&rid, fb );
+
+      result[0]=0;
+      for (j=0;j<0x10;j++)
+      {
+        snprintf(tmp,10,"%.2X",fb[j]);
+        strncat(result,tmp,MAX_PATH);
+      }
+      strncat(result,"\0",MAX_PATH);
+
+      if (!strcmp(result,"31D6CFE0D16AE931B73C59D7E0C089C0"))
+        strncat(hsc,"NO NT PASSWORD******************\0",MAX_LINE_SIZE);
+      else strncat(hsc,result,MAX_LINE_SIZE);
+
+      strncat(hsc,":::\0",MAX_LINE_SIZE);
+    }else strncat(hsc,"NO NT PASSWORD******************:::\0",MAX_LINE_SIZE);
+
+    FreeLibrary(hDLL);
+  }
+}
+/*
+//V1 XP/2003
 void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
 {
   if (b_f != NULL)
@@ -86,8 +339,8 @@ void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
     if (b_LM[0]!= 0)
     {
       //décodage ^^
-      /* LANMAN */
-      /* hash the hbootkey and decode lanman password hashes */
+
+
       MD5_Init( &md5c );
       MD5_Update( &md5c, hbootkey, 0x10 );
       MD5_Update( &md5c, &rid, 0x4 );
@@ -109,18 +362,16 @@ void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
       strncat(result,"\0",MAX_LINE_SIZE);
 
       if (!strcmp(result,"AAD3B435B51404EEAAD3B435B51404EE"))
-        strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
+        strncat(hsc,"NO PASSWORD*********************:\0",MAX_LINE_SIZE);
       else
       {
         strncat(hsc,result,MAX_LINE_SIZE);
         strncat(hsc,":\0",MAX_LINE_SIZE);
       }
-    }else strncat(hsc,"NO LM PASSWORD******************:\0",MAX_LINE_SIZE);
+    }else strncat(hsc,"NO PASSWORD*********************:\0",MAX_LINE_SIZE);
 
     if (b_NT[0]!= 0)
     {
-      /* NT */
-      /* hash the hbootkey and decode the nt password hashes */
       MD5_Init( &md5c );
       MD5_Update( &md5c, hbootkey, 0x10 );
       MD5_Update( &md5c, &rid, 0x4 );
@@ -130,7 +381,6 @@ void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
       RC4_set_key( &rc4k, 0x10, md5hash );
       RC4( &rc4k, 0x10,b_NT, obfkey );
 
-      /* sf27 wrap to sf25 */
       sf27( obfkey, (int*)&rid, fb );
 
       result[0]=0;
@@ -142,15 +392,16 @@ void DecodeSAMHash(char *sk,char *hsc, int rid, char *user, BYTE *b_f)
       strncat(result,"\0",MAX_PATH);
 
       if (!strcmp(result,"31D6CFE0D16AE931B73C59D7E0C089C0"))
-        strncat(hsc,"NO NT PASSWORD******************\0",MAX_LINE_SIZE);
+        strncat(hsc,"NO PASSWORD*********************\0",MAX_LINE_SIZE);
       else strncat(hsc,result,MAX_LINE_SIZE);
 
       strncat(hsc,":::\0",MAX_LINE_SIZE);
-    }else strncat(hsc,"NO NT PASSWORD******************:::\0",MAX_LINE_SIZE);
+    }else strncat(hsc,"NO PASSWORD*********************:::\0",MAX_LINE_SIZE);
 
     FreeLibrary(hDLL);
   }
 }
+*/
 //------------------------------------------------------------------------------
 DWORD SearchNK(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *NKname, DWORD *nb_nk)
 {

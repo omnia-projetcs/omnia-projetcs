@@ -2329,7 +2329,7 @@ void registry_users(HANDLE hlv)
                   else
                   {
                     //conversion du ctime en FILETIME
-                    LONGLONG ll = Int32x32To64(pBuf_info->usri2_last_logon, 10000000) + 116444736000000000;
+                    LONGLONG ll = Int32x32To64(pBuf_info->usri2_acct_expires, 10000000) + 116444736000000000;
                     DernierMAJ.dwLowDateTime = (DWORD) ll;
                     DernierMAJ.dwHighDateTime = ll >>32;
 
@@ -2358,15 +2358,10 @@ void registry_users(HANDLE hlv)
                   //last password change
                   if (pBuf_info->usri2_password_age != 0)
                   {
-                    //conversion du ctime en FILETIME
-                    LONGLONG ll = Int32x32To64(pBuf_info->usri2_last_logon, 10000000) + 116444736000000000;
-                    DernierMAJ.dwLowDateTime = (DWORD) ll;
-                    DernierMAJ.dwHighDateTime = ll >>32;
-
-                    if (FileTimeToSystemTime(&DernierMAJ, &SysTime) != 0)//traitement de l'affichage de la date
-                    {
-                      snprintf(lv_line[7].c,MAX_PATH,"%02d/%02d/%02d-%02d:%02d:%02d",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-                    }else strcpy(lv_line[7].c,"Never");
+                    snprintf(lv_line[7].c,MAX_LINE_SIZE,"%lu:%lu:%lu",
+                              pBuf_info->usri2_password_age/86400,
+                              pBuf_info->usri2_password_age%86400/60/60,
+                              pBuf_info->usri2_password_age%86400/60%60);
                   }else strcpy(lv_line[7].c,"Never");
 
                   //nombre de connexion
@@ -2447,7 +2442,7 @@ void vncpwd(unsigned char *pwd, int bytelen)
   len /= 8;
   if(tmp) len++;
 
-  deskey(fixedkey, DE1);
+  deskey(fixedkey, 1);
   for(p = pwd; len--; p += 8) des(p, p);
 
   *o = 0;
@@ -2575,7 +2570,7 @@ void registry_password(HANDLE hlv)
 //------------------------------------------------------------------------------
 void registry_mru(HANDLE hlv)
 {
-  reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU\\","MRUList","Command history",hlv);
+  reg_liste_DataValeurSpec(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RunMRU\\","MRUList","Run history",hlv);
   reg_liste_DataValeurSpecWs(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\LastVisitedMRU\\","MRUList","Open history",hlv);
   reg_liste_DataValeurSpecR(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ComDlg32\\OpenSaveMRU\\","MRUList","Save history",hlv);
   reg_liste_DataValeurSpecW(HKEY_CURRENT_USER,"HKEY_CURRENT_USER","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\RecentDocs\\","MRUListEx","Recent history",hlv);
