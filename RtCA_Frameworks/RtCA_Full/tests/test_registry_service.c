@@ -1,0 +1,211 @@
+//------------------------------------------------------------------------------
+// Projet RtCA          : Read to Catch All
+// Auteur               : Nicolas Hanteville
+// Site                 : http://code.google.com/p/omnia-projetcs/
+// Licence              : GPL V3
+//------------------------------------------------------------------------------
+#include "../RtCA.h"
+//------------------------------------------------------------------------------
+void addRegistryServicetoDB(char *file, char *hk, char *key, char*name,
+                            DWORD state_id, char*path, char*description, DWORD type_id,
+                             char *last_update,unsigned int session_id, sqlite3 *db)
+{
+  char request[REQUEST_MAX_SIZE];
+  snprintf(request,REQUEST_MAX_SIZE,
+           "INSERT INTO extract_registry_service_driver (file,hk,key,name,state_id,path,description,type_id,last_update,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",\"%s\",%lu,\"%s\",%d);",
+           file,hk,key,name,state_id,path,description,type_id,last_update,session_id);
+  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_service", request, "-", MSG_INFO);
+  sqlite3_exec(db,request, NULL, NULL, NULL);
+}
+//------------------------------------------------------------------------------
+//local function part !!!
+//------------------------------------------------------------------------------
+void Scan_registry_service_local(char *ckey, sqlite3 *db, unsigned int session_id)
+{
+  HKEY CleTmp;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,ckey,&CleTmp)==ERROR_SUCCESS)
+  {
+    DWORD i,nbSubKey = 0;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      FILETIME LastWriteTime;
+      char key[MAX_PATH],key_path[MAX_PATH];
+      DWORD key_size;
+      DWORD state_id,type_id;
+      char lastupdate[DATE_SIZE_MAX],
+      name[MAX_PATH],path[MAX_PATH],description[MAX_PATH];
+
+      for (i=0;i<nbSubKey && start_scan;i++)
+      {
+        key_size  = MAX_PATH;
+        key[0]    = 0;
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
+        {
+          //path
+          snprintf(key_path,MAX_PATH,"%s%s",ckey,key);
+
+          //read values
+          name[0]       = 0;
+          path[0]       = 0;
+          description[0]= 0;
+          lastupdate[0] = 0;
+
+          //name
+          if (ReadValue(HKEY_LOCAL_MACHINE,key_path,"DisplayName",name, MAX_PATH) == 0)
+          {
+            if (ReadValue(HKEY_LOCAL_MACHINE,key_path,"Group",name, MAX_PATH) == 0)continue;
+
+            strncpy(name,key,MAX_PATH);
+          }
+
+          //state id
+          state_id = ReadDwordValue(HKEY_LOCAL_MACHINE,key_path,"Start");
+          switch(state_id)
+          {
+            case 0: state_id=210;break;//Kernel module   : 210
+            case 1: state_id=211;break;//Start by system : 211
+            case 2: state_id=212;break;//Automatic start : 212
+            case 3: state_id=213;break;//Manual start    : 213
+            case 4: state_id=214;break;//Disable         : 214
+            default:state_id=215;break;//Unknow          : 215
+          }
+
+          //path : ImagePath
+          ReadValue(HKEY_LOCAL_MACHINE,key_path,"ImagePath",path, MAX_PATH);
+
+          //description : Description
+          if(ReadValue(HKEY_LOCAL_MACHINE,key_path,"Description",description, MAX_PATH) == 0)
+            ReadValue(HKEY_LOCAL_MACHINE,key_path,"Group",description, MAX_PATH);
+
+          //type_id
+          type_id = ReadDwordValue(HKEY_LOCAL_MACHINE,key_path,"Type");
+          if (type_id == 1)type_id = 200; //SERVICE : 200
+          else type_id = 201;             //DRIVER  : 201
+
+          //last update
+          filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+
+          convertStringToSQL(path, MAX_PATH);
+          convertStringToSQL(description, MAX_PATH);
+
+          addRegistryServicetoDB("", "HKEY_LOCAL_MACHINE", key_path, name,
+                                  state_id, path, description, type_id,
+                                  lastupdate, session_id, db);
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+}
+//------------------------------------------------------------------------------
+//file registry part
+//------------------------------------------------------------------------------
+void Scan_registry_service_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite3 *db)
+{
+  //exist or not in the file ?
+  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, ckey);
+  if (nk_h == NULL)return;
+
+  char tmp_key[MAX_PATH],key_path[MAX_PATH],state[MAX_PATH];
+  DWORD state_id,type_id;
+  char lastupdate[DATE_SIZE_MAX],
+  name[MAX_PATH],path[MAX_PATH],description[MAX_PATH];
+
+  HBIN_CELL_NK_HEADER *nk_h_tmp;
+  DWORD i,nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
+  for (i=0;i<nbSubKey;i++)
+  {
+    //for each subkey
+    if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, tmp_key, MAX_PATH))
+    {
+      //get nk of key :)
+      nk_h_tmp = GetSubNKtonk(hks->buffer, hks->taille_fic, nk_h, hks->position, i);
+      if (nk_h_tmp == NULL)continue;
+
+      //read datas ^^
+      snprintf(key_path,MAX_PATH,"%s\\%s",ckey,tmp_key);
+
+      if (Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"DisplayName", name, MAX_PATH)==FALSE)
+      {
+        if (Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Group", name, MAX_PATH)==FALSE)continue;
+
+        strncpy(name,tmp_key,MAX_PATH);
+      }
+
+      if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Start", state, MAX_PATH))
+      {
+             if (strcmp(state,"0x00000000") == 0)state_id=210;//Kernel module   : 210
+        else if (strcmp(state,"0x00000001") == 0)state_id=211;//Start by system : 211
+        else if (strcmp(state,"0x00000002") == 0)state_id=212;//Automatic start : 212
+        else if (strcmp(state,"0x00000003") == 0)state_id=213;//Manual start    : 213
+        else if (strcmp(state,"0x00000004") == 0)state_id=214;//Disable         : 214
+        else state_id=215;                                    //Unknow          : 215
+      }else state_id = 0;
+
+      Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"ImagePath", path, MAX_PATH);
+
+      if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Description", description, MAX_PATH)==FALSE)
+        Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Group", description, MAX_PATH);
+
+
+      Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Type", state, MAX_PATH);
+      if (strcmp(state,"0x00000001") == 0)type_id = 200; //SERVICE : 200
+      else type_id = 201;                                //DRIVER  : 201
+
+      Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
+                   lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
+
+      convertStringToSQL(path, MAX_PATH);
+      convertStringToSQL(description, MAX_PATH);
+      addRegistryServicetoDB(hks->file, "", key_path, name,
+                             state_id, path, description, type_id,
+                             lastupdate, session_id, db);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+DWORD WINAPI Scan_registry_service(LPVOID lParam)
+{
+  //init
+  sqlite3 *db = (sqlite3 *)db_scan;
+  unsigned int session_id = current_session_id;
+  WaitForSingleObject(hsemaphore,INFINITE);
+  AddDebugMessage("test_registry_service", "Scan registry service  - START", "OK", MSG_INFO);
+
+  char file[MAX_PATH];
+  char tmp_msg[MAX_PATH];
+  HK_F_OPEN hks;
+
+  //files or local
+  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  if (hitem!=NULL) //files
+  {
+    while(hitem!=NULL)
+    {
+      file[0] = 0;
+      GetTextFromTrv(hitem, file, MAX_PATH);
+      if (file[0] != 0)
+      {
+        //info
+        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
+        AddDebugMessage("test_registry_service", tmp_msg, "OK", MSG_INFO);
+
+        //open file + verify
+        if(OpenRegFiletoMem(&hks, file))
+        {
+          Scan_registry_service_file(&hks,"ControlSet001\\Services", session_id, db);
+
+          CloseRegFiletoMem(&hks);
+        }
+      }
+      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+    }
+  }else Scan_registry_service_local("SYSTEM\\CurrentControlSet\\Services\\",db, session_id);
+
+  AddDebugMessage("test_registry_service", "Scan registry service  - DONE", "OK", MSG_INFO);
+  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  ReleaseSemaphore(hsemaphore,1,NULL);
+  return 0;
+}

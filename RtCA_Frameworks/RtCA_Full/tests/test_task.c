@@ -1,0 +1,99 @@
+//------------------------------------------------------------------------------
+// Projet RtCA          : Read to Catch All
+// Auteur               : Nicolas Hanteville
+// Site                 : http://code.google.com/p/omnia-projetcs/
+// Licence              : GPL V3
+//------------------------------------------------------------------------------
+#include "../RtCA.h"
+//------------------------------------------------------------------------------
+void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, unsigned int session_id, sqlite3 *db)
+{
+  char request[REQUEST_MAX_SIZE];
+  snprintf(request,REQUEST_MAX_SIZE,
+           "INSERT INTO extract_tache (id_ev,type,next_run,data,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           id_ev,type,data,next_run,session_id);
+  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_task", request, "-", MSG_INFO);
+  sqlite3_exec(db,request, NULL, NULL, NULL);
+}
+//------------------------------------------------------------------------------
+DWORD WINAPI Scan_task(LPVOID lParam)
+{
+  //check if local or not :)
+  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+
+  //init
+  sqlite3 *db = (sqlite3 *)db_scan;
+  unsigned int session_id = current_session_id;
+
+  WaitForSingleObject(hsemaphore,INFINITE);
+  AddDebugMessage("test_task", "Scan tasks - START", "OK", MSG_INFO);
+
+  HMODULE hDLL = LoadLibrary( "NETAPI32.dll");
+  if (hDLL!=NULL)
+  {
+    typedef NET_API_STATUS (WINAPI *NETSCHEDULEJOBENUM)(LPCWSTR servername,LPBYTE* PointerToBuffer,DWORD PreferredMaximumLength,LPDWORD EntriesRead,LPDWORD TotalEntries,LPDWORD ResumeHandle );
+    NETSCHEDULEJOBENUM NetScheduleJobEnum = (NETSCHEDULEJOBENUM) GetProcAddress(hDLL,"NetScheduleJobEnum");
+
+    typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
+    NETAPIBUFFERFREE NetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL,"NetApiBufferFree");
+
+    if (NetScheduleJobEnum && NetApiBufferFree)
+    {
+      //get datas
+      typedef struct _AT_ENUM {
+        DWORD JobId;
+        DWORD JobTime;
+        DWORD DaysOfMonth;
+        UCHAR DaysOfWeek;
+        UCHAR Flags;
+        LPWSTR Command;
+      }AT_ENUM,*PAT_ENUM,*LPAT_ENUM;
+
+      AT_ENUM *bufAtEnum,*b;
+      DWORD EntriesRead,TotalEntries,ResumeHandle=0;
+      NET_API_STATUS res = NetScheduleJobEnum(0,(LPBYTE*)&bufAtEnum,MAX_PREFERRED_LENGTH,&EntriesRead,&TotalEntries,&ResumeHandle);
+
+      if(res == 0 && TotalEntries && EntriesRead && bufAtEnum)
+      {
+        char id_ev[DEFAULT_TMP_SIZE],type[DEFAULT_TMP_SIZE],data[MAX_PATH],next_run[DEFAULT_TMP_SIZE];
+
+        b = bufAtEnum;
+        for(;EntriesRead>0;EntriesRead--)
+        {
+          if (b->Command > 0)
+          {
+            id_ev[0]    = 0;
+            type[0]     = 0;
+            data[0]     = 0;
+            next_run[0] = 0;
+
+            snprintf(id_ev,DEFAULT_TMP_SIZE,"%08lu",b->JobId);
+            snprintf(data,MAX_PATH,"%S",b->Command);
+            convertStringToSQL(data, MAX_PATH);
+            snprintf(next_run,DEFAULT_TMP_SIZE,"%lu:%02d:%02d",b->JobTime/3600000,(unsigned int)(b->JobTime%3600000)/60000,(unsigned int)((b->JobTime%3600000)%60000)/1000);
+
+            switch(b->Flags)
+            {
+              case 1: addTasktoDB(id_ev,"JOB_RUN_PERIODICALLY",data,next_run,session_id,db);break;
+              case 2: addTasktoDB(id_ev,"JOB_EXEC_ERROR",data,next_run,session_id,db);break;
+              case 4: addTasktoDB(id_ev,"JOB_RUNS_TODAY",data,next_run,session_id,db);break;
+              case 16:addTasktoDB(id_ev,"JOB_NONINTERACTIVE",data,next_run,session_id,db);break;
+              default:
+                snprintf(type,DEFAULT_TMP_SIZE,"UNKNOW (%d)",b->Flags);
+                addTasktoDB(id_ev,type,data,next_run,session_id,db);
+              break;
+            }
+          }
+          b++;
+        }
+      }
+    }
+    FreeLibrary(hDLL);
+  }
+
+  AddDebugMessage("test_task", "Scan tasks  - DONE", "OK", MSG_INFO);
+  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  ReleaseSemaphore(hsemaphore,1,NULL);
+  return 0;
+}
