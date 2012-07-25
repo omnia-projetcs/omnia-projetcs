@@ -261,8 +261,8 @@
 \color{red}
 \fbox{
 \begin{minipage}[t]{16cm}
-\textsf{\footnotesize Les informations contenus dans ce document sont extraites en parties des pages Web sit\'ees.\\\vskip-1cm
-Ces informations sont divulgu\'ees \`a titre d'instruction, l'auteur ne peut \^etre rendu responsable de ce que vous en faites!}
+\textsf{\footnotesize Certaines informations contenus dans ce document sont extraites de pages Web sit\'ees.\\\vskip-1cm
+Ces informations sont divulgu\'ees \`a titre d'instruction, l'auteur ne peut \^etre rendu responsable de ce que vous en faites !}
 \end{minipage}}
 }
 \author{\footnotesize Sous licence GPLv3 \url{http://www.gnu.org/licenses/gpl.html}}
@@ -448,7 +448,7 @@ Pour afficher la configuration locale du proxy : {\sl \color{blue}env | grep -i 
 	\item \textbf{Backtrack 5 :}\\
 	{\sl \color{blue}
 	deb http://all.repository.backtrack-linux.org revolution main microverse non-free testing\\
-	wget -q http://all.repository.backtrack-linux.org/backtrack.gpg -O- | apt-key add
+	wget -O - http://all.repository.backtrack-linux.org/backtrack.gpg -O -| apt-key add -
 	}\vskip+0.1cm
 	\item \textbf{Remastersys :} \textit{outil de sauvegarde et cr\'eation de distribution Linux.}\\	
 	{\sl \color{blue}
@@ -687,9 +687,12 @@ Ci-dessous un exemple d'outils pr\'esents.
 \textbf{Scan Netbios :}\\
 {\sl \color{blue}nbtscan -v 192.168.1.0/24}\vskip+0.2cm
 
-\url{http://sourceforge.net/projects/sslscan/}\addcontentsline{toc}{subsubsection}{Sslscan}\\
-\textbf{Test SSL :}\\
-{\sl \color{blue}sslscan 192.168.1.1}\vskip+0.2cm
+\url{http://sourceforge.net/projects/sslscan/}\addcontentsline{toc}{subsubsection}{SSLscan}\\
+\textbf{Test SSL :} \textit{Attention pour tester SSLv2 : \url{http://security.sunera.com/2011_02_01_archive.html}}\\
+{\sl \color{blue}sslscan {-}{-}no-failed 192.168.1.1}\vskip+0.2cm
+
+\url{http://www.thc.org/root/tools/}\addcontentsline{toc}{subsubsection}{THCSSLCheck}\\
+{\sl \color{blue}THCSSLCheck.exe 192.168.1.1 443}\vskip+0.2cm
 
 \url{http://www.nta-monitor.com/tools/ike-scan/}\addcontentsline{toc}{subsubsection}{Ike-scan}\\
 \textbf{Test VPN :}\\
@@ -1004,7 +1007,7 @@ En cas d'erreur il est possible d'utiliser les options {\sl \color{blue}-v} et {
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Dirbuster}{owasp.jpg}
-{\url{http://sourceforge.net/projects/dirbuster/}}
+{\url{http://sourceforge.net/projects/dirbuster/}\\\url{http://code.google.com/p/wfuzz/}}
 {
 \\Application Java (multi-OS Windows, Linux et Mac) de la fondation OWASP, spider/crawler de site Web \`a base de dictionnaire. 
 L'application peut \^etre utilis\'ee en mode graphique, ou en mode console.\\
@@ -1022,6 +1025,11 @@ Un autre fuzze Web : Freakin' Simple Fuzzer \url{http://code.google.com/p/fm-fsf
 \end{itemize}
 \vskip+0.2cm
 {\sl \color{blue}java -jar DirBuster-0.12.jar -u http://www.google.fr -H -l directory-list-2.3-small.txt -e php -s / -r resultats.txt}\\
+
+\textbf{Un autre outils de fuzzing :}\addcontentsline{toc}{subsubsection}{Wfuzz}\\
+\textit{Ne g\`ere pas le suivi de lien dans la page. Ici en activant 50 threads et en ne traitant pas les r\'eponses 400 et 404.}
+\vskip+0.2cm
+{\sl \color{blue}./wfuzz.py -c -t 50 {-}{-}hc 400 {-}{-}hc 404 -z file,dico.txt http://192.168.0.1/FUZZ}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Driftnet}{protocole.png}
@@ -2566,16 +2574,19 @@ L'option \textbf{-l} active l'affichage des informations en liste.}\vskip +0.2cm
 {
 \begin{LARGE}R\'ecup\'eration de fichiers effac\'es : \end{LARGE}\vskip +0.2cm
 
-\textbf{Sauvegarder la liste des fichiers effac\'es sur le disque sda1 dans le fichier /root/save/audit.txt :}\\
-{\sl \color{blue}foremost -v -w -i /dev/sda1 -o /root/save/}\\
+\textbf{Sauvegarder la liste des fichiers effac\'es sur le disque sda1 dans le fichier save/audit.txt en pr\'ecisant la date et heure :}\\
+{\sl \color{blue}foremost -w -T -i /dev/sda1 -o save/}\\
 
-\textbf{Restauration de tous les fichiers identifi\'es sur le disque sda1 dans le r\'epertoire /root/save/ :}\\
-{\sl \color{blue}foremost -v -i /dev/sda1 -o /root/save/}\\
+\textbf{Restauration de tous les fichiers identifi\'es sur le disque sda dans le r\'epertoire save/ en pr\'ecisant la date et heure :}\\
+{\sl \color{blue}foremost -T -t all -i /dev/sda* -o save/}\\
 
-\textbf{R\'ecup\'eration rapide de tous les fichiers PDF sur le disque sda1 dans le r\'epertoire /root/save/ :}\\
-{\sl \color{blue}foremost -v -i /dev/sda1 -q -t pdf -o /root/save/}\\
+\textbf{R\'ecup\'eration rapide de tous les fichiers PDF sur le disque sda1 dans le r\'epertoire save/ :}\\
+{\sl \color{blue}foremost -v -i /dev/sda1 -q -t pdf -o save/}\\
+
+\textit{Exemple pour pr\'eciser un fichier de configuration :} {\sl \color{blue}-c /etc/foremost.conf}
 
 \textbf{Pour sortir d'un scan :} CTRL+C\\
+
 
 \begin{LARGE}Gestion de fichiers : \end{LARGE}\vskip +0.2cm
 
@@ -4291,8 +4302,7 @@ Exemple pour modifier une entr\'ee pour d\'emarrer en single-user :
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Linux - Optimisations}{tux.png}
 {
-	\url{http://doc.ubuntu-fr.org/optimisation}\\
-	\url{http://doc.ubuntu-fr.org/services}\\
+	\url{http://doc.ubuntu-fr.org/optimisation}, \url{http://doc.ubuntu-fr.org/services}\\
 	\url{http://ubuntu-tweak.com/}
 }
 {
@@ -4369,9 +4379,11 @@ Le nettoyage du syst\`eme peut aussi apporter du gain d'espace disque.\\
 \textbf{Outils :}
 \begin{description}
 	\item[$\Square$] Ubuntu Tweak : Configurations et optimisations pour Ubuntu.
-	%\item[$\Square$] bleachbit : Nettoyage du syst\`eme (log, fichiers temporaires\dots{}).
 	\item[$\Square$] Guake : panneau interactif avec un shell, qui s'affiche avec la touche F12.
-	\item[$\Square$] GKrellM system monitor : gestionnaire pour afficher les performance syst\`eme.
+	\item[$\Square$] Geany : editeur comme notepad++, penser \`a installer les pluggings : {\sl \color{blue} apt-get install geany geany-plugin*}
+	
+	%\item[$\Square$] bleachbit : Nettoyage du syst\`eme (log, fichiers temporaires\dots{}).
+	%\item[$\Square$] GKrellM system monitor : gestionnaire pour afficher les performance syst\`eme.
 \end{description}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4959,7 +4971,7 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 		{/etc/webmin/*.conf}
 		{Administration Webmin (et acc\`es).}
 \hline
-		\MbF{0.77cm}
+		\MbF{0.67cm}
 		{/etc/syslog.conf}
 		{\small Configuration des journaux d'audit.}
 
@@ -4988,9 +5000,9 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 				du -sh /rep | awk '{print \$1}'
 			}\\
 			\MbFCmd{0.7cm}
-			{Aller dans le r\'epertoire home de l'utilisateur root :}
+			{Chiffer le r\'epertoire home de l'utilisateur toto :}
 			{
-				cd $\sim$root
+				/usr/bin/ecryptfs-migrate-home -u toto
 			}\\
 			\MbFCmd{1.865cm}
 			{Cr\'eer/suppr. des r\'epertoires de mani\`ere r\'ecursive :}
@@ -5459,7 +5471,7 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			\MbFCmd{1cm}
 			{D\'ecompression de fichier *.bz2 :}
 			{
-				tar jxvf fichier.tar.bz2\vskip-0.1cm
+				tar jxf fichier.tar.bz2\vskip-0.1cm
 				bzip2 -d fichier.bz2\\
 			}\\
 			\MbFCmd{1cm}
@@ -6701,6 +6713,10 @@ Extraction en ignorant les erreurs : {\sl \color{blue}./peedpdf.py -f <fichier.p
 \textit{Analyse de fichier et identification de malware.}\\
 \url{http://sandsprite.com/blogs/index.php?uid=7&pid=57}\vskip+0.2cm
 
+\textbf{graphicsmagick-imagemagick-compat}\\
+\textit{Assemble, convertit des images vers du PDF.\\ Sous syst\`emes Debian apt-get install graphicsmagick-imagemagick-compat}\\
+{\sl \color{blue}convert -compress jpeg * <fichier.pdf>}\vskip+0.2cm
+
 \textbf{Documentation}
 \begin{itemize}
 \item Analyzing PDF malware\\ \url{http://blog.spiderlabs.com}
@@ -6795,6 +6811,7 @@ Les droits administrateurs sont requis.
 
 \addcontentsline{toc}{subsubsection}{Bkhive}
 \begin{LARGE}Proc\'edure de r\'ecup\'eration des HASH \`a partir d'une distribution Linux : \end{LARGE}\\
+\url{http://sourceforge.net/projects/ophcrack/files/}\\
 \textbf{Exportation de la cl\'e de chiffrement syskey avec bkhive.}\\
 {\sl \color{blue}bkhive /mnt/sda2/windows/system32/config/system syskey}\vskip +0.2cm
 \addcontentsline{toc}{subsubsection}{Samdump2}
@@ -7174,7 +7191,7 @@ send(p)}\vskip+0.1cm
 \url{http://www.owasp.org}, \url{http://jarlsberg.appspot.com/}\\
 \url{http://www.owasp.org/index.php/OWASP_AJAX_Security_Guidelines}\\
 \url{http://www.hsc.fr/ressources/breves/modsecurity.html.en}\\
-\url{http://www.fortify.com/security-resources/rats.jsp}
+\url{https://www.fortify.com/ssa-elements/threat-intelligence/rats.html}
 }
 {
 \\\'Etapes d'un audit d'application WEB :\vskip+0.1cm
@@ -7318,7 +7335,7 @@ pouvant permettre d'acc\'eder \`a des privil\`eges sans authentification ou bien
 
 \vskip+0.4cm
 \begin{LARGE}Blind SQL injection :\end{LARGE}
-\textit{Utilisation dans les scripts \`a r\'eponse binaire, pour effectuer du brute force)}
+\textit{Utilisation dans les scripts \`a r\'eponse binaire, pour effectuer du brute force.}
 \begin{itemize}
 	\item Identifier la version SQL utilis\'e :\\  
 	\textbf{SELECT * FROM table WHERE champ = '}\textbf{\color{blue}a' OR @@version > 3;}\\
@@ -7797,7 +7814,7 @@ Pour g\'en\'erer des donn\'ees pour remplir une base test : \url{http://www.gene
 {\sl \color{blue}COMMIT / ROLLBACK TRANSACTION \dots{}}
 }
 %SQL avanc\'e
-\fiche{}{SQL - Avanc\'e}{MySQL_logo.png}
+\fiche{}{SQL - Compl\'ements}{MySQL_logo.png}
 {
 \url{http://sql.developpez.com/}\\
 \url{http://www.w3schools.com/SQl/default.asp}\\
@@ -8179,7 +8196,8 @@ Pour supprimer l'autorun d'un support il suffit de supprimer \`a la racine du su
 \fiche{}{VirtualBox}{vbox.png}
 {
 \url{http://dlc.sun.com.edgesuite.net/virtualbox/} \url{http://www.virtualbox.org/}\\
-\url{http://virtualboximages.com/} \url{http://virtualboxes.org/images/}
+\url{http://virtualboximages.com/} \url{http://virtualboxes.org/images/}\\
+\url{https://www.virtualbox.org/wiki/Downloads}
 %https://cds.sun.com/is-bin/INTERSHOP.enfinity/WFS/CDS-CDS_SMI-Site/en_US/-/USD/ViewProductDetail-Start?ProductRef=virtualbox-s10U8-x86-G-F@CDS-CDS_SMI
 }
 {
@@ -8192,7 +8210,7 @@ La virtualisation r\'eseau fonctionne de 3 mani\`eres diff\'erentes :{\small
 \end{itemize}}
 }
 {
-\textbf{Installer VirtualBox :} {\sl \color{blue}sudo apt-get install virtualbox}\\
+\textbf{Installer VirtualBox :} {\sl \color{blue}sudo apt-get install virtualbox virtualbox-guest-additions-iso}\\
 \textbf{Ex\'ecuter directement une machine virtuelle :} {\sl \color{blue}VBoxSDL -vm numero\_machine\_virtuelle}\\
 \textbf{Lister les machines avec leurs num\'eros :} {\sl \color{blue}VBoxManage list vms | grep -B1 '\^{}UUID'}\vskip+0.1cm
 
@@ -8256,12 +8274,12 @@ Ou 63 sectors * 512 = 32256.}\\
 {
 \textbf{Diff\'erentes solutions de VPN :}
 \begin{itemize}
-	\item IPSec (Internet Protocol Security, RFC 2401) :\\ \url{http://www.ietf.org/rfc/rfc2401.txt}, \\{\small\url{http://www.technos-sources.com/tutorial-vpn-ipsec-surcouche-securite-pour-ip-48.aspx}}\vskip +0.2cm
-	\item PPTP (Point-to-point tunneling protocol, RFC 2637) :\\ \url{http://tools.ietf.org/html/rfc2637}\vskip +0.2cm
-	\item SSH (Secure Shell, RFC 4254) :\\ \url{http://tools.ietf.org/html/rfc4254}\\\url{http://www.openssh.com/}\vskip +0.2cm
+	\item IPSec (Internet Protocol Security, RFC 2401) :\\ \url{http://www.ietf.org/rfc/rfc2401.txt}, \\{\small\url{http://www.technos-sources.com/tutorial-vpn-ipsec-surcouche-securite-pour-ip-48.aspx}}\vskip +0.1cm
+	\item PPTP (Point-to-point tunneling protocol, RFC 2637) :\\ \url{http://tools.ietf.org/html/rfc2637}\vskip +0.1cm
+	\item SSH (Secure Shell, RFC 4254) :\\ \url{http://tools.ietf.org/html/rfc4254}\\\url{http://www.openssh.com/}\vskip +0.1cm
 	\item SSL/TLS (Transport Layer Security/ex Secure Sockets Layer, RFC 4347) :\\ \url{http://tools.ietf.org/html/rfc4347}
 \end{itemize}
-\vskip +0.2cm
+\vskip +0.15cm
 \textbf{Points de s\'ecurit\'e pour un VPN :}
 \begin{description}
 	\item[$\Square$] Une identification et une authentification doivent \^etre faites pour chacun des clients ;
@@ -8274,29 +8292,35 @@ Ou 63 sectors * 512 = 32256.}\\
 	\item[$\Square$] Une sonde de d\'etection d'intrusion doit exister apr\`es le firewall du VPN ;
 	\item[$\Square$] Attention \`a la s\'ecurit\'e des postes nomades qui sont des points sensibles pour le r\'eseau.
 \end{description}
-\vskip +0.2cm
+\vskip +0.15cm
 \textbf{Test d'un acc\`es VPN :}\\
 \textit{D\'etection des solution de chiffrement pr\'ef\'er\'e.}\\
-{\sl \color{blue}ike-scan <ip>}\vskip+0.2cm
+{\sl \color{blue}ike-scan <ip>}\vskip+0.15cm
 
 \textit{Identification e la solution de VPN par fingerprinting.}\\
-{\sl \color{blue}ike-scan --showbackoff -v -v <ip>}\vskip+0.2cm
+{\sl \color{blue}ike-scan {-}{-}showbackoff -v -v <ip>}\vskip+0.15cm
 
 \textit{Identification de la m\'ethode de connexion :\\
  {-}{-}auth=1  : Pre-shared key authentication.}\\
 \textit{ {-}{-}auth=3  : Certificate based authentication.}\\
 \textit{ {-}{-}auth=64221  : Mode d'authentification hybride, SecureID, Radius, Token\dots{}}\\
 \textit{ {-}{-}auth=1 -A  : Mode agressive possible ?\dots{}}\\
-{\sl \color{blue}ike-scan <ip>  {-}{-}auth=1}\vskip+0.2cm
+{\sl \color{blue}ike-scan <ip>  {-}{-}auth=1}\vskip+0.15cm
 
 \textit{Identification de vuln\'erabilit\'e sur le VPN.}\\
 {\sl \color{blue}ikeprobe.exe <ip>}
-\vskip +0.2cm
+\vskip +0.15cm
+
+\textit{Test sur VPN pptp.}\\
+{\sl \color{blue}thc-pptp-bruter <ip>}
+\vskip +0.15cm
+
 \textbf{Outils :}
 \begin{itemize}
 \item Tools : \url{http://www.nta-monitor.com/wiki/index.php/Ike-scan_Comparison_Other_Tools}
-\item IKEcrack : \url{http://sourceforge.net/projects/ikecrack/}\\ \url{http://ikecrack.sourceforge.net/}
+\item IKEcrack : \url{http://sourceforge.net/projects/ikecrack/} et \url{http://ikecrack.sourceforge.net/}
 \item IKEProbe : \url{http://www.ernw.de/download/ikeprobe.zip}
+\item THC-pptp-bruter : \url{http://www.thc.org/releases.php}
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
