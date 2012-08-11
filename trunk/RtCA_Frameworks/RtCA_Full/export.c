@@ -18,10 +18,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
       switch(export_type)
       {
         case SAVE_TYPE_CSV:
-          if (stat_export_column+1<nb_stat_export_column)
-            snprintf(datas,MAX_LINE_SIZE,"\"%s\";",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
-          else
-            snprintf(datas,MAX_LINE_SIZE,"\"%s\";\r\n",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
+          snprintf(datas,MAX_LINE_SIZE,"\"%s\";",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
           stat_export_column++;
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
         break;
@@ -30,10 +27,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
             strncpy(S_tests_XML_header[stat_export_column++].s,convertUTF8toUTF16(argv[0], strlen(argv[0])+1),DEFAULT_TMP_SIZE);
         break;
         case SAVE_TYPE_HTML:
-          if (stat_export_column+1<nb_stat_export_column)
-            snprintf(datas,MAX_LINE_SIZE,"    <th>%s</th>",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
-          else
-            snprintf(datas,MAX_LINE_SIZE,"    <th>%s</th>\r\n  </tr>\r\n",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
+          snprintf(datas,MAX_LINE_SIZE,"    <th>%s</th>",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
           stat_export_column++;
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
         break;
@@ -119,91 +113,109 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   //request sqlite for enumerate the datas
   char request[MAX_LINE_SIZE];
   DWORD copiee;
-  unsigned int i;
+  unsigned int i,j;
   FORMAT_CALBAK_READ_INFO fcri;
   sqlite3 *db = (sqlite3 *)db_scan;
-  unsigned int num_session = current_session_id;
 
   //headers
   char XML_head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
   char XML_foot[]="</RtCA>";
 
-  char HTML_head[]="<html>\r\n<head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n";
+  char HTML_head[]="<html>\r\n<head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+  char HTML_end_header_column[]="\r\n  </tr>\r\n";
+
   char HTML_foot[]=" </table>\r\n</html>";
 
+  char CSV_end_header_column[]="\r\n";
+
+  unsigned long int cur_session_id = current_session_id;
+
   //export_type = 0;
-  for (i=0;i<nb_columns_items;i++)
+  unsigned int nb_test = SendMessage(hlstbox, LB_GETCOUNT, 0, 0);
+  char test_name[DEFAULT_TMP_SIZE];
+  for (i=0;i<nb_test;i++)
   {
-    if (columns_params[i].type == TYPE_SQL_STANDARD)
+    //get test name :
+    if (SendMessage(hlstbox, LB_GETTEXTLEN, i, 0)>=DEFAULT_TMP_SIZE)continue;
+    if (SendMessage(hlstbox, LB_GETTEXT, i, (LPARAM)test_name) == LB_ERR)test_name[0] = 0;
+
+    //get infos
+    GetColumnInfo(i);
+
+    //set file name :
+    switch(export_type)
     {
-      //set file name for save
-      switch(export_type)
-      {
-        case SAVE_TYPE_CSV:snprintf(file,MAX_PATH,"%s_%s.csv",path,S_tests[i].s);break;
-        case SAVE_TYPE_XML:snprintf(file,MAX_PATH,"%s_%s.xml",path,S_tests[i].s);break;
-        case SAVE_TYPE_HTML:snprintf(file,MAX_PATH,"%s_%s.html",path,S_tests[i].s);break;
-      }
-
-      //open file
-      MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
-      if (MyhFile_export == INVALID_HANDLE_VALUE)continue;
-
-      //file header
-      nb_stat_export_column = columns_params[i].nb_columns;
-      switch(export_type)
-      {
-        //case SAVE_TYPE_CSV:break; //no header
-        case SAVE_TYPE_XML:WriteFile(MyhFile_export,XML_head,strlen(XML_head),&copiee,0);break;
-        case SAVE_TYPE_HTML:WriteFile(MyhFile_export,HTML_head,strlen(HTML_head),&copiee,0);break;
-      }
-
-      //get column
-      stat_export_column = 0;
-      fcri.type = TYPE_SQL_EXPORT_HEAD;
-      snprintf(request, MAX_LINE_SIZE,"SELECT string "
-                                      "FROM language_strings_columns_string, language "
-                                      "WHERE language.id =%d AND language.id = id_language AND id_item=%d order by column;",current_lang_id,i);
-
-      sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-
-      //generate SQL request and go !!!
-      fcri.type     = TYPE_SQL_EXPORT_DATAS;
-      line          = 0;
-
-      switch(columns_params[i].mode_simple)
-      {
-          case MODE_SQL_NONE:break;
-          case MODE_SQL_FULL:
-            snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%d;",columns_params[i].request,
-                     current_lang_id,session[num_session]);
-            sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-          break;
-          case MODE_SQL_LITE:
-            snprintf(request, MAX_LINE_SIZE,"%s session_id=%d;",columns_params[i].request,session[num_session]);
-            sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-          break;
-          case MODE_SQL_LOGS: //special stat for audit log
-            snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%d WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;",columns_params[i].request,
-                     current_lang_id,session[num_session]);
-            sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-          break;
-      }
-
-      //file foot
-      switch(export_type)
-      {
-        //case SAVE_TYPE_CSV:break; //no foot
-        case SAVE_TYPE_XML:WriteFile(MyhFile_export,XML_foot,strlen(XML_foot),&copiee,0);break;
-        case SAVE_TYPE_HTML:WriteFile(MyhFile_export,HTML_foot,strlen(HTML_foot),&copiee,0);break;
-      }
-
-      CloseHandle(MyhFile_export);
+      case SAVE_TYPE_CSV:snprintf(file,MAX_PATH,"%s_%s.csv",path,test_name);break;
+      case SAVE_TYPE_XML:snprintf(file,MAX_PATH,"%s_%s.xml",path,test_name);break;
+      case SAVE_TYPE_HTML:snprintf(file,MAX_PATH,"%s_%s.html",path,test_name);break;
     }
+
+    //open file
+    MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+    if (MyhFile_export == INVALID_HANDLE_VALUE)continue;
+
+    //file header
+    switch(export_type)
+    {
+      //case SAVE_TYPE_CSV:break; //no header
+      case SAVE_TYPE_XML:WriteFile(MyhFile_export,XML_head,strlen(XML_head),&copiee,0);break;
+      case SAVE_TYPE_HTML:WriteFile(MyhFile_export,HTML_head,strlen(HTML_head),&copiee,0);break;
+    }
+
+    //get columns
+    stat_export_column = 0;
+    fcri.type = TYPE_SQL_EXPORT_HEAD;
+    snprintf(request, MAX_LINE_SIZE,"SELECT string "
+                                    "FROM language_strings_columns_string, language "
+                                    "WHERE language.id =%d AND language.id = id_language AND id_item=%d order by column;",current_lang_id,i);
+
+    sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+
+    //end of header
+    switch(export_type)
+    {
+      case SAVE_TYPE_CSV:WriteFile(MyhFile_export,CSV_end_header_column,strlen(CSV_end_header_column),&copiee,0);break;
+      case SAVE_TYPE_XML:
+        for (j=0;j<st_columns.nb_columns;j++)replace_one_char(S_tests_XML_header[j].s,strlen(S_tests_XML_header[j].s),' ','_');
+      break;
+      case SAVE_TYPE_HTML:WriteFile(MyhFile_export,HTML_end_header_column,strlen(HTML_end_header_column),&copiee,0);break;
+    }
+
+    //generate SQL request and go !!!
+    fcri.type     = TYPE_SQL_EXPORT_DATAS;
+    line          = 0;
+
+    switch(st_columns.mode_simple)
+    {
+        case MODE_SQL_NONE:break;
+        case MODE_SQL_FULL:
+          snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%lu;",st_columns.request,
+                   current_lang_id,cur_session_id);
+          sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+        break;
+        case MODE_SQL_LITE:
+          snprintf(request, MAX_LINE_SIZE,"%s session_id=%lu;",st_columns.request,cur_session_id);
+          sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+        break;
+        case MODE_SQL_LOGS: //special stat for audit log
+          snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%lu WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;",st_columns.request,
+                   current_lang_id,cur_session_id);
+          sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+        break;
+    }
+
+    //file foot
+    switch(export_type)
+    {
+      //case SAVE_TYPE_CSV:break; //no foot
+      case SAVE_TYPE_XML:WriteFile(MyhFile_export,XML_foot,strlen(XML_foot),&copiee,0);break;
+      case SAVE_TYPE_HTML:WriteFile(MyhFile_export,HTML_foot,strlen(HTML_foot),&copiee,0);break;
+    }
+
+    CloseHandle(MyhFile_export);
   }
-  AddDebugMessage("export", file, "OK", MSG_INFO);
   ExportStart = FALSE;
-  SetWindowText(GetDlgItem(h_conf,BT_EXPORT),cps[TXT_BT_EXPORT_START].c);
-  EnableMenuItem(GetSubMenu(GetMenu(h_main),0),7,MF_BYPOSITION|MF_ENABLED);
+  EnableMenuItem(GetSubMenu(GetMenu(h_main),0),8,MF_BYPOSITION|MF_ENABLED);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -225,8 +237,7 @@ DWORD WINAPI ChoiceSaveAll(LPVOID lParam)
     if (strlen(current_test_export_path)>0)
     {
       ExportStart = TRUE;
-      SetWindowText(GetDlgItem(h_conf,BT_EXPORT),cps[TXT_BT_EXPORT_STOP].c);
-      EnableMenuItem(GetSubMenu(GetMenu(h_main),0),7,MF_BYPOSITION|MF_GRAYED);
+      EnableMenuItem(GetSubMenu(GetMenu(h_main),0),8,MF_BYPOSITION|MF_GRAYED);
 
       h_Export = CreateThread(NULL,0,SaveAll,NULL,0,0);
     }
@@ -242,7 +253,6 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
   HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
   if (hfile == INVALID_HANDLE_VALUE)
   {
-    AddDebugMessage("export", "Fail to save from LSTV to file [CreateFile]!", "NOK", MSG_ERROR);
     return FALSE;
   }
 
@@ -272,10 +282,6 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
           }
         }while((hitem = (HTREEITEM)SendMessage(htv, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)));
       }
-
-      //debug msg
-      snprintf(buffer,MAX_LINE_SIZE,"Save TRV to file (TXT) [%s]",file);
-      AddDebugMessage("export", buffer, "OK", MSG_INFO);
     break;
     case SAVE_TYPE_CSV:
     {
@@ -304,10 +310,6 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
           }
         }while((hitem = (HTREEITEM)SendMessage(htv, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)));
       }
-
-      //debug msg
-      snprintf(buffer,MAX_LINE_SIZE,"Save TRV to file (CSV) [%s]",file);
-      AddDebugMessage("export", buffer, "OK", MSG_INFO);
     }
     break;
   }
@@ -325,7 +327,6 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
     HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
     if (hfile == INVALID_HANDLE_VALUE)
     {
-      AddDebugMessage("export", "Fail to save from LSTV to file [CreateFile]!", "NOK", MSG_ERROR);
       return FALSE;
     }
 
@@ -375,10 +376,6 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           copiee = 0;
           WriteFile(hfile,line,strlen(line),&copiee,0);
         }
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV to file (CSV) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       break;
       case SAVE_TYPE_XML:
       {
@@ -395,6 +392,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           lvc.cchTextMax = MAX_LINE_SIZE;
           lvc.pszText = lv_line[i].c;
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
+          replace_one_char(lv_line[i].c, strlen(lv_line[i].c), ' ', '_');
         }
 
         //save all line
@@ -415,15 +413,11 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           WriteFile(hfile," </Data>\r\n",10,&copiee,0);
         }
         WriteFile(hfile,"</RtCA>",7,&copiee,0);
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV to file (XML) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       }
       break;
       case SAVE_TYPE_HTML:
       {
-        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n";
+        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         //title line
@@ -431,7 +425,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<th>%s</th>",buffer);
+            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"  <th>%s</th>",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -440,7 +434,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 
         }
 
-        strncat(line,"</tr>\r\n\0",MAX_LINE_SIZE);
+        strncat(line,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
         WriteFile(hfile,line,strlen(line),&copiee,0);
 
@@ -464,10 +458,6 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           WriteFile(hfile,line,strlen(line),&copiee,0);
         }
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV to file (HTML) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       }
       break;
     }
@@ -486,7 +476,6 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
     HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
     if (hfile == INVALID_HANDLE_VALUE)
     {
-      AddDebugMessage("export", "Fail to save from LSTV selected items to file [CreateFile]!", "NOK", MSG_ERROR);
       return FALSE;
     }
 
@@ -537,10 +526,6 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           copiee = 0;
           WriteFile(hfile,line,strlen(line),&copiee,0);
         }
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV selected items to file (CSV) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       break;
       case SAVE_TYPE_XML:
       {
@@ -578,15 +563,11 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           WriteFile(hfile," </Data>\r\n",10,&copiee,0);
         }
         WriteFile(hfile,"</RtCA>",7,&copiee,0);
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV selected items to file (XML) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       }
       break;
       case SAVE_TYPE_HTML:
       {
-        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n";
+        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         //title line
@@ -594,7 +575,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<th>%s</th>",buffer);
+            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"  <th>%s</th>",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -603,7 +584,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
 
         }
 
-        strncat(line,"</tr>\r\n\0",MAX_LINE_SIZE);
+        strncat(line,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
         WriteFile(hfile,line,strlen(line),&copiee,0);
 
@@ -631,10 +612,6 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           WriteFile(hfile,line,strlen(line),&copiee,0);
         }
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
-
-        //debug msg
-        snprintf(buffer,MAX_LINE_SIZE,"Save LSTV selected items to file (HTML) [%s]",file);
-        AddDebugMessage("export", buffer, "OK", MSG_INFO);
       }
       break;
     }

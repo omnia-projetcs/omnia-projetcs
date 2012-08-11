@@ -15,7 +15,6 @@ void addRegistryUSBtoDB(char *file, char *hk, char *key, char *name,
            "INSERT INTO extract_registry_usb (file,hk,key,name,vendor_id,product_id,description,last_use,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,name,vendor_id,product_id,description,last_use,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_usb", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -274,15 +273,12 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_usb", "Scan registry usb - START", "OK", MSG_INFO);
 
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   HK_F_OPEN hks;
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -291,9 +287,6 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_usb", tmp_msg, "OK", MSG_INFO);
 
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
@@ -302,15 +295,13 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
           CloseRegFiletoMem(&hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
     EnumUSB_local(HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE", "SYSTEM\\CurrentControlSet\\Enum\\USBSTOR", session_id, db);
   }
 
-  AddDebugMessage("test_registry_usb", "Scan registry usb  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

@@ -6,19 +6,19 @@
 //------------------------------------------------------------------------------
 #define TYPE_SQLITE_FLAG_LANG_INIT            0x0001
 #define TYPE_SQLITE_FLAG_TESTS_INIT           0x0002
-#define TYPE_SQLITE_FLAG_TESTS_UPDATE         0x0003
 #define TYPE_SQLITE_FLAG_SESSIONS_INIT        0x0004
-#define TYPE_SQLITE_FLAG_TITLE_FILE_INIT      0x0005
 #define TYPE_SQLITE_FLAG_LANG_INIT_STRINGS    0x0006
-
 #define TYPE_SQLITE_FLAG_ANDROID_INIT_STRINGS 0x0007
 #define TYPE_SQLITE_FLAG_CHROME_INIT_STRINGS  0x0008
 #define TYPE_SQLITE_FLAG_FIREFOX_INIT_STRINGS 0x0009
 
 #define TYPE_SQLITE_FLAG_VIEW_CHANGE          0x0010
 #define TYPE_SQLITE_FLAG_LANGUAGE_CHANGE      0x0011
+#define TYPE_SQLITE_FLAG_LANGUAGE_COL_CHANGE  0x0012
 
 #define TYPE_SQLITE_FLAG_COLUMN_COUNT_INIT    0x0020
+#define TYPE_SQLITE_FLAG_GET_COLUM_COUNT      0x0021
+#define TYPE_SQLITE_FLAG_GET_ITEMS_INFO       0x0022
 
 //test type
 #define TYPE_SQLITE_TEST                      0x1000
@@ -40,10 +40,7 @@
 #define TYPE_ST                               0x0000  //00 : static+grp+button
 #define TYPE_MENU                             0x0001  //01 : menu
 #define TYPE_MENU_TITLE                       0x0002  //02 : menu title
-#define TYPE_FILES_TITLE                      0x0003  //03 : title of files in configuration part
 #define TYPE_MENU_SUB_TITLE                   0x0004  //04 : subtitle of menu
-
-#define TYPE_COL_DEBUG                        0x0010  //16 : column for DEBUG LSTV
 //------------------------------------------------------------------------------
 typedef struct
 {

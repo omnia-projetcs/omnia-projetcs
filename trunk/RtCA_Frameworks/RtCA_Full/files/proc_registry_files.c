@@ -46,7 +46,7 @@ char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsi
 //------------------------------------------------------------------------------
 //return only binary datas
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
-                   unsigned int index, char *value, unsigned int value_size, char *data, unsigned int *data_size)
+                   unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size)
 {
   if (value!=NULL)value[0] = 0;
   if (data!=NULL)data[0] = 0;
@@ -251,7 +251,7 @@ HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD positio
 }
 //------------------------------------------------------------------------------
 //read data value from vk struct with data memory to write of min size to 5
-DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, unsigned int *data_size)
+DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD *data_size)
 {
   if (data!=NULL)data[0] = 0;
   if (*data_size<5)return FALSE;
@@ -273,7 +273,7 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
 }
 //------------------------------------------------------------------------------
 //read data value from vk struct with data memory to write of min size to 5
-DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, unsigned int data_size)
+DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD data_size)
 {
   if (data!=NULL)data[0] = 0;
   if (data_size<5)return FALSE;
@@ -528,10 +528,11 @@ BOOL Readnk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
 //------------------------------------------------------------------------------
 //read binary value from key path
 DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
-                         char *read_value, char *data, unsigned int *data_size)
+                         char *read_value, void *d, DWORD *data_size)
 {
   //reads data to search
   unsigned int i;
+  char *data = d;
   char tmp_read_value[MAX_PATH],tmpvalue[MAX_PATH];
   if (data!=NULL)data[0] = 0;
   strncpy(tmp_read_value,read_value,MAX_PATH);

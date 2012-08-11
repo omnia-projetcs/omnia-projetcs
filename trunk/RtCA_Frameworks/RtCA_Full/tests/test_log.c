@@ -17,7 +17,6 @@ void addLogtoDB(char *eventname, char *indx, char *log_id,
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            eventname,indx,log_id,send_date,write_date,source,description,user,rid,sid,state,critical,session_id);
 
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_log", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -166,9 +165,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
   unsigned int session_id = current_session_id;
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_log", "Scan audit logs  - START", "OK", MSG_INFO);
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
   if (hitem!=NULL)
   {
     char tmp[MAX_PATH];
@@ -185,7 +182,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
       else if (strcmp("evtx",ext) == 0)TraiterEventlogFileEvtx(tmp, db, session_id);
       else if (strcmp("log",ext) == 0)TraiterEventlogFileLog(tmp, db, session_id);
 
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
@@ -225,8 +222,6 @@ DWORD WINAPI Scan_log(LPVOID lParam)
 
   }
 
-  AddDebugMessage("test_log", "Scan audit logs  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem((HWND)h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

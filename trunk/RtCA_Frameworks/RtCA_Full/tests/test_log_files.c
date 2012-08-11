@@ -243,9 +243,6 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
           //bad file format
           HeapFree(GetProcessHeap(), 0, buffer);
           CloseHandle(Hlog);
-          char msg_tmp[MAX_PATH];
-          snprintf(msg_tmp,MAX_PATH,"Bad file format : %s",eventfile);
-          AddDebugMessage("TraiterEventlogFileLog", msg_tmp, "NOK", MSG_ERROR);
           return;
         }
 
@@ -369,7 +366,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
           }
         }
         HeapFree(GetProcessHeap(), 0, buffer);
-      }else AddDebugMessage("TraiterEventlogFileLog", "Out of memory", "NOK", MSG_ERROR);
+      }
     }
   }
   CloseHandle(Hlog);

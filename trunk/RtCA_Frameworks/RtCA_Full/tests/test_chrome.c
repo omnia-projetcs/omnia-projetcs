@@ -6,6 +6,7 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 char tmp_file_chrome[MAX_PATH];
+void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,unsigned int description_id,unsigned int session_id, sqlite3 *db);
 //------------------------------------------------------------------------------
 void addChrometoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
@@ -14,7 +15,6 @@ void addChrometoDB(char *file, char *parameter, char *data, char *date, DWORD id
            "INSERT INTO extract_chrome (file,parameter,data,date,id_language_description,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            file,parameter,data,date,id_language_description,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_chrome", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -34,7 +34,7 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
       //decrypt datas password !!!
       CRYPT_INTEGER_BLOB data_in, data_out;
       data_in.cbData = strlen(argv[3]);
-      data_in.pbData = argv[3];
+      data_in.pbData = (BYTE*)argv[3];
 
       snprintf(tmp,MAX_PATH,"%s,%s,%s (%s)",tmp_file_chrome,convertUTF8toUTF16(argv[0], strlen(argv[0])+1),convertUTF8toUTF16(argv[1], strlen(argv[1])+1),argv[4]);
       snprintf(raw_password,MAX_PATH,"%s",argv[3]);
@@ -84,12 +84,9 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
 DWORD WINAPI Scan_chrome_history(LPVOID lParam)
 {
   FORMAT_CALBAK_READ_INFO data;
-  char tmp_msg[MAX_PATH];
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_chrome", "Scan Chrome history  - START", "OK", MSG_INFO);
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL) //local
   {
     //get path of all profils users
@@ -142,8 +139,6 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
                           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
                         }
                         sqlite3_close(db_tmp);
-                        snprintf(tmp_msg,MAX_PATH,"Scan local Chrome file : %s",tmp_file_chrome);
-                        AddDebugMessage("test_chrome", tmp_msg, "OK", MSG_INFO);
                       }
                     }
                   }
@@ -171,15 +166,11 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
         }
         sqlite3_close(db_tmp);
-        snprintf(tmp_msg,MAX_PATH,"Scan Chrome file : %s - DONE!",tmp_file_chrome);
-        AddDebugMessage("test_chrome", tmp_msg, "OK", MSG_INFO);
       }
-      hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
 
-  AddDebugMessage("test_chrome", "Scan Chrome history  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

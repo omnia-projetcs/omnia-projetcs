@@ -14,7 +14,6 @@ void addClipboardtoDB(char *format, unsigned int code, char*description, char *d
            "INSERT INTO extract_clipboard (format,code,description,data,user,session_id) "
            "VALUES(\"%s\",\"%05d\",\"%s\",\"%s\",\"%s\",%d);",
            format,code,description,data,user,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_clipboard", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -83,12 +82,10 @@ void SaveBitmapToHexaStr(HBITMAP hBmp , char *str, DWORD str_size)
 DWORD WINAPI Scan_clipboard(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_clipboard", "Scan clipboard  - START", "OK", MSG_INFO);
 
   //lecture du contenu du presse papier et extraction
   if (OpenClipboard(0))
@@ -360,8 +357,6 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
     CloseClipboard();
   }
 
-  AddDebugMessage("test_clipboard", "Scan clipboard  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

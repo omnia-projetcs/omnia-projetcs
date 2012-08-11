@@ -20,7 +20,6 @@ void addFiletoDB(char *path, char *file, char *extension,
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
             path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SID,ACL,
             Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_file", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -427,12 +426,10 @@ DWORD WINAPI Scan_files(LPVOID lParam)
 
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_file", "Scan files - START", "OK", MSG_INFO);
 
   //get local path !
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
   if (hitem!=NULL)
   {
     while(hitem!=NULL)
@@ -441,7 +438,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
       GetTextFromTrv(hitem, tmp, MAX_PATH);
       scan_file_ex(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
 
-      hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
@@ -460,9 +457,6 @@ DWORD WINAPI Scan_files(LPVOID lParam)
       }
     }
   }
-
-  AddDebugMessage("test_file", "Scan files - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

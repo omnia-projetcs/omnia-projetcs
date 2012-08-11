@@ -17,7 +17,6 @@ void addNetworktoDB(char *card, char *description, char *guid,
            "INSERT INTO extract_network (card,description,guid,ip,netmask,gateway,dns,domain,dhcp_mode,dhcp_server,wifi,last_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu);",
            card,description,guid, ip,netmask,gateway,dns,domain,dhcp_mode,dhcp_server,wifi,last_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_network", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -49,7 +48,7 @@ BOOL ReadRegistryWifiInfos(char *guid, char *wifi_cache, DWORD size_wifi_cache)
           value[0]   = 0;
           data[0]    = 0;
           type       = 0;
-          if (RegEnumValue (CleTmp,i,value,&value_size,0,type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
+          if (RegEnumValue (CleTmp,i,value,&value_size,0,&type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
           {
             //set datas
             if (data_size > 0x34 && (type == REG_EXPAND_SZ || type ==REG_SZ || type ==REG_BINARY))
@@ -267,14 +266,13 @@ BOOL ReadRegistryWifiInfos_registry_file(char *buffer, DWORD taille_fic, DWORD p
   if (nk_h != NULL)
   {
     char value[MAX_PATH], data[MAX_PATH];
-    unsigned int tmp_size,data_size = MAX_PATH;
-    DWORD type;
+    DWORD type, tmp_size,data_size = MAX_PATH;
     if(Readnk_Value(buffer, taille_fic, (pos_fhbin)+HBIN_HEADER_SIZE, position, NULL, nk_h,"ControlFlags", data, MAX_PATH))
     {
       DWORD i, nbSubKey = GetValueData(buffer, taille_fic, nk_h, position, 0, NULL, 0, NULL, 0);
       for (i=0;i<nbSubKey;i++)
       {
-        type = GetBinaryValueData(buffer, taille_fic, nk_h, position, i, value, MAX_PATH,data,&data_size);
+        type = GetBinaryValueData(buffer, taille_fic, nk_h, position, i, value, MAX_PATH,data, &data_size);
 
         //set datas
         if (data_size > 0x34 && (type == REG_EXPAND_SZ || type == REG_SZ || type == REG_BINARY))
@@ -402,15 +400,11 @@ DWORD WINAPI Scan_network(LPVOID lParam)
 {
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_network", "Scan network  - START", "OK", MSG_INFO);
   unsigned int session_id = current_session_id;
-
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -419,19 +413,13 @@ DWORD WINAPI Scan_network(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("Scan_network", tmp_msg, "OK", MSG_INFO);
-
         //verify
         Scan_network_registry_file(file, db, session_id);
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else Scan_network_local(db, session_id); //local
 
-  AddDebugMessage("test_network", "Scan network  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

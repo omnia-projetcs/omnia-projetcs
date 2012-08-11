@@ -13,7 +13,6 @@ void addCAntivirustoDB(char *path, char *name, char *editor, char *engine, char 
            "INSERT INTO extract_antivirus (path,name,editor,engine,bdd,url_update,last_update,enable,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            path,name,editor,engine,bdd,url_update,last_update,enable,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_antivirus", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -633,7 +632,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
     FILETIME FileTime;
     DWORD size = sizeof(FileTime);
-    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Microsoft\\Microsoft Antimalware\\Signature Updates", NULL, "SignaturesLastUpdated", &FileTime, &size);
+    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Microsoft\\Microsoft Antimalware\\Signature Updates", NULL, "SignaturesLastUpdated", (void*)&FileTime, &size);
     if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
     else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
 
@@ -682,7 +681,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
     DWORD dTime;
     DWORD size = sizeof(DWORD);
-    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Avira\\AntiVir Desktop", NULL, "InstallationDate", &dTime, &size);
+    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Avira\\AntiVir Desktop", NULL, "InstallationDate", (void*)&dTime, &size);
     if(dTime>0)timeToString(dTime, last_update, DATE_SIZE_MAX);
 
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Avira\\AntiVir Desktop", NULL,"SecurityDetection", tmp, MAX_PATH);
@@ -718,7 +717,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
     DWORD dTime;
     DWORD size = sizeof(DWORD);
-    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Bitdefender\\Gonzales\\Update", NULL, "LastUpdateDate", &dTime, &size);
+    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Bitdefender\\Gonzales\\Update", NULL, "LastUpdateDate", (void*)&dTime, &size);
     if(dTime>0)timeToString(dTime, last_update, DATE_SIZE_MAX);
 
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Bitdefender\\Gonzales", NULL,"ContScanState", tmp, MAX_PATH);
@@ -754,7 +753,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
     DWORD dTime;
     DWORD size = sizeof(DWORD);
-    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Sophos\\AutoUpdate\\UpdateStatus", NULL, "LastUpdateTime", &dTime, &size);
+    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Sophos\\AutoUpdate\\UpdateStatus", NULL, "LastUpdateTime", (void*)&dTime, &size);
     if(dTime>0)timeToString(dTime, last_update, DATE_SIZE_MAX);
 
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Sophos\\SAVService\\Components\\BackgroundScanFactory", NULL,"Level", tmp, MAX_PATH);
@@ -886,7 +885,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
     DWORD dTime=0;
     DWORD size = sizeof(DWORD);
-    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Zone Labs\\ZoneAlarm", NULL, "LastAVUpdate", &dTime, &size);
+    ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Zone Labs\\ZoneAlarm", NULL, "LastAVUpdate", (void*)&dTime, &size);
     if(dTime>0)timeToString(dTime+252221453, last_update, DATE_SIZE_MAX);
     addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
   }
@@ -918,7 +917,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
       FILETIME FileTime;
       DWORD size = sizeof(FILETIME);
       snprintf(key_path,MAX_PATH,"Avg\\%s\\InstallTimes",name);
-      if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, key_path, NULL, last_update, &FileTime, &size))
+      if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, key_path, NULL, last_update, (void*)&FileTime, &size))
       {
         if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
         else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
@@ -955,7 +954,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
           DWORD dTime=0;
           DWORD size = sizeof(DWORD);
-          ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp, "dTime", &dTime, &size);
+          ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp, "dTime", (void*)&dTime, &size);
           if(dTime>0)timeToString(dTime, last_update, DEFAULT_TMP_SIZE);
 
           snprintf(key_path,MAX_PATH,"KasperskyLab\\protected\\%s",tmp_key);
@@ -1048,15 +1047,12 @@ DWORD WINAPI Scan_antivirus(LPVOID lParam)
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_antivirus", "Scan Antivirus - START", "OK", MSG_INFO);
 
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   HK_F_OPEN hks;
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -1065,10 +1061,6 @@ DWORD WINAPI Scan_antivirus(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_antivirus", tmp_msg, "OK", MSG_INFO);
-
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
@@ -1076,12 +1068,10 @@ DWORD WINAPI Scan_antivirus(LPVOID lParam)
           CloseRegFiletoMem(&hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else Scan_antivirus_local(db, session_id);
 
-  AddDebugMessage("test_antivirus", "Scan Antivirus - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem((HWND)h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

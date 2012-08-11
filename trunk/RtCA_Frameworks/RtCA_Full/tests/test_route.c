@@ -13,14 +13,13 @@ void addRoutetoDB(char *destination, char *netmask, char *gateway, DWORD metric,
            "INSERT INTO extract_route (destination,netmask,gateway,metric,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            destination,netmask,gateway,metric,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_route", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_route(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -29,9 +28,6 @@ DWORD WINAPI Scan_route(LPVOID lParam)
   //load route table);
   HANDLE hDLL = LoadLibrary( "IPHLPAPI.DLL" );
   if (!hDLL) return 0;
-
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_route", "Scan route  - START", "OK", MSG_INFO);
 
   //declaration load function
   typedef DWORD (WINAPI *GETIPFORWARDTABLE)(PMIB_IPFORWARDTABLE pIpForwardTable, PULONG pdwSize, BOOL bOrder);
@@ -53,7 +49,6 @@ DWORD WINAPI Scan_route(LPVOID lParam)
         if (pIpForwardTable == NULL)
         {
           FreeLibrary(hDLL);
-          ReleaseSemaphore(hsemaphore,1,NULL);
           return 0;
         }
       }
@@ -92,8 +87,6 @@ DWORD WINAPI Scan_route(LPVOID lParam)
   //free
   FreeLibrary(hDLL);
 
-  AddDebugMessage("test_route", "Scan route  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

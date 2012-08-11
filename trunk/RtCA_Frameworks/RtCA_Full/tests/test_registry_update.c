@@ -15,7 +15,6 @@ void addRegistryUpdatetoDB(char *file, char *hk, char *key, char*component,char 
            "INSERT INTO extract_registry_update (file,hk,key,component,name,publisher,description_package_name,install_date_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,component,name,publisher,description_package_name,install_date_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_update", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -269,15 +268,12 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_update", "Scan registry updates  - START", "OK", MSG_INFO);
 
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   HK_F_OPEN hks;
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -286,10 +282,6 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_update", tmp_msg, "OK", MSG_INFO);
-
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
@@ -301,7 +293,7 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
           CloseRegFiletoMem(&hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
@@ -310,9 +302,6 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
     EnumUpdate(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\", session_id, db, FALSE);
     EnumUpdate(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\", session_id, db, FALSE);
   }
-
-  AddDebugMessage("test_registry_update", "Scan registry updates  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

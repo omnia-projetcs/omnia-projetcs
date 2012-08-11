@@ -13,20 +13,17 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
            "INSERT INTO extract_host (file,ip,name,last_file_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,ip,name,last_file_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_dns", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_dns(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_dns", "Scan DNS resolv  - START", "OK", MSG_INFO);
 
   //make file directory
   char file[MAX_PATH]="";
@@ -71,7 +68,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
               //get IP
               strncpy(ip,line,IP_SIZE_MAX);
               c = ip;
-              while (*c && *c != ' ' && *c!= '\t' && (*c == '.'||*c<58 && *c>47))c++;
+              while (*c && *c != ' ' && *c!= '\t' && (*c == '.'|| (*c<58 && *c>47)))c++;
               if (*c)
               {
                 c = 0;
@@ -146,8 +143,6 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   }
   FreeLibrary(hDLL);
 
-  AddDebugMessage("test_dns", "Scan DNS resolv  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

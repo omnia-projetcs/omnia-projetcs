@@ -197,7 +197,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
         {
           //id identifié ^^
           mid = (M_ID *)c;
-          snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",mid->id);
+          snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",(DWORD) mid->id);
           id = mid->id;
 
           //Type
