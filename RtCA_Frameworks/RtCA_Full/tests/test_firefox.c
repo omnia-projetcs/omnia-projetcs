@@ -14,7 +14,6 @@ void addFirefoxtoDB(char *file, char *parameter, char *data, char *date, DWORD i
            "INSERT INTO extract_firefox (file,parameter,data,date,id_language_description,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            file,parameter,data,date,id_language_description,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_firefox", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -53,14 +52,10 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_firefox_history(LPVOID lParam)
 {
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_firefox", "Scan Firefox history - START", "OK", MSG_INFO);
-
   FORMAT_CALBAK_READ_INFO data;
-  char tmp_msg[MAX_PATH];
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL) //local
   {
     //get path of all profils users
@@ -122,9 +117,6 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
                               sqlite3_exec(db_tmp, sql_FIREFOX[data.type].sql, callback_sqlite_firefox, &data, NULL);
                             }
                             sqlite3_close(db_tmp);
-                            snprintf(tmp_msg,MAX_PATH,"Scan local Firefox file : %s",tmp_file_firefox);
-
-                            AddDebugMessage("test_firefox", tmp_msg, "OK", MSG_INFO);
                           }
                         }
                       }
@@ -154,15 +146,11 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
           sqlite3_exec(db_tmp, sql_FIREFOX[data.type].sql, callback_sqlite_firefox, &data, NULL);
         }
         sqlite3_close(db_tmp);
-        snprintf(tmp_msg,MAX_PATH,"Scan Firefox file : %s",tmp_file_firefox);
-        AddDebugMessage("test_firefox", tmp_msg, "OK", MSG_INFO);
       }
-      hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
 
-  AddDebugMessage("test_firefox", "Scan Firefox history - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

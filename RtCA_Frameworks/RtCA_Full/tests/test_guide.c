@@ -13,7 +13,6 @@ void addGuidetoDB(char *file, char *hk,char *key,char *value,char*data,char *dat
            "INSERT INTO extract_guide (file,hk,key,value,data,data_read,title_id,description_id,ok_id,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,%d,%d);",
            file,hk,key,value,data,data_read,title_id,description_id,ok_id,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_guide", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -85,7 +84,6 @@ BOOL ReadCurrentOs(char *data)
       else return FALSE; //unknow
     }
 
-    AddDebugMessage("ReadCurrentOs", current_OS, "OK", MSG_INFO);
     return TRUE;
   }
   return FALSE;
@@ -205,16 +203,13 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
 {
   //init
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   char data[MAX_PATH]="";
 
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = SQLITE_GUIDE;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_guide", "Scan guide  - START", "OK", MSG_INFO);
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -223,10 +218,6 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_guide", tmp_msg, "OK", MSG_INFO);
-
         //verify
         if(OpenRegFiletoMem(&guide_hks, file))
         {
@@ -239,7 +230,7 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
           CloseRegFiletoMem(&guide_hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
@@ -251,8 +242,6 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
     sqlite3_exec(db_scan, "SELECT hk,key,search_key,value,value_type,data,test,OS,title_id,description_id FROM extract_guide_request;", callback_sqlite_guide_local, &fcri, NULL);
   }
 
-  AddDebugMessage("test_guide", "Scan guide  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

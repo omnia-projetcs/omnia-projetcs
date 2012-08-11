@@ -189,9 +189,6 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="version.h" />
-		<Unit filename="view\gui_view.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="0" line="0" />

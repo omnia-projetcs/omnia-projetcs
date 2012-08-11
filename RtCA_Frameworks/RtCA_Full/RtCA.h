@@ -25,9 +25,11 @@
 #define ICON_FILE_DWORD           106
 #define ICON_FILE_TXT             107
 #define ICON_FILE_UNKNOW          108
+
+#define MY_ACCEL                  200
 //******************************************************************************
 //debug mode dev test
-#define DEV_DEBUG_MODE              1
+//#define DEV_DEBUG_MODE              1
 //******************************************************************************
 #include <time.h>
 #include <stdio.h>
@@ -51,8 +53,6 @@
 #include "crypt/d3des.h"        //Crypto
 //---------------------------------------------------------------------------
 #define NB_MAX_THREAD           5 //thread nb
-HANDLE hsemaphore;
-
 PVOID OldValue_W64b;            //64bits OS
 //---------------------------------------------------------------------------
 char _SYSKEY[MAX_PATH];
@@ -93,6 +93,12 @@ char _SYSKEY[MAX_PATH];
 //------------------------------------------------------------------------------
 #define DLG_MAIN                 1000
 #define LV_INFO                  1001
+#define TOOL_BAR                 1002
+
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv;
+HWND htrv_test, htrv_files;
+HINSTANCE hinst;
+HANDLE H_ImagList_icon;
 
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
@@ -102,7 +108,6 @@ char _SYSKEY[MAX_PATH];
 #define BT_START                 2005
 #define BT_EXPORT                2006
 #define TRV_FILES                2007
-#define ST_SESSION               2008
 #define CB_SESSION               2009
 
 #define BT_ACL_FILE_CHK          2012
@@ -112,17 +117,16 @@ char _SYSKEY[MAX_PATH];
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
-#define TRV_VIEW                 3002
+#define LV_BOX                   3002
 #define CB_VIEW                  3003
 #define ED_SEARCH                3004
 #define BT_SEARCH                3005
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
+#define IDM_NEW_SESSION         10001
 #define IDM_OPEN_FILE           10001
 #define IDM_OPEN_DIRECTORY      10002
 #define IDM_SAVE_ALL            10003
-#define IDM_ONGLET_CONF         10004
-#define IDM_ONGLET_VIEW         10005
 #define IDM_CHECK_ALL_TESTS     10006
 #define IDM_DEL_SESSION         10007
 #define IDM_DEL_ALL_SESSION     10008
@@ -135,7 +139,6 @@ char _SYSKEY[MAX_PATH];
 #define IDM_ABOUT               10015
 #define IDM_RTCA_HOME           10016
 #define IDM_DEBUG_LIST          10017
-#define IDM_SAVE_DEBUG          10018
 #define IDM_LOAD_SESSION_FILE   10019
 #define IDM_SAVE_SESSION_FILE   10020
 #define IDM_TOOLS_CP_HIBERNATE  10021
@@ -152,6 +155,12 @@ char _SYSKEY[MAX_PATH];
 #define POPUP_TRV_FILES_OPEN_PATH             11005
 #define POPUP_TRV_FILES_AUTO_SEARCH           11006
 #define POPUP_TRV_FILES_SAVE_LIST             11007
+#define POPUP_TRV_FILES_UP                    11008
+#define POPUP_TRV_FILES_DOWN                  11009
+
+#define POPUP_TRV_TEST                        11100
+#define POPUP_TRV_CHECK_ALL                   11101
+#define POPUP_TRV_UNCHECK_ALL                 11102
 
 #define POPUP_EXPORT                          12000
 #define POPUP_E_CSV                           12001
@@ -163,6 +172,7 @@ char _SYSKEY[MAX_PATH];
 #define POPUP_S_SELECTION                     13002
 #define POPUP_O_PATH                          13003
 #define POPUP_A_SEARCH                        13004
+#define POPUP_COPY_TO_CLIPBORD                    5
 
 #define POPUP_I_00                            13010
 #define POPUP_I_01                            13011
@@ -196,7 +206,6 @@ char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 #define SAVE_TYPE_TXT                             4
 
 unsigned int stat_export_column;
-unsigned int nb_stat_export_column;
 HANDLE MyhFile_export,h_Export;
 unsigned int export_type;
 unsigned int current_lang_id;
@@ -204,15 +213,8 @@ DWORD line;
 BOOL ExportStart;
 char current_test_export_path[MAX_PATH];
 //------------------------------------------------------------------------------
-//column count
-#define NB_COLUMN_DEBUG                           5
-//------------------------------------------------------------------------------
 //general config
-HWND h_main, h_conf, h_view;
-WNDPROC TRV_SousClassement, LST_SousClassement;
-
-//critical section for use DEBUG!
-CRITICAL_SECTION Sync;
+HWND h_main, h_conf;
 
 //tests
 #define NB_MAX_TESTS                            256
@@ -220,18 +222,18 @@ CRITICAL_SECTION Sync;
 
 #define TEST_FILES                                0
 #define TEST_LOGS                                 1
-#define TEST_REG_NETWORK                          5
+#define TEST_REG_NETWORK                          8
 
-#define TEST_ANDROID                             10
-#define TEST_CHROME                              11
-#define TEST_IE                                  12
-#define TEST_FIREFOX                             13
+#define TEST_REG_START                           13
+#define TEST_REG_END                             24
 
-#define TEST_REG_START                           14
-#define TEST_REG_END                             25
+#define TEST_REG_ANTIVIRUS                       25
+#define TEST_REG_FIREWALL                        26
 
-#define TEST_REG_ANTIVIRUS                       29
-#define TEST_REG_FIREWALL                        30
+#define TEST_FIREFOX                             27
+#define TEST_CHROME                              28
+#define TEST_IE                                  29
+#define TEST_ANDROID                             30
 
 unsigned int NB_TESTS, nb_current_test;
 HTREEITEM H_tests[NB_MAX_TESTS];          //list of tests
@@ -240,8 +242,6 @@ typedef struct
 {
   char s[DEFAULT_TMP_SIZE];
 }FORMAT_TESTS_STRING;
-FORMAT_TESTS_STRING S_tests[NB_MAX_TESTS];// list of name of all threads
-
 FORMAT_TESTS_STRING S_tests_XML_header[NB_MAX_ITEMS_HEADERS_XML];
 
 #define NB_MX_TYPE_FILES_TITLE      4
@@ -254,7 +254,6 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 //------------------------------------------------------------------------------
 //parameters
 BOOL CONSOL_ONLY;
-BOOL DEBUG_VIEW;
 
 BOOL DEBUG_MODE;
 BOOL DEBUG_CMD_MODE;
@@ -262,7 +261,6 @@ BOOL STAY_ON_TOP;
 BOOL FILE_ACL;
 BOOL FILE_ADS;
 BOOL FILE_SHA;
-BOOL REGISTRY_RECOVERY;
 
 BOOL LOCAL_SCAN;
 //------------------------------------------------------------------------------
@@ -272,12 +270,8 @@ HANDLE h_AUTOSEARCH;
 
 //scan
 BOOL start_scan;
-BOOL scan_in_stop_state;
 HANDLE h_thread_scan;
 sqlite3 *db_scan;
-
-//gui view
-BOOL VIEW_RESULTS_DBL;    //for see trv+lstv
 //------------------------------------------------------------------------------
 //process
 #define SIZE_ITEMS_PORT_MAX        20
@@ -306,8 +300,8 @@ typedef struct
 }LINE_ITEM;
 //------------------------------------------------------------------------------
 //for sort in lstv
-BOOL TRI_DEBUG_VIEW;
 BOOL TRI_RESULT_VIEW;
+int column_tri;
 
 typedef struct SORT_ST
 {
@@ -317,7 +311,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         19
+#define NB_COMPONENT_STRING         38
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define REF_MSG                     8
@@ -333,6 +327,29 @@ typedef struct SORT_ST
 #define TXT_POPUP_CLIPBORAD         17
 #define TXT_POPUP_A_SEARCH          18
 
+#define TXT_FILE_AUDIT              19
+#define TXT_FILE_REP                20
+#define TXT_FILE_REGISTRY           21
+#define TXT_FILE_APPLI              22
+
+#define TXT_CHECK_ACL               23
+#define TXT_CHECK_SHA               24
+#define TXT_CHECK_ADS               25
+
+#define TXT_POPUP_CHECK_ALL         26
+#define TXT_POPUP_UNCHECK_ALL       27
+
+#define TXT_POPUP_ADD_FILE          28
+#define TXT_POPUP_ADD_PATH          29
+#define TXT_POPUP_UP                30
+#define TXT_POPUP_DOWN              31
+#define TXT_POPUP_REMOVE_ITEMS      32
+#define TXT_POPUP_CLEAN_ALL         33
+#define TXT_POPUP_OPEN_PATH         34
+#define TXT_POPUP_AUTO_SEARCH       35
+#define TXT_POPUP_SAVE_LIST         36
+#define TXT_POPUP_AUTO_SEARCH_STOP  37
+
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
@@ -346,6 +363,7 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 #define TYPE_VALUE_DWORD            1
 #define TYPE_VALUE_MULTI_STRING     2
 #define TYPE_VALUE_WSTRING          3
+#define TYPE_VALUE_FILETIME         4
 
 #define TYPE_VALUE_WIN_SERIAL       100
 #define TYPE_ENUM_STRING_VALUE      200   //all string
@@ -440,22 +458,24 @@ FORMAT_FILE_CMD file_cmd[NB_MAX_ITEM_CMD], path_cmd[NB_MAX_ITEM_CMD];
 #define MODE_SQL_LITE               1
 #define MODE_SQL_LOGS               2
 
-#define REQUEST_MAX_SIZE            MAX_LINE_SIZE
+#define REQUEST_MAX_SIZE           MAX_LINE_SIZE
+#define NB_MAX_COLUMNS             32
+#define NB_MAX_ST_COLUMS           32
 typedef struct
 {
-  int mode_simple;
+  unsigned int mode_simple;
   unsigned int nb_columns;
   char request[REQUEST_MAX_SIZE];
-  unsigned int type;
 }ST_COLUMS;
 
-ST_COLUMS *columns_params;
-unsigned int nb_current_columns, nb_columns_items;
+ST_COLUMS st_columns; // use for export datas
+unsigned int nb_current_columns;
+int current_item_selected;
 
 //sessions
-#define NB_MAX_SESSION              MAX_LINE_SIZE
-unsigned int current_session_id;
-unsigned int nb_session, session[NB_MAX_SESSION];
+#define NB_MAX_SESSION             MAX_LINE_SIZE
+unsigned long int current_session_id;
+unsigned long int nb_session, session[NB_MAX_SESSION];
 
 DWORD pos_search;
 //------------------------------------------------------------------------------
@@ -467,9 +487,10 @@ BOOL SQLITE_WriteData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
 BOOL SQLITE_LoadSession(char *file);
 BOOL SQLITE_SaveSession(char *file);
 void addLogtoDB(char *eventname, char *indx, char *log_id,
-                  char *send_date, char *write_date,
-                  char *source, char *description, char *user, char *rid, char *sid,
-                  char *state, char *critical, unsigned int session_id, sqlite3 *db);
+                char *send_date, char *write_date,
+                char *source, char *description, char *user, char *rid, char *sid,
+                char *state, char *critical, unsigned int session_id, sqlite3 *db);
+void GetColumnInfo(unsigned int id);
 
 //save function
 BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
@@ -488,6 +509,7 @@ BOOL startWith(char* txt, char *search);
 char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size);
 char *timeToString(DWORD time, char *str, unsigned int string_size);
 char *convertUTF8toUTF16(char *src, DWORD max_size);
+void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 char *charToLowChar(char *src);
 char *DataToHexaChar(char *data, unsigned int data_size, char *hexa_char, unsigned int hexa_char_size);
 char *extractExtFromFile(char *file, char *ext, unsigned int ext_size_max);
@@ -497,8 +519,9 @@ BOOL isDirectory(char *path);
 //init functions
 void InitSQLStrings();
 void InitString();
+void InitGlobalLangueString(unsigned int langue_id);
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan);
-void InitGUIConfig(HANDLE hwnd);
+DWORD WINAPI InitGUIConfig(LPVOID lParam);
 void EndGUIConfig(HANDLE hwnd);
 
 //cmd function
@@ -507,6 +530,7 @@ void AddNewSession(BOOL local_only, sqlite3 *db);
 
 //gui interfaces
 void redimColumn(HANDLE f,int lv,int column,unsigned int col_size);
+void redimColumnH(HANDLE hlv,int column,unsigned int col_size);
 void Modify_Style(HANDLE hcomp, long style, BOOL add);
 void AddComboBoxItem(HANDLE hcombo, char *txt, DWORD img);
 void FileToTreeView(char *c_path);
@@ -514,27 +538,27 @@ void FileToTreeView(char *c_path);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 void c_Tri(HANDLE hlv, unsigned short colonne_ref, BOOL sort);
 void AddtoLV(HANDLE hlv, unsigned int nb_column, LINE_ITEM *item, BOOL select);
+DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start);
+void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search);
 
-void SupDoublon(HANDLE hf,DWORD trv,HTREEITEM htreeParent);
-void check_childs_treeview(HANDLE Htree, int state);
-void check_treeview(HANDLE Htree, HTREEITEM hitem, int state);
-BOOL Ischeck_treeview(HANDLE Htree, HTREEITEM hitem);
+void SupDoublon(HANDLE htrv,HTREEITEM htreeParent);
+void check_childs_treeview(HANDLE htrv, BOOL check);
+void check_treeview(HANDLE htrv, HTREEITEM hitem, int state);
+BOOL Ischeck_treeview(HANDLE htrv, HTREEITEM hitem);
 HTREEITEM AddItemTreeView(HANDLE Htreeview,char *txt, HTREEITEM hparent);
+void GetItemTreeView(HTREEITEM hitem,HANDLE htrv,char *txt, unsigned int size);
 
 //file function
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size);
 void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size);
-void CleanTreeViewFileView();
-void CleanTreeViewFiles();
+void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 
 //gui global functions
 char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max);
-void RefreshSizeForm(HWND hwnd, unsigned int mWidth, unsigned int mHeight);
-void Global_WM_COMMAND_wParam(WPARAM wParam, LPARAM lParam);
-void AddDebugMessage(char *src, char *description, char *state, char*level);
+void IDM_STAY_ON_TOP_fct(HANDLE hm);
 
 //registry functions
 HKEY hkStringtohkey(char *chkey);
@@ -545,6 +569,7 @@ long int ReadDwordValue(HKEY hk,char *path,char *value);
 void ReadFILETIMEValue(HKEY hk,char *path,char *value, FILETIME *ft);
 
 //registry function for raw files
+BOOL registry_users_extract();
 unsigned int ExtractTextFromPathNb(char *path);
 char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file);
@@ -560,16 +585,16 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
 BOOL Readnk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
                   char *read_value, char *data, unsigned int data_size);
 DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
-                         char *read_value, char *data, unsigned int *data_size);
+                         char *read_value, void *data, DWORD *data_size);
 BOOL Readnk_Class(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
                   char *Class, unsigned int Class_size);
 BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
                   char *last_update, unsigned int last_update_size, char *rid, unsigned int rid_size,char *sid, unsigned int sid_size);
-DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, unsigned int data_size);
+DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD data_size);
 
-DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, unsigned int *data_size);
+DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD *data_size);
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
-                         unsigned int index, char *value, unsigned int value_size, char *data, unsigned int *data_size);
+                         unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);
 
 //log functions
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id);
@@ -581,9 +606,7 @@ LRESULT CALLBACK TRV_proc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK LST_proc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //GUI functions
-BOOL CALLBACK DialogProc_main(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
-BOOL CALLBACK DialogProc_view(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Scan function
 DWORD WINAPI Scan_files(LPVOID lParam);

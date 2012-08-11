@@ -13,27 +13,24 @@ void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,
            "INSERT INTO extract_registry_account_password (source,login,password,raw_password,description_id,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d,%d);",
            source,login,password,raw_password,description_id,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_password", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 void vncpwd(unsigned char *pwd, int bytelen)
 {     // if bytelen is 0 it's a hex string
-  int     len,
-          tmp;
-  unsigned char  fixedkey[8] = { 23,82,107,6,35,78,88,7 },
-          *p,
-          *o;
+  int len, tmp;
+  unsigned char  fixedkey[8] = { 23,82,107,6,35,78,88,7 }, *p, *o;
 
   if(bytelen)
   {
-      o = pwd + bytelen;
-  } else {
-      for(p = o = pwd; *p; p += 2, o++)
-      {
-          sscanf(p, "%02x", &tmp);
-          *o = tmp;
-      }
+    o = pwd + bytelen;
+  }else
+  {
+    for(p = o = pwd; *p; p += 2, o++)
+    {
+      sscanf(p, "%02x", &tmp);
+      *o = tmp;
+    }
   }
 
   len = o - pwd;
@@ -182,15 +179,11 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_password", "Scan registry passwords - START", "OK", MSG_INFO);
-
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   HK_F_OPEN hks;
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -199,10 +192,6 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_password", tmp_msg, "OK", MSG_INFO);
-
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
@@ -211,12 +200,10 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
           CloseRegFiletoMem(&hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else Scan_registry_password_local(db,session_id);
 
-  AddDebugMessage("test_registry_password", "Scan registry passwords  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

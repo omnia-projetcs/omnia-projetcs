@@ -343,21 +343,21 @@ BOOL registry_users_extract()
 
                   //application des données
                   TraiterUserDataFromSAM_F(lv_line);
-                 /* ListView_SetItemText(hlv,l,6,lv_line[6].c);
+                  ListView_SetItemText(hlv,l,6,lv_line[6].c);
                   ListView_SetItemText(hlv,l,7,lv_line[7].c);
                   ListView_SetItemText(hlv,l,8,lv_line[8].c);
-                  ListView_SetItemText(hlv,l,9,lv_line[9].c);*//*
+                  ListView_SetItemText(hlv,l,9,lv_line[9].c);
                 }
 
                 //StateHC(lv_line, 6, user);
 
                 //ajouter dans l'historique
-                /*AddToLV_Registry2(lv_line[6].c, user, "Users & groups", tmp_add);
+                AddToLV_Registry2(lv_line[6].c, user, "Users & groups", tmp_add);
                 AddToLV_RegistryCritical(lv_line[6].c, user, "Users & groups", tmp_add);
 
                 snprintf(tmp_add,MAX_PATH,"Last password change : %s,%s",lv_line[2].c,lv_line[4].c);
                 AddToLV_Registry2(lv_line[7].c, user, "Users & groups", tmp_add);
-                AddToLV_RegistryCritical(lv_line[7].c, user, "Users & groups", tmp_add);*//*
+                AddToLV_RegistryCritical(lv_line[7].c, user, "Users & groups", tmp_add);
               }
             }
           }

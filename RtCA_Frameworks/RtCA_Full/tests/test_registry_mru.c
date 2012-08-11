@@ -13,7 +13,6 @@ void addRegistryMRUtoDB(char *file, char *hk, char *key, char*value, char *data,
            "INSERT INTO extract_registry_mru (file,hk,key,value,data,description_id,user,rid,sid,parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,value,data,description_id,user,RID,SID,parent_key_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_settings", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -489,16 +488,12 @@ DWORD WINAPI Scan_registry_mru(LPVOID lParam)
 {
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_mru", "Scan registry MRU  - START", "OK", MSG_INFO);
-
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = SQLITE_REGISTRY_TYPE_MRU;
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -507,10 +502,6 @@ DWORD WINAPI Scan_registry_mru(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_mru", tmp_msg, "OK", MSG_INFO);
-
         //open file + verify
         if(OpenRegFiletoMem(&hks_mru, file))
         {
@@ -519,15 +510,13 @@ DWORD WINAPI Scan_registry_mru(LPVOID lParam)
           CloseRegFiletoMem(&hks_mru);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
     sqlite3_exec(db, "SELECT hkey,key,value,value_type,type_id,description_id FROM extract_registry_mru_request;", callback_sqlite_registry_mru_local, &fcri, NULL);
   }
 
-  AddDebugMessage("test_registry_mru", "Scan registry MRU  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

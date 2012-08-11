@@ -14,8 +14,6 @@ void addAndroidtoDB(char *file, char *parameter, char *data, char *date, DWORD i
            "INSERT INTO extract_android (file,parameter,data,date,id_language_description,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            file,parameter,data,date,id_language_description,session_id);
-
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_android", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -55,13 +53,10 @@ int callback_sqlite_android(void *datas, int argc, char **argv, char **azColName
 DWORD WINAPI Scan_android_history(LPVOID lParam)
 {
   FORMAT_CALBAK_READ_INFO data;
-  char tmp_msg[MAX_PATH];
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   sqlite3 *db_tmp;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_android", "Scan Android history - START", "OK", MSG_INFO);
 
   while(hitem!=NULL)
   {
@@ -75,14 +70,10 @@ DWORD WINAPI Scan_android_history(LPVOID lParam)
         sqlite3_exec(db_tmp, sql_ANDROID[data.type].sql, callback_sqlite_android, &data, NULL);
       }
       sqlite3_close(db_tmp);
-      snprintf(tmp_msg,MAX_PATH,"Scan Android file : %s",tmp_file_android);
-      AddDebugMessage("test_android", tmp_msg, "OK", MSG_INFO);
     }
-    hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+    hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
   }
 
-  AddDebugMessage("test_android", "Scan Android history - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem((HWND)h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

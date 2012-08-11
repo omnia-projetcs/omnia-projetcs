@@ -6,6 +6,72 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
+//init strings + tests name + menu
+//------------------------------------------------------------------------------
+void InitGlobalLangueString(unsigned int langue_id)
+{
+  current_lang_id = langue_id;
+
+  //get global GUI and message strings
+  FORMAT_CALBAK_READ_INFO fcri;
+  fcri.type = TYPE_SQLITE_FLAG_LANG_INIT_STRINGS;
+  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+  if (CONSOL_ONLY == FALSE)
+  {
+    //update menu
+    FORMAT_CALBAK_READ_INFO fcri;
+    fcri.type = TYPE_SQLITE_FLAG_LANGUAGE_CHANGE;
+    SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+    if (current_item_selected > -1)
+    {
+      fcri.type = TYPE_SQLITE_FLAG_LANGUAGE_COL_CHANGE;
+      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+    }
+
+    //update list of tests
+    SendMessage(hlstbox, LB_RESETCONTENT,0,0);
+    fcri.type = TYPE_SQLITE_FLAG_TESTS_INIT;
+    SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+    //update Windows
+    ShowWindow(h_main, SW_HIDE);
+    ShowWindow(h_main, SW_SHOW);
+
+    //select item ! + force use of gui message
+    if (current_item_selected > -1)
+    {
+      SendMessage(hlstbox, LB_SETCURSEL, current_item_selected, 0);
+      TRI_RESULT_VIEW       = FALSE;
+      column_tri            = -1;
+      pos_search            = 0;
+
+      FORMAT_CALBAK_READ_INFO fcri;
+
+      //get column count
+      fcri.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
+      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+      //get column + text
+      fcri.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
+      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+      //get items infos + items
+      ListView_DeleteAllItems(hlstv);
+      fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
+      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+
+      char tmp_infos[DEFAULT_TMP_SIZE];
+      snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
+      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos);
+    }
+
+  }
+}
+//------------------------------------------------------------------------------
+//init string for Internet
+//------------------------------------------------------------------------------
 void InitSQLStrings()
 {
   //db for ANDROID, FIREFOX,CHROME
@@ -24,14 +90,6 @@ void InitSQLStrings()
   SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
 }
 //------------------------------------------------------------------------------
-//load strings for internals components
-void InitString()
-{
-  FORMAT_CALBAK_READ_INFO fcri;
-  fcri.type = TYPE_SQLITE_FLAG_LANG_INIT_STRINGS;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
-}
-//------------------------------------------------------------------------------
 //hide DOS form
 //------------------------------------------------------------------------------
 void hideDOSForm()
@@ -39,7 +97,6 @@ void hideDOSForm()
 char pszOldWindowTitle[MAX_PATH];
 GetConsoleTitle(pszOldWindowTitle, MAX_PATH);
 ShowWindow(FindWindow(NULL, pszOldWindowTitle), SW_HIDE);
-AddDebugMessage("init", "Hide DOS console", "OK", MSG_INFO);
 }
 //------------------------------------------------------------------------------
 //init start configuration
@@ -47,46 +104,63 @@ AddDebugMessage("init", "Hide DOS console", "OK", MSG_INFO);
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan)
 {
   //init globals var
-  DEBUG_VIEW        = FALSE;
-  STAY_ON_TOP       = FALSE;
+  current_lang_id       = 1;
+  current_session_id    = 0;
+  current_item_selected = -1;
 
-  DEBUG_MODE        = debug;
-  FILE_ACL          = acl;
-  FILE_ADS          = ads;
-  FILE_SHA          = sha;
-  REGISTRY_RECOVERY = recovery;
+  STAY_ON_TOP           = FALSE;
 
-  LOCAL_SCAN        = local_scan;
-  start_scan        = FALSE;
-  scan_in_stop_state= FALSE;
-  export_type       = 0;
+  DEBUG_MODE            = debug;
+  FILE_ACL              = acl;
+  FILE_ADS              = ads;
+  FILE_SHA              = sha;
+  LOCAL_SCAN            = local_scan;
 
-  _SYSKEY[0]        = 0;  //global syskey for decrypt hash of users
+  start_scan            = FALSE;
+  export_type           = 0;
+  _SYSKEY[0]            = 0;  //global syskey for decrypt hash of users
 
   //load data for db
-  current_session_id= 0;
   InitSQLStrings();
+  InitGlobalLangueString(current_lang_id);
+  current_session_id = session[0];
 
   SetDebugPrivilege(TRUE);
 
   //init if 64b
   OldValue_W64b = FALSE;
   ReviewWOW64Redirect(OldValue_W64b);
-
-  AddDebugMessage("init", "Global init config", "OK", MSG_INFO);
 }
 //------------------------------------------------------------------------------
 //init GUI configuration
 //------------------------------------------------------------------------------
-void InitGUIConfig(HANDLE hwnd)
+DWORD WINAPI InitGUIConfig(LPVOID lParam)
 {
-  InitializeCriticalSection(&Sync);
-
   //hidden DOS form
   #ifndef DEV_DEBUG_MODE
     hideDOSForm();
   #endif
 
+  //for cross compilation bug in 64bit
+  #ifndef GWL_WNDPROC
+    #define GWL_WNDPROC (-4)
+  #endif
+
+  //global init
+  B_AUTOSEARCH      = FALSE;
+  h_AUTOSEARCH      = NULL;
+  ExportStart       = FALSE;
+  DEBUG_CMD_MODE    = FALSE;
+  TRI_RESULT_VIEW   = FALSE;
+  column_tri        = -1;
+  //NB_TESTS          = 0;
+  pos_search        = 0;
+  current_OS[0]     = 0;
+  current_OS_BE_64b = FALSE;
+  nb_current_columns= 0;
+  current_lang_id   = 1;
+
+  //open sqlite file
   if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
   {
     //if tmp sqlite file exist free !!
@@ -95,138 +169,40 @@ void InitGUIConfig(HANDLE hwnd)
       DeleteFile(DEFAULT_TM_SQLITE_FILE);
     }
 
-    if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
-    {
-      AddDebugMessage("init", "Error to open sqlite file !", "NOK", MSG_ERROR);
-    }
+    sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan);
   }
 
-  //init for LSTV components
-  InitCommonControls();
-
-  //load string for internals components
-  InitString();
-
-  //GUI DLG HANDLE
-  h_main  = hwnd; SetWindowText(hwnd,NOM_FULL_APPLI);
-  h_conf  = CreateDialog(0, MAKEINTRESOURCE(DLG_CONF) ,hwnd,DialogProc_conf);
-  h_view  = CreateDialog(0, MAKEINTRESOURCE(DLG_VIEW) ,hwnd,DialogProc_view);
-
-  //global init
-  B_AUTOSEARCH      = FALSE;
-  h_AUTOSEARCH      = NULL;
-  ExportStart       = FALSE;
-  DEBUG_CMD_MODE    = FALSE;
-  pos_search        = 0;
-  current_OS[0]     = 0;
-  current_OS_BE_64b = FALSE;
-
-  //init default view
-  VIEW_RESULTS_DBL  = FALSE;
-  TRI_DEBUG_VIEW    = FALSE;
-  TRI_RESULT_VIEW   = FALSE;
-
-  nb_current_columns= 0;
-  ShowWindow(GetDlgItem(h_view,TRV_VIEW), SW_HIDE);
-
-  //icon
-  SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(ICON_APP)));
-
-  //init view forms
-  ShowWindow(GetDlgItem(hwnd,LV_INFO), SW_HIDE);
-  ShowWindow(h_conf, SW_SHOW);
-  RECT Rect;
-  GetWindowRect(hwnd, &Rect);
-  MoveWindow(hwnd,Rect.left,Rect.top,584+20,524+64,TRUE);
-
-  //création de la liste d'image
-  HANDLE htmp = GetDlgItem(h_conf,CB_LANG);
+  //Init language cb
   HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_LANGUAGE_EN)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_LANGUAGE_FR)));
+  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_EN)));
+  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_FR)));
   ImageList_SetBkColor(H_ImagList, GetSysColor(COLOR_WINDOW));
 
   //init la combo box des langues
-  SendMessage(htmp,CBEM_SETIMAGELIST,0,(LPARAM)H_ImagList);
+  SendMessage(hCombo_lang,CBEM_SETIMAGELIST,0,(LPARAM)H_ImagList);
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = TYPE_SQLITE_FLAG_LANG_INIT;
   SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
-  SendMessage(htmp, CB_SETCURSEL,0,0);          //default select English
-
-  //init default view for all application
-  htmp = GetDlgItem(h_view,TRV_VIEW);
-  H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/6, 0);
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FOLDER)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE_BIN)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE_DWORD)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE_TXT)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE_UNKNOW)));
-  ImageList_SetBkColor(H_ImagList, GetSysColor(COLOR_WINDOW));
-  SendMessage(htmp,CBEM_SETIMAGELIST,0,(LPARAM)H_ImagList);
+  SendMessage(hCombo_lang, CB_SETCURSEL,0,0);//default select English
 
   //add extended style to listview
-  LVCOLUMN lvc;
-  lvc.mask = LVCF_TEXT|LVCF_WIDTH|LVCF_FMT;
-  lvc.fmt = LVCFMT_LEFT;
-  lvc.cx = 100;       //taille colonne
-  lvc.pszText = "Date"; //texte de la colonne
-  SendDlgItemMessage(h_main,LV_INFO,LVM_INSERTCOLUMN,(WPARAM)0, (LPARAM)&lvc);
-  lvc.cx = 100;       //taille colonne
-  lvc.pszText = "Source"; //texte de la colonne
-  SendDlgItemMessage(h_main,LV_INFO,LVM_INSERTCOLUMN,(WPARAM)1, (LPARAM)&lvc);
-  lvc.cx = 240;       //taille colonne
-  lvc.pszText = "Description"; //texte de la colonne
-  SendDlgItemMessage(h_main,LV_INFO,LVM_INSERTCOLUMN,(WPARAM)2, (LPARAM)&lvc);
-  lvc.cx = 60;       //taille colonne
-  lvc.pszText = "State"; //texte de la colonne
-  SendDlgItemMessage(h_main,LV_INFO,LVM_INSERTCOLUMN,(WPARAM)3, (LPARAM)&lvc);
-  lvc.cx = 60;       //taille colonne
-  lvc.pszText = "Info"; //texte de la colonne
-  SendDlgItemMessage(h_main,LV_INFO,LVM_INSERTCOLUMN,(WPARAM)4, (LPARAM)&lvc);
-  SendDlgItemMessage(h_main,LV_INFO,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-  SendDlgItemMessage(h_view,LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-
-  //init lstv
-  Modify_Style(GetDlgItem(h_view,LV_VIEW), WS_SIZEBOX, FALSE);
-
-  //combox of choices + treeview
-  NB_TESTS  = 0;
-  fcri.type = TYPE_SQLITE_FLAG_TESTS_INIT;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
-  AddDebugMessage("init", "Load of all tests", "OK", MSG_INFO);
-
-  //init for number
-  nb_columns_items = SendDlgItemMessage(h_view,CB_VIEW,CB_GETCOUNT,(WPARAM)NULL, (LPARAM)NULL);
-  columns_params = malloc(sizeof(ST_COLUMS)*nb_columns_items);
-  fcri.type = TYPE_SQLITE_FLAG_COLUMN_COUNT_INIT;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
-  AddDebugMessage("init", "Load of all column count", "OK", MSG_INFO);
+  SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
 
   //list of sessions !!!
   nb_session = 0;
   fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
   SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
-  AddDebugMessage("init", "Load of all sessions", "OK", MSG_INFO);
-  SendDlgItemMessage(h_conf,CB_SESSION, CB_SETCURSEL,0,0);
+  SendMessage(hCombo_session, CB_SETCURSEL,0,0);
 
-  //list for files
-  CleanTreeViewFileView();
-
-  //for cross compilation bug in 64bit
-  #ifndef GWL_WNDPROC
-    #define GWL_WNDPROC (-4)
-  #endif
-
-  //subclassement for resize borders
-  TRV_SousClassement = (WNDPROC)SetWindowLong(GetDlgItem(h_view,TRV_VIEW), GWL_WNDPROC,(LONG)TRV_proc);
-  LST_SousClassement = (WNDPROC)SetWindowLong(GetDlgItem(h_main,LV_INFO), GWL_WNDPROC,(LONG)LST_proc);
-
-  //msg
-  AddDebugMessage("init", "GUI init config", "OK", MSG_INFO);
+  //icons for tests
+  H_ImagList_icon = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icon*/2, 0);
+  ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FOLDER)));
+  ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE)));
+  ImageList_SetBkColor(H_ImagList_icon, GetSysColor(COLOR_WINDOW));
 
   //all others datas
   InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
+  return 0;
 }
 //------------------------------------------------------------------------------
 //End of GUI
@@ -236,10 +212,6 @@ void EndGUIConfig(HANDLE hwnd)
   sqlite3_close(db_scan);
   ReviewWOW64Redirect(OldValue_W64b);
 
-  //clean memory for header of lstv
-  free(columns_params);
-  SetDebugPrivilege(FALSE);
-  DeleteCriticalSection(&Sync);
-  EndDialog(hwnd, 0);
+  CloseWindow(hwnd);
+  PostQuitMessage(0);
 }
-

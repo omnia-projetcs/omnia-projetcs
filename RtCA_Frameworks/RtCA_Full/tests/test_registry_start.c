@@ -16,7 +16,6 @@ void addRegistryStarttoDB(char *file, char *hk, char *key,
            "INSERT INTO extract_registry_start (file,hk,key,value,data,last_parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu);",
            file,hk,key,value,data,last_parent_key_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_start", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -173,15 +172,12 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
 {
   //init
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
 
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = SQLITE_REGISTRY_TYPE_RUN;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_start", "Scan registry start  - START", "OK", MSG_INFO);
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -190,9 +186,6 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_start", tmp_msg, "OK", MSG_INFO);
 
         //verify
         if(OpenRegFiletoMem(&local_start_hks, file))
@@ -201,7 +194,7 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
           CloseRegFiletoMem(&local_start_hks);
         }
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else
   {
@@ -213,8 +206,6 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
     //HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders : Startup
   }
 
-  AddDebugMessage("test_registry_start", "Scan registry start  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan);
   return 0;
 }

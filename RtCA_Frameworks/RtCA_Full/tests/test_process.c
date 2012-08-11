@@ -18,7 +18,6 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
            "rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_process", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -376,7 +375,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
 DWORD WINAPI Scan_process(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -385,9 +384,6 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
   HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS|TH32CS_SNAPTHREAD, 0);
   if (hCT==INVALID_HANDLE_VALUE)return 0;
-
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_process", "Scan process - START", "OK", MSG_INFO);
 
   DWORD cbNeeded, k, j, nb_process=0;
   HANDLE hProcess;
@@ -475,8 +471,6 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   EnumProcessAndThread(nb_process, process_infos,session_id,db);
 
   CloseHandle(hCT);
-  AddDebugMessage("test_process", "Scan process - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

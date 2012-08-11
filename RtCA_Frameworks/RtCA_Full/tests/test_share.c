@@ -13,22 +13,18 @@ void addSharetoDB(char *share, char *path, char *description, char *type, char *
            "INSERT INTO extract_share (share,path,description,type,connexion,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            share,path,description,type,connexion,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_share", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_share(LPVOID lParam)
 {
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
   HMODULE hDLL = LoadLibrary("NETAPI32.dll");
   if (hDLL == NULL)return 0;
-
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_share", "Scan share  - START", "OK", MSG_INFO);
 
   typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
   NETAPIBUFFERFREE NetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL,"NetApiBufferFree");
@@ -77,8 +73,6 @@ DWORD WINAPI Scan_share(LPVOID lParam)
     }while(res==ERROR_MORE_DATA);
   }
   FreeLibrary(hDLL);
-  AddDebugMessage("test_share", "Scan share  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

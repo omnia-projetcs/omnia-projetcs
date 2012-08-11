@@ -37,97 +37,62 @@ BEGIN
   END
 END
 //------------------------------------------------------------------------------
-//main dialogue
-//------------------------------------------------------------------------------
-DLG_MAIN DIALOGEX 6,6,403,282
-CAPTION NOM_APPLI
-FONT 8,"MS Sans Serif",0,0
-MENU MY_MENU
-STYLE 0x10CF0800
-EXSTYLE WS_EX_ACCEPTFILES
-BEGIN
-  CONTROL "",               LV_INFO           ,"SysListView32"  ,0x40850089,0,232,402,50,0x00000200
-END
-//------------------------------------------------------------------------------
 //configuration dialogue
 //------------------------------------------------------------------------------
-DLG_CONF DIALOGEX 0,24,389,237
+DLG_CONF DIALOGEX 0,24,458,297
+CAPTION NOM_APPLI
 FONT 8,"Arial",0,0
-STYLE 0x40080000
+STYLE   0x10C80800
+EXSTYLE 0x00000090
 BEGIN
-  CONTROL "",               CB_LANG           ,"ComboBoxEx32"   ,0x50010003,326,208,122,50
-  CONTROL "Settings",       GRP_CONF          ,"Button"         ,0x50000007,264,195,190,46
-  CONTROL "Language:",      ST_LANG           ,"Static"         ,0x50000000,270,210,54,9
-
-  CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK         ,"Button" ,0x50010003,270,230,174,9
-  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK         ,"Button" ,0x50010003,270,230,174,9
-  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK         ,"Button" ,0x50010003,270,230,174,9
-  CONTROL "Registry recovery mode",     BT_REGISTRY_RECOV_MODE  ,"Button" ,0x50010003,270,230,174,9
-
-  CONTROL "Session",        ST_SESSION        ,"Button"         ,0x50000007,270,250,40,9
-  CONTROL "",               CB_SESSION        ,"ComboBox"       ,0x50210003,315,250,120,153
-
-  CONTROL "",               TRV_TEST          ,"SysTreeView32"  ,0x50000101,264,1,190,192,0x00000200
-  CONTROL "Start",          BT_START          ,"Button"         ,0x50010000,264,306,92,20
-  CONTROL "Export",         BT_EXPORT         ,"Button"         ,0x50010000,358,306,96,20
-  CONTROL "",               TRV_FILES         ,"SysTreeView32"  ,0x50010007,2,1,260,325,0x00000200
-END
-//------------------------------------------------------------------------------
-//view dialogue
-//------------------------------------------------------------------------------
-DLG_VIEW DIALOGEX 0,24,389,237
-FONT 8,"Arial",0,0
-STYLE 0x40080000
-BEGIN
-  CONTROL "",               LV_VIEW           ,"SysListView32"  ,0x40850089,206,18,222,284,0x00000200
-  CONTROL "",               TRV_VIEW          ,"SysTreeView32"  ,0x40050107,2,18,202,284,0x00000200
-  CONTROL "",               CB_VIEW           ,"ComboBox"       ,0x50210003,2,1,120,153
-  CONTROL "",               ED_SEARCH         ,"Edit"           ,0x50010080,124,1,220,15,0x00000200
-  CONTROL "Search",         BT_SEARCH         ,"Button"         ,0x50010000,346,1,82,15
+  CONTROL "",                           TRV_FILES         ,"SysTreeView32"  ,0x50010007,2,1,260,293,0x00000200
+  CONTROL "",                           TRV_TEST          ,"SysTreeView32"  ,0x50000101,266,1,190,213,0x00000200
+  CONTROL "Settings",                   GRP_CONF          ,"Button"         ,0x50000007,266,217,190,43
+  CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK   ,"Button"         ,0x50010003,272,228,174,9
+  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003,272,238,174,9
+  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003,272,248,174,9
+  CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000,266,262,190,33
 END
 //------------------------------------------------------------------------------
 //main dialogue menu
+//------------------------------------------------------------------------------
+MY_ACCEL ACCELERATORS DISCARDABLE
+BEGIN
+  "s"                                     ,POPUP_E_CSV          , VIRTKEY, SHIFT, NOINVERT
+  "t"                                     ,IDM_STAY_ON_TOP      , VIRTKEY, ALT, NOINVERT
+  "c"                                     ,IDM_CHECK_ALL_TESTS  , VIRTKEY, ALT, NOINVERT
+  "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
+  "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
+  VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
+END
 //------------------------------------------------------------------------------
 MY_MENU MENU
 BEGIN
   POPUP "File"    //0
   BEGIN
-    MENUITEM "Open file"                  ,IDM_OPEN_FILE
-    MENUITEM "Open directory"             ,IDM_OPEN_DIRECTORY
+    MENUITEM "New session"                ,IDM_NEW_SESSION
+    MENUITEM SEPARATOR
+    MENUITEM "Delete current session"     ,IDM_DEL_SESSION
+    MENUITEM "Delete all sessions"        ,IDM_DEL_ALL_SESSION
     MENUITEM SEPARATOR
     MENUITEM "Merge to database"          ,IDM_LOAD_SESSION_FILE
     MENUITEM "Save database"              ,IDM_SAVE_SESSION_FILE
     MENUITEM SEPARATOR
-    MENUITEM "Save debug session"         ,IDM_SAVE_DEBUG
     POPUP    "Save all results"
     BEGIN
-      MENUITEM "*.csv"  ,POPUP_E_CSV
-      MENUITEM "*.html" ,POPUP_E_HTML
-      MENUITEM "*.xml"  ,POPUP_E_XML
+      MENUITEM "*.csv\tCtrl+s"            ,POPUP_E_CSV
+      MENUITEM "*.html"                   ,POPUP_E_HTML
+      MENUITEM "*.xml"                    ,POPUP_E_XML
     END
   END
-  POPUP "View"    //1
+  POPUP "Settings"  //1
   BEGIN
-    MENUITEM "Settings"                   ,IDM_ONGLET_CONF
-    MENUITEM "Results"                    ,IDM_ONGLET_VIEW
-    MENUITEM SEPARATOR
-    MENUITEM "Debug info"                 ,IDM_DEBUG_LIST
+    MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
+   /* MENUITEM SEPARATOR
+    MENUITEM "Check all tests\tAlt+c"     ,IDM_CHECK_ALL_TESTS
+    MENUITEM "Uncheck all tests\tAlt+u"   ,IDM_UNCHECK_ALL_TESTS*/
   END
-  POPUP "Sessions"  //2
-  BEGIN
-    MENUITEM "Delete current session"     ,IDM_DEL_SESSION
-    MENUITEM SEPARATOR
-    MENUITEM "Delete all sessions"        ,IDM_DEL_ALL_SESSION
-  END
-  POPUP "Option"    //3
-  BEGIN
-    MENUITEM "Stay on top"                ,IDM_STAY_ON_TOP
-    MENUITEM "Enable Debug"               ,IDM_DEBUG_MODE//,CHECKED
-    MENUITEM SEPARATOR
-    MENUITEM "Check all tests"            ,IDM_CHECK_ALL_TESTS
-    MENUITEM "Uncheck all tests"          ,IDM_UNCHECK_ALL_TESTS
-  END
-  POPUP "Tools"     //4
+  POPUP "Tools"     //2
   BEGIN
     /*MENUITEM "Copy local registry files"  ,IDM_TOOLS_CP_REGISTRY
     MENUITEM "Copy local audit files"     ,IDM_TOOLS_CP_AUDIT
@@ -136,16 +101,15 @@ BEGIN
     MENUITEM SEPARATOR
     MENUITEM "Copy select file"           ,IDM_TOOLS_CP_SELECT*/
   END
-  POPUP "Help"      //5
+  POPUP "Help"      //3
   BEGIN
-    MENUITEM "Open RtCA home"             ,IDM_RTCA_HOME
+    MENUITEM "Open RtCA home\tAlt+h"     ,IDM_RTCA_HOME
     MENUITEM SEPARATOR
-    MENUITEM "About"                      ,IDM_ABOUT
+    MENUITEM "About\tF1"                 ,IDM_ABOUT
   END
 END
 //------------------------------------------------------------------------------
-//popup config menu
-//------------------------------------------------------------------------------
+//popup files menu
 //------------------------------------------------------------------------------
 POPUP_TRV_FILES MENU DISCARDABLE
 BEGIN
@@ -154,6 +118,8 @@ BEGIN
     MENUITEM "Add file"                   ,POPUP_TRV_FILES_ADD_FILE
     MENUITEM "Add path"                   ,POPUP_TRV_FILES_ADD_PATH
     MENUITEM SEPARATOR
+    MENUITEM "Item UP"                    ,POPUP_TRV_FILES_UP
+    MENUITEM "Item DOWN"                  ,POPUP_TRV_FILES_DOWN
     MENUITEM "Remove selected item"       ,POPUP_TRV_FILES_REMOVE_ITEMS
     MENUITEM "Clean all"                  ,POPUP_TRV_FILES_CLEAN_ALL
     MENUITEM SEPARATOR
@@ -163,16 +129,15 @@ BEGIN
   END
 END
 //------------------------------------------------------------------------------
-//save menu
+//popup test menu
 //------------------------------------------------------------------------------
-POPUP_EXPORT MENU DISCARDABLE
+POPUP_TRV_TEST MENU DISCARDABLE
 BEGIN
-  POPUP "Export"
-    BEGIN
-    MENUITEM "*.csv"  ,POPUP_E_CSV
-    MENUITEM "*.html" ,POPUP_E_HTML
-    MENUITEM "*.xml"  ,POPUP_E_XML
-    END
+  POPUP "POPUP_TRV_TEST"
+  BEGIN
+    MENUITEM "Check all"                  ,POPUP_TRV_CHECK_ALL
+    MENUITEM "Uncheck all"                ,POPUP_TRV_UNCHECK_ALL
+  END
 END
 //------------------------------------------------------------------------------
 //popup lstv

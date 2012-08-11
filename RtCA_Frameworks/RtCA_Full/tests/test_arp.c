@@ -13,14 +13,13 @@ void addARPtoDB(char *ip, char *mac, char *type, unsigned int session_id, sqlite
            "INSERT INTO extract_arp (ip,mac,type,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",%d);",
            ip,mac,type,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_arp", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_arp(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -29,9 +28,6 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
   //load route table);
   HMODULE hDLL = LoadLibrary( "IPHLPAPI.DLL" );
   if (!hDLL) return 0;
-
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_arp", "Scan ARP cache  - START", "OK", MSG_INFO);
 
   //declaration load function
   typedef DWORD (WINAPI *GETIPNETTABLE)(PMIB_IPNETTABLE pIpNetTable, PULONG pdwSize, BOOL bOrder);
@@ -84,9 +80,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
 
   //free
   FreeLibrary(hDLL);
-  AddDebugMessage("test_arp", "Scan ARP cache  - DONE", "OK", MSG_INFO);
 
-  check_treeview(GetDlgItem((HWND)h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

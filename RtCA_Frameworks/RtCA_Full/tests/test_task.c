@@ -13,21 +13,17 @@ void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, unsigned in
            "INSERT INTO extract_tache (id_ev,type,next_run,data,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            id_ev,type,data,next_run,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_task", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_task(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_task", "Scan tasks - START", "OK", MSG_INFO);
 
   HMODULE hDLL = LoadLibrary( "NETAPI32.dll");
   if (hDLL!=NULL)
@@ -91,9 +87,6 @@ DWORD WINAPI Scan_task(LPVOID lParam)
     }
     FreeLibrary(hDLL);
   }
-
-  AddDebugMessage("test_task", "Scan tasks  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   return 0;
 }

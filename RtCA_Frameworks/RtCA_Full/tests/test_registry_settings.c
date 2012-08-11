@@ -13,7 +13,6 @@ void addRegistrySettingstoDB(char *file, char *hk, char *key, char*value, char *
            "INSERT INTO extract_registry_settings (file,hk,key,value,data,type_id,description_id,parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,\"%s\",%d);",
            file,hk,key,value,data,type_id,description_id,parent_key_update,session_id);
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_registry_settings", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -114,6 +113,18 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
             convertStringToSQL(tmp, MAX_PATH);
             addRegistrySettingstoDB("", argv[0], argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
           }
+        }
+        break;
+        case TYPE_VALUE_FILETIME:
+        {
+          char tmp[MAX_PATH]="";
+          FILETIME ft;
+          ReadFILETIMEValue(hk,argv[1],argv[2],&ft);
+          filetimeToString(ft, tmp, MAX_PATH);
+
+          char parent_key_update[DATE_SIZE_MAX];
+          ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
+          addRegistrySettingstoDB("", argv[0], argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
         }
         break;
         case TYPE_VALUE_WIN_SERIAL:
@@ -252,28 +263,28 @@ BOOL registry_syskey_local(char*sk, unsigned int sk_size)
   char cJD[SZ_PART_SYSKEY]="", cSkew1[SZ_PART_SYSKEY]="", cGBG[SZ_PART_SYSKEY]="", cData[SZ_PART_SYSKEY]="";
   DWORD size;
 
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\ControlSet001\\Control\\Lsa\\JD\\",&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa\\JD\\",&CleTmp)==ERROR_SUCCESS)
   {
     size = SZ_PART_SYSKEY;
-    if (RegQueryInfoKey(CleTmp, cJD, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return;
+    if (RegQueryInfoKey(CleTmp, cJD, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return FALSE;
     RegCloseKey(CleTmp);
   }else return FALSE;
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\ControlSet001\\Control\\Lsa\\Skew1\\",&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa\\Skew1\\",&CleTmp)==ERROR_SUCCESS)
   {
     size = SZ_PART_SYSKEY;
-    if (RegQueryInfoKey(CleTmp, cSkew1, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return;
+    if (RegQueryInfoKey(CleTmp, cSkew1, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return FALSE;
     RegCloseKey(CleTmp);
   }else return FALSE;
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\ControlSet001\\Control\\Lsa\\GBG\\",&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa\\GBG\\",&CleTmp)==ERROR_SUCCESS)
   {
     size = SZ_PART_SYSKEY;
-    if (RegQueryInfoKey(CleTmp, cGBG, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return;
+    if (RegQueryInfoKey(CleTmp, cGBG, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return FALSE;
     RegCloseKey(CleTmp);
   }else return FALSE;
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\ControlSet001\\Control\\Lsa\\Data\\",&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Lsa\\Data\\",&CleTmp)==ERROR_SUCCESS)
   {
     size = SZ_PART_SYSKEY;
-    if (RegQueryInfoKey(CleTmp, cData, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return;
+    if (RegQueryInfoKey(CleTmp, cData, &size, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL) != ERROR_SUCCESS)return FALSE;
     RegCloseKey(CleTmp);
   }else return FALSE;
 
@@ -291,7 +302,7 @@ void Scan_registry_setting_local(sqlite3 *db)
   char sk[MAX_PATH]="";
   if(registry_syskey_local(sk, MAX_PATH))
   {
-    addRegistrySettingstoDB("", "HKEY_LOCAL_MACHINE", "SYSTEM\\ControlSet001\\Control\\Lsa\\JD,Skew1,GBG,Data","", sk, "100", SYSKEY_STRING_DEF, "", current_session_id, db_scan);
+    addRegistrySettingstoDB("", "HKEY_LOCAL_MACHINE", "SYSTEM\\CurrentControlSet\\Control\\Lsa\\JD,Skew1,GBG,Data","", sk, "100", SYSKEY_STRING_DEF, "", current_session_id, db_scan);
   }
 }
 //------------------------------------------------------------------------------
@@ -326,6 +337,28 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
             addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
           }
         break;
+        case TYPE_VALUE_FILETIME:
+        {
+          DWORD data_size = sizeof(FILETIME)+1;
+          FILETIME f_date;
+          if (ReadBinarynk_Value(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+                           argv[1], NULL, argv[2], (void*)&f_date, &data_size))
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX];
+            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+                         argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
+
+            //convert date
+            tmp[0] = 0;
+            filetimeToString(f_date, tmp, DATE_SIZE_MAX);
+
+            //save
+            convertStringToSQL(tmp, MAX_LINE_SIZE);
+            addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
+          }
+        }
+        break;
         case TYPE_VALUE_WIN_SERIAL:
         {
           HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,argv[1]);
@@ -342,7 +375,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
             DWORD test_size = MAX_LINE_SIZE;
             DWORD serial_size;
             ReadBinarynk_Value(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
-                                                         NULL, nk_h, argv[2], tmp, &test_size);
+                                                         NULL, nk_h, argv[2], (void*)tmp, &test_size);
             if (test_size>65)
             {
               char result[MAX_PATH]="";
@@ -422,16 +455,12 @@ BOOL registry_syskey_file(HK_F_OPEN *hks, char*sk, unsigned int sk_size)
 
   if(Readnk_Class(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
                   "ControlSet001\\Control\\Lsa\\JD", NULL, cJD, SZ_PART_SYSKEY)==FALSE) return FALSE;
-  printf("cJD:%s\n",cJD);
   if(Readnk_Class(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
                   "ControlSet001\\Control\\Lsa\\Skew1", NULL, cSkew1, SZ_PART_SYSKEY)==FALSE) return FALSE;
-  printf("cSkew1:%s\n",cSkew1);
   if(Readnk_Class(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
                   "ControlSet001\\Control\\Lsa\\GBG", NULL, cGBG, SZ_PART_SYSKEY)==FALSE) return FALSE;
-  printf("cGBG:%s\n",cGBG);
   if(Readnk_Class(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
                   "ControlSet001\\Control\\Lsa\\Data", NULL, cData, SZ_PART_SYSKEY)==FALSE) return FALSE;
-  printf("cData:%s\n",cData);
   //traitement
   return SyskeyExtract(cJD, cSkew1, cGBG, cData, sk, sk_size);
 }
@@ -459,14 +488,11 @@ void Scan_registry_setting_file(sqlite3 *db, char *file)
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_registry_setting(LPVOID lParam)
 {
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_registry_settings", "Scan registry settings - START", "OK", MSG_INFO);
   //init
   char file[MAX_PATH];
-  char tmp_msg[MAX_PATH];
 
   //files or local
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
     while(hitem!=NULL)
@@ -475,19 +501,14 @@ DWORD WINAPI Scan_registry_setting(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-        //info
-        snprintf(tmp_msg,MAX_PATH,"Scan Registry file : %s",file);
-        AddDebugMessage("test_registry_settings", tmp_msg, "OK", MSG_INFO);
 
         //verify
         Scan_registry_setting_file(db_scan,file);
       }
-      hitem = (HTREEITEM)SendDlgItemMessage((HWND)h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }else Scan_registry_setting_local(db_scan); //local
 
-  AddDebugMessage("test_registry_settings", "Scan registry settings - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   return 0;
 }

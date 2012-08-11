@@ -20,6 +20,17 @@ void ReviewWOW64Redirect(PVOID OldValue_W64b)
   }
 }
 //------------------------------------------------------------------------------
+void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace)
+{
+  char *c = buffer;
+
+  while (c != buffer+taille)
+  {
+    if (*c == chtoreplace) *c = chreplace;
+    c++;
+  }
+}
+//------------------------------------------------------------------------------
 void replace_to_char(char *buffer, unsigned long int taille, char a)
 {
   char *c = buffer;
@@ -81,7 +92,7 @@ char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max)
   tvitem.mask = TVIF_TEXT;
   tvitem.pszText = txt;
   tvitem.cchTextMax = item_size_max;
-  SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETITEM,(WPARAM)0, (LPARAM)&tvitem);
+  SendMessage(htrv_files, TVM_GETITEM,(WPARAM)0, (LPARAM)&tvitem);
   return txt;
 }
 //------------------------------------------------------------------------------

@@ -14,7 +14,6 @@ void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_la
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            file,parameter,data,date,id_language_description,session_id);
 
-  if (!CONSOL_ONLY || DEBUG_CMD_MODE)AddDebugMessage("test_ie", request, "-", MSG_INFO);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -137,14 +136,12 @@ void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqli
 DWORD WINAPI Scan_ie_history(LPVOID lParam)
 {
   sqlite3 *db = (sqlite3 *)db_scan;
-  WaitForSingleObject(hsemaphore,INFINITE);
-  AddDebugMessage("test_ie", "Scan IE history  - START", "OK", MSG_INFO);
 
   char tmp_file[MAX_PATH];
   unsigned int session_id = current_session_id;
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL) //local
   {
     //get path of all profils users
@@ -181,7 +178,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
               HANDLE hfic = FindFirstFile(tmp_key_path, &wfd0);
               if (hfic != INVALID_HANDLE_VALUE)
               {
-                char tmp_path[MAX_PATH],tmp_path2[MAX_PATH], tmp_msg[MAX_PATH];
+                char tmp_path[MAX_PATH],tmp_path2[MAX_PATH];
                 do
                 {
                   if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -190,9 +187,6 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
 
                     snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
                     ReadDATFile(tmp_path, 15, session_id, db);
-                    snprintf(tmp_msg,MAX_PATH,"Scan local IE file : %s",tmp_path);
-                    AddDebugMessage("test_firefox", tmp_msg, "OK", MSG_INFO);
-
                     //get file and tests it
                     WIN32_FIND_DATA wfd1;
                     HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
@@ -205,8 +199,6 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
 
                         snprintf(tmp_path2,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\%s\\index.dat",tmp_key,wfd0.cFileName,wfd1.cFileName);
                         ReadDATFile(tmp_path2, 15, session_id, db);
-                        snprintf(tmp_msg,MAX_PATH,"Scan local IE file : %s",tmp_path2);
-                        AddDebugMessage("test_firefox", tmp_msg, "OK", MSG_INFO);
                       }
                     }while(FindNextFile (hfic,&wfd1) && start_scan);
                   }
@@ -226,11 +218,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
       GetTextFromTrv(hitem, tmp_file, MAX_PATH);
       ReadDATFile(tmp_file, 15, session_id, db);
 
-      hitem = (HTREEITEM)SendDlgItemMessage(h_conf,TRV_FILES, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
-  AddDebugMessage("test_ie", "Scan IE history  - DONE", "OK", MSG_INFO);
-  check_treeview(GetDlgItem(h_conf,TRV_TEST), H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  ReleaseSemaphore(hsemaphore,1,NULL);
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   return 0;
 }
