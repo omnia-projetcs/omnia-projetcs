@@ -115,6 +115,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case BT_SEARCH:
               {
                 char tmp[MAX_PATH];
+
+                //select lstv
+                SetFocus(hlstv);
                 SendMessage(he_search,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
                 pos_search = LVSearch(hlstv, nb_current_columns, tmp, pos_search);
               }
@@ -205,7 +208,13 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             //for change in combobox selection
             switch(LOWORD(wParam))
             {
-              case CB_LANG :      InitGlobalLangueString(SendMessage(hCombo_lang,CB_GETCURSEL,0,0)+1);break;
+              case CB_LANG :
+                InitGlobalLangueString(SendMessage(hCombo_lang,CB_GETCURSEL,0,0)+1);
+
+                //update tooltips
+                ModifyToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
+                ModifyToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
+              break;
               case CB_SESSION :
                 current_session_id = session[SendMessage(hCombo_session,CB_GETCURSEL,(WPARAM)0,(LPARAM)0)];
                 //get items infos + items
@@ -371,14 +380,14 @@ int main(int argc, char* argv[])
     HACCEL hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
   //forms
-    htoolbar = CreateWindowEx(WS_EX_CLIENTEDGE, TOOLBARCLASSNAME, NULL, WS_CHILD|WS_VISIBLE|WS_BORDER|TBSTYLE_FLAT, 0,0,0,0,h_main,0,hinst,NULL);
+    htoolbar = CreateWindowEx(WS_EX_CLIENTEDGE, TOOLBARCLASSNAME, NULL, WS_CHILD|WS_VISIBLE|WS_BORDER|TBSTYLE_FLAT|WS_TABSTOP, 0,0,0,0,h_main,0,hinst,NULL);
     TBADDBITMAP tbab;
     TBBUTTON    tbb[6];
 
     //init
     SendMessage(htoolbar, TB_BUTTONSTRUCTSIZE, (WPARAM)sizeof(TBBUTTON),0);
-    tbab.hInst = HINST_COMMCTRL;
-    tbab.nID = IDB_STD_SMALL_COLOR;
+    tbab.hInst        = HINST_COMMCTRL;
+    tbab.nID          = IDB_STD_SMALL_COLOR;
     SendMessage(htoolbar, TB_ADDBITMAP, 0,(LPARAM)&tbab);
 
     //set buttons
@@ -407,21 +416,21 @@ int main(int argc, char* argv[])
     //resize items
     TBBUTTONINFO tbinfo;
     ZeroMemory(&tbinfo, sizeof(TBBUTTONINFO));
-    tbinfo.cbSize = sizeof(TBBUTTONINFO);
-    tbinfo.dwMask = TBIF_SIZE;
-    tbinfo.cx     = 150;
+    tbinfo.cbSize     = sizeof(TBBUTTONINFO);
+    tbinfo.dwMask     = TBIF_SIZE;
+    tbinfo.cx         = 150;
     SendMessage(htoolbar, TB_SETBUTTONINFO, CB_LANG, (LPARAM)&tbinfo);
 
     ZeroMemory(&tbinfo, sizeof(TBBUTTONINFO));
-    tbinfo.cbSize = sizeof(TBBUTTONINFO);
-    tbinfo.dwMask = TBIF_SIZE;
-    tbinfo.cx     = 300;
+    tbinfo.cbSize     = sizeof(TBBUTTONINFO);
+    tbinfo.dwMask     = TBIF_SIZE;
+    tbinfo.cx         = 300;
     SendMessage(htoolbar, TB_SETBUTTONINFO, CB_SESSION, (LPARAM)&tbinfo);
 
     ZeroMemory(&tbinfo, sizeof(TBBUTTONINFO));
-    tbinfo.cbSize = sizeof(TBBUTTONINFO);
-    tbinfo.dwMask = TBIF_SIZE;
-    tbinfo.cx     = 270;
+    tbinfo.cbSize     = sizeof(TBBUTTONINFO);
+    tbinfo.dwMask     = TBIF_SIZE;
+    tbinfo.cx         = 270;
     SendMessage(htoolbar, TB_SETBUTTONINFO, ED_SEARCH, (LPARAM)&tbinfo);
 
     //add items
@@ -429,23 +438,26 @@ int main(int argc, char* argv[])
     InitCommonControls();
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, CB_LANG, 0), (LPARAM)&rect);
-    hCombo_lang = CreateWindowEx(0x00, WC_COMBOBOXEX, NULL,0x50010003,rect.left,rect.top+2,rect.right - rect.left,200,
-                                  htoolbar,(HMENU)CB_LANG, hinst, NULL);
+    hCombo_lang       = CreateWindowEx(0x00, WC_COMBOBOXEX, NULL,0x50010003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
+                                       htoolbar,(HMENU)CB_LANG, hinst, NULL);
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, CB_SESSION, 0), (LPARAM)&rect);
-    hCombo_session = CreateWindow("Combobox", NULL,0x50210003,rect.left,rect.top+2,rect.right - rect.left,200,
-                                  htoolbar,(HMENU)CB_SESSION, hinst, NULL);
+    hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
+                                     htoolbar,(HMENU)CB_SESSION, hinst, NULL);
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, ED_SEARCH, 0), (LPARAM)&rect);
-    he_search = CreateWindow("Edit", NULL,0x50810080,rect.left,rect.top+2,rect.right - rect.left,22,
-                                  htoolbar,(HMENU)ED_SEARCH, hinst, NULL);
+    he_search         = CreateWindow("Edit", NULL,0x50810080|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,22,
+                                     htoolbar,(HMENU)ED_SEARCH, hinst, NULL);
     //status bar
-    hstatus_bar = CreateWindow(STATUSCLASSNAME, NULL,0x50000000,0,0,0,40,
-                               h_main,NULL, hinst, NULL);
+    hstatus_bar       = CreateWindow(STATUSCLASSNAME, NULL,0x50000000,0,0,0,40, h_main,NULL, hinst, NULL);
     //listeview resultats
-    hlstv = CreateWindowEx(0x200,WC_LISTVIEW,NULL,LVS_REPORT|WS_VISIBLE|WS_CHILD,202,32,590,493,h_main,(HMENU)LV_VIEW, hinst, NULL);
+    hlstv             = CreateWindowEx(0x200,WC_LISTVIEW,NULL,LVS_REPORT|WS_VISIBLE|WS_CHILD,202,32,590,493,h_main,
+                                       (HMENU)LV_VIEW, hinst, NULL);
 
-    hlstbox = CreateWindowEx(0x200,WC_LISTBOX,NULL,0x50310141,0,32,200,493,h_main,(HMENU)LV_BOX, hinst, NULL);
+    hlstbox           = CreateWindowEx(0x200,WC_LISTBOX,NULL,0x50310141|WS_TABSTOP,0,32,200,493,h_main,(HMENU)LV_BOX, hinst, NULL);
+
+    htooltip          = CreateWindow(TOOLTIPS_CLASS, NULL, WS_POPUP|TTS_NOPREFIX|TTS_BALLOON|TTS_ALWAYSTIP,CW_USEDEFAULT,CW_USEDEFAULT,
+                                     CW_USEDEFAULT,CW_USEDEFAULT,h_main,NULL,hinst,NULL);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
 
@@ -482,10 +494,8 @@ int main(int argc, char* argv[])
     current_session_id  = 0;
     start_scan          = FALSE;
 
-    DEBUG_CMD_MODE      = TRUE;
     CONSOL_ONLY         = TRUE;
     LOCAL_SCAN          = TRUE;
-    DEBUG_MODE          = FALSE;
     FILE_ACL            = FALSE;
     FILE_ADS            = FALSE;
     FILE_SHA            = FALSE;
@@ -509,7 +519,7 @@ int main(int argc, char* argv[])
                    "\n"
                    "SYNOPSIS\n"
                    "\tRtCA.exe [-l|-L|-t]\n"
-                   "\t         [-d][-r][-0][-1][-2]\n"
+                   "\t         [-r][-0][-1][-2]\n"
                    "\t         [-f \"...\"]\n"
                    "\t         [-p \"...\"]\n"
                    "\t         [-a|-A|-s ...]\n"
@@ -523,7 +533,6 @@ int main(int argc, char* argv[])
                    "\t-L  List all languages or select it for export.\n\t    Exemple for english export (default): -L 1\n\n"
                    "\t-t  List all tests.\n\n"
                    "\n"
-                   "\t-d  Enable Debug mode.\n\n"
                    "\t-0  Enable ACL check in files test.\n\n"
                    "\t-1  Enable ADS check in files test.\n\n"
                    "\t-2  Enable SHA in files test.\n\n"
@@ -604,9 +613,6 @@ int main(int argc, char* argv[])
             snprintf(request,MAX_LINE_SIZE,"SELECT id_item,string FROM language_strings WHERE id_language=1 ORDER BY id_item;");
             sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
             system("PAUSE");
-          break;
-          case 'd'://enable mode debug
-            DEBUG_MODE = TRUE;
           break;
           case '0'://enable ACL for tests files
             FILE_ACL = TRUE;

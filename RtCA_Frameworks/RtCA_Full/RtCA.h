@@ -7,11 +7,16 @@
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
 
+#define TTM_SETTITLE	(WM_USER + 32)
+#define TTI_INFO	 1
+
 #define NOM_APPLI              "RtCA"
 #define URL_APPLI              "http://code.google.com/p/omnia-projetcs/"
 
 #define DEFAULT_SQLITE_FILE    "RtCA.sqlite"
 #define DEFAULT_TM_SQLITE_FILE "RtCA.sqlite-journal"
+
+#define DEFAULT_INI_FILE       "\\RtCA.ini"
 
 #define IDR_VERSION                 1
 
@@ -95,7 +100,7 @@ char _SYSKEY[MAX_PATH];
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv;
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip;
 HWND htrv_test, htrv_files;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
@@ -254,9 +259,6 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 //------------------------------------------------------------------------------
 //parameters
 BOOL CONSOL_ONLY;
-
-BOOL DEBUG_MODE;
-BOOL DEBUG_CMD_MODE;
 BOOL STAY_ON_TOP;
 BOOL FILE_ACL;
 BOOL FILE_ADS;
@@ -311,7 +313,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         38
+#define NB_COMPONENT_STRING         40
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define REF_MSG                     8
@@ -349,6 +351,9 @@ typedef struct SORT_ST
 #define TXT_POPUP_AUTO_SEARCH       35
 #define TXT_POPUP_SAVE_LIST         36
 #define TXT_POPUP_AUTO_SEARCH_STOP  37
+
+#define TXT_TOOLTIP_NEW_SESSION     38
+#define TXT_TOOLTIP_SEARCH          39
 
 typedef struct
 {
@@ -547,6 +552,11 @@ void check_treeview(HANDLE htrv, HTREEITEM hitem, int state);
 BOOL Ischeck_treeview(HANDLE htrv, HTREEITEM hitem);
 HTREEITEM AddItemTreeView(HANDLE Htreeview,char *txt, HTREEITEM hparent);
 void GetItemTreeView(HTREEITEM hitem,HANDLE htrv,char *txt, unsigned int size);
+char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max);
+
+void AddtoToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
+void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
+void IDM_STAY_ON_TOP_fct(HANDLE hm);
 
 //file function
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
@@ -555,10 +565,6 @@ void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size);
 void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
-
-//gui global functions
-char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max);
-void IDM_STAY_ON_TOP_fct(HANDLE hm);
 
 //registry functions
 HKEY hkStringtohkey(char *chkey);

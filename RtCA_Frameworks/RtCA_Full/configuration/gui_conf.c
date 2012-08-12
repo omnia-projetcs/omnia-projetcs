@@ -6,8 +6,6 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-//view form
-//------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch(message)
@@ -382,6 +380,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       CheckDlgButton(hwnd,BT_ACL_FILE_CHK,BST_CHECKED);
       CheckDlgButton(hwnd,BT_SHA_FILE_CHK,BST_CHECKED);
       CheckDlgButton(hwnd,BT_ADS_FILE_CHK,BST_CHECKED);
+
+      //add icon
+      SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(ICON_APP)));
 
       //add files owners
       htrv_files = GetDlgItem(hwnd,TRV_FILES);
