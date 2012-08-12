@@ -43,15 +43,15 @@ DLG_CONF DIALOGEX 0,24,458,297
 CAPTION NOM_APPLI
 FONT 8,"Arial",0,0
 STYLE   0x10C80800
-EXSTYLE 0x00000090
+EXSTYLE 0x00000010
 BEGIN
-  CONTROL "",                           TRV_FILES         ,"SysTreeView32"  ,0x50010007,2,1,260,293,0x00000200
-  CONTROL "",                           TRV_TEST          ,"SysTreeView32"  ,0x50000101,266,1,190,213,0x00000200
+  CONTROL "",                           TRV_FILES         ,"SysTreeView32"  ,0x50010007|WS_TABSTOP,2,1,260,293,0x00000200
+  CONTROL "",                           TRV_TEST          ,"SysTreeView32"  ,0x50000101|WS_TABSTOP,266,1,190,213,0x00000200
   CONTROL "Settings",                   GRP_CONF          ,"Button"         ,0x50000007,266,217,190,43
-  CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK   ,"Button"         ,0x50010003,272,228,174,9
-  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003,272,238,174,9
-  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003,272,248,174,9
-  CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000,266,262,190,33
+  CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,228,174,9
+  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,238,174,9
+  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,248,174,9
+  CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,262,190,33
 END
 //------------------------------------------------------------------------------
 //main dialogue menu

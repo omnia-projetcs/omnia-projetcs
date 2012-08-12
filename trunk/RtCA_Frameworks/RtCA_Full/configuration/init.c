@@ -66,7 +66,6 @@ void InitGlobalLangueString(unsigned int langue_id)
       snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
       SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos);
     }
-
   }
 }
 //------------------------------------------------------------------------------
@@ -103,14 +102,31 @@ ShowWindow(FindWindow(NULL, pszOldWindowTitle), SW_HIDE);
 //------------------------------------------------------------------------------
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan)
 {
+  //default language
+  if (CONSOL_ONLY)current_lang_id       = 1;
+  else//get langue_id from RtCA.ini
+  {
+    //get current path
+    char path[MAX_PATH];
+    char *c = path + GetModuleFileName(NULL, path, MAX_PATH);
+    while(*c != '\\') c--;
+    *c = 0;
+    strcat(path,DEFAULT_INI_FILE);
+
+    //get value
+    char default_lang_id[DEFAULT_TMP_SIZE];
+    GetPrivateProfileString("CONF","DEFAULT_LANG_ID","1",default_lang_id,DEFAULT_TMP_SIZE,path);
+    current_lang_id = atoi(default_lang_id);
+
+    SendMessage(hCombo_lang, CB_SETCURSEL,current_lang_id-1,0);
+  }
+
   //init globals var
-  current_lang_id       = 1;
   current_session_id    = 0;
   current_item_selected = -1;
 
   STAY_ON_TOP           = FALSE;
 
-  DEBUG_MODE            = debug;
   FILE_ACL              = acl;
   FILE_ADS              = ads;
   FILE_SHA              = sha;
@@ -150,10 +166,9 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   B_AUTOSEARCH      = FALSE;
   h_AUTOSEARCH      = NULL;
   ExportStart       = FALSE;
-  DEBUG_CMD_MODE    = FALSE;
   TRI_RESULT_VIEW   = FALSE;
   column_tri        = -1;
-  //NB_TESTS          = 0;
+  NB_TESTS          = 0;
   pos_search        = 0;
   current_OS[0]     = 0;
   current_OS_BE_64b = FALSE;
@@ -202,8 +217,61 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
 
   //all others datas
   InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
+
+  //init help messages
+  AddtoToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
+  AddtoToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
+
   return 0;
 }
+//------------------------------------------------------------------------------
+// add help message to toolips
+//------------------------------------------------------------------------------
+void AddtoToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt)
+{
+  RECT rect;
+  SendMessage(hcompo, TB_GETITEMRECT, id, (LPARAM) &rect);
+
+  TOOLINFO ti;
+  ti.cbSize       = sizeof(TOOLINFO);
+  ti.uFlags       = TTF_SUBCLASS;
+  ti.hwnd         = hcompo;
+  ti.hinst        = hinst;
+  ti.uId          = id;
+  ti.lpszText     = txt;
+  ti.rect.left    = rect.left;
+  ti.rect.top     = rect.top;
+  ti.rect.right   = rect.right;
+  ti.rect.bottom  = rect.bottom;
+
+  SendMessage(hTTip, TTM_ADDTOOL   , 0               , (LPARAM) &ti);
+  if (title != NULL) SendMessage(hTTip, TTM_SETTITLE  , (WPARAM)TTI_INFO, (LPARAM)title);
+  SendMessage(hTTip, TB_SETTOOLTIPS, (WPARAM)hcompo  , 0);
+}
+//------------------------------------------------------------------------------
+// add help message to toolips
+//------------------------------------------------------------------------------
+void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt)
+{
+  RECT rect;
+  SendMessage(hcompo, TB_GETITEMRECT, id, (LPARAM) &rect);
+
+  TOOLINFO ti;
+  ti.cbSize       = sizeof(TOOLINFO);
+  ti.uFlags       = TTF_SUBCLASS;
+  ti.hwnd         = hcompo;
+  ti.hinst        = hinst;
+  ti.uId          = id;
+  ti.lpszText     = txt;
+  ti.rect.left    = rect.left;
+  ti.rect.top     = rect.top;
+  ti.rect.right   = rect.right;
+  ti.rect.bottom  = rect.bottom;
+
+  SendMessage(hTTip, TTM_SETTOOLINFO, (WPARAM)hcompo, (LPARAM) &ti);//TTM_UPDATETIPTEXT
+  if (title != NULL) SendMessage(hTTip, TTM_SETTITLE , (WPARAM)TTI_INFO, (LPARAM)title);
+}
+
 //------------------------------------------------------------------------------
 //End of GUI
 //------------------------------------------------------------------------------
@@ -211,6 +279,18 @@ void EndGUIConfig(HANDLE hwnd)
 {
   sqlite3_close(db_scan);
   ReviewWOW64Redirect(OldValue_W64b);
+
+  //save current language if not 1
+  //get current path
+  char path[MAX_PATH];
+  char *c = path + GetModuleFileName(NULL, path, MAX_PATH);
+  while(*c != '\\') c--;
+  *c = 0;
+  strcat(path,DEFAULT_INI_FILE);
+
+  //set value
+  char default_lang_id[DEFAULT_TMP_SIZE];
+  WritePrivateProfileString("CONF","DEFAULT_LANG_ID",itoa(current_lang_id,default_lang_id,10),path);
 
   CloseWindow(hwnd);
   PostQuitMessage(0);
