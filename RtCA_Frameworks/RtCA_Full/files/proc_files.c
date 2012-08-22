@@ -49,7 +49,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
 
     }else if (strcmp(ext,"db")==0 ||              //android
               strcmp(ext,"sqlite")==0 ||          //firefox
-              //strcmp(ext,"dat")==0 ||             //ie
+              strcmp(ext,"dat")==0 ||             //ie
               strcmp(lowcase_file,"index.dat")==0 || (startWith(lowcase_file,"index") && strcmp(ext,"dat")==0) ||
               strcmp(lowcase_file,"ntds.dit")==0  || (startWith(lowcase_file,"ntds") && strcmp(ext,"dit")==0)) //applications
     {
@@ -70,6 +70,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         strcmp(lowcase_file,"software")==0 ||
         strcmp(lowcase_file,"system")==0 ||
         strcmp(lowcase_file,"default")==0 ||
+        strcmp(lowcase_file,"hardware")==0 ||
         strcmp(lowcase_file,"security")==0)//registry
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

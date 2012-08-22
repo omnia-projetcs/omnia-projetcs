@@ -407,7 +407,7 @@ DWORD WINAPI Scan_network(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL || !LOCAL_SCAN)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);
@@ -421,5 +421,6 @@ DWORD WINAPI Scan_network(LPVOID lParam)
   }else Scan_network_local(db, session_id); //local
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

@@ -82,7 +82,12 @@ void SaveBitmapToHexaStr(HBITMAP hBmp , char *str, DWORD str_size)
 DWORD WINAPI Scan_clipboard(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (!LOCAL_SCAN)
+  {
+    h_thread_test[(unsigned int)lParam] = 0;
+    check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+    return 0;
+  }
 
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -208,7 +213,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           if (description[0]==0)strncpy(description,"Text Unicode",DEFAULT_TMP_SIZE);
           //datas
           snprintf(data,MAX_LINE_SIZE,"%S",GlobalLock(hMem));
-          convertStringToSQL(data, MAX_LINE_SIZE);
+          convertStringToSQL(data, MAX_LINE_SIZE);h_thread_test[(unsigned int)lParam] = 0;
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
         break;
@@ -358,5 +363,6 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

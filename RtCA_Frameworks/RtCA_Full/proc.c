@@ -96,6 +96,16 @@ char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max)
   return txt;
 }
 //------------------------------------------------------------------------------
+int GetTrvItemIndex(HTREEITEM hitem, HANDLE htrv)
+{
+  int index =0;
+  HTREEITEM item = hitem;
+
+  while ((item = (HTREEITEM)SendMessage(htrv,TVM_GETNEXTITEM,(WPARAM)TVGN_PREVIOUS, (LPARAM)item)))index++;
+
+  return index;
+}
+//------------------------------------------------------------------------------
 void SetDebugPrivilege(BOOL enable)
 {
     TOKEN_PRIVILEGES privilege;
@@ -218,5 +228,24 @@ BOOL startWith(char* txt, char *search)
 
   while (*t && *s && *t == *s){t++;s++;}
   if (*t == *s || *s == 0)return TRUE;
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL isWine()
+{
+  HKEY CleTmp=0;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"Software\\Wine",&CleTmp)==ERROR_SUCCESS)
+  {
+    RegCloseKey(CleTmp);
+    return TRUE;
+  }
+
+  //deuxième cas
+  char tmp[MAX_PATH]="";
+  if(ReadValue(HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug","Debugger",tmp, MAX_PATH))
+  {
+    if (Contient(tmp,"winedbg"))return TRUE;
+  }
+
   return FALSE;
 }

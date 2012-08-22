@@ -56,6 +56,7 @@
 
 #include <Wincrypt.h>           //FOR DECODE CHROME/CHROMIUM password
 #include "crypt/d3des.h"        //Crypto
+#include <lmaccess.h>           //group account list
 //---------------------------------------------------------------------------
 #define NB_MAX_THREAD           5 //thread nb
 PVOID OldValue_W64b;            //64bits OS
@@ -95,15 +96,19 @@ char _SYSKEY[MAX_PATH];
 //TREVIEW STATE
 #define TRV_STATE_CHECK             2
 #define TRV_STATE_UNCHECK           1
+/*
+#define TRV_STATE_CHECK_DISABLE     4
+#define TRV_STATE_UNCHECK_DISABLE   3*/
 //------------------------------------------------------------------------------
 #define DLG_MAIN                 1000
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip;
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip, hdbclk_info;
 HWND htrv_test, htrv_files;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
+WNDPROC wndproc_hdbclk_info;
 
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
@@ -166,6 +171,7 @@ HANDLE H_ImagList_icon;
 #define POPUP_TRV_TEST                        11100
 #define POPUP_TRV_CHECK_ALL                   11101
 #define POPUP_TRV_UNCHECK_ALL                 11102
+#define POPUP_TRV_STOP_TEST                   11103
 
 #define POPUP_EXPORT                          12000
 #define POPUP_E_CSV                           12001
@@ -258,6 +264,7 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
 //------------------------------------------------------------------------------
 //parameters
+BOOL WINE_OS;     //if run in wine !!!
 BOOL CONSOL_ONLY;
 BOOL STAY_ON_TOP;
 BOOL FILE_ACL;
@@ -313,7 +320,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         40
+#define NB_COMPONENT_STRING         47
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define REF_MSG                     8
@@ -355,13 +362,29 @@ typedef struct SORT_ST
 #define TXT_TOOLTIP_NEW_SESSION     38
 #define TXT_TOOLTIP_SEARCH          39
 
+
+#define TXT_POPUP_STOP_TEST         40
+
+#define TXT_MSG_ADMIN               41
+#define TXT_MSG_GUEST               42
+#define TXT_MSG_USER                43
+#define TXT_MSG_UNK                 44
+#define TXT_MSG_NEVER               45
+#define TXT_MSG_MDP_NEVER_EXP       46
+
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
 }COMPONENT_STRING;
 COMPONENT_STRING cps[NB_COMPONENT_STRING];
 
-#define SYSKEY_STRING_DEF          "604"
+#define REG_PASSWORD_STRING_VNC                600
+#define REG_PASSWORD_STRING_SCREENSAVER        601
+#define REG_PASSWORD_STRING_TERMINAL_SERVER    602
+#define REG_PASSWORD_STRING_AUTO_LOGON         603
+#define SYSKEY_STRING_DEF                     "604"
+#define REG_PASSWORD_STRING_LOCAL_USER         605
+
 //------------------------------------------------------------------------------
 //registry params
 #define TYPE_VALUE_STRING           0
@@ -392,6 +415,8 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 #define GUIDE_REG_OS_XP_64b       "XP_64"
 #define GUIDE_REG_OS_2003_32b     "2003"
 #define GUIDE_REG_OS_2003_64b     "2003_64"
+#define GUIDE_REG_OS_VISTA_32b    "Vista"
+#define GUIDE_REG_OS_VISTA_64b    "Vista_64"
 #define GUIDE_REG_OS_7_32b        "7"
 #define GUIDE_REG_OS_7_64b        "7_64"
 #define GUIDE_REG_OS_2008_32b     "2008"
@@ -407,6 +432,24 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 
 char current_OS[DEFAULT_TMP_SIZE];
 BOOL current_OS_BE_64b;
+//------------------------------------------------------------------------------
+//users
+typedef struct
+{
+  char name[MAX_PATH];
+  char RID[MAX_PATH];
+  char SID[MAX_PATH];
+  char group[MAX_PATH];
+  char type[MAX_PATH];
+  char description[MAX_PATH];
+  char last_logon[DATE_SIZE_MAX];
+  char last_password_change[MAX_PATH];
+  char pwdump_pwd_raw_format[MAX_PATH];
+  char pwdump_pwd_format[MAX_PATH];
+
+  DWORD nb_connexion;
+  DWORD state_id;
+}USERS_INFOS;
 //------------------------------------------------------------------------------
 #define NB_MAX_SQL_REQ        MAX_PATH
 
@@ -484,6 +527,30 @@ unsigned long int nb_session, session[NB_MAX_SESSION];
 
 DWORD pos_search;
 //------------------------------------------------------------------------------
+//MD5
+#include "crypt/md5.h"
+typedef unsigned char md5_byte_t; /* 8-bit byte */
+typedef unsigned int md5_word_t; /* 32-bit word */
+
+/* Define the state of the MD5 Algorithm. */
+typedef struct md5_state_s {
+    md5_word_t count[2];	/* message length in bits, lsw first */
+    md5_word_t abcd[4];		/* digest buffer */
+    md5_byte_t buf[64];		/* accumulate block */
+}md5_state_t;
+
+/* Initialize the algorithm. */
+void md5_init(md5_state_t *pms);
+
+/* Append a string to the message. */
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+
+/* Finish the message and return the digest. */
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+//------------------------------------------------------------------------------
+#include "crypt/rc4.h"
+#include "crypt/opensslv.h"
+//------------------------------------------------------------------------------
 //SQLITE functions
 char *convertStringToSQL(char *data, unsigned int size_max);
 int callback_write_sqlite(void *datas, int argc, char **argv, char **azColName);
@@ -528,6 +595,7 @@ void InitGlobalLangueString(unsigned int langue_id);
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan);
 DWORD WINAPI InitGUIConfig(LPVOID lParam);
 void EndGUIConfig(HANDLE hwnd);
+BOOL isWine();
 
 //cmd function
 int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName);
@@ -550,9 +618,10 @@ void SupDoublon(HANDLE htrv,HTREEITEM htreeParent);
 void check_childs_treeview(HANDLE htrv, BOOL check);
 void check_treeview(HANDLE htrv, HTREEITEM hitem, int state);
 BOOL Ischeck_treeview(HANDLE htrv, HTREEITEM hitem);
-HTREEITEM AddItemTreeView(HANDLE Htreeview,char *txt, HTREEITEM hparent);
-void GetItemTreeView(HTREEITEM hitem,HANDLE htrv,char *txt, unsigned int size);
+HTREEITEM AddItemTreeView(HANDLE Htreeview, char *txt, HTREEITEM hparent);
+void GetItemTreeView(HTREEITEM hitem, HANDLE htrv,char *txt, unsigned int size);
 char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max);
+int GetTrvItemIndex(HTREEITEM hitem, HANDLE htrv);
 
 void AddtoToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
 void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
@@ -575,7 +644,8 @@ long int ReadDwordValue(HKEY hk,char *path,char *value);
 void ReadFILETIMEValue(HKEY hk,char *path,char *value, FILETIME *ft);
 
 //registry function for raw files
-BOOL registry_users_extract();
+BOOL registry_syskey_local(char*sk, unsigned int sk_size);
+BOOL registry_users_extract(sqlite3 *db, unsigned int session_id);
 unsigned int ExtractTextFromPathNb(char *path);
 char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file);

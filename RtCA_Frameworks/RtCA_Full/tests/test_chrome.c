@@ -87,7 +87,7 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
 
   //get child
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
-  if (hitem == NULL) //local
+  if (hitem == NULL && LOCAL_SCAN) //local
   {
     //get path of all profils users
     //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
@@ -172,5 +172,6 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

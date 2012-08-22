@@ -166,7 +166,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
-  if (hitem!=NULL)
+  if (hitem!=NULL || !LOCAL_SCAN)
   {
     char tmp[MAX_PATH];
     char ext[10];
@@ -223,5 +223,6 @@ DWORD WINAPI Scan_log(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

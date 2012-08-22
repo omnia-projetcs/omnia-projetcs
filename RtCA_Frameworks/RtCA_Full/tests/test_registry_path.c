@@ -103,7 +103,8 @@ void EnumPath_local(HKEY hk,char *chk, char*key_before,char *key_after,unsigned 
     key_size  = MAX_PATH;
     if (RegEnumKeyEx (CleTmp,i,key,(LPDWORD)&key_size,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
     {
-      snprintf(tmp_key,MAX_PATH,"%s\\%s\\%s",key_before,key,key_after);
+      if (key_after!=NULL)snprintf(tmp_key,MAX_PATH,"%s\\%s\\%s",key_before,key,key_after);
+      else snprintf(tmp_key,MAX_PATH,"%s\\%s",key_before,key);
       reg_read_enum_PathValues(hk,chk,tmp_key,session_id,db);
     }
   }
@@ -192,7 +193,7 @@ DWORD WINAPI Scan_registry_path(LPVOID lParam)
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
-  if (hitem!=NULL) //files
+  if (hitem!=NULL || !LOCAL_SCAN) //files
   {
     while(hitem!=NULL)
     {
@@ -227,5 +228,6 @@ DWORD WINAPI Scan_registry_path(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

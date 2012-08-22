@@ -417,6 +417,91 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
   }while(FindNextFile (hfic,&data) && start_scan);
 }
 //------------------------------------------------------------------------------
+void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
+{
+  WIN32_FIND_DATA data;
+
+  FILETIME LocalFileTime;
+
+  char CreationTime[DATE_SIZE_MAX],LastWriteTime[DATE_SIZE_MAX],LastAccessTime[DATE_SIZE_MAX];
+  char size[DEFAULT_TMP_SIZE];
+  char s_ads[MAX_PATH]="";
+  char s_sha[65]="";
+  char s_acl[MAX_PATH]="",owner[MAX_PATH]="",rid[MAX_PATH]="",sid[MAX_PATH]="";
+  char ext[MAX_PATH]="";
+
+  HANDLE hfic = FindFirstFile(path, &data);
+  if (hfic == INVALID_HANDLE_VALUE)return;
+  do
+  {
+    // return
+    if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+    else
+    {
+        //dates
+        FileTimeToLocalFileTime(&(data.ftCreationTime), &LocalFileTime);
+        filetimeToString(LocalFileTime, CreationTime, DATE_SIZE_MAX);
+
+        FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
+        filetimeToString(LocalFileTime, LastWriteTime, DATE_SIZE_MAX);
+
+        FileTimeToLocalFileTime(&(data.ftLastAccessTime), &LocalFileTime);
+        filetimeToString(LocalFileTime, LastAccessTime, DATE_SIZE_MAX);
+
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+          //ads
+          if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+          //acls
+          if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+          //ad to bdd
+          addFiletoDB(path, "", "",
+                      CreationTime, LastWriteTime, LastAccessTime,"",
+                      owner, rid, sid, s_acl,
+                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                      s_ads, "", "", "",session_id,db);
+        }else
+        {
+          //size
+          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+          else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+          //ads
+          if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+          //sha256
+          if(sha)FileToSHA256(path, s_sha);
+
+          //acl
+          if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+          //extension
+          extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
+
+          //ad to bdd
+          addFiletoDB(path, data.cFileName, ext,
+                      CreationTime, LastWriteTime, LastAccessTime, size,
+                      owner, rid, sid, s_acl,
+                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                      s_ads, s_sha, "", "",session_id,db);
+        }
+    }
+  }while(FindNextFile (hfic,&data) && start_scan);
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI Scan_files(LPVOID lParam)
 {
   //read list of disk
@@ -430,15 +515,49 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   //get local path !
   //get child
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
-  if (hitem!=NULL)
+  if (!LOCAL_SCAN)
   {
-    while(hitem!=NULL)
+    if (hitem == NULL)//get all files infos !!!
     {
-      //get item txt
-      GetTextFromTrv(hitem, tmp, MAX_PATH);
-      scan_file_ex(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+      while(hitem!=NULL)
+      {
+        //get item txt
+        GetTextFromTrv(hitem, tmp, MAX_PATH);
+        scan_file_uniq(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
 
-      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+        hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      }
+
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
+      while(hitem!=NULL)
+      {
+        //get item txt
+        GetTextFromTrv(hitem, tmp, MAX_PATH);
+        scan_file_uniq(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+
+        hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      }
+
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+      while(hitem!=NULL)
+      {
+        //get item txt
+        GetTextFromTrv(hitem, tmp, MAX_PATH);
+        scan_file_uniq(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+
+        hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      }
+    }else
+    {
+      while(hitem!=NULL)
+      {
+        //get item txt
+        GetTextFromTrv(hitem, tmp, MAX_PATH);
+        scan_file_ex(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+
+        hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      }
     }
   }else
   {
@@ -458,5 +577,6 @@ DWORD WINAPI Scan_files(LPVOID lParam)
     }
   }
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

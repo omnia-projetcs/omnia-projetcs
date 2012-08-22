@@ -19,7 +19,13 @@ void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, unsigned in
 DWORD WINAPI Scan_task(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (!LOCAL_SCAN)
+  {
+    h_thread_test[(unsigned int)lParam] = 0;
+    check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+    MessageBox(0,"OK","test",MB_OK);
+    return 0;
+  }
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -44,18 +50,17 @@ DWORD WINAPI Scan_task(LPVOID lParam)
         UCHAR DaysOfWeek;
         UCHAR Flags;
         LPWSTR Command;
-      }AT_ENUM,*PAT_ENUM,*LPAT_ENUM;
+      }AT_ENUM;
 
       AT_ENUM *bufAtEnum,*b;
-      DWORD EntriesRead,TotalEntries,ResumeHandle=0;
+      DWORD EntriesRead=0,TotalEntries=0,ResumeHandle=0;
       NET_API_STATUS res = NetScheduleJobEnum(0,(LPBYTE*)&bufAtEnum,MAX_PREFERRED_LENGTH,&EntriesRead,&TotalEntries,&ResumeHandle);
 
       if(res == 0 && TotalEntries && EntriesRead && bufAtEnum)
       {
         char id_ev[DEFAULT_TMP_SIZE],type[DEFAULT_TMP_SIZE],data[MAX_PATH],next_run[DEFAULT_TMP_SIZE];
 
-        b = bufAtEnum;
-        for(;EntriesRead>0;EntriesRead--)
+        for(b = bufAtEnum;EntriesRead>0;EntriesRead--)
         {
           if (b->Command > 0)
           {
@@ -88,5 +93,6 @@ DWORD WINAPI Scan_task(LPVOID lParam)
     FreeLibrary(hDLL);
   }
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

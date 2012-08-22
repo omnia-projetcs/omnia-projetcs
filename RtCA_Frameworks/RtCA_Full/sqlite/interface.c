@@ -345,9 +345,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
     //add
     case TYPE_SQL_ADD_SESSION:
     {
-      if(TreeView_GetCount(htrv_files) == NB_MX_TYPE_FILES_TITLE)
-        AddNewSession(FALSE, db);
-      else AddNewSession(TRUE, db);
+      AddNewSession(LOCAL_SCAN, db);
 
       //read all sessions
       nb_session = 0;
