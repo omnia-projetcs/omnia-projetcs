@@ -420,7 +420,6 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
         DWORD sz_owner = sk->group_offset-sk->owner_offset;
         if (sz_owner > 0 && (pos_fhbin+sz_owner+sk->owner_offset-HBIN_HEADER_SIZE)<taille_fic)
         {
-
           typedef struct
           {
             unsigned short type;  //0x001F

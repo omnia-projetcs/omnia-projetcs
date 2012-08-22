@@ -231,6 +231,22 @@ void check_childs_treeview(HANDLE htrv, BOOL check)
   }
 }
 //------------------------------------------------------------------------------
+/*void uncheckdisable(HANDLE htrv, HTREEITEM hitem)
+{
+  check_treeview(htrv, hitem, TRV_STATE_UNCHECK_DISABLE);
+}
+//------------------------------------------------------------------------------
+void disableAllcheck(HANDLE htrv, BOOL disable)
+{
+  int i;
+  for (i=0;i<NB_TESTS;i++)
+  {
+    if (Ischeck_treeview(htrv, H_tests[i]))check_treeview(htrv, H_tests[i], disable?TRV_STATE_CHECK_DISABLE:TRV_STATE_CHECK);
+    else check_treeview(htrv, H_tests[i], disable?TRV_STATE_UNCHECK_DISABLE:TRV_STATE_UNCHECK);
+  }
+}*/
+
+//------------------------------------------------------------------------------
 void SupDoublon(HANDLE htrv,HTREEITEM htreeParent)
 {
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)htreeParent);

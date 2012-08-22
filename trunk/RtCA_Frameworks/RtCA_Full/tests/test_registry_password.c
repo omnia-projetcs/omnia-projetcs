@@ -50,14 +50,6 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
 {
   char login[MAX_PATH], password[MAX_PATH], raw_password[MAX_PATH],tmp[MAX_PATH];
 
-  //--------------------------------------------------
-  //read login and password of application in registry
-  //--------------------------------------------------
-  #define REG_PASSWORD_STRING_VNC                0x600
-  #define REG_PASSWORD_STRING_SCREENSAVER        0x601
-  #define REG_PASSWORD_STRING_TERMINAL_SERVER    0x602
-  #define REG_PASSWORD_STRING_AUTO_LOGON         0x603
-
   //VNC3
   login[0] = 0;
   password[0] = 0;
@@ -184,7 +176,7 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
-  if (hitem!=NULL) //files
+  if (hitem!=NULL || !LOCAL_SCAN) //files
   {
     while(hitem!=NULL)
     {
@@ -205,5 +197,6 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
   }else Scan_registry_password_local(db,session_id);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

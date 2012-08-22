@@ -38,7 +38,7 @@ void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size)
 //------------------------------------------------------------------------------
 void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
 {
-  if (registry_users_extract())return;
+  if (registry_users_extract(db,session_id))return;
 
   //load all users informations
   HMODULE hDLL;
@@ -173,10 +173,11 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
                 //last_password_change
                 if (pBuf_info->usri2_password_age != 0)
                 {
-                  snprintf(last_password_change,DATE_SIZE_MAX,"%lu:%lu:%lu",
+                  snprintf(last_password_change,DATE_SIZE_MAX,"%lu %02lu:%02lu:%02lu",
                            pBuf_info->usri2_password_age/86400,
-                           pBuf_info->usri2_password_age%86400/60/60,
-                           pBuf_info->usri2_password_age%86400/60%60);
+                           pBuf_info->usri2_password_age%86400/3600,
+                           pBuf_info->usri2_password_age%86400%3600/60,
+                           pBuf_info->usri2_password_age%86400%3600%60);
                 }
 
                 //nb_connexion			wprintf(L"\n\nPassword last set:		%dday %dhour %dmin Before",
@@ -185,10 +186,10 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
                 //type
                 switch(pBuf_info->usri2_priv)
                 {
-                  case 0:snprintf(type,MAX_PATH,"%lu : Guest",pBuf_info->usri2_priv);break;
-                  case 1:snprintf(type,MAX_PATH,"%lu : User",pBuf_info->usri2_priv);break;
-                  case 2:snprintf(type,MAX_PATH,"%lu : Administrator",pBuf_info->usri2_priv);break;
-                  default:snprintf(type,MAX_PATH,"%lu : Unknow",pBuf_info->usri2_priv);break;
+                  case 0:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_GUEST].c);break;
+                  case 1:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_USER].c);break;
+                  case 2:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_ADMIN].c);break;
+                  default:snprintf(type,MAX_PATH,"0x%02x : %s",(pBuf_info->usri2_priv & 0xff),cps[TXT_MSG_UNK].c);break;
                 }
 
                 addRegistryUsertoDB(name, RID, SID, group, description,
@@ -224,7 +225,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
-  if (hitem!=NULL) //files
+  if (hitem!=NULL || !LOCAL_SCAN) //files
   {
     while(hitem!=NULL)
     {
@@ -245,5 +246,6 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
   }else Scan_registry_user_local(db, session_id);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

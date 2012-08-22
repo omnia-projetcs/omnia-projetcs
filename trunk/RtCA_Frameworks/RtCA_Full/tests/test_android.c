@@ -75,5 +75,6 @@ DWORD WINAPI Scan_android_history(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

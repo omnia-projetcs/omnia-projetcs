@@ -37,6 +37,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               EnableWindow(GetDlgItem((HWND)h_conf,BT_ADS_FILE_CHK),FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_SHA_FILE_CHK),FALSE);
 
+              if(TreeView_GetCount(htrv_files) > NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = FALSE;
+              else LOCAL_SCAN = TRUE;
+
               //create new session and select it !
               SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
               FORMAT_CALBAK_READ_INFO fcri;
@@ -71,7 +74,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                               "system\0system\0"
                               "software\0software\0"
                               "security\0security\0"
-                              "default\0default\0";
+                              "default\0default\0"
+                              "hardware\0hardware\0";
             ofn.nFilterIndex = 1;
             ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
             ofn.lpstrDefExt ="*.*";
@@ -250,6 +254,21 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           break;
           case POPUP_TRV_CHECK_ALL:check_childs_treeview(htrv_test, TRUE);break;
           case POPUP_TRV_UNCHECK_ALL:check_childs_treeview(htrv_test, FALSE);break;
+          case POPUP_TRV_STOP_TEST:
+          {
+            //get item index
+            int index = GetTrvItemIndex((HTREEITEM)SendMessage(htrv_test,TVM_GETNEXTITEM,(WPARAM)TVGN_CARET, (LPARAM)0), htrv_test);
+            if (index < NB_TESTS)
+            {
+              //kill the thread
+              DWORD IDThread;
+              GetExitCodeThread(h_thread_test[index],&IDThread);
+              TerminateThread(h_thread_test[index],IDThread);
+              h_thread_test[index] = 0;
+              check_treeview(htrv_test, H_tests[index], TRV_STATE_UNCHECK);
+            }
+          }
+          break;
         }
       }
     break;
@@ -292,6 +311,18 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           //set text !!!
           ModifyMenu(hmenu,POPUP_TRV_CHECK_ALL          ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_CHECK_ALL          ,cps[TXT_POPUP_CHECK_ALL].c);
           ModifyMenu(hmenu,POPUP_TRV_UNCHECK_ALL        ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_UNCHECK_ALL        ,cps[TXT_POPUP_UNCHECK_ALL].c);
+
+          HTREEITEM item = (HTREEITEM)SendMessage(htrv_test,TVM_GETNEXTITEM,(WPARAM)TVGN_CARET, (LPARAM)0);
+          BOOL check = Ischeck_treeview(htrv_test, item);
+
+          if (start_scan && item!=NULL && check && h_thread_test[GetTrvItemIndex(item, htrv_test)]!=NULL)
+          {
+            ModifyMenu(hmenu,POPUP_TRV_STOP_TEST        ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_STOP_TEST        ,cps[TXT_POPUP_STOP_TEST].c);
+          }else
+          {
+            RemoveMenu(hmenu,POPUP_TRV_STOP_TEST,MF_BYCOMMAND);
+            RemoveMenu(GetSubMenu(hmenu, 0),2,MF_BYPOSITION);
+          }
 
           //affichage du popup menu
           TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);

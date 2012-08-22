@@ -19,7 +19,12 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
 DWORD WINAPI Scan_dns(LPVOID lParam)
 {
   //check if local or not :)
-  if (SendMessage(htrv_files, TVM_GETCOUNT,(WPARAM)0, (LPARAM)0) > NB_MX_TYPE_FILES_TITLE+1)return 0;
+  if (!LOCAL_SCAN)
+  {
+    h_thread_test[(unsigned int)lParam] = 0;
+    check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+    return 0;
+  }
 
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -144,5 +149,6 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   FreeLibrary(hDLL);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

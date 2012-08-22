@@ -6,6 +6,16 @@
 //------------------------------------------------------------------------------
 #include "RtCA.h"
 //------------------------------------------------------------------------------
+//subclass of hdbclk_info
+//------------------------------------------------------------------------------
+LRESULT CALLBACK subclass_hdbclk_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  if (message == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
+  else return CallWindowProc(wndproc_hdbclk_info, hwnd, message, wParam, lParam);
+
+  return 0;
+}
+//------------------------------------------------------------------------------
 //main dialogue function
 //------------------------------------------------------------------------------
 LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -53,6 +63,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   SQLITE_WriteData(&fcri, DEFAULT_SQLITE_FILE);
 
                   SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
+                  ListView_DeleteAllItems(hlstv);
                 }
                 sqlite3_exec(db_scan,"VACUUM;", NULL, NULL, NULL);//compact database
               break;
@@ -137,6 +148,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_S_VIEW:
               {
                 char file[MAX_PATH]="";
+                unsigned int lb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+                if (SendMessage(hlstbox, LB_GETTEXTLEN, lb_item, 0) < MAX_PATH)
+                  SendMessage(hlstbox, LB_GETTEXT, lb_item, (LPARAM)file);
+
                 OPENFILENAME ofn;
                 ZeroMemory(&ofn, sizeof(OPENFILENAME));
                 ofn.lStructSize = sizeof(OPENFILENAME);
@@ -157,6 +172,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_S_SELECTION:
               {
                 char file[MAX_PATH]="";
+                unsigned int lb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+                if (SendMessage(hlstbox, LB_GETTEXTLEN, lb_item, 0) < MAX_PATH)
+                  SendMessage(hlstbox, LB_GETTEXT, lb_item, (LPARAM)file);
+
                 OPENFILENAME ofn;
                 ZeroMemory(&ofn, sizeof(OPENFILENAME));
                 ofn.lStructSize = sizeof(OPENFILENAME);
@@ -261,10 +280,60 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       break;
       case WM_NOTIFY:
       {
-        if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)
+        switch(((LPNMHDR)lParam)->code)
         {
-          TRI_RESULT_VIEW = !TRI_RESULT_VIEW;
-          c_Tri(hlstv,((LPNMLISTVIEW)lParam)->iSubItem,TRI_RESULT_VIEW);
+          case LVN_COLUMNCLICK:
+            TRI_RESULT_VIEW = !TRI_RESULT_VIEW;
+            c_Tri(hlstv,((LPNMLISTVIEW)lParam)->iSubItem,TRI_RESULT_VIEW);
+          break;
+          case NM_DBLCLK:
+            if (LOWORD(wParam) == LV_VIEW)
+            {
+              long nitem = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+              if (nitem > -1)
+              {
+                char tmp[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+
+                //get test text
+                int selected_cb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+                if (SendMessage(hlstbox, LB_GETTEXTLEN, selected_cb_item, 0) < MAX_LINE_SIZE)
+                {
+                  SendMessage(hlstbox, LB_GETTEXT, selected_cb_item, buffer);
+                }
+                strncat(buffer,"\r\n--------------------",MAX_LINE_SIZE);
+
+                //for each column
+                unsigned int i;
+                LVCOLUMN lvc;
+                lvc.mask = LVCF_TEXT;
+                lvc.cchTextMax = MAX_LINE_SIZE;
+                lvc.pszText = tmp;
+
+                for(i=0;i<nb_current_columns;i++)
+                {
+                  //column header
+                  strncat(buffer,"\r\n\r\n[",MAX_LINE_SIZE);
+                  SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc);
+                  strncat(buffer,tmp,MAX_LINE_SIZE);
+                  strncat(buffer,"]\r\n",MAX_LINE_SIZE);
+                  tmp[0] = 0;
+                  lvc.mask = LVCF_TEXT;
+                  lvc.cchTextMax = MAX_LINE_SIZE;
+                  lvc.pszText = tmp;
+
+                  //datas
+                  ListView_GetItemText(hlstv,nitem,i,tmp,MAX_LINE_SIZE);
+                  strncat(buffer,tmp,MAX_LINE_SIZE);
+                  tmp[0] = 0;
+                }
+                strncat(buffer,"\0",MAX_LINE_SIZE);
+
+                //set text
+                SetWindowText(hdbclk_info, buffer);
+                ShowWindow (hdbclk_info, SW_SHOW);
+              }
+            }
+          break;
         }
       }
       break;
@@ -302,7 +371,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           }
 
           //remove other items
-          for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_I_00+i,MF_BYCOMMAND|MF_GRAYED);
+          for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_I_00+i,MF_BYCOMMAND);
 
           //affichage du popup menu
           TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
@@ -458,11 +527,19 @@ int main(int argc, char* argv[])
 
     htooltip          = CreateWindow(TOOLTIPS_CLASS, NULL, WS_POPUP|TTS_NOPREFIX|TTS_BALLOON|TTS_ALWAYSTIP,CW_USEDEFAULT,CW_USEDEFAULT,
                                      CW_USEDEFAULT,CW_USEDEFAULT,h_main,NULL,hinst,NULL);
+    //edit dblclick
+    hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844,
+                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                 h_main, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
 
     ShowWindow(hCombo_lang, SW_SHOW);
-    ShowWindow(hCombo_session, SW_SHOW);current_lang_id = SendMessage(hCombo_lang,CB_GETCURSEL,0,0)+1;
+    ShowWindow(hCombo_session, SW_SHOW);
     ShowWindow (h_main, SW_SHOW);
 
     while (GetMessage (&msg, NULL, 0, 0))

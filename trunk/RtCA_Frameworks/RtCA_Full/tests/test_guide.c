@@ -66,21 +66,23 @@ BOOL ReadCurrentOs(char *data)
     if (Contient(data,"64"))
     {
       current_OS_BE_64b = TRUE;
-           if (Contient(data,GUIDE_REG_OS_2003_64b))strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_2008_64b))strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_XP_64b))  strncpy(current_OS,GUIDE_REG_OS_XP_32b    ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_8_64b))   strncpy(current_OS,GUIDE_REG_OS_8_32b     ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_7_64b))   strncpy(current_OS,GUIDE_REG_OS_7_32b     ,DEFAULT_TMP_SIZE);
+           if (Contient(data,GUIDE_REG_OS_2003_64b)) strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_2008_64b)) strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_VISTA_64b))strncpy(current_OS,GUIDE_REG_OS_VISTA_32b ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_XP_64b))   strncpy(current_OS,GUIDE_REG_OS_XP_32b    ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_8_64b))    strncpy(current_OS,GUIDE_REG_OS_8_32b     ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_7_64b))    strncpy(current_OS,GUIDE_REG_OS_7_32b     ,DEFAULT_TMP_SIZE);
       else return FALSE; //unknow
     }else
     {
       current_OS_BE_64b = FALSE;
-           if (Contient(data,GUIDE_REG_OS_2000))    strncpy(current_OS,GUIDE_REG_OS_2000      ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_2003_32b))strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_2008_32b))strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_XP_32b))  strncpy(current_OS,GUIDE_REG_OS_XP_32b    ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_8_32b))   strncpy(current_OS,GUIDE_REG_OS_8_32b     ,DEFAULT_TMP_SIZE);
-      else if (Contient(data,GUIDE_REG_OS_7_32b))   strncpy(current_OS,GUIDE_REG_OS_7_32b     ,DEFAULT_TMP_SIZE);
+           if (Contient(data,GUIDE_REG_OS_2000))     strncpy(current_OS,GUIDE_REG_OS_2000      ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_2003_32b)) strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_2008_32b)) strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_VISTA_32b))strncpy(current_OS,GUIDE_REG_OS_VISTA_32b ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_XP_32b))   strncpy(current_OS,GUIDE_REG_OS_XP_32b    ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_8_32b))    strncpy(current_OS,GUIDE_REG_OS_8_32b     ,DEFAULT_TMP_SIZE);
+      else if (Contient(data,GUIDE_REG_OS_7_32b))    strncpy(current_OS,GUIDE_REG_OS_7_32b     ,DEFAULT_TMP_SIZE);
       else return FALSE; //unknow
     }
 
@@ -210,7 +212,7 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
-  if (hitem!=NULL) //files
+  if (hitem!=NULL || !LOCAL_SCAN) //files
   {
     while(hitem!=NULL)
     {
@@ -243,5 +245,6 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

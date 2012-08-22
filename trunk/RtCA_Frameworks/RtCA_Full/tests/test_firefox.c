@@ -26,7 +26,7 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
   if (type->type > 0 && type->type < nb_sql_FIREFOX)
   {
     //copy datas
-    for (i=0;i<argc && MAX_PATH-size > 0;i++)
+    for (i=0;i<argc && MAX_PATH-size > 0 && start_scan;i++)
     {
       if (argv[i] == NULL)continue;
 
@@ -56,7 +56,7 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
 
   //get child
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
-  if (hitem == NULL) //local
+  if (hitem == NULL && LOCAL_SCAN) //local
   {
     //get path of all profils users
     //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
@@ -152,5 +152,6 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

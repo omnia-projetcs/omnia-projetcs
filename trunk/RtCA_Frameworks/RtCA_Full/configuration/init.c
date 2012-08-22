@@ -102,6 +102,9 @@ ShowWindow(FindWindow(NULL, pszOldWindowTitle), SW_HIDE);
 //------------------------------------------------------------------------------
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan)
 {
+  //in wine or not ?
+  WINE_OS = isWine();
+
   //default language
   if (CONSOL_ONLY)current_lang_id       = 1;
   else//get langue_id from RtCA.ini
