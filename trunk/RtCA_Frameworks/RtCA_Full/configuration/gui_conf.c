@@ -54,13 +54,14 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           //----------------------------------------
           case POPUP_TRV_FILES_ADD_FILE:
           {
-            char file[MAX_PATH]="";
+            char files[MAX_LINE_DBSIZE]="";
+            memset(files,0,MAX_LINE_DBSIZE);
             OPENFILENAME ofn;
             ZeroMemory(&ofn, sizeof(OPENFILENAME));
             ofn.lStructSize = sizeof(OPENFILENAME);
             ofn.hwndOwner = h_conf;
-            ofn.lpstrFile = file;
-            ofn.nMaxFile = MAX_PATH;
+            ofn.lpstrFile = files;
+            ofn.nMaxFile = MAX_LINE_DBSIZE;
             ofn.lpstrFilter = "*.* \0*.*\0"
                               "*.log\0*.log\0"
                               "*.evt\0*.evt\0"
@@ -77,11 +78,23 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                               "default\0default\0"
                               "hardware\0hardware\0";
             ofn.nFilterIndex = 1;
-            ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+            ofn.Flags =/*OFN_FILEMUSTEXIST |*/ OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
             ofn.lpstrDefExt ="*.*";
             if (GetOpenFileName(&ofn)==TRUE)
             {
-              FileToTreeView(file);
+              //firt is path
+              char path[MAX_PATH],totalpath[MAX_PATH];
+              strncpy(path,files,MAX_PATH);
+
+              //after file name
+              char *p = files+strlen(files)+1;
+              if (*p == 0)FileToTreeView(path);
+              while (*p)
+              {
+                snprintf(totalpath,MAX_PATH,"%s\\%s",path,p);
+                FileToTreeView(totalpath);
+                p = p+strlen(p)+1;
+              }
 
               //tri and clean
               CleanTreeViewFiles(htrv_files);
@@ -443,8 +456,22 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       }
     break;
     case WM_CLOSE:
+    {
+      //kill all threads
+      unsigned int i;
+      DWORD IDThread;
+      for (i=0;i<NB_TESTS;i++)
+      {
+        GetExitCodeThread(h_thread_test[i],&IDThread);
+        TerminateThread(h_thread_test[i],IDThread);
+      }
+
+      GetExitCodeThread(h_thread_scan,&IDThread);
+      TerminateThread(h_thread_scan,IDThread);
+
       ShowWindow (h_main, SW_SHOW);
       EndDialog(hwnd, 0);
+    }
     break;
   }
   return 0;

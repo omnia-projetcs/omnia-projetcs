@@ -45,6 +45,22 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="crypt\d3des.h" />
+		<Unit filename="crypt\des.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypt\des.h" />
+		<Unit filename="crypt\md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypt\md5_dgst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypt\rc4_enc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypt\rc4_skey.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="crypt\sha2.cpp" />
 		<Unit filename="crypt\sha2.h" />
 		<Unit filename="crypt\windows_users_hashs_registry.c">
@@ -204,7 +220,7 @@
 			<debugger />
 			<lib_finder disable_auto="1" />
 			<AutoVersioning>
-				<Scheme minor_max="10" build_max="2000" rev_max="500" rev_rand_max="10" build_times_to_increment_minor="2000" />
+				<Scheme minor_max="100" build_max="1000" rev_max="1000" rev_rand_max="10" build_times_to_increment_minor="2000" />
 				<Settings autoincrement="1" date_declarations="0" update_manifest="1" do_auto_increment="1" ask_to_increment="0" language="C" svn="0" svn_directory="" header_path="version.h" />
 				<Changes_Log show_changes_editor="0" app_title="released version %M.%m.%b of %p" changeslog_path="ChangesLog.txt" />
 				<Code header_guard="VERSION_H" namespace="AutoVersion" prefix="" />

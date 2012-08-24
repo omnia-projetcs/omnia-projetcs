@@ -745,7 +745,8 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     if (taille_nom<MAX_PATH)tmp2[taille_nom]=0;
     else tmp2[MAX_PATH-1]=0;
 
-    snprintf(User_infos->name,MAX_PATH,"%s\\%s",computer,tmp2);
+    if (computer[0] == 0)strncpy(User_infos->name,tmp2,MAX_PATH);
+    else snprintf(User_infos->name,MAX_PATH,"%s\\%s",computer,tmp2);
     ret = TRUE;
   }
   //lecture de la description (fullname)
@@ -1340,7 +1341,7 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
                               User_infos.nb_connexion, User_infos.type, User_infos.state_id,session_id, db);
 
           //add password
-          addPasswordtoDB("Registry\\Local account", User_infos.name, User_infos.pwdump_pwd_format, User_infos.pwdump_pwd_raw_format, REG_PASSWORD_STRING_LOCAL_USER, session_id, db);
+          addPasswordtoDB(cps[TXT_MSG_BDR].c, User_infos.name, User_infos.pwdump_pwd_format, User_infos.pwdump_pwd_raw_format, REG_PASSWORD_STRING_LOCAL_USER, session_id, db);
           ok = TRUE;
         }
       }
@@ -1350,200 +1351,6 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
 
   //Restore ACL in registry
   restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
-
-
-
-  /*
-  HKEY CleTmp;
-  DWORD nbSubKey = 0,i,j,k,l,TailleNomSubKey, size;
-  char path[MAX_PATH],NomSubKey[MAX_PATH],tmp[MAX_LINE_SIZE];
-  char buffer[MAX_LINE_SIZE],cbuffer[MAX_LINE_SIZE];
-
-  char name[MAX_PATH],RID[MAX_PATH],SID[MAX_PATH],group[MAX_PATH],type[MAX_PATH],
-  description[MAX_PATH],last_logon[DATE_SIZE_MAX],last_password_change[DATE_SIZE_MAX];
-  DWORD nb_connexion,state_id;
-lv_line
-
-  //modification des droits
-  BOOL ok = FALSE;
-  int ret = set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
-  if (ret == 0)//ok
-  {
-    //lecture des users
-    if (RegOpenKey(HKEY_LOCAL_MACHINE,"SAM\\SAM\\Domains\\Account\\Users\\",&CleTmp)==ERROR_SUCCESS)
-    {
-      if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
-      {
-        if (nbSubKey >0)
-        {
-          int rid;
-          for (i=0;i<nbSubKey;i++)
-          {
-            TailleNomSubKey=MAX_PATH;// on reinitialise la taille a chaque fois sinon il ne lit pas la valeur suivant
-            if (RegEnumKeyEx (CleTmp,i,NomSubKey,&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
-            {
-              //path user
-              snprintf(path,MAX_LINE_SIZE,"SAM\\SAM\\Domains\\Account\\Users\\%s",NomSubKey);
-              size = ReadValue(HKEY_LOCAL_MACHINE,path,"V",buffer, MAX_LINE_SIZE);
-              if(size>0)
-              {
-                //Data to Hexa
-                DataToHexaChar(buffer, size, cbuffer, MAX_LINE_SIZE);
-
-                //extract datas
-                rid = TraiterUserDataFromSAM_V(lv_line);
-
-                //décodage du hash avec la clé ^^
-                //lecture de la valeure F (account) pour la génération de la syskey
-                BYTE b_f[MAX_LINE_SIZE];
-                if (LireGValeur(HKEY_LOCAL_MACHINE,"SAM\\SAM\\Domains\\Account","F",(char*)b_f) > 0x80)
-                {
-                  DecodeSAMHash(sk,lv_line[10].c,rid,lv_line[2].c,b_f);
-                }
-
-                snprintf(tmp_add,MAX_PATH,"Last logon : %s,%s",lv_line[2].c,lv_line[4].c);
-                snprintf(user,MAX_PATH,"%s SID :%s",lv_line[2].c,lv_line[3].c);
-                l = AddToLV(hlv, lv_line, NB_COLONNE_LV[LV_REGISTRY_USERS_NB_COL]);
-
-                //traitement des données de connexion
-                lv_line[4].c[0]=0;
-                size = LireGValeur(HKEY_LOCAL_MACHINE,path,"F",lv_line[4].c);
-
-                if(size>0 && lv_line[4].c[0]!=0)
-                {
-                  //transformation des données en hexa ^^
-                  lv_line[3].c[0]=0;
-                  for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
-                  {
-                    snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
-                    strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
-                  }
-                  strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
-
-                  //application des données
-                  TraiterUserDataFromSAM_F(lv_line);
-                  ListView_SetItemText(hlv,l,6,lv_line[6].c);
-                  ListView_SetItemText(hlv,l,7,lv_line[7].c);
-                  ListView_SetItemText(hlv,l,8,lv_line[8].c);
-                  ListView_SetItemText(hlv,l,9,lv_line[9].c);
-                }
-
-                //StateHC(lv_line, 6, user);
-
-                //ajouter dans l'historique
-                AddToLV_Registry2(lv_line[6].c, user, "Users & groups", tmp_add);
-                AddToLV_RegistryCritical(lv_line[6].c, user, "Users & groups", tmp_add);
-
-                snprintf(tmp_add,MAX_PATH,"Last password change : %s,%s",lv_line[2].c,lv_line[4].c);
-                AddToLV_Registry2(lv_line[7].c, user, "Users & groups", tmp_add);
-                AddToLV_RegistryCritical(lv_line[7].c, user, "Users & groups", tmp_add);
-              }
-            }
-          }
-          //on vérifie qu'il y a bien des utilisateurs qui ont été ajoutés ^^
-          if(ListView_GetItemCount(hlv)>0) ok = TRUE;
-        }
-      }
-      RegCloseKey(CleTmp);
-    }
-    restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
-  }else if (ret == -2)restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
-
-
-  ret = set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Aliases");
-  if (ret == 0)//ok
-  {
-    //lecture des groupes ^^
-    CleTmp = 0;
-    if (RegOpenKey(HKEY_LOCAL_MACHINE,"SAM\\SAM\\Domains\\Account\\Aliases\\",&CleTmp)==ERROR_SUCCESS)
-    {
-      if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
-      {
-        if (nbSubKey >0)
-        {
-          NomSubKey[0]=0;
-          for (i=0;i<nbSubKey;i++)
-          {
-            TailleNomSubKey=MAX_PATH;// on reinitialise la taille a chaque fois sinon il ne lit pas la valeur suivant
-            if (RegEnumKeyEx (CleTmp,i,NomSubKey,&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
-            {
-              //génération du path group
-              snprintf(path,MAX_LINE_SIZE,"SAM\\SAM\\Domains\\Account\\Aliases\\%s",NomSubKey);
-
-              lv_line[4].c[0]=0;
-              size = LireGValeur(HKEY_LOCAL_MACHINE,path,"C",lv_line[4].c);
-              if(size>0)
-              {
-                //transformation des données en hexa ^^
-                lv_line[3].c[0]=0;
-                for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
-                {
-                  snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
-                  strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
-                }
-                strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
-
-                //traitement des données user (hash, etcs ..)
-                lv_line[4].c[0]=0;
-                TraiterGroupDataFromSAM_C(lv_line,hlv);
-            }
-          }userRID
-        }
-      }
-    }
-    RegCloseKey(CleTmp);
-    }
-    restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Aliases");
-  }else if (ret == -2)restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Aliases");
-
-  ret = set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Builtin\\Aliases");
-  if (ret == 0)//ok
-  {
-    CleTmp = 0;
-    if (RegOpenKey(HKEY_LOCAL_MACHINE,"SAM\\SAM\\Domains\\Builtin\\Aliases\\",&CleTmp)==ERROR_SUCCESS)
-    {
-      nbSubKey = 0;
-      if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
-      {
-        if (nbSubKey >0)
-        {
-
-          NomSubKey[0]=0;
-          for (i=0;i<nbSubKey;i++)
-          {
-            TailleNomSubKey=MAX_PATH;// on reinitialise la taille a chaque fois sinon il ne lit pas la valeur suivant
-            if (RegEnumKeyEx (CleTmp,i,NomSubKey,&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
-            {
-              //génération du path group
-              snprintf(path,MAX_LINE_SIZE,"SAM\\SAM\\Domains\\Builtin\\Aliases\\%s",NomSubKey);
-
-              lv_line[4].c[0]=0;
-              size = LireGValeur(HKEY_LOCAL_MACHINE,path,"C",lv_line[4].c);
-              if(size>0)
-              {
-                //transformation des données en hexa ^^
-                lv_line[3].c[0]=0;
-                for (j=0;j<size && j/2<MAX_LINE_SIZE;j++)
-                {
-                  snprintf(tmp,10,"%02X",lv_line[4].c[j]&0xff);
-                  strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
-                }
-                strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
-
-                //traitement des données user (hash, etcs ..)
-                lv_line[4].c[0]=0;
-                TraiterGroupDataFromSAM_C(lv_line,hlv);
-             }
-           }
-         }
-       }
-     }
-     RegCloseKey(CleTmp);
-    }
-    restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Builtin\\Aliases");
-  }else if (ret == -2)restore_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Builtin\\Aliases");
-
-  return ok;*/
 
   return ok;
 }

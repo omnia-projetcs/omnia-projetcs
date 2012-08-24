@@ -64,7 +64,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   {
     snprintf(raw_password,MAX_PATH,"0x%02x%02x%02x%02x",password[0]&255,password[1]&255,password[2]&255,password[3]&255);
     vncpwd((u_char *)password,8);
-    addPasswordtoDB("Registry\\VNC",login,password,raw_password,REG_PASSWORD_STRING_VNC,session_id,db);
+    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,password,raw_password,REG_PASSWORD_STRING_VNC,session_id,db);
   }
 
   //Screen saver
@@ -110,7 +110,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
       tmp[size/2] = 0;
       strcpy(password,tmp);
 
-      addPasswordtoDB("Registry\\Screen saver",login,password,raw_password,REG_PASSWORD_STRING_SCREENSAVER,session_id,db);
+      addPasswordtoDB(cps[TXT_MSG_BDR].c,login,password,raw_password,REG_PASSWORD_STRING_SCREENSAVER,session_id,db);
     }
   }
 
@@ -125,7 +125,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
 
   if (raw_password[0] != 0)
   {
-    addPasswordtoDB("Registry\\Terminal server",login,raw_password,raw_password,REG_PASSWORD_STRING_TERMINAL_SERVER,session_id,db);
+    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,raw_password,raw_password,REG_PASSWORD_STRING_TERMINAL_SERVER,session_id,db);
   }
 
   //Session auto login
@@ -141,7 +141,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   if (tmp[0] != 0 || password[0] != 0 || raw_password[0] != 0)
   {
     snprintf(login,MAX_PATH,"%s\\%s",tmp,password); //domaine\\user
-    addPasswordtoDB("Registry\\Windows Auto-logon",login,raw_password,raw_password,REG_PASSWORD_STRING_AUTO_LOGON,session_id,db);
+    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,raw_password,raw_password,REG_PASSWORD_STRING_AUTO_LOGON,session_id,db);
   }
 
   //--------------------------------------------------

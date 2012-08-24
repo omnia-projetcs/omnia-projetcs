@@ -137,6 +137,8 @@ BEGIN
   BEGIN
     MENUITEM "Check all"                  ,POPUP_TRV_CHECK_ALL
     MENUITEM "Uncheck all"                ,POPUP_TRV_UNCHECK_ALL
+    MENUITEM SEPARATOR
+    MENUITEM "Stop the test"               ,POPUP_TRV_STOP_TEST
   END
 END
 //------------------------------------------------------------------------------

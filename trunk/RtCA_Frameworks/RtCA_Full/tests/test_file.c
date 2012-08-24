@@ -237,6 +237,125 @@ void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_ma
     HeapFree(GetProcessHeap(), 0, psd);
   }
 }
+
+//-----------------------------------------------------------------------------
+void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max)
+//void GetACLS(char *file, char *acls, char* owner, unsigned int res_taille_max, unsigned int prop_taille_max)
+{
+  //droits sur le fichier
+  SECURITY_DESCRIPTOR *sd;
+  unsigned long size_sd = 0;
+  //récupération du descripteur sécurité
+  GetFileSecurity(file, DACL_SECURITY_INFORMATION, 0, 0, &size_sd);
+  if (acls && size_sd>0)
+  {
+    sd = (SECURITY_DESCRIPTOR *) HeapAlloc(GetProcessHeap(), 0, size_sd);
+    if (sd != NULL)
+    {
+      if (GetFileSecurity(file, DACL_SECURITY_INFORMATION, sd, size_sd, &size_sd))
+      {
+        ACL *acl;
+        int defaulted, present;
+        //récupération des ACLS du descripteur
+        if (GetSecurityDescriptorDacl(sd, &present, &acl, &defaulted))
+        {
+          //Information sur l'ACL
+          ACL_SIZE_INFORMATION acl_size_info;
+          if (acl != NULL)
+          {
+            if (GetAclInformation(acl, (void *) &acl_size_info, sizeof(acl_size_info), AclSizeInformation))
+            {
+              //traitement de l'affichage des ACLS
+              unsigned int i;
+              void *ace;
+              SID *psid = NULL;
+              int mask;
+
+              for (i=0;i<acl_size_info.AceCount; i++)
+              {
+                //affichage d'une ACE :
+                if (GetAce(acl, i, &ace))
+                {
+                  if (ace != NULL)
+                  {
+                    mask = 0;
+
+                    //récupération des droits authorisés
+                    if (((ACCESS_ALLOWED_ACE *)ace)->Header.AceType == ACCESS_ALLOWED_ACE_TYPE){
+                        mask = ((ACCESS_ALLOWED_ACE *)ace)->Mask;
+                        psid  = (SID *) &((ACCESS_ALLOWED_ACE *)ace)->SidStart;
+                    //récupération des droits refusés
+                    }else if(((ACCESS_DENIED_ACE *)ace)->Header.AceType == ACCESS_DENIED_ACE_TYPE){
+                        mask = ((ACCESS_DENIED_ACE *)ace)->Mask;
+                        psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
+                    }
+
+                    //traitement pour affichage des droits
+                    if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
+                    if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
+                    if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
+
+                    //traitement des droits étendus ^^
+                    /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
+                    if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
+                    if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
+                    if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
+                    if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
+                    if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
+                    if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
+                    if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
+                    if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
+                    if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
+                    if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
+                    if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
+
+                    //compte associé au droit
+                    char cuser[MAX_PATH]="", csid[MAX_PATH]="", crid[MAX_PATH]="";
+                    SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+
+                    strncat(acls," ",size_max);
+                    if (strlen(cuser)>0) strncat(acls,cuser,size_max);
+                    if (strlen(csid)>0) strncat(acls,csid,size_max);
+                    strncat(acls,"\r\n\0",size_max);
+                  }
+                }
+              }
+            }
+          }
+          HeapFree(GetProcessHeap(), 0, acl);
+        }
+      }
+      HeapFree(GetProcessHeap(), 0, sd);
+    }
+  }
+
+  //récupération du propriétaire du fichier
+  DWORD ssd = 0;
+  GetFileSecurity(file, OWNER_SECURITY_INFORMATION, NULL, 0, &ssd);
+  if (ssd != 0)
+  {
+    PSECURITY_DESCRIPTOR psd = NULL;
+    psd = HeapAlloc(GetProcessHeap(), 0, ssd);
+    if (!psd)return;
+
+    if(owner && GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
+    {
+      PSID psid = NULL;
+      BOOL pFlag = FALSE;
+      GetSecurityDescriptorOwner(psd, &psid, &pFlag);
+
+      char cuser[MAX_PATH]="",csid[MAX_PATH]="", crid[MAX_PATH]="";
+      SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+
+      strncpy(owner,cuser,size_max);
+      strncpy(sid,csid,size_max);
+      strncpy(rid,crid,size_max);
+    }
+    HeapFree(GetProcessHeap(), 0, psd);
+  }
+}
+/*
+//new version : bug
 //-----------------------------------------------------------------------------
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max)
 {
@@ -319,7 +438,7 @@ void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned 
   }
 
   GetOwner(file, owner, rid, sid, size_max);
-}
+}*/
 //------------------------------------------------------------------------------
 void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
 {
@@ -396,7 +515,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           if(sha)FileToSHA256(file, s_sha);
 
           //acl
-          if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
+          if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
 
           //extension
           strncpy(file,data.cFileName,MAX_PATH);
