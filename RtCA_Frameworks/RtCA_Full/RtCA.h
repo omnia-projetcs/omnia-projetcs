@@ -69,6 +69,7 @@ char _SYSKEY[MAX_PATH];
 
 #define DEFAULT_TMP_SIZE          256
 #define MAX_LINE_SIZE      8*MAX_PATH
+#define MAX_LINE_DBSIZE    2*MAX_LINE_SIZE
 #define REQUEST_MAX_SIZE   MAX_LINE_SIZE
 #define DEFAULT_EVENT_SIZE    1024*64
 
@@ -320,7 +321,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         47
+#define NB_COMPONENT_STRING         48
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define REF_MSG                     8
@@ -371,6 +372,8 @@ typedef struct SORT_ST
 #define TXT_MSG_UNK                 44
 #define TXT_MSG_NEVER               45
 #define TXT_MSG_MDP_NEVER_EXP       46
+
+#define TXT_MSG_BDR                 47
 
 typedef struct
 {

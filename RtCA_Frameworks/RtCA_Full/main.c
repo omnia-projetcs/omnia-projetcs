@@ -298,7 +298,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 int selected_cb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
                 if (SendMessage(hlstbox, LB_GETTEXTLEN, selected_cb_item, 0) < MAX_LINE_SIZE)
                 {
-                  SendMessage(hlstbox, LB_GETTEXT, selected_cb_item, buffer);
+                  SendMessage(hlstbox, LB_GETTEXT, selected_cb_item, (LPARAM)buffer);
                 }
                 strncat(buffer,"\r\n--------------------",MAX_LINE_SIZE);
 
@@ -532,6 +532,8 @@ int main(int argc, char* argv[])
                                  GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                                  GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                                  h_main, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
 
     SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);

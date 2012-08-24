@@ -260,12 +260,24 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
   {
     if (vk_h->data_size < 5)
     {
-      memcpy(data,vk_h->cdata_offset,vk_h->data_size);
-      *data_size = vk_h->data_size;
+      if (data_size<vk_h->data_size)
+      {
+        memcpy(data,vk_h->cdata_offset,*data_size);
+      }else
+      {
+        memcpy(data,vk_h->cdata_offset,vk_h->data_size);
+        *data_size = vk_h->data_size;
+      }
     }else
     {
-      memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],vk_h->data_size);
-      *data_size = vk_h->data_size;
+      if (data_size<vk_h->data_size)
+      {
+        memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],data_size);
+      }else
+      {
+        memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],vk_h->data_size);
+        *data_size = vk_h->data_size;
+      }
     }
     return vk_h->data_type;
   }
@@ -549,6 +561,7 @@ DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD p
     {
       S_ITEM_LS *item_ls;
       HBIN_CELL_VK_HEADER *vk_h;
+
       for (i=0;i<nk_h->nb_values;i++)
       {
         //pour le 1er il faut passer les 4 premier octets représentant une taille ?
@@ -568,7 +581,7 @@ DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD p
           {
             //GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
             DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-            if (data[0] != 0)return type;
+            if (data_size != 0)return type;
             break;
           }
         }
@@ -585,6 +598,8 @@ BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file)
   hks->buffer     = NULL;
   hks->position   = 0;
   hks->pos_fhbin  = 0;
+
+  if (file == NULL) return FALSE;
 
   //open file
   HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);

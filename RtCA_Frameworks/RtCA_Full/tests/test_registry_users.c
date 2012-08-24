@@ -180,7 +180,7 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
                            pBuf_info->usri2_password_age%86400%3600%60);
                 }
 
-                //nb_connexion			wprintf(L"\n\nPassword last set:		%dday %dhour %dmin Before",
+                //nb_connexion
                 nb_connexion = pBuf_info->usri2_num_logons;
 
                 //type
@@ -208,9 +208,169 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
 //------------------------------------------------------------------------------
 //file registry part
 //------------------------------------------------------------------------------
-void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
+int GetRegistryOs(HK_F_OPEN *hks)
 {
+  char currentOS[MAX_PATH]="";
+  if (Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "microsoft\\windows nt\\currentversion", NULL,"ProductName", currentOS, MAX_PATH))
+  {
+    if (Contient(currentOS,GUIDE_REG_OS_2000) ||
+        Contient(currentOS,GUIDE_REG_OS_XP_32b) ||
+        Contient(currentOS,GUIDE_REG_OS_2003_32b) ||
+        Contient(currentOS,GUIDE_REG_OS_VISTA_32b))return TRUE;
+    else return FALSE;
+  }
+  return -1;
+}
+//------------------------------------------------------------------------------
+void GetUserGroupFromRegFile(DWORD rid, char *group, DWORD group_size_max, HK_F_OPEN *hks, char *reg_path)
+{
+  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, reg_path);
+  if (nk_h == NULL)return;
 
+  HBIN_CELL_NK_HEADER *nk_h_tmp;
+  char cbuffer[MAX_LINE_SIZE], buffer[MAX_LINE_SIZE];
+  DWORD valueSize,i,nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
+  for (i=0;i<nbSubKey;i++)
+  {
+    //get nk of key :)
+    nk_h_tmp = GetSubNKtonk(hks->buffer, hks->taille_fic, nk_h, hks->position, i);
+    if (nk_h_tmp == NULL)continue;
+
+    //C
+    buffer[0]  = 0;
+    cbuffer[0] = 0;
+    valueSize  = MAX_LINE_SIZE;
+    if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"C", buffer, &valueSize))
+    {
+      DataToHexaChar(buffer, valueSize, cbuffer, MAX_LINE_SIZE);
+      TraiterGroupDataFromSAM_C(cbuffer, rid,  group,  group_size_max);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void GetUserGroupFRF(DWORD userRID, char *group, DWORD size_max_group)
+{
+  char file[MAX_PATH];
+  HK_F_OPEN hks;
+
+  group[0] = 0;
+
+  //get all file on by on on test if ok or not
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
+  if (hitem!=NULL || !LOCAL_SCAN) //files
+  {
+    while(hitem!=NULL)
+    {
+      file[0] = 0;
+      GetTextFromTrv(hitem, file, MAX_PATH);
+      //if (file[0] == 0 /*|| !(Contient(file,"SECURITY") || Contient(file,"security"))*/) continue;
+
+      //open file + verify
+      if(OpenRegFiletoMem(&hks, file))
+      {
+        //get group
+        GetUserGroupFromRegFile(userRID, group, size_max_group, &hks, "SAM\\Domains\\Builtin\\Aliases");
+        GetUserGroupFromRegFile(userRID, group, size_max_group, &hks, "SAM\\Domains\\Account\\Aliases");
+        CloseRegFiletoMem(&hks);
+      }
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id, BOOL os_type_XP, char *computer_name)
+{
+  DWORD userRID;
+  USERS_INFOS User_infos;
+
+  //get ref key for hashs
+  BYTE b_f[MAX_LINE_SIZE];
+  Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "SAM\\Domains\\Account", NULL,"F", b_f, MAX_LINE_SIZE);
+
+  //enum all users
+  //exist or not in the file ?
+  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "SAM\\Domains\\Account\\Users");
+  if (nk_h == NULL)return;
+
+  HBIN_CELL_NK_HEADER *nk_h_tmp;
+  DWORD valueSize;
+  BOOL ok_test;
+  char SubKeyName[MAX_PATH],key_path[MAX_PATH];
+  char cbuffer[MAX_LINE_SIZE], buffer[MAX_LINE_SIZE];
+  DWORD i,nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
+  for (i=0;i<nbSubKey;i++)
+  {
+    ok_test = FALSE;
+    //for each subkey
+    if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, SubKeyName, MAX_PATH))
+    {
+      //get nk of key :)
+      nk_h_tmp = GetSubNKtonk(hks->buffer, hks->taille_fic, nk_h, hks->position, i);
+      if (nk_h_tmp == NULL)continue;
+
+      //F
+      buffer[0]  = 0;
+      cbuffer[0] = 0;
+      valueSize  = MAX_LINE_SIZE;
+      if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"F", buffer, &valueSize))
+      {
+        DataToHexaChar(buffer, valueSize, cbuffer, MAX_LINE_SIZE);
+        userRID = TestUserDataFromSAM_F(&User_infos,cbuffer);
+        ok_test = TRUE;
+      }
+
+      //V
+      buffer[0]  = 0;
+      cbuffer[0] = 0;
+      valueSize  = MAX_LINE_SIZE;
+      if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"V", buffer, &valueSize))
+      {
+        DataToHexaChar(buffer, valueSize, cbuffer, MAX_LINE_SIZE);
+        if(TestUserDataFromSAM_V(&User_infos,cbuffer,computer_name))
+        {
+          //test if rid and sid ok
+          userRID = HTDF(SubKeyName,8);
+          if(User_infos.RID[0] == 0)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
+          if(User_infos.SID[0] == 0)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
+        }else
+        {
+          if(User_infos.RID[0] == 0 && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
+          if(User_infos.SID[0] == 0 && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
+        }
+        ok_test = TRUE;
+      }else
+      {
+        if(User_infos.RID[0] == 0 && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
+        if(User_infos.SID[0] == 0 && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
+      }
+
+      if (!ok_test)continue;
+
+      //get groups
+      if (userRID) GetUserGroupFRF(userRID, User_infos.group, MAX_PATH);
+
+      //get hashs
+      if(b_f[0] != 0 && _SYSKEY[0] != 0)
+      {
+        //if Windows < Vista
+        if (os_type_XP) DecodeSAMHashXP(_SYSKEY,User_infos.pwdump_pwd_raw_format,userRID,User_infos.name,b_f);
+        else
+        {
+          /*a coder*/
+
+        }
+      }
+
+      //add user
+      convertStringToSQL(User_infos.description, MAX_PATH);
+      addRegistryUsertoDB(User_infos.name, User_infos.RID, User_infos.SID, User_infos.group,
+                          User_infos.description, User_infos.last_logon, User_infos.last_password_change,
+                          User_infos.nb_connexion, User_infos.type, User_infos.state_id,session_id, db);
+
+      //add password
+      addPasswordtoDB(hks->file, User_infos.name, User_infos.pwdump_pwd_format, User_infos.pwdump_pwd_raw_format, REG_PASSWORD_STRING_LOCAL_USER, session_id, db);
+    }
+  }
 }
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -220,8 +380,15 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
 
-  char file[MAX_PATH];
+  char file[MAX_PATH], file_SAM[MAX_PATH]="";
   HK_F_OPEN hks;
+
+  char sk[MAX_PATH]="";
+  int ret_os_type = -1;
+  BOOL ok_os = FALSE;
+
+  char computer[DEFAULT_TMP_SIZE]="";
+  BOOL ok_computer = FALSE;
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
@@ -233,16 +400,59 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
+        //check for SAM files
+        if (Contient(file,"SAM") || Contient(file,"sam") && file_SAM[0] != 0)
+        {
+          strcpy(file_SAM,file);
+          hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+          continue;
+        }
+
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          Scan_registry_user_file(&hks, db, session_id);
+          //get syskey
+          registry_syskey_file(&hks, sk, MAX_PATH);
+
+          //get OS_Type
+          if (!ok_os)
+          {
+            ret_os_type = GetRegistryOs(&hks);
+            if (ret_os_type != -1) ok_os = TRUE;
+          }
+
+          if (!ok_computer)
+          {
+            char tmp[DEFAULT_TMP_SIZE]="";
+            Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Control\\ComputerName\\ComputerName", NULL,"ComputerName", tmp, DEFAULT_TMP_SIZE);
+
+            if (tmp[0]!=0)
+            {
+              strcpy(computer,tmp);
+              ok_computer = TRUE;
+            }
+          }
+
+          Scan_registry_user_file(&hks, db, session_id, ret_os_type == -1 || ret_os_type == 1?TRUE:FALSE,computer);
 
           CloseRegFiletoMem(&hks);
         }
       }
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
+
+    //SAM file in last
+    if (file_SAM[0] != 0)
+    {
+      //open file + verify
+      if(OpenRegFiletoMem(&hks, file_SAM))
+      {
+        Scan_registry_user_file(&hks, db, session_id, ret_os_type == -1 || ret_os_type == 1?TRUE:FALSE,computer);
+        CloseRegFiletoMem(&hks);
+      }
+    }
+
+
   }else Scan_registry_user_local(db, session_id);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
