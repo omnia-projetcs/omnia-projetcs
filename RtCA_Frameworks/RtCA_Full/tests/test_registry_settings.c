@@ -115,12 +115,33 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
           }
         }
         break;
+        case TYPE_VALUE_MULTI_WSTRING:
+          {
+            char tmp[REQUEST_MAX_SIZE]="",data_read[REQUEST_MAX_SIZE];
+            DWORD pos=0, data_size_read = ReadValue(hk,argv[1],argv[2],tmp, REQUEST_MAX_SIZE);
+
+            if (data_size_read)
+            {
+              char parent_key_update[DATE_SIZE_MAX];
+              ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
+
+              while ((pos-1)*2<data_size_read)
+              {
+                snprintf(data_read+pos,REQUEST_MAX_SIZE,"%S;",tmp+(pos*2-1));
+                pos = strlen(data_read);
+              }
+
+              convertStringToSQL(data_read, MAX_PATH);
+              addRegistrySettingstoDB("", argv[0], argv[1], argv[2], data_read, argv[4], argv[5], parent_key_update, session_id, db_scan);
+            }
+          }
+        break;
         case TYPE_VALUE_FILETIME:
         {
           char tmp[MAX_PATH]="";
           FILETIME ft;
           ReadFILETIMEValue(hk,argv[1],argv[2],&ft);
-          filetimeToString(ft, tmp, MAX_PATH);
+          filetimeToString_GMT(ft, tmp, MAX_PATH);
 
           char parent_key_update[DATE_SIZE_MAX];
           ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
@@ -151,7 +172,7 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
           DWORD nbSubKey = 0, nbValue = 0, i,j, type;
           if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,&nbValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
           {
-            filetimeToString(lastupdate, parent_key_update, DATE_SIZE_MAX);
+            filetimeToString_GMT(lastupdate, parent_key_update, DATE_SIZE_MAX);
             for (i=0;i<nbValue;i++)
             {
               NameSize = MAX_PATH;
@@ -337,6 +358,34 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
             addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
           }
         break;
+        case TYPE_VALUE_MULTI_WSTRING:
+        {
+          char data_read[MAX_LINE_SIZE];
+          DWORD pos=0, data_size_read = MAX_LINE_SIZE;
+          if (ReadBinarynk_Value(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+                                 argv[1], NULL, argv[2], tmp, &data_size_read))
+          {
+            if (data_size_read)
+            {
+              //data_read
+              while ((pos-1)*2<data_size_read)
+              {
+                snprintf(data_read+pos,MAX_LINE_SIZE,"%S;",tmp+(pos*2-1));
+                pos = strlen(data_read);
+              }
+
+              //key update
+              char parent_key_update[DATE_SIZE_MAX];
+              Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+                           argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
+
+              //save
+              convertStringToSQL(data_read, MAX_LINE_SIZE);
+              addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], data_read, argv[4], argv[5], parent_key_update, session_id, db_scan);
+            }
+          }
+        }
+        break;
         case TYPE_VALUE_FILETIME:
         {
           DWORD data_size = sizeof(FILETIME)+1;
@@ -351,7 +400,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
 
             //convert date
             tmp[0] = 0;
-            filetimeToString(f_date, tmp, DATE_SIZE_MAX);
+            filetimeToString_GMT(f_date, tmp, DATE_SIZE_MAX);
 
             //save
             convertStringToSQL(tmp, MAX_LINE_SIZE);
@@ -501,7 +550,6 @@ DWORD WINAPI Scan_registry_setting(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-
         //verify
         Scan_registry_setting_file(db_scan,file);
       }

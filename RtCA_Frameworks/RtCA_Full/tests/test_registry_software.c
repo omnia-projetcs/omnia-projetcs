@@ -78,7 +78,7 @@ void Scan_registry_softwareKey(HKEY hk, char *chk, char *ckey, sqlite3 *db, unsi
               ReadValue(hk,key_path,"RegistryLocation",installlocation, MAX_PATH);
 
           //last update
-          filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+          filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
           //install_user
           ReadValue(hk,key_path,"Inno Setup: User",install_user, MAX_PATH);

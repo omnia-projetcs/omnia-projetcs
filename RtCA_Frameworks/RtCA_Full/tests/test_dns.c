@@ -19,7 +19,7 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
 DWORD WINAPI Scan_dns(LPVOID lParam)
 {
   //check if local or not :)
-  if (!LOCAL_SCAN)
+  if (!LOCAL_SCAN || WINE_OS)
   {
     h_thread_test[(unsigned int)lParam] = 0;
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
@@ -48,7 +48,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
         //get last update
         char last_file_update[DATE_SIZE_MAX]="";
         FILETIME LastWriteTime;
-        if(GetFileTime(Hfic,NULL,NULL,&LastWriteTime))filetimeToString(LastWriteTime, last_file_update, DATE_SIZE_MAX);
+        if(GetFileTime(Hfic,NULL,NULL,&LastWriteTime))filetimeToString_GMT(LastWriteTime, last_file_update, DATE_SIZE_MAX);
 
         //read data line by line
         DWORD copiee;

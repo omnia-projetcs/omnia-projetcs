@@ -213,7 +213,7 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
     snprintf(session_number,session_number_size ,"%08d",s->session_number & 0xFFFFFFFF);
 
     if (s->LastWriteTime.dwLowDateTime != 0 || s->LastWriteTime.dwHighDateTime != 0)
-      filetimeToString(s->LastWriteTime, last_use, last_use_size);
+      filetimeToString_GMT(s->LastWriteTime, last_use, last_use_size);
   }else if (data_size >= 68) //Vista,7,2008...
   {
     snprintf(use_count,use_count_size           ,"%08d",s2->use_count & 0xFFFFFFFF);
@@ -229,7 +229,7 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
     }
 
     if (s2->LastWriteTime.dwLowDateTime != 0 || s2->LastWriteTime.dwHighDateTime != 0)
-      filetimeToString(s2->LastWriteTime, last_use, last_use_size);
+      filetimeToString_GMT(s2->LastWriteTime, last_use, last_use_size);
   }
 
   //case UEME_CTLSESSION

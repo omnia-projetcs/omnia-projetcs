@@ -33,7 +33,7 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
 
   //get date
   char parent_key_update[DATE_SIZE_MAX] = "";
-  filetimeToString(last_update, parent_key_update, DATE_SIZE_MAX);
+  filetimeToString_GMT(last_update, parent_key_update, DATE_SIZE_MAX);
 
   //read USER + RID + SID
   char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];

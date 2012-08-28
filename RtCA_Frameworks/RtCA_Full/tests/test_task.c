@@ -19,7 +19,7 @@ void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, unsigned in
 DWORD WINAPI Scan_task(LPVOID lParam)
 {
   //check if local or not :)
-  if (!LOCAL_SCAN)
+  if (!LOCAL_SCAN || WINE_OS)
   {
     h_thread_test[(unsigned int)lParam] = 0;
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

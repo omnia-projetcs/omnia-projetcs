@@ -131,7 +131,7 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
             description[0]= 0;
             description1[0]= 0;
             description2[0]= 0;
-            filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+            filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
             if (ReadValue(hk,tmp_key2,"Class",description1, MAX_PATH))
             {

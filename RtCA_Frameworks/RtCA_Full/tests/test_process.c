@@ -345,8 +345,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
         //traitement de la date
         if (lpCreationTime.dwHighDateTime != 0 && lpCreationTime.dwLowDateTime != 0)
         {
-         if(FileTimeToLocalFileTime(&lpCreationTime, &LocalFileTime))
-            filetimeToString(LocalFileTime, start_date, DATE_SIZE_MAX);
+          filetimeToString_GMT(lpCreationTime, start_date, DATE_SIZE_MAX);
         }
       }
 
@@ -393,7 +392,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   DWORD cbNeeded, k, j, nb_process=0;
   HANDLE hProcess;
   HMODULE hMod[MAX_PATH];
-  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime ,LocalFileTime;
+  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
   LINE_PROC_ITEM port_line[MAX_PATH];
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
@@ -440,8 +439,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
       //traitement de la date
       if (lpCreationTime.dwHighDateTime != 0 && lpCreationTime.dwLowDateTime != 0)
       {
-       if(FileTimeToLocalFileTime(&lpCreationTime, &LocalFileTime))
-          filetimeToString(LocalFileTime, start_date, DATE_SIZE_MAX);
+       filetimeToString_GMT(lpCreationTime, start_date, DATE_SIZE_MAX);
       }
     }
 

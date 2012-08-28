@@ -133,6 +133,19 @@ char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size)
   return str;
 }
 //------------------------------------------------------------------------------
+char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_size)
+{
+  str[0] = 0;
+  if (UTC_TIME)filetimeToString(FileTime, str, string_size);
+  else
+  {
+    FILETIME LocalFileTime;
+    if(FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
+      filetimeToString(LocalFileTime, str, string_size);
+  }
+  return str;
+}
+//------------------------------------------------------------------------------
 char *timeToString(DWORD time, char *str, unsigned int string_size)
 {
   FILETIME FileTime,LocalFileTime;
@@ -140,10 +153,18 @@ char *timeToString(DWORD time, char *str, unsigned int string_size)
 
   FileTime.dwLowDateTime  = (DWORD) lgTemp;
   FileTime.dwHighDateTime = (DWORD)(lgTemp >> 32);
-  if (FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
+
+  if (UTC_TIME)
   {
-    filetimeToString(LocalFileTime, str, string_size);
+    filetimeToString(FileTime, str, string_size);
+  }else
+  {
+    if (FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
+    {
+      filetimeToString(LocalFileTime, str, string_size);
+    }
   }
+
   return str;
 }
 //------------------------------------------------------------------------------
@@ -244,7 +265,10 @@ BOOL isWine()
   char tmp[MAX_PATH]="";
   if(ReadValue(HKEY_LOCAL_MACHINE,"Software\\Microsoft\\Windows NT\\CurrentVersion\\AeDebug","Debugger",tmp, MAX_PATH))
   {
-    if (Contient(tmp,"winedbg"))return TRUE;
+    if (Contient(tmp,"winedbg"))
+    {
+      return TRUE;
+    }
   }
 
   return FALSE;

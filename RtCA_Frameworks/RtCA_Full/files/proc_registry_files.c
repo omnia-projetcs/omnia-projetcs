@@ -260,7 +260,7 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
   {
     if (vk_h->data_size < 5)
     {
-      if (data_size<vk_h->data_size)
+      if (*data_size<vk_h->data_size)
       {
         memcpy(data,vk_h->cdata_offset,*data_size);
       }else
@@ -270,9 +270,9 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
       }
     }else
     {
-      if (data_size<vk_h->data_size)
+      if (*data_size<vk_h->data_size)
       {
-        memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],data_size);
+        memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],*data_size);
       }else
       {
         memcpy(data,&buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE],vk_h->data_size);
@@ -419,7 +419,7 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
   if (nk_h != NULL)
   {
     //last_update
-    if (last_update != NULL)filetimeToString(nk_h->last_write,last_update,last_update_size);
+    if (last_update != NULL)filetimeToString_GMT(nk_h->last_write,last_update,last_update_size);
 
     //get rid and sid
     if (rid != NULL && sid != NULL)

@@ -24,6 +24,7 @@
 					<Add library="ws2_32" />
 					<Add library="dnsapi" />
 					<Add library="crypt32" />
+					<Add library="iphlpapi" />
 				</Linker>
 			</Target>
 		</Build>

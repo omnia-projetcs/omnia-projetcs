@@ -445,8 +445,6 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
   WIN32_FIND_DATA data;
   char tmp_path[MAX_PATH], path_ex[MAX_PATH], file[MAX_PATH];
 
-  FILETIME LocalFileTime;
-
   char CreationTime[DATE_SIZE_MAX],LastWriteTime[DATE_SIZE_MAX],LastAccessTime[DATE_SIZE_MAX];
   char size[DEFAULT_TMP_SIZE];
   char s_ads[MAX_PATH]="";
@@ -464,14 +462,9 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
     else
     {
         //dates
-        FileTimeToLocalFileTime(&(data.ftCreationTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, CreationTime, DATE_SIZE_MAX);
-
-        FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, LastWriteTime, DATE_SIZE_MAX);
-
-        FileTimeToLocalFileTime(&(data.ftLastAccessTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, LastAccessTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
@@ -540,8 +533,6 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
 {
   WIN32_FIND_DATA data;
 
-  FILETIME LocalFileTime;
-
   char CreationTime[DATE_SIZE_MAX],LastWriteTime[DATE_SIZE_MAX],LastAccessTime[DATE_SIZE_MAX];
   char size[DEFAULT_TMP_SIZE];
   char s_ads[MAX_PATH]="";
@@ -558,14 +549,9 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
     else
     {
         //dates
-        FileTimeToLocalFileTime(&(data.ftCreationTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, CreationTime, DATE_SIZE_MAX);
-
-        FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, LastWriteTime, DATE_SIZE_MAX);
-
-        FileTimeToLocalFileTime(&(data.ftLastAccessTime), &LocalFileTime);
-        filetimeToString(LocalFileTime, LastAccessTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {

@@ -615,6 +615,7 @@ int main(int argc, char* argv[])
                    "\t-0  Enable ACL check in files test.\n\n"
                    "\t-1  Enable ADS check in files test.\n\n"
                    "\t-2  Enable SHA in files test.\n\n"
+                   "\t-T  Export in UTC time.\n\n"
                    "\n"
                    "\t-f  Import file to check.\n\t    Exemple: -f \"c:\\file.reg\"\n\n"
                    "\t-p  Import path to check in file test.\n\t    Exemple: -p \"c:\\directory\\\"\n\n"
@@ -693,6 +694,7 @@ int main(int argc, char* argv[])
             sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
             system("PAUSE");
           break;
+          case 'T': UTC_TIME = TRUE;
           case '0'://enable ACL for tests files
             FILE_ACL = TRUE;
           break;

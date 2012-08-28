@@ -31,11 +31,14 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               else FILE_ADS=FALSE;
               if (IsDlgButtonChecked(h_conf,BT_SHA_FILE_CHK)==BST_CHECKED)FILE_SHA=TRUE;
               else FILE_SHA=FALSE;
+              if (IsDlgButtonChecked(h_conf,BT_UTC_CHK)==BST_CHECKED)UTC_TIME=TRUE;
+              else UTC_TIME=FALSE;
 
               EnableWindow(htrv_files,FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_ACL_FILE_CHK),FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_ADS_FILE_CHK),FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_SHA_FILE_CHK),FALSE);
+              EnableWindow(GetDlgItem((HWND)h_conf,BT_UTC_CHK),FALSE);
 
               if(TreeView_GetCount(htrv_files) > NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = FALSE;
               else LOCAL_SCAN = TRUE;

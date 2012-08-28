@@ -119,23 +119,93 @@ void SearchNetworkGUID(HKEY hk,char *path,char *guid, char *card, DWORD size_car
 //------------------------------------------------------------------------------
 void Scan_network_local(sqlite3 *db, unsigned int session_id)
 {
+  char ip[DEFAULT_TMP_SIZE]       ="",
+    netmask[DEFAULT_TMP_SIZE]     ="",
+    gw[DEFAULT_TMP_SIZE]          ="",
+    dns[DEFAULT_TMP_SIZE]         ="",
+    domain[DEFAULT_TMP_SIZE]      ="",
+    dhcp_server[DEFAULT_TMP_SIZE] ="",
+    card[DEFAULT_TMP_SIZE]        ="",
+    description[DEFAULT_TMP_SIZE] ="",
+    hostname[DEFAULT_TMP_SIZE]    ="",
+    lastupdate[DATE_SIZE_MAX]     ="",
+    wifi_cache[MAX_PATH]          ="",
+    guid[MAX_PATH]                ="";
+
+  //if wine
+  if (WINE_OS)
+  {
+    DWORD i,ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    PIP_ADAPTER_INFO pAdapter, pAdapterInfo = malloc(ulOutBufLen);
+    if (pAdapterInfo == NULL)return;
+
+    DWORD ret = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
+    if (ret == ERROR_BUFFER_OVERFLOW)
+    {
+      pAdapterInfo = realloc(pAdapterInfo,ulOutBufLen);
+      if (pAdapterInfo == NULL)return;
+      else ret = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
+    }
+
+    //DNS
+    WSADATA wsa;
+    if (WSAStartup(MAKEWORD(2,2), &wsa)== 0)
+    {
+      if (gethostname(hostname, DEFAULT_TMP_SIZE) == SOCKET_ERROR)hostname[0] = 0;
+      WSACleanup();
+    }
+
+    if (ret == NO_ERROR)
+    {
+      pAdapter = pAdapterInfo;
+      while (pAdapter)
+      {
+        card[0]         = 0;
+        description[0]  = 0;
+        strncpy(card,pAdapter->AdapterName,DEFAULT_TMP_SIZE);
+        strncpy(description,pAdapter->Description,DEFAULT_TMP_SIZE);
+
+        ip[0]           = 0;
+        netmask[0]      = 0;
+        gw[0]           = 0;
+        strncpy(ip,pAdapter->IpAddressList.IpAddress.String,DEFAULT_TMP_SIZE);
+        strncpy(netmask,pAdapter->IpAddressList.IpMask.String,DEFAULT_TMP_SIZE);
+        strncpy(gw,pAdapter->GatewayList.IpAddress.String,DEFAULT_TMP_SIZE);
+
+        if (pAdapter->DhcpEnabled)strncpy(dhcp_server,pAdapter->DhcpServer.IpAddress.String,DEFAULT_TMP_SIZE);
+        else dhcp_server[0] = 0;
+
+        guid[0]         = 0;
+        for (i=0;i<pAdapter->AddressLength;i++)
+        {
+          if (i != (pAdapter->AddressLength - 1))
+            snprintf(guid+strlen(guid)+1,DEFAULT_TMP_SIZE-strlen(guid),"%.2X-",(int) pAdapter->Address[i]);
+          else snprintf(guid+strlen(guid)+1,DEFAULT_TMP_SIZE-strlen(guid),"%.2X",(int) pAdapter->Address[i]);
+        }
+
+        //dns
+        if (pAdapter->HaveWins) snprintf(dns,DEFAULT_TMP_SIZE,"%s %s",pAdapter->PrimaryWinsServer.IpAddress.String, pAdapter->SecondaryWinsServer.IpAddress.String);
+        else dns[0]=0;
+
+        //add only if a card
+        if (description[0]!=0 || card[0]!=0 || dns[0]!=0)
+        {
+          convertStringToSQL(description, DEFAULT_TMP_SIZE);
+          addNetworktoDB(card, description, guid, hostname, ip, netmask, gw, dns, domain, dhcp_server,pAdapter->DhcpEnabled?"X":"",wifi_cache,lastupdate, session_id, db);
+        }
+        pAdapter = pAdapter->Next;
+      }
+    }
+    free(pAdapterInfo);
+    return;
+  }
+
+  //local registry
   //read list of key
   HKEY CleTmp = 0;
   char key_path[MAX_PATH], tmp_key[MAX_PATH];
   DWORD i, nbSubKey = 0, key_size;
   BOOL dhcp_mode;
-
-  char ip[DEFAULT_TMP_SIZE],
-      netmask[DEFAULT_TMP_SIZE],
-      gw[DEFAULT_TMP_SIZE],
-      dns[DEFAULT_TMP_SIZE],
-      domain[DEFAULT_TMP_SIZE],
-      dhcp_server[DEFAULT_TMP_SIZE],
-      card[DEFAULT_TMP_SIZE],
-      description[DEFAULT_TMP_SIZE],
-      hostname[DEFAULT_TMP_SIZE],
-      lastupdate[DATE_SIZE_MAX],
-      wifi_cache[MAX_PATH];
 
   FILETIME LastWriteTime;
 
@@ -161,7 +231,7 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
                             tmp_key, card, DEFAULT_TMP_SIZE, description, DEFAULT_TMP_SIZE);
 
           //last update
-          filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+          filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
           //read datas
           if (ReadDwordValue(HKEY_LOCAL_MACHINE,key_path,"EnableDHCP") == 1) //DHCP
@@ -272,6 +342,7 @@ BOOL ReadRegistryWifiInfos_registry_file(char *buffer, DWORD taille_fic, DWORD p
       DWORD i, nbSubKey = GetValueData(buffer, taille_fic, nk_h, position, 0, NULL, 0, NULL, 0);
       for (i=0;i<nbSubKey;i++)
       {
+        data_size = MAX_PATH;
         type = GetBinaryValueData(buffer, taille_fic, nk_h, position, i, value, MAX_PATH,data, &data_size);
 
         //set datas
@@ -405,9 +476,9 @@ DWORD WINAPI Scan_network(LPVOID lParam)
 
   //files or local
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
-  if (hitem!=NULL) //files
+  if (hitem!=NULL && !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL || !LOCAL_SCAN)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);

@@ -59,7 +59,7 @@ void ReadKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date)
   {
     if(RegQueryInfoKey(CleTmp,0,0,0,0,0,0,0,0,0,0,&lastupdate)==ERROR_SUCCESS)
     {
-      filetimeToString(lastupdate, date, size_date);
+      filetimeToString_GMT(lastupdate, date, size_date);
     }
     RegCloseKey(CleTmp);
   }

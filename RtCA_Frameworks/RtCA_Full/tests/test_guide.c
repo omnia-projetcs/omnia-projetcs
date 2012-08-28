@@ -146,6 +146,22 @@ int callback_sqlite_guide_local(void *datas, int argc, char **argv, char **azCol
             }else CheckGuideValue("",FALSE,argv[6],argv[0],argv[1],argv[3],argv[5],data_read, argv[8], argv[9], session_id, db_scan);
           }
           break;
+          case TYPE_VALUE_MULTI_WSTRING:
+          {
+            char tmp[REQUEST_MAX_SIZE]="";
+            DWORD pos=0, data_size_read = ReadValue(hk,argv[1],argv[3],tmp, REQUEST_MAX_SIZE);
+
+            if (data_size_read)
+            {
+              while ((pos-1)*2<data_size_read)
+              {
+                snprintf(data_read+pos,REQUEST_MAX_SIZE,"%S ",tmp+(pos*2-1));
+                pos = strlen(data_read);
+              }
+              CheckGuideValue("",TRUE,argv[6],argv[0],argv[1],argv[3],argv[5],data_read, argv[8], argv[9], session_id, db_scan);
+            }else CheckGuideValue("",FALSE,argv[6],argv[0],argv[1],argv[3],argv[5],data_read, argv[8], argv[9], session_id, db_scan);
+          }
+          break;
         }
       }
     }break;
@@ -174,6 +190,7 @@ int callback_sqlite_guide_file(void *datas, int argc, char **argv, char **azColN
           case TYPE_VALUE_STRING:
           case TYPE_VALUE_MULTI_STRING:
           case TYPE_VALUE_WSTRING:
+          case TYPE_VALUE_MULTI_WSTRING:
           {
             if(Readnk_Value(guide_hks.buffer, guide_hks.taille_fic, (guide_hks.pos_fhbin)+HBIN_HEADER_SIZE, guide_hks.position, argv[2], NULL, argv[3], data_read, MAX_PATH))
               CheckGuideValue(guide_hks.file, TRUE,argv[6],"",argv[2],argv[3],argv[5],data_read, argv[8], argv[9], session_id, db_scan);

@@ -59,7 +59,7 @@ void EnumUpdate(HKEY hk, char *chk,char *path, unsigned int session_id, sqlite3 
               ReadValue(hk,ttmp_key,"InstalledBy",InstalledBy, MAX_PATH);
 
               //last update
-              filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+              filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
               convertStringToSQL(description_package_name, MAX_PATH);
               addRegistryUpdatetoDB("", chk, tmp_key, key, name,
@@ -102,7 +102,7 @@ void EnumUpdate(HKEY hk, char *chk,char *path, unsigned int session_id, sqlite3 
                             ReadValue(hk,tmp_key,"Description",description_package_name, MAX_PATH);
 
                             //last update
-                            filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+                            filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
                             convertStringToSQL(description_package_name, MAX_PATH);
                             addRegistryUpdatetoDB("", chk, tmp_key, key, key3,
@@ -137,7 +137,7 @@ void EnumUpdate(HKEY hk, char *chk,char *path, unsigned int session_id, sqlite3 
             ReadValue(hk,tmp_key,"InstallName",name, MAX_PATH);
 
             //last update
-            filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+            filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
             convertStringToSQL(description_package_name, MAX_PATH);
             addRegistryUpdatetoDB("", chk, tmp_key, key, name,
