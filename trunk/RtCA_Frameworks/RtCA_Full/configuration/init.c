@@ -100,7 +100,7 @@ ShowWindow(FindWindow(NULL, pszOldWindowTitle), SW_HIDE);
 //------------------------------------------------------------------------------
 //init start configuration
 //------------------------------------------------------------------------------
-void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan)
+void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan, BOOL utc)
 {
   //in wine or not ?
   WINE_OS = isWine();
@@ -133,6 +133,7 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   FILE_ACL              = acl;
   FILE_ADS              = ads;
   FILE_SHA              = sha;
+  UTC_TIME              = utc;
   LOCAL_SCAN            = local_scan;
 
   start_scan            = FALSE;
@@ -219,7 +220,7 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   ImageList_SetBkColor(H_ImagList_icon, GetSysColor(COLOR_WINDOW));
 
   //all others datas
-  InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
+  InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
 
   //init help messages
   AddtoToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);

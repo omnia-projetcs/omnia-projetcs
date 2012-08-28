@@ -97,10 +97,10 @@ void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqli
         //date
         if (url_dat->time_last_access.dwLowDateTime != 0 || url_dat->time_last_access.dwHighDateTime != 0)
         {
-          filetimeToString(url_dat->time_last_access, date, DATE_SIZE_MAX);
+          filetimeToString_GMT(url_dat->time_last_access, date, DATE_SIZE_MAX);
         }else if (url_dat->time_create.dwLowDateTime != 0 || url_dat->time_create.dwHighDateTime != 0)
         {
-          filetimeToString(url_dat->time_create, date, DATE_SIZE_MAX);
+          filetimeToString_GMT(url_dat->time_create, date, DATE_SIZE_MAX);
         }else date[0] = 0;
 
         //add

@@ -7,8 +7,8 @@
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
 
-#define TTM_SETTITLE	(WM_USER + 32)
-#define TTI_INFO	 1
+#define TTM_SETTITLE	         (WM_USER + 32)
+#define TTI_INFO	             1
 
 #define NOM_APPLI              "RtCA"
 #define URL_APPLI              "http://code.google.com/p/omnia-projetcs/"
@@ -40,10 +40,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <windows.h>
-#include "version.h"           //for version track
+#include "version.h"            //for version track
 #include <commctrl.h>           //componants
 #include <shlobj.h>             //browser
 #include <iprtrmib.h>           //tracert PMIB_IPFORWARDTABLE
+#include <iphlpapi.h>           //network
 #include <lmshare.h>            //share
 #include <tlhelp32.h>           //process
 #include <psapi.h>              //process
@@ -125,6 +126,7 @@ WNDPROC wndproc_hdbclk_info;
 #define BT_SHA_FILE_CHK          2014
 #define BT_ADS_FILE_CHK          2015
 #define BT_REGISTRY_RECOV_MODE   2016
+#define BT_UTC_CHK               2017
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
@@ -234,8 +236,10 @@ HWND h_main, h_conf;
 
 #define TEST_FILES                                0
 #define TEST_LOGS                                 1
+#define TEST_ENV                                  4
 #define TEST_REG_NETWORK                          8
 
+#define TEST_SHARE                               12
 #define TEST_REG_START                           13
 #define TEST_REG_END                             24
 
@@ -271,6 +275,8 @@ BOOL STAY_ON_TOP;
 BOOL FILE_ACL;
 BOOL FILE_ADS;
 BOOL FILE_SHA;
+
+BOOL UTC_TIME;
 
 BOOL LOCAL_SCAN;
 //------------------------------------------------------------------------------
@@ -395,9 +401,14 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 #define TYPE_VALUE_MULTI_STRING     2
 #define TYPE_VALUE_WSTRING          3
 #define TYPE_VALUE_FILETIME         4
+#define TYPE_VALUE_MULTI_WSTRING    5
 
 #define TYPE_VALUE_WIN_SERIAL       100
+#define TYPE_ENUM_SUBNK_DATE        101
+#define TYPE_DBL_ENUM_VALUE         102
 #define TYPE_ENUM_STRING_VALUE      200   //all string
+#define TYPE_ENUM_STRING_WVALUE     210   //all wildstring
+#define TYPE_ENUM_STRING_NVALUE     211   //all string with MRU* name
 #define TYPE_ENUM_STRING_RVALUE     201   //all string under one key
 #define TYPE_ENUM_STRING_RRVALUE    202   //all string under thow key + key
 #define TYPE_ENUM_STRING_R_VALUE    203   //all string under one key + key
@@ -582,6 +593,7 @@ char *ReplaceEnv(char *var, char *path, unsigned int size_max);
 void SetDebugPrivilege(BOOL enable);
 BOOL startWith(char* txt, char *search);
 char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size);
+char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_size);
 char *timeToString(DWORD time, char *str, unsigned int string_size);
 char *convertUTF8toUTF16(char *src, DWORD max_size);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
@@ -595,7 +607,7 @@ BOOL isDirectory(char *path);
 void InitSQLStrings();
 void InitString();
 void InitGlobalLangueString(unsigned int langue_id);
-void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan);
+void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan, BOOL utc);
 DWORD WINAPI InitGUIConfig(LPVOID lParam);
 void EndGUIConfig(HANDLE hwnd);
 BOOL isWine();
@@ -679,10 +691,6 @@ DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id);
-
-//subclass for resize direct of components
-LRESULT CALLBACK TRV_proc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-LRESULT CALLBACK LST_proc(HWND hwnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

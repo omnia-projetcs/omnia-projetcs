@@ -6,6 +6,14 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
+void TraiterGroupDataFromSAM_C(char *buffer, unsigned int rid, char *group, unsigned int group_size_max);
+DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer);
+BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer);
+DWORD HTDF(char *src, unsigned int nb);
+void DecodeSAMHashXP(char *sk,char *datas_hs, int rid, char *user, BYTE *b_f);
+void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,unsigned int description_id,unsigned int session_id, sqlite3 *db);
+BOOL registry_syskey_file(HK_F_OPEN *hks, char*sk, unsigned int sk_size);
+//------------------------------------------------------------------------------
 void addRegistryUsertoDB(char *name, char *RID, char *SID, char *group,
                          char *description, char *last_logon, char *last_password_change,
                          DWORD nb_connexion, char *type, DWORD state_id, DWORD session_id, sqlite3 *db)
@@ -280,7 +288,7 @@ void GetUserGroupFRF(DWORD userRID, char *group, DWORD size_max_group)
 //------------------------------------------------------------------------------
 void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id, BOOL os_type_XP, char *computer_name)
 {
-  DWORD userRID;
+  DWORD userRID = 0;
   USERS_INFOS User_infos;
 
   //get ref key for hashs
@@ -295,7 +303,7 @@ void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_i
   HBIN_CELL_NK_HEADER *nk_h_tmp;
   DWORD valueSize;
   BOOL ok_test;
-  char SubKeyName[MAX_PATH],key_path[MAX_PATH];
+  char SubKeyName[MAX_PATH];
   char cbuffer[MAX_LINE_SIZE], buffer[MAX_LINE_SIZE];
   DWORD i,nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
   for (i=0;i<nbSubKey;i++)
@@ -401,7 +409,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
       if (file[0] != 0)
       {
         //check for SAM files
-        if (Contient(file,"SAM") || Contient(file,"sam") && file_SAM[0] != 0)
+        if ((Contient(file,"SAM") || Contient(file,"sam")) && file_SAM[0] != 0)
         {
           strcpy(file_SAM,file);
           hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);

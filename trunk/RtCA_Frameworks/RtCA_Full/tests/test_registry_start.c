@@ -32,7 +32,7 @@ void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqli
 
     if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbSubValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
     {
-      filetimeToString(lastupdate, date, DATE_SIZE_MAX);
+      filetimeToString_GMT(lastupdate, date, DATE_SIZE_MAX);
       for (i=0;i<nbSubValue;i++)
       {
         value_size = MAX_PATH;

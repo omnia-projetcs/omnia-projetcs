@@ -960,7 +960,7 @@ DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer)
     if (FileTime.dwHighDateTime == 0 && FileTime.dwLowDateTime == 0)strncpy(User_infos->last_logon,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     else
     {
-      filetimeToString(FileTime, User_infos->last_logon, DATE_SIZE_MAX);
+      filetimeToString_GMT(FileTime, User_infos->last_logon, DATE_SIZE_MAX);
       if (User_infos->last_logon[0] == 0)strncpy(User_infos->last_logon,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     }
 
@@ -987,7 +987,7 @@ DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer)
     if (FileTime.dwHighDateTime == 0 && FileTime.dwLowDateTime == 0)strncpy(User_infos->last_password_change,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     else
     {
-      filetimeToString(FileTime, User_infos->last_password_change, DATE_SIZE_MAX);
+      filetimeToString_GMT(FileTime, User_infos->last_password_change, DATE_SIZE_MAX);
       if (User_infos->last_password_change[0] == 0)strncpy(User_infos->last_password_change,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     }
 

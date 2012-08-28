@@ -83,7 +83,7 @@ void Scan_registry_service_local(char *ckey, sqlite3 *db, unsigned int session_i
           else type_id = 201;             //DRIVER  : 201
 
           //last update
-          filetimeToString(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+          filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
           convertStringToSQL(path, MAX_PATH);
           convertStringToSQL(description, MAX_PATH);
@@ -149,8 +149,13 @@ void Scan_registry_service_file(HK_F_OPEN *hks, char *ckey, unsigned int session
 
 
       Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Type", state, MAX_PATH);
-      if (strcmp(state,"0x00000001") == 0)type_id = 200; //SERVICE : 200
-      else type_id = 201;                                //DRIVER  : 201
+
+      if (strcmp(state,"0x00000001") == 0)     type_id = 200;//Kernel driver
+      else if (strcmp(state,"0x00000002") == 0)type_id = 201;//File system driver
+      else if (strcmp(state,"0x00000010") == 0)type_id = 202;//Own process
+      else if (strcmp(state,"0x00000020") == 0)type_id = 203;//Share process
+      else if (strcmp(state,"0x00000100") == 0)type_id = 204;//Interactive
+      else type_id = 215;
 
       Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
                    lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);

@@ -48,7 +48,7 @@ void Scan_antivirus_local(sqlite3 *db, unsigned int session_id)
     FILETIME FileTime;
     ReadFILETIMEValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Microsoft Antimalware\\Signature Updates","SignaturesLastUpdated", &FileTime);
     if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
-    else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
+    else filetimeToString_GMT(FileTime, last_update, DATE_SIZE_MAX);
 
     if (ReadDwordValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Microsoft Antimalware\\Real-Time Protection","DisableRealtimeMonitoring"))
       addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"X",session_id,db);
@@ -95,7 +95,7 @@ void Scan_antivirus_local(sqlite3 *db, unsigned int session_id)
           snprintf(key_path,MAX_PATH,"SOFTWARE\\Avg\\%s\\InstallTimes",name);
           ReadFILETIMEValue(HKEY_LOCAL_MACHINE,key_path,last_update, &FileTime);
           if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
-          else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
+          else filetimeToString_GMT(FileTime, last_update, DATE_SIZE_MAX);
 
           addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
         }
@@ -634,7 +634,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
     DWORD size = sizeof(FileTime);
     ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Microsoft\\Microsoft Antimalware\\Signature Updates", NULL, "SignaturesLastUpdated", (void*)&FileTime, &size);
     if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
-    else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
+    else filetimeToString_GMT(FileTime, last_update, DATE_SIZE_MAX);
 
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "Microsoft\\Microsoft Antimalware\\Real-Time Protection", NULL,"DisableRealtimeMonitoring", tmp, MAX_PATH);
     if(strcmp(tmp,"0x00000001")==1)addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"X",session_id,db);
@@ -920,7 +920,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
       if(ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, key_path, NULL, last_update, (void*)&FileTime, &size))
       {
         if (FileTime.dwHighDateTime ==0 && FileTime.dwLowDateTime == 0)last_update[0] = 0;
-        else filetimeToString(FileTime, last_update, DATE_SIZE_MAX);
+        else filetimeToString_GMT(FileTime, last_update, DATE_SIZE_MAX);
       }else last_update[0] = 0;
 
       url_update[0] = 0;

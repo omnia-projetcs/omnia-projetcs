@@ -49,8 +49,13 @@ void AddNewSession(BOOL local_only, sqlite3 *db)
     DWORD taille = COMPUTER_NAME_SIZE_MAX;
     GetComputerName(computer_name,&taille);
 
-    snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s\");",id,date_today,computer_name);
-  }else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_files\");",id,date_today);
+    if (UTC_TIME)snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s\");",id,date_today,computer_name);
+    else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s\");",id,date_today,computer_name);
+  }else
+  {
+    if (UTC_TIME)snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_files\");",id,date_today);
+    else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_files\");",id,date_today);
+  }
 
   //add session
   FORMAT_CALBAK_READ_INFO fcri;

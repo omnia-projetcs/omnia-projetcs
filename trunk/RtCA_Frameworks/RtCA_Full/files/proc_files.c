@@ -40,6 +40,8 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       check_treeview(htrv_test, H_tests[TEST_REG_NETWORK], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_REG_ANTIVIRUS], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_REG_FIREWALL], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[TEST_ENV], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[TEST_SHARE], TRV_STATE_CHECK);
 
       unsigned int i;
       for (i = TEST_REG_START;i<=TEST_REG_END;i++)
@@ -83,6 +85,8 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       check_treeview(htrv_test, H_tests[TEST_REG_NETWORK], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_REG_ANTIVIRUS], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_REG_FIREWALL], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[TEST_ENV], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[TEST_SHARE], TRV_STATE_CHECK);
 
       unsigned int i;
       for (i = TEST_REG_START;i<=TEST_REG_END;i++)

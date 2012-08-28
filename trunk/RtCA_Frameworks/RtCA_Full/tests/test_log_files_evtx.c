@@ -151,7 +151,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
     FILETIME FileTime;
     FileTime.dwLowDateTime = (DWORD) h_dheader->TimeCreated;
     FileTime.dwHighDateTime = (DWORD)(h_dheader->TimeCreated >> 32);
-    filetimeToString(FileTime, send_date, DATE_SIZE_MAX);
+    filetimeToString_GMT(FileTime, send_date, DATE_SIZE_MAX);
 
     //date : write_date = same
     strcpy(write_date,send_date);
