@@ -26,8 +26,9 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       check_treeview(htrv_test, H_tests[TEST_LOGS], TRV_STATE_CHECK);
     }else if (strcmp(ext,"reg")==0 ||
               strcmp(lowcase_file,"security.dat")==0 ||
-              strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser") && strcmp(ext,"dat")==0)    ||
-              strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass.") && strcmp(ext,"dat")==0) ||
+              strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser") && strcmp(ext,"dat")==0)   ||
+              strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings") && strcmp(ext,"dat")==0)   || //win8
+              strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass") && strcmp(ext,"dat")==0) ||
               strcmp(lowcase_file,"classes.dat")==0  || (startWith(lowcase_file,"classes") && strcmp(ext,"dat")==0)) //registry
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
@@ -68,12 +69,18 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
     }
   }else
   {
-    if (strcmp(lowcase_file,"sam")==0 ||
-        strcmp(lowcase_file,"software")==0 ||
-        strcmp(lowcase_file,"system")==0 ||
-        strcmp(lowcase_file,"default")==0 ||
-        strcmp(lowcase_file,"hardware")==0 ||
-        strcmp(lowcase_file,"security")==0)//registry
+    if (strcmp(lowcase_file,"sam")==0         ||
+        strcmp(lowcase_file,"software")==0    ||
+        strcmp(lowcase_file,"system")==0      ||
+        strcmp(lowcase_file,"default")==0     ||
+        strcmp(lowcase_file,"hardware")==0    ||
+        strcmp(lowcase_file,"security")==0    ||
+        strcmp(lowcase_file,"bcd-template")==0|| //win8
+        strcmp(lowcase_file,"components")==0  || //win8
+        strcmp(lowcase_file,"drivers")==0     || //win8
+        strcmp(lowcase_file,"bbi")==0         || //win8
+        strcmp(lowcase_file,"elam")==0        || //win8
+        strcmp(lowcase_file,"fp")==0)            //win8
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       else
@@ -93,7 +100,6 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       {
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
-
     }else if (strcmp(lowcase_file,"archived history")==0 ||  //chrome
               strcmp(lowcase_file,"history")==0 ||
               strcmp(lowcase_file,"cookies")==0 ||

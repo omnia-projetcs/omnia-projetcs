@@ -91,6 +91,13 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
           line++;
         break;
+        case SAVE_TYPE_PWDUMP:
+          if (argv[0]!=0)
+          {
+            snprintf(datas,MAX_LINE_SIZE,"%s\r\n",argv[0]);
+            WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
+          }
+        break;
       }
     break;
   }
@@ -214,6 +221,23 @@ DWORD WINAPI SaveAll(LPVOID lParam)
 
     CloseHandle(MyhFile_export);
   }
+
+  //pwdump_users export
+  snprintf(file,MAX_PATH,"%s_%s_pwdump.txt",path,test_name);
+
+  //open file
+  MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+  if (MyhFile_export != INVALID_HANDLE_VALUE)
+  {
+    FORMAT_CALBAK_READ_INFO fcri;
+    export_type = SAVE_TYPE_PWDUMP;
+    fcri.type   = TYPE_SQL_EXPORT_DATAS;
+
+    snprintf(request, MAX_LINE_SIZE,"SELECT raw_password FROM extract_registry_account_password WHERE session_id = %lu;",cur_session_id);
+    sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+    CloseHandle(MyhFile_export);
+  }
+
   ExportStart = FALSE;
   EnableMenuItem(GetSubMenu(GetMenu(h_main),0),8,MF_BYPOSITION|MF_ENABLED);
   return 0;

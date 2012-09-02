@@ -20,7 +20,7 @@ void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_la
 void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqlite3 *db)
 {
   //open file
-  HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,0/*FILE_FLAG_SEQUENTIAL_SCAN*/,0);
+  HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,0/*FILE_FLAG_SEQUENTIAL_SCAN*/,0);
   if (Hfic == INVALID_HANDLE_VALUE)return;
 
   DWORD taille_fic = GetFileSize(Hfic,NULL);

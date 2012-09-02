@@ -137,6 +137,7 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   LOCAL_SCAN            = local_scan;
 
   start_scan            = FALSE;
+  stop_scan             = FALSE;
   export_type           = 0;
   _SYSKEY[0]            = 0;  //global syskey for decrypt hash of users
 

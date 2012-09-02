@@ -192,6 +192,9 @@ DWORD WINAPI Scan_registry_service(LPVOID lParam)
         if(OpenRegFiletoMem(&hks, file))
         {
           Scan_registry_service_file(&hks,"ControlSet001\\Services", session_id, db);
+          Scan_registry_service_file(&hks,"ControlSet002\\Services", session_id, db);
+          Scan_registry_service_file(&hks,"ControlSet003\\Services", session_id, db);
+          Scan_registry_service_file(&hks,"ControlSet004\\Services", session_id, db);
 
           CloseRegFiletoMem(&hks);
         }

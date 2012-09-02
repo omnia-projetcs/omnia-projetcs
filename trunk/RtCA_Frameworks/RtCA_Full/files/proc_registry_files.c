@@ -602,7 +602,7 @@ BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file)
   if (file == NULL) return FALSE;
 
   //open file
-  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (hfile == INVALID_HANDLE_VALUE)return FALSE;
 
   hks->taille_fic = GetFileSize(hfile,NULL);

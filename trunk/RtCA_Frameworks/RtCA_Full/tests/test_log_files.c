@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id)
 {
-  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     char indx[DEFAULT_TMP_SIZE], log_id[DEFAULT_TMP_SIZE],
@@ -204,7 +204,7 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id)
 {
   //ouverture du fichier
-  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //lecture du contenu

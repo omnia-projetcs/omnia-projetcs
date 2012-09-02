@@ -211,7 +211,7 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
   }
 }
 //------------------------------------------------------------------------------
-void EnumUSB_file(HK_F_OPEN *hks, char*ckey, unsigned int session_id, sqlite3 *db)
+void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_id, sqlite3 *db)
 {
   //exist or not in the file ?
   HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, ckey);
@@ -256,7 +256,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, unsigned int session_id, sqlite3 *d
 
             Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"FriendlyName", name, MAX_PATH);
 
-            SearchVidPid_file(hks, "ControlSet001\\Enum\\USB", tmp_key2,vendor_id,MAX_PATH,product_id,MAX_PATH);
+            SearchVidPid_file(hks, _ckey, tmp_key2,vendor_id,MAX_PATH,product_id,MAX_PATH);
 
             convertStringToSQL(description, MAX_PATH);
             addRegistryUSBtoDB(hks->file, "", key_path, name, vendor_id, product_id, description, lastupdate, session_id, db);
@@ -291,7 +291,10 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          EnumUSB_file(&hks,"ControlSet001\\Enum\\USBSTOR", session_id, db);
+          EnumUSB_file(&hks,"ControlSet001\\Enum\\USBSTOR", "ControlSet001\\Enum\\USB", session_id, db);
+          EnumUSB_file(&hks,"ControlSet002\\Enum\\USBSTOR", "ControlSet002\\Enum\\USB", session_id, db);
+          EnumUSB_file(&hks,"ControlSet003\\Enum\\USBSTOR", "ControlSet003\\Enum\\USB", session_id, db);
+          EnumUSB_file(&hks,"ControlSet004\\Enum\\USBSTOR", "ControlSet004\\Enum\\USB", session_id, db);
           CloseRegFiletoMem(&hks);
         }
       }

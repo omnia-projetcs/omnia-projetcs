@@ -290,7 +290,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
   BOOL ok;
   LINE_PROC_ITEM port_line[MAX_PATH];
   HMODULE hMod[MAX_PATH];
-  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime ,LocalFileTime;
+  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
        path[MAX_PATH],

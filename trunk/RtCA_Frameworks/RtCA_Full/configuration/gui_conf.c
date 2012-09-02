@@ -460,6 +460,14 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     break;
     case WM_CLOSE:
     {
+      //if in stop case
+      if (start_scan == FALSE && stop_scan == TRUE)
+      {
+        sqlite3_close(db_scan);
+        CloseWindow(hwnd);
+        PostQuitMessage(0);
+      }
+
       //kill all threads
       unsigned int i;
       DWORD IDThread;

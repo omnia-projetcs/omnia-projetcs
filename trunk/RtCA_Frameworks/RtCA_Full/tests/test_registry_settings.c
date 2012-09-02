@@ -63,6 +63,8 @@ BOOL GetWindowsCDKey_local(HKEY hk, char *key, char *value, char *result, unsign
 //------------------------------------------------------------------------------
 int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **azColName)
 {
+  if (argv[0] == 0)return 0;
+
   FORMAT_CALBAK_TYPE *type = datas;
   unsigned int session_id = current_session_id;
   switch(type->type)
@@ -70,7 +72,6 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
     case SQLITE_REGISTRY_TYPE_SETTINGS:
     {
       HKEY hk = hkStringtohkey(argv[0]);
-
       switch(atoi(argv[3]))//value_type
       {
         case TYPE_VALUE_STRING:
@@ -140,6 +141,7 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
         {
           char tmp[MAX_PATH]="";
           FILETIME ft;
+          if (hk == 0 || argv[1][0]==0)break;
           ReadFILETIMEValue(hk,argv[1],argv[2],&ft);
           filetimeToString_GMT(ft, tmp, MAX_PATH);
 
@@ -169,8 +171,8 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
 
           DWORD NameSize, DataSize;
           char Name[MAX_PATH], Data[MAX_PATH], tmp[MAX_PATH];
-          DWORD nbSubKey = 0, nbValue = 0, i,j, type;
-          if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,&nbValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
+          DWORD nbValue = 0, i,j, type;
+          if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
           {
             filetimeToString_GMT(lastupdate, parent_key_update, DATE_SIZE_MAX);
             for (i=0;i<nbValue;i++)
@@ -200,7 +202,7 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
                     addRegistrySettingstoDB("", argv[0], argv[1], Name, Data, argv[4], argv[5], parent_key_update, session_id, db_scan);
                   break;
                   case REG_DWORD:
-                    snprintf(tmp,MAX_PATH,"0x%08X",(unsigned int)Data);
+                    snprintf(tmp,MAX_PATH,"0x%08X",&Data[0]);
                     addRegistrySettingstoDB("", argv[0], argv[1], Name, tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
                   break;
                   default : //binary/dword
