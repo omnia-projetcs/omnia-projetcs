@@ -291,10 +291,9 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
 //file registry part
 //------------------------------------------------------------------------------
 BOOL SearchNetworkGUID_registry_file(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin,
-                                     char *guid, char *card, DWORD size_card, char*description, DWORD size_description)
+                                     char *guid, char *card, DWORD size_card, char*description, DWORD size_description, char*ckey)
 {
-  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(buffer, taille_fic, position, pos_fhbin,
-                                            "ControlSet001\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}");
+  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(buffer, taille_fic, position, pos_fhbin,ckey);
 
   if (card != NULL)       card[0]         = 0;
   if (description != NULL)description[0]  = 0;
@@ -367,13 +366,16 @@ BOOL ReadRegistryWifiInfos_registry_file(char *buffer, DWORD taille_fic, DWORD p
   return ret;
 }
 //------------------------------------------------------------------------------
-void Scan_network_registry_file(char *file, sqlite3 *db, unsigned int session_id)
+void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *db, unsigned int session_id)
 {
   HK_F_OPEN hks;
   if(OpenRegFiletoMem(&hks, file))
   {
+    char _ckey[MAX_PATH];
+    snprintf(_ckey,MAX_PATH,"%s\\Interfaces",ckey);
+
     //exist or not in the file ?
-    HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters\\Interfaces");
+    HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, _ckey);
     if (nk_h == NULL)
     {
       CloseRegFiletoMem(&hks);
@@ -408,10 +410,10 @@ void Scan_network_registry_file(char *file, sqlite3 *db, unsigned int session_id
         if (nk_h_tmp == NULL)continue;
 
         //hostname
-        Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters" , NULL, "Hostname", hostname, DEFAULT_TMP_SIZE);
+        Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "Hostname", hostname, DEFAULT_TMP_SIZE);
 
         //card info
-        SearchNetworkGUID_registry_file(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position ,tmp_key, card, DEFAULT_TMP_SIZE, description, DEFAULT_TMP_SIZE);
+        SearchNetworkGUID_registry_file(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position ,tmp_key, card, DEFAULT_TMP_SIZE, description, DEFAULT_TMP_SIZE, _ckey_2);
 
         //last update
         Readnk_Infos(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,
@@ -426,10 +428,10 @@ void Scan_network_registry_file(char *file, sqlite3 *db, unsigned int session_id
           Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DhcpSubnetMask", netmask, DEFAULT_TMP_SIZE);
           Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DhcpDefaultGateway", gw, DEFAULT_TMP_SIZE);
           if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DhcpNameServer", dns, DEFAULT_TMP_SIZE) == FALSE)
-              Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters" , NULL, "DhcpNameServer", dns, DEFAULT_TMP_SIZE);
+              Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "DhcpNameServer", dns, DEFAULT_TMP_SIZE);
 
           if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DhcpDomain", domain, DEFAULT_TMP_SIZE) == FALSE)
-            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters" , NULL, "DhcpDomain", domain, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "DhcpDomain", domain, DEFAULT_TMP_SIZE);
           Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DhcpServer", dhcp_server, DEFAULT_TMP_SIZE);
         }else
         {
@@ -438,10 +440,10 @@ void Scan_network_registry_file(char *file, sqlite3 *db, unsigned int session_id
           Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"SubnetMask", netmask, DEFAULT_TMP_SIZE);
           Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DefaultGateway", gw, DEFAULT_TMP_SIZE);
           if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"NameServer", dns, DEFAULT_TMP_SIZE) == FALSE)
-            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters" , NULL, "NameServer", dns, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "NameServer", dns, DEFAULT_TMP_SIZE);
 
           if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"Domain", domain, DEFAULT_TMP_SIZE) == FALSE)
-            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, "ControlSet001\\Services\\Tcpip\\Parameters" , NULL, "Domain", domain, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "Domain", domain, DEFAULT_TMP_SIZE);
           dhcp_server[0]=0;
         }
 
@@ -485,7 +487,10 @@ DWORD WINAPI Scan_network(LPVOID lParam)
       if (file[0] != 0)
       {
         //verify
-        Scan_network_registry_file(file, db, session_id);
+        Scan_network_registry_file(file, "ControlSet001\\Services\\Tcpip\\Parameters","ControlSet001\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
+        Scan_network_registry_file(file, "ControlSet002\\Services\\Tcpip\\Parameters","ControlSet002\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
+        Scan_network_registry_file(file, "ControlSet003\\Services\\Tcpip\\Parameters","ControlSet003\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
+        Scan_network_registry_file(file, "ControlSet004\\Services\\Tcpip\\Parameters","ControlSet004\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
       }
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }

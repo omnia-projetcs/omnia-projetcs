@@ -205,6 +205,30 @@
 		<Unit filename="tests\test_task.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools\tools_clean.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_copy.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_process.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_registry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_sniff.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_state.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_virustotal.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="version.h" />
 		<Extensions>
 			<DoxyBlocks>

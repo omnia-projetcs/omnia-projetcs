@@ -268,7 +268,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id)
 {
   //ouverture du fichier en lecture partagé
-  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //test de la taille

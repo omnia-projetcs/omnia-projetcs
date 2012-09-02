@@ -57,6 +57,9 @@ DWORD WINAPI Scan_env(LPVOID lParam)
         if(OpenRegFiletoMem(&hks, file))
         {
           EnumEnv(&hks, session_id, db,"ControlSet001\\Control\\Session Manager\\Environment");
+          EnumEnv(&hks, session_id, db,"ControlSet002\\Control\\Session Manager\\Environment");
+          EnumEnv(&hks, session_id, db,"ControlSet003\\Control\\Session Manager\\Environment");
+          EnumEnv(&hks, session_id, db,"ControlSet004\\Control\\Session Manager\\Environment");
           EnumEnv(&hks, session_id, db,"Environment");
           CloseRegFiletoMem(&hks);
         }

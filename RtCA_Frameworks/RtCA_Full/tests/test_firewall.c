@@ -100,6 +100,12 @@ DWORD WINAPI Scan_firewall(LPVOID lParam)
           //Enum all rules
           EnumRegistryRules_file(&hks,"ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile\\AuthorizedApplications\\List",session_id,db);
           EnumRegistryRules_file(&hks,"ControlSet001\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet002\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet002\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet003\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet003\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet004\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\DomainProfile\\AuthorizedApplications\\List",session_id,db);
+          EnumRegistryRules_file(&hks,"ControlSet004\\Services\\SharedAccess\\Parameters\\FirewallPolicy\\StandardProfile\\AuthorizedApplications\\List",session_id,db);
 
           //Windows Defender
           EnumRegistryRules_file(&hks,"Microsoft\\Windows Defender\\Exclusions\\Extensions",session_id,db);

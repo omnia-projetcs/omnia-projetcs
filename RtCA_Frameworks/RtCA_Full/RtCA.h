@@ -4,6 +4,8 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
+//#define _WIN64_VERSION_        1      //64 OS Compilation
+
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
 
@@ -145,10 +147,6 @@ WNDPROC wndproc_hdbclk_info;
 #define IDM_DEL_ALL_SESSION     10008
 #define IDM_STAY_ON_TOP         10009
 #define IDM_DEBUG_MODE          10010
-#define IDM_TOOLS_CP_REGISTRY   10011
-#define IDM_TOOLS_CP_AUDIT      10012
-#define IDM_TOOLS_CP_AD         10013
-#define IDM_TOOLS_CP_SELECT     10014
 #define IDM_ABOUT               10015
 #define IDM_RTCA_HOME           10016
 #define IDM_DEBUG_LIST          10017
@@ -156,6 +154,17 @@ WNDPROC wndproc_hdbclk_info;
 #define IDM_SAVE_SESSION_FILE   10020
 #define IDM_TOOLS_CP_HIBERNATE  10021
 #define IDM_UNCHECK_ALL_TESTS   10022
+
+#define IDM_TOOLS_CP_REGISTRY   10100
+#define IDM_TOOLS_CP_AUDIT      10101
+#define IDM_TOOLS_CP_AD         10102
+#define IDM_TOOLS_CP_FILE       10103
+#define IDM_TOOLS_PROCESS       10104
+#define IDM_TOOLS_REG_EXPLORER  10105
+#define IDM_TOOLS_SNIFF         10106
+#define IDM_TOOLS_VIRUSTOTAL    10107
+#define IDM_TOOLS_CLEAN         10108
+#define IDM_TOOLS_ANALYSER      10109
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
 #define POPUP_TRV_FILES_REF_NB_ITEMS_STRINGS      7
@@ -186,7 +195,7 @@ WNDPROC wndproc_hdbclk_info;
 #define POPUP_S_SELECTION                     13002
 #define POPUP_O_PATH                          13003
 #define POPUP_A_SEARCH                        13004
-#define POPUP_COPY_TO_CLIPBORD                    5
+#define POPUP_COPY_TO_CLIPBORD                    7
 
 #define POPUP_I_00                            13010
 #define POPUP_I_01                            13011
@@ -210,6 +219,10 @@ WNDPROC wndproc_hdbclk_info;
 #define POPUP_I_19                            13029
 
 #define NB_POPUP_I                            20
+
+#define POPUP_OPEN_PATH                       13100
+#define POPUP_OPEN_REG_PATH                   13101
+#define POPUP_OPEN_FILE_PATH                  13102
 //------------------------------------------------------------------------------
 char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 //------------------------------------------------------------------------------
@@ -218,6 +231,7 @@ char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 #define SAVE_TYPE_XML                             2
 #define SAVE_TYPE_HTML                            3
 #define SAVE_TYPE_TXT                             4
+#define SAVE_TYPE_PWDUMP                          5
 
 unsigned int stat_export_column;
 HANDLE MyhFile_export,h_Export;
@@ -267,6 +281,24 @@ FORMAT_TESTS_STRING S_tests_XML_header[NB_MAX_ITEMS_HEADERS_XML];
 #define FILES_TITLE_APPLI           3
 HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
+
+
+#define INDEX_FILE                  0
+#define INDEX_REG_CONF             13
+#define INDEX_REG_SERVICES         14
+#define INDEX_REG_USB              15
+#define INDEX_REG_SOFTWARE         16
+#define INDEX_REG_UPDATE           17
+#define INDEX_REG_START            18
+#define INDEX_REG_USERASSIST       20
+#define INDEX_REG_MRU              21
+#define INDEX_REG_PATH             23
+#define INDEX_REG_GUIDE            24
+#define INDEX_REG_FIREWALL         26
+#define INDEX_NAV_FIREFOX          27
+#define INDEX_NAV_CHROME           28
+#define INDEX_NAV_IE               29
+#define INDEX_ANDROID              30
 //------------------------------------------------------------------------------
 //parameters
 BOOL WINE_OS;     //if run in wine !!!
@@ -285,7 +317,7 @@ BOOL B_AUTOSEARCH;
 HANDLE h_AUTOSEARCH;
 
 //scan
-BOOL start_scan;
+BOOL start_scan, stop_scan;
 HANDLE h_thread_scan;
 sqlite3 *db_scan;
 //------------------------------------------------------------------------------
@@ -327,9 +359,10 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         48
+#define NB_COMPONENT_STRING         52
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
+#define TXT_OPEN_PATH               4
 #define REF_MSG                     8
 #define TXT_BT_START                10
 #define TXT_BT_STOP                 11
@@ -380,6 +413,8 @@ typedef struct SORT_ST
 #define TXT_MSG_MDP_NEVER_EXP       46
 
 #define TXT_MSG_BDR                 47
+
+#define TXT_OPEN_REG_PATH           49
 
 typedef struct
 {
@@ -651,6 +686,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 
 //registry functions
+void OpenRegeditKey(char* chk, char *key);
 HKEY hkStringtohkey(char *chkey);
 void GetRegistryKeyOwner(HKEY hKey, char* owner,char *rid, char *sid, unsigned int size_max);
 void ReadKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
@@ -733,3 +769,7 @@ DWORD WINAPI CMDScan(LPVOID lParam);
 DWORD WINAPI GUIScan(LPVOID lParam);
 DWORD WINAPI StopGUIScan(LPVOID lParam);
 
+DWORD WINAPI BackupRegFile(LPVOID lParam);
+DWORD WINAPI BackupEvtFile(LPVOID lParam);
+DWORD WINAPI BackupNTDIS(LPVOID lParam);
+DWORD WINAPI BackupFile(LPVOID lParam);

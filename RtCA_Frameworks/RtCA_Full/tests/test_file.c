@@ -37,7 +37,7 @@ DWORD EnumADS(char *file, char *resultat, DWORD size)
 
   resultat[0]=0;
 
-  HANDLE Hfic = CreateFile(file, GENERIC_READ, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
+  HANDLE Hfic = CreateFile(file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL);
   if( Hfic == INVALID_HANDLE_VALUE )return 0;
 
   while(1)
@@ -113,7 +113,7 @@ void FileToSHA256(char *path, char *sha256)
 {
   //ouverture du fichier en lecture partagé
   sha256[0]=0;
-  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic != INVALID_HANDLE_VALUE)
   {
     DWORD taille_fic = GetFileSize(Hfic,NULL);

@@ -90,18 +90,22 @@ BEGIN
   POPUP "Settings"  //1
   BEGIN
     MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
-   /* MENUITEM SEPARATOR
-    MENUITEM "Check all tests\tAlt+c"     ,IDM_CHECK_ALL_TESTS
-    MENUITEM "Uncheck all tests\tAlt+u"   ,IDM_UNCHECK_ALL_TESTS*/
   END
   POPUP "Tools"     //2
   BEGIN
-    /*MENUITEM "Copy local registry files"  ,IDM_TOOLS_CP_REGISTRY
-    MENUITEM "Copy local audit files"     ,IDM_TOOLS_CP_AUDIT
-    MENUITEM "Copy NTDIS.DIT AD file"     ,IDM_TOOLS_CP_AD
-    MENUITEM "Copy hybernate file"        ,IDM_TOOLS_CP_HIBERNATE
+    MENUITEM "Copy all registry files"    ,IDM_TOOLS_CP_REGISTRY
+    MENUITEM "Copy all audit files"       ,IDM_TOOLS_CP_AUDIT
+    MENUITEM "Copy NTDIS.DIT(AD) file"    ,IDM_TOOLS_CP_AD
+    MENUITEM "Copy specific file"         ,IDM_TOOLS_CP_FILE
     MENUITEM SEPARATOR
-    MENUITEM "Copy select file"           ,IDM_TOOLS_CP_SELECT*/
+    /*MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
+    MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
+    MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
+    MENUITEM SEPARATOR
+    MENUITEM "Virustotal files checker"   ,IDM_TOOLS_VIRUSTOTAL
+    MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
+    MENUITEM SEPARATOR
+    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER*/
   END
   POPUP "Help"      //3
   BEGIN
@@ -155,8 +159,8 @@ BEGIN
       MENUITEM SEPARATOR
       MENUITEM "Select all line in search",POPUP_A_SEARCH
       MENUITEM SEPARATOR
-      //MENUITEM "Open path"                ,POPUP_O_PATH
-      //MENUITEM SEPARATOR
+      MENUITEM "Open path"                ,POPUP_O_PATH
+      MENUITEM SEPARATOR
       POPUP "Copy to clipboard"
       BEGIN
         MENUITEM "",POPUP_I_00

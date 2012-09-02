@@ -221,6 +221,54 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_I_17:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 17);break;
               case POPUP_I_18:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 18);break;
               case POPUP_I_19:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 19);break;
+              //-----------------------------------------------------
+              case POPUP_OPEN_PATH:
+              {
+                char path[MAX_PATH]="";
+                ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,path,MAX_PATH);
+                if (path[0]!=0)ShellExecute(h_main, "explore", path, NULL,NULL,SW_SHOW);
+              }
+              break;
+              case POPUP_OPEN_FILE_PATH:
+              {
+                char path[MAX_PATH]="";
+                ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,path,MAX_PATH);
+                if (path[0]!=0)
+                {
+                  char *c = path;
+                  while (*c++);
+                  while (*c != '\\' && *c != '/')c--;
+                  c++;
+                  *c=0;
+                  ShellExecute(h_main, "explore", path, NULL,NULL,SW_SHOW);
+                }
+              }
+              break;
+              case POPUP_OPEN_REG_PATH:
+              {
+                char path[MAX_PATH]="",chk[MAX_PATH]="";
+                ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,chk,MAX_PATH);
+                ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,path,MAX_PATH);
+
+                if (path[0]!=0 && chk[0]!=0)OpenRegeditKey(chk, path);
+              }
+              break;
+              case IDM_TOOLS_CP_REGISTRY: CreateThread(NULL,0,BackupRegFile,NULL,0,0);break;
+              case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);break;
+              case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);break;
+              case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);break;
+
+              /*
+    MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
+    MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
+    MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
+    //MENUITEM SEPARATOR
+    //MENUITEM "Virustotal files checker"   ,IDM_TOOLS_VIRUSTOTAL
+    //MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
+    MENUITEM SEPARATOR
+    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
+
+              */
             }
           break;
           case CBN_SELCHANGE:
@@ -372,6 +420,41 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
           //remove other items
           for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_I_00+i,MF_BYCOMMAND);
+
+          //add specific menu
+          switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
+          {
+            case INDEX_FILE:
+              //openpath
+              ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH,cps[TXT_OPEN_PATH].c);
+            break;
+            case INDEX_REG_CONF:
+            case INDEX_REG_SERVICES:
+            case INDEX_REG_USB:
+            case INDEX_REG_SOFTWARE:
+            case INDEX_REG_UPDATE:
+            case INDEX_REG_START:
+            case INDEX_REG_USERASSIST:
+            case INDEX_REG_MRU:
+            case INDEX_REG_PATH:
+            case INDEX_REG_GUIDE:
+            case INDEX_REG_FIREWALL:
+              //open registry path
+              ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_REG_PATH,cps[TXT_OPEN_REG_PATH].c);
+            break;
+            case INDEX_NAV_FIREFOX:
+            case INDEX_NAV_CHROME:
+            case INDEX_NAV_IE:
+            case INDEX_ANDROID:
+              //open file path
+              ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
+            break;
+            default:
+              //supp menu
+              RemoveMenu(GetSubMenu(hmenu,0),4,MF_BYPOSITION);
+              RemoveMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND);
+            break;
+          }
 
           //affichage du popup menu
           TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
@@ -556,6 +639,9 @@ int main(int argc, char* argv[])
 
   }else
   {
+    printf("CONSOL OPTION IN DEV : DISABLE !!!!\n");
+
+    /*
     if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
     {
       //if tmp sqlite file exist free !!
@@ -572,6 +658,7 @@ int main(int argc, char* argv[])
     export_type         = SAVE_TYPE_CSV;
     current_session_id  = 0;
     start_scan          = FALSE;
+    stop_scan           = FALSE;
 
     CONSOL_ONLY         = TRUE;
     LOCAL_SCAN          = TRUE;
@@ -590,6 +677,7 @@ int main(int argc, char* argv[])
       {
         switch(argv[i][1])
         {
+          default:
           case 'h'://help
             printf(
                    "*******************************************************\n"
@@ -778,7 +866,7 @@ int main(int argc, char* argv[])
         }
       }else continue;//error
     }
-    SetDebugPrivilege(FALSE);
+    SetDebugPrivilege(FALSE);*/
     return 0;
   }
 }

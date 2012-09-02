@@ -10,6 +10,7 @@
 DWORD WINAPI StopGUIScan(LPVOID lParam)
 {
   start_scan          = FALSE;
+  stop_scan           = TRUE;
   EnableWindow(GetDlgItem(h_conf,BT_START),FALSE);
   return 0;
 }
@@ -59,6 +60,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
 
   //the end
   start_scan          = FALSE;
+  stop_scan           = FALSE;
 
   //at end of scan : view main form + quit
   ShowWindow (h_main, SW_SHOW);

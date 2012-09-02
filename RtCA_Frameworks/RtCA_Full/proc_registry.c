@@ -5,10 +5,28 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
+//-----------------------------------------------------------------------------
+void OpenRegeditKey(char* chk, char *key)
+{
+  //write last key to use
+  char tmp[MAX_PATH];
+  BOOL ok = FALSE;
+  snprintf(tmp,MAX_PATH,"\\%s\\%s",chk,key);
+  HKEY CleTmp=0;
+  DWORD cbData=strlen(tmp)+1;
 
-/*
+  // on ouvre la cle
+  if (RegOpenKey(HKEY_CURRENT_USER,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Applets\\Regedit",&CleTmp)!=ERROR_SUCCESS)
+     return;
 
-*/
+ if (RegSetValueEx(CleTmp,"LastKey",0,REG_SZ,(const BYTE *)tmp,cbData)==ERROR_SUCCESS)ok = TRUE;
+
+  //On ferme la cle
+  RegCloseKey(CleTmp);
+
+  //Open regedit
+  if(ok)ShellExecute(h_main, "open","regedit","",NULL,SW_SHOW);
+}
 //-----------------------------------------------------------------------------
 HKEY hkStringtohkey(char *chkey)
 {

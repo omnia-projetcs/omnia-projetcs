@@ -16,9 +16,9 @@ void addSharetoDB(char *share, char *path, char *description, char *type, char *
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
-void EnumShare(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db)
+void EnumShare(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db, char*reg_path)
 {
-  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "ControlSet001\\Services\\LanmanServer\\Shares");
+  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, reg_path);
   if (nk_h == NULL) return;
 
   DWORD i, nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
@@ -53,7 +53,10 @@ DWORD WINAPI Scan_share(LPVOID lParam)
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          EnumShare(&hks, session_id, db);
+          EnumShare(&hks, session_id, db, "ControlSet001\\Services\\LanmanServer\\Shares");
+          EnumShare(&hks, session_id, db, "ControlSet002\\Services\\LanmanServer\\Shares");
+          EnumShare(&hks, session_id, db, "ControlSet003\\Services\\LanmanServer\\Shares");
+          EnumShare(&hks, session_id, db, "ControlSet004\\Services\\LanmanServer\\Shares");
           CloseRegFiletoMem(&hks);
         }
       }
