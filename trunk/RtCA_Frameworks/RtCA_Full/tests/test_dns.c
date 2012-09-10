@@ -52,7 +52,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
 
         //read data line by line
         DWORD copiee;
-        char line[MAX_PATH];
+        char lines[MAX_PATH];
         if (ReadFile(Hfic, buffer, taille_fic,&copiee,0))
         {
           char *r = buffer;
@@ -60,28 +60,30 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
           while (*r)
           {
             //read line
-            line[0] = 0;
-            strncpy(line,r,MAX_PATH);
-            s = line;
+            lines[0] = 0;
+            strncpy(lines,r,MAX_PATH);
+            s = lines;
             while (*s && *s != '\r')s++;
             *s = 0;
-            r = r+strlen(line)+2;
+            r = r+strlen(lines)+2;
 
             //comment or not :)
-            if (line[0]!='#' && strlen(line) > 8)
+            if (lines[0]!='#' && strlen(lines) > 8)
             {
               //get IP
-              strncpy(ip,line,IP_SIZE_MAX);
+              strncpy(ip,lines,IP_SIZE_MAX);
               c = ip;
-              while (*c && *c != ' ' && *c!= '\t' && (*c == '.'|| (*c<58 && *c>47)))c++;
+
+              while (*c && *c != ' ' && *c!= '\t' && (*c == '.'|| (*c<='9' && *c>='0')))c++;
               if (*c)
               {
-                c = 0;
+                *c = 0;
                 //get name
-                c = line+strlen(ip);
+                c = lines+strlen(ip);
                 while (*c && (*c == ' ' || *c == '\t'))c++;
 
-                strncpy(name,c,IP_SIZE_MAX);
+                memset(name,0,MAX_PATH);
+                strncpy(name,c,MAX_PATH);
                 addHosttoDB(file, ip, name, last_file_update,session_id,db);
               }
             }

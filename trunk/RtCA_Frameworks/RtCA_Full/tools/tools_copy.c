@@ -448,4 +448,5 @@ DWORD WINAPI BackupFile(LPVOID lParam)
       }
     }
   }
+  return 0;
 }

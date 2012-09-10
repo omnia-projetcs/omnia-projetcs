@@ -12,7 +12,6 @@ LRESULT CALLBACK subclass_hdbclk_info(HWND hwnd, UINT message, WPARAM wParam, LP
 {
   if (message == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
   else return CallWindowProc(wndproc_hdbclk_info, hwnd, message, wParam, lParam);
-
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -257,7 +256,21 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);break;
               case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);break;
               case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);break;
+              case IDM_TOOLS_PROCESS:
+                LoadPRocessList(hlstv_process);
 
+                //set language
+                LVCOLUMN lvc;
+                lvc.mask = LVCF_TEXT;
+                unsigned int i;
+                for (i=0;i<nb_column_process_view && i+TXT_COLUMN_PROCESS_REF< NB_COMPONENT_STRING;i++)
+                {
+                  lvc.pszText = cps[i+TXT_COLUMN_PROCESS_REF].c; //texte de la colonne
+                  SendMessage(hlstv_process,LVM_SETCOLUMN,(WPARAM)i, (LPARAM)&lvc);
+                }
+
+                ShowWindow(h_process,SW_SHOW);
+              break;
               /*
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
@@ -267,7 +280,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
     //MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
     MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
-
               */
             }
           break;
@@ -302,24 +314,24 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 if (current_item_selected > -1)
                 {
-                  FORMAT_CALBAK_READ_INFO fcri;
+                  FORMAT_CALBAK_READ_INFO fcri2;
 
                   //get column count
-                  fcri.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
-                  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                  fcri2.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
+                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
 
                   //get column + text
-                  fcri.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
-                  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                  fcri2.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
+                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
 
                   //get items infos + items
                   ListView_DeleteAllItems(hlstv);
-                  fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-                  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                  fcri2.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
+                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
 
-                  char tmp_infos[DEFAULT_TMP_SIZE];
-                  snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
-                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos);
+                  char tmp_infos2[DEFAULT_TMP_SIZE];
+                  snprintf(tmp_infos2,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos2);
                 }
               break;
             }
@@ -617,9 +629,29 @@ int main(int argc, char* argv[])
                                  h_main, NULL, hinst, NULL);
 
     SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-
     SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+
+    //dialogue for process
+    h_process     = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS) ,h_main,DialogProc_info);
+    hlstv_process = GetDlgItem(h_process,LV_VIEW);
+    SendMessage(h_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SetWindowText(h_process,NOM_FULL_APPLI);
+
+    //set columns !!!
+    LVCOLUMN lvc;
+    unsigned int i;
+    nb_column_process_view  = NB_COLUMN_PROCESS_DEF;
+    lvc.mask                = LVCF_TEXT|LVCF_WIDTH|LVCF_FMT;
+    lvc.fmt                 = LVCFMT_LEFT;
+    lvc.cx                  = 100;
+
+    for (i=0;i<nb_column_process_view && i+TXT_COLUMN_PROCESS_REF< NB_COMPONENT_STRING;i++)
+    {
+      lvc.pszText = cps[i+TXT_COLUMN_PROCESS_REF].c; //texte de la colonne
+      SendMessage(hlstv_process,LVM_INSERTCOLUMN,(WPARAM)i, (LPARAM)&lvc);
+    }
+    SendMessage(hlstv_process,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
 

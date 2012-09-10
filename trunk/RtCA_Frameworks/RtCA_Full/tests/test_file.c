@@ -8,17 +8,17 @@
 //------------------------------------------------------------------------------
 void addFiletoDB(char *path, char *file, char *extension,
                   char *Create_time, char *Modify_time, char *Access_Time,char *Size,
-                  char *Owner, char *RID, char *SID, char *ACL,
+                  char *Owner, char *RID, char *sid, char *ACL,
                   char *Hidden, char *System, char *Archive, char *Encrypted, char *Tempory,
                   char *ADS, char *SAH256, char *VirusTotal, char *Description, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_file "
-           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SID,ACL,"
+           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SId,ACL,"
            "Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-            path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SID,ACL,
+            path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,ACL,
             Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
@@ -109,10 +109,10 @@ DWORD EnumADS(char *file, char *resultat, DWORD size)
 }
 //------------------------------------------------------------------------------
 #include "../crypt/sha2.h"
-void FileToSHA256(char *path, char *sha256)
+void FileToSHA256(char *path, char *csha256)
 {
   //ouverture du fichier en lecture partagé
-  sha256[0]=0;
+  csha256[0]=0;
   HANDLE Hfic = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic != INVALID_HANDLE_VALUE)
   {
@@ -149,8 +149,8 @@ void FileToSHA256(char *path, char *sha256)
 
       //génération du SHA256 en chaine
       unsigned short i;
-      for(i=0;i<32;i++)snprintf(sha256+i*2,3,"%02x",digest[i]&0xFF);
-      sha256[64]=0;
+      for(i=0;i<32;i++)snprintf(csha256+i*2,3,"%02x",digest[i]&0xFF);
+      csha256[64]=0;
       HeapFree(GetProcessHeap(), 0,buffer);
     }
     CloseHandle(Hfic);
@@ -159,6 +159,7 @@ void FileToSHA256(char *path, char *sha256)
 //-----------------------------------------------------------------------------
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size)
 {
+  if (psid == NULL) return;
   if (IsValidSid(psid))
   {
     DWORD saccount = 0;
@@ -191,7 +192,8 @@ void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_siz
       if (ucMax>2)
       {
         SidP=GetSidSubAuthority(psid,ucMax-1);
-        snprintf(rid,max_size,"%05lu",*SidP);
+        if (*SidP<65535) snprintf(rid,max_size,"%05lu",*SidP);
+        else rid[0]=0;
       }else rid[0]=0;
 
       //sid
@@ -240,116 +242,128 @@ void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_ma
 
 //-----------------------------------------------------------------------------
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max)
-//void GetACLS(char *file, char *acls, char* owner, unsigned int res_taille_max, unsigned int prop_taille_max)
 {
   //droits sur le fichier
   SECURITY_DESCRIPTOR *sd;
-  unsigned long size_sd = 0;
-  //récupération du descripteur sécurité
+  DWORD size_sd = 0, size_sd2 = 0;
+  char cuser[MAX_PATH]="", csid[MAX_PATH]="", crid[MAX_PATH]="";
+
   GetFileSecurity(file, DACL_SECURITY_INFORMATION, 0, 0, &size_sd);
-  if (acls && size_sd>0)
+  if (acls && size_sd)
   {
-    sd = (SECURITY_DESCRIPTOR *) HeapAlloc(GetProcessHeap(), 0, size_sd);
+    sd = HeapAlloc(GetProcessHeap(), 0, size_sd+1);
     if (sd != NULL)
     {
-      if (GetFileSecurity(file, DACL_SECURITY_INFORMATION, sd, size_sd, &size_sd))
+      if (GetFileSecurity(file, DACL_SECURITY_INFORMATION, sd, size_sd, &size_sd2))
       {
-        ACL *acl;
-        int defaulted, present;
-        //récupération des ACLS du descripteur
-        if (GetSecurityDescriptorDacl(sd, &present, &acl, &defaulted))
+        if (size_sd2)
         {
-          //Information sur l'ACL
-          ACL_SIZE_INFORMATION acl_size_info;
-          if (acl != NULL)
+          ACL *acl;
+          BOOL present   = FALSE,
+               defaulted = FALSE;
+          //ACL descriptor
+          if (GetSecurityDescriptorDacl(sd, &present, &acl, &defaulted))
           {
-            if (GetAclInformation(acl, (void *) &acl_size_info, sizeof(acl_size_info), AclSizeInformation))
+            //Infos
+            ACL_SIZE_INFORMATION acl_size_info;
+            if (acl != NULL)
             {
-              //traitement de l'affichage des ACLS
-              unsigned int i;
-              void *ace;
-              SID *psid = NULL;
-              int mask;
-
-              for (i=0;i<acl_size_info.AceCount; i++)
+              if (GetAclInformation(acl, (void *) &acl_size_info, sizeof(acl_size_info), AclSizeInformation))
               {
-                //affichage d'une ACE :
-                if (GetAce(acl, i, &ace))
+                unsigned int i;
+                void *ace;
+                SID *psid = NULL;
+                int mask;
+
+                for (i=0;i<acl_size_info.AceCount; i++)
                 {
-                  if (ace != NULL)
+                  //view ACE :
+                  if (GetAce(acl, i, &ace))
                   {
-                    mask = 0;
+                    if (ace != NULL)
+                    {
+                      mask = 0;
 
-                    //récupération des droits authorisés
-                    if (((ACCESS_ALLOWED_ACE *)ace)->Header.AceType == ACCESS_ALLOWED_ACE_TYPE){
-                        mask = ((ACCESS_ALLOWED_ACE *)ace)->Mask;
-                        psid  = (SID *) &((ACCESS_ALLOWED_ACE *)ace)->SidStart;
-                    //récupération des droits refusés
-                    }else if(((ACCESS_DENIED_ACE *)ace)->Header.AceType == ACCESS_DENIED_ACE_TYPE){
-                        mask = ((ACCESS_DENIED_ACE *)ace)->Mask;
-                        psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
+                      //récupération des droits authorisés
+                      if (((ACCESS_ALLOWED_ACE *)ace)->Header.AceType == ACCESS_ALLOWED_ACE_TYPE){
+                          mask = ((ACCESS_ALLOWED_ACE *)ace)->Mask;
+                          psid  = (SID *) &((ACCESS_ALLOWED_ACE *)ace)->SidStart;
+                      //récupération des droits refusés
+                      }else if(((ACCESS_DENIED_ACE *)ace)->Header.AceType == ACCESS_DENIED_ACE_TYPE){
+                          mask = ((ACCESS_DENIED_ACE *)ace)->Mask;
+                          psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
+                      }
+
+                      //traitement pour affichage des droits
+                      if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
+                      if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
+                      if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
+
+                      //traitement des droits étendus ^^
+                      /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
+                      if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
+                      if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
+                      if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
+                      if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
+                      if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
+                      if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
+                      if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
+                      if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
+                      if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
+                      if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
+                      if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
+
+                      cuser[0] = 0;
+                      csid[0]  = 0;
+                      crid[0]  = 0;
+                      SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+
+                      strncat(acls," ",size_max);
+                      if (strlen(cuser)>0) strncat(acls,cuser,size_max);
+                      if (strlen(csid)>0) strncat(acls,csid,size_max);
+                      strncat(acls,"\r\n\0",size_max);
                     }
-
-                    //traitement pour affichage des droits
-                    if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
-                    if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
-                    if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
-
-                    //traitement des droits étendus ^^
-                    /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
-                    if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
-                    if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
-                    if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
-                    if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
-                    if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
-                    if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
-                    if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
-                    if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
-                    if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
-                    if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
-                    if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
-
-                    //compte associé au droit
-                    char cuser[MAX_PATH]="", csid[MAX_PATH]="", crid[MAX_PATH]="";
-                    SidtoUser(psid, cuser, crid, csid, MAX_PATH);
-
-                    strncat(acls," ",size_max);
-                    if (strlen(cuser)>0) strncat(acls,cuser,size_max);
-                    if (strlen(csid)>0) strncat(acls,csid,size_max);
-                    strncat(acls,"\r\n\0",size_max);
                   }
                 }
               }
             }
           }
-          HeapFree(GetProcessHeap(), 0, acl);
         }
       }
       HeapFree(GetProcessHeap(), 0, sd);
     }
   }
 
-  //récupération du propriétaire du fichier
-  DWORD ssd = 0;
-  GetFileSecurity(file, OWNER_SECURITY_INFORMATION, NULL, 0, &ssd);
+  //Owner infos
+  if(owner == NULL) return;
+  owner[0] = 0;
+  rid[0]   = 0;
+  sid[0]   = 0;
+
+  DWORD ssd = 0, ssd2 = 0;
+  GetFileSecurity(file, OWNER_SECURITY_INFORMATION, 0, 0, &ssd);
   if (ssd != 0)
   {
+    printf("OK _0\n");
+
     PSECURITY_DESCRIPTOR psd = NULL;
-    psd = HeapAlloc(GetProcessHeap(), 0, ssd);
-    if (!psd)return;
+    psd = HeapAlloc(GetProcessHeap(), 0, ssd+1);
+    if (psd == NULL)return;
 
-    if(owner && GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd))
+    if(GetFileSecurity(file, OWNER_SECURITY_INFORMATION, psd, ssd, &ssd2))
     {
-      PSID psid = NULL;
-      BOOL pFlag = FALSE;
-      GetSecurityDescriptorOwner(psd, &psid, &pFlag);
-
-      char cuser[MAX_PATH]="",csid[MAX_PATH]="", crid[MAX_PATH]="";
-      SidtoUser(psid, cuser, crid, csid, MAX_PATH);
-
-      strncpy(owner,cuser,size_max);
-      strncpy(sid,csid,size_max);
-      strncpy(rid,crid,size_max);
+      if (ssd2)
+      {
+        PSID psid  = NULL;
+        BOOL pFlag = FALSE;
+        if(GetSecurityDescriptorOwner(psd, &psid, &pFlag))
+        {
+          SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+          strncpy(owner,cuser,size_max);
+          strncpy(rid,crid,size_max);
+          strncpy(sid,csid,size_max);
+        }
+      }
     }
     HeapFree(GetProcessHeap(), 0, psd);
   }

@@ -63,6 +63,11 @@
 //---------------------------------------------------------------------------
 #define NB_MAX_THREAD           5 //thread nb
 PVOID OldValue_W64b;            //64bits OS
+
+//for cross compilation bug in 64bit
+#ifndef GWL_WNDPROC
+  #define GWL_WNDPROC (-4)
+#endif
 //---------------------------------------------------------------------------
 char _SYSKEY[MAX_PATH];
 //---------------------------------------------------------------------------
@@ -108,11 +113,14 @@ char _SYSKEY[MAX_PATH];
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip, hdbclk_info;
-HWND htrv_test, htrv_files;
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip,
+     hdbclk_info;
+HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
-WNDPROC wndproc_hdbclk_info;
+WNDPROC wndproc_hdbclk_info, wndproc_hlstv_info;
+
+HANDLE h_process;
 
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
@@ -136,6 +144,10 @@ WNDPROC wndproc_hdbclk_info;
 #define CB_VIEW                  3003
 #define ED_SEARCH                3004
 #define BT_SEARCH                3005
+#define LV_VIEW_INFO             3006
+
+#define DLG_PROCESS              4000
+unsigned int nb_column_process_view;
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -359,7 +371,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         52
+#define NB_COMPONENT_STRING         70
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -415,6 +427,9 @@ typedef struct SORT_ST
 #define TXT_MSG_BDR                 47
 
 #define TXT_OPEN_REG_PATH           49
+
+#define TXT_COLUMN_PROCESS_REF      52
+#define NB_COLUMN_PROCESS_DEF       17
 
 typedef struct
 {
@@ -723,6 +738,12 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                          unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);
 
+//process
+BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size);
+void GetProcessOwner(DWORD pid, char *owner, char *rid, char *sid, DWORD size_max);
+DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item_max,unsigned int taille_max_line);
+void LoadPRocessList(HWND hlv);
+
 //log functions
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id);
@@ -730,6 +751,7 @@ void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_
 
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Scan function
 DWORD WINAPI Scan_files(LPVOID lParam);

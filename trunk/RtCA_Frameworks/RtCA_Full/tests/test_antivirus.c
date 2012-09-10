@@ -698,10 +698,10 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
     strncpy(name,"Avast",DEFAULT_TMP_SIZE);
     strncpy(editor,"AVAST Software",DEFAULT_TMP_SIZE);
 
-    char tmp[MAX_PATH]="",tmp2[MAX_PATH];
-    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "AVAST Software\\Avast", NULL,"Version", tmp, MAX_PATH);
+    char t[MAX_PATH]="",tmp2[MAX_PATH];
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "AVAST Software\\Avast", NULL,"Version", t, MAX_PATH);
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "AVAST Software\\Avast", NULL,"SetupVersion", tmp2, DEFAULT_TMP_SIZE);
-    snprintf(engine,DEFAULT_TMP_SIZE,"%s.%s",tmp,tmp2);
+    snprintf(engine,DEFAULT_TMP_SIZE,"%s.%s",t,tmp2);
 
     addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
   }

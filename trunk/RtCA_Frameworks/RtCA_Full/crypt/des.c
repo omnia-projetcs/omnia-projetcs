@@ -443,21 +443,21 @@ static const unsigned char odd_parity[256]={
 224,224,227,227,229,229,230,230,233,233,234,234,236,236,239,239,
 241,241,242,242,244,244,247,247,248,248,251,251,253,253,254,254};
 
-void DES_set_odd_parity(DES_cblock *key)
+void DES_set_odd_parity(DES_cblock *k)
 	{
 	unsigned int i;
 
 	for (i=0; i<DES_KEY_SZ; i++)
-		(*key)[i]=odd_parity[(*key)[i]];
+		(*k)[i]=odd_parity[(*k)[i]];
 	}
 
-int DES_check_key_parity(const_DES_cblock *key)
+int DES_check_key_parity(const_DES_cblock *k)
 	{
 	unsigned int i;
 
 	for (i=0; i<DES_KEY_SZ; i++)
 		{
-		if ((*key)[i] != odd_parity[(*key)[i]])
+		if ((*k)[i] != odd_parity[(*k)[i]])
 			return(0);
 		}
 	return(1);
@@ -493,7 +493,7 @@ static const DES_cblock weak_keys[NUM_WEAK_KEY]={
 	{0xE0,0xFE,0xE0,0xFE,0xF1,0xFE,0xF1,0xFE},
 	{0xFE,0xE0,0xFE,0xE0,0xFE,0xF1,0xFE,0xF1}};
 
-int DES_is_weak_key(const_DES_cblock *key)
+int DES_is_weak_key(const_DES_cblock *k)
 	{
 	int i;
 
@@ -504,7 +504,7 @@ int DES_is_weak_key(const_DES_cblock *key)
 		 * eay 93/06/29
 		 * Another problem, I was comparing only the first 4
 		 * bytes, 97/03/18 */
-		if (memcmp(weak_keys[i],key,sizeof(DES_cblock)) == 0) return(1);
+		if (memcmp(weak_keys[i],k,sizeof(DES_cblock)) == 0) return(1);
 	return(0);
 	}
 
@@ -665,40 +665,40 @@ static const DES_LONG des_skb[8][64]={
 	0x00002822L,0x04002822L,0x00042822L,0x04042822L,
 	}};
 
-int DES_set_key(const_DES_cblock *key, DES_key_schedule *schedule)
+int DES_set_key(const_DES_cblock *k, DES_key_schedule *schedule)
 	{
 	/*if (DES_check_key)
 		{*/
-		return DES_set_key_checked(key, schedule);
+		return DES_set_key_checked(k, schedule);
 	/*	}
 	else
 		{
-		DES_set_key_unchecked(key, schedule);
+		DES_set_key_unchecked(k, schedule);
 		return 0;
 		}*/
 	}
 
-/* return 0 if key parity is odd (correct),
- * return -1 if key parity error,
- * return -2 if illegal weak key.
+/* return 0 if k parity is odd (correct),
+ * return -1 if k parity error,
+ * return -2 if illegal weak k.
  */
-int DES_set_key_checked(const_DES_cblock *key, DES_key_schedule *schedule)
+int DES_set_key_checked(const_DES_cblock *k, DES_key_schedule *schedule)
 	{
-	if (!DES_check_key_parity(key))
+	if (!DES_check_key_parity(k))
 		return(-1);
-	if (DES_is_weak_key(key))
+	if (DES_is_weak_key(k))
 		return(-2);
-	DES_set_key_unchecked(key, schedule);
+	DES_set_key_unchecked(k, schedule);
 	return 0;
 	}
 
-void DES_set_key_unchecked(const_DES_cblock *key, DES_key_schedule *schedule)
+void DES_set_key_unchecked(const_DES_cblock *ks, DES_key_schedule *schedule)
 #ifdef OPENSSL_FIPS
 	{
 	fips_cipher_abort(DES);
-	private_DES_set_key_unchecked(key, schedule);
+	private_DES_set_key_unchecked(ks, schedule);
 	}
-void private_DES_set_key_unchecked(const_DES_cblock *key, DES_key_schedule *schedule)
+void private_DES_set_key_unchecked(const_DES_cblock *ks, DES_key_schedule *schedule)
 #endif
 	{
 	static const int shifts2[16]={0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0};
@@ -708,11 +708,11 @@ void private_DES_set_key_unchecked(const_DES_cblock *key, DES_key_schedule *sche
 	register int i;
 
 #ifdef OPENBSD_DEV_CRYPTO
-	memcpy(schedule->key,key,sizeof schedule->key);
+	memcpy(schedule->key,ks,sizeof schedule->key);
 	schedule->session=NULL;
 #endif
 	k = &schedule->ks->deslong[0];
-	in = &(*key)[0];
+	in = &(*ks)[0];
 
 	c2l(in,c);
 	c2l(in,d);
@@ -759,9 +759,9 @@ void private_DES_set_key_unchecked(const_DES_cblock *key, DES_key_schedule *sche
 		}
 	}
 
-int DES_key_sched(const_DES_cblock *key, DES_key_schedule *schedule)
+int DES_key_sched(const_DES_cblock *k, DES_key_schedule *schedule)
 	{
-	return(DES_set_key(key,schedule));
+	return(DES_set_key(k,schedule));
 	}
 
 void DES_encrypt1(DES_LONG *data, DES_key_schedule *ks, int enc)

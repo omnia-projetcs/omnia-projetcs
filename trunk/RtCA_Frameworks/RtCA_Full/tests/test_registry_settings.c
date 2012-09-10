@@ -29,7 +29,7 @@ BOOL GetWindowsCDKey_local(HKEY hk, char *key, char *value, char *result, unsign
     if(RegQueryValueEx(CleTmp,value,0,0,data,&dwDataLen) == ERROR_SUCCESS)
     {
       if (dwDataLen<66)return FALSE;
-      char key[25] = "BCDFGHJKMPQRTVWXY2346789";
+      char sk[25] = "BCDFGHJKMPQRTVWXY2346789";
       char lpszSerial[MAX_PATH];
       int i,c=0,nCur=0;
 
@@ -44,7 +44,7 @@ BOOL GetWindowsCDKey_local(HKEY hk, char *key, char *value, char *result, unsign
 					enc[c] = nCur / 24;
 					nCur %= 24;
 				}
-				lpszSerial[i] = key[nCur];
+				lpszSerial[i] = sk[nCur];
 			}
 
 			serial_size = 0;
@@ -171,7 +171,7 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
 
           DWORD NameSize, DataSize;
           char Name[MAX_PATH], Data[MAX_PATH], tmp[MAX_PATH];
-          DWORD nbValue = 0, i,j, type;
+          DWORD nbValue = 0, i,j, type2;
           if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
           {
             filetimeToString_GMT(lastupdate, parent_key_update, DATE_SIZE_MAX);
@@ -181,10 +181,10 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
               DataSize = MAX_PATH;
               Name[0]  = 0;
               Data[0]  = 0;
-              type     = 0;
-              if (RegEnumValue (CleTmp,i,(LPTSTR)Name,(LPDWORD)&NameSize,0,(LPDWORD)&type,(LPBYTE)Data,(LPDWORD)&DataSize)==ERROR_SUCCESS)
+              type2     = 0;
+              if (RegEnumValue (CleTmp,i,(LPTSTR)Name,(LPDWORD)&NameSize,0,(LPDWORD)&type2,(LPBYTE)Data,(LPDWORD)&DataSize)==ERROR_SUCCESS)
               {
-                switch(type)
+                switch(type2)
                 {
                   case REG_EXPAND_SZ:
                   case REG_SZ:addRegistrySettingstoDB("", argv[0], argv[1], Name, Data, argv[4], argv[5], parent_key_update, session_id, db_scan);break;

@@ -104,9 +104,17 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
     DWORD s=NB_USERNAME_SIZE;
     GetUserName(user,&s);
 
+    int nb_items = CountClipboardFormats();
     unsigned int uFormat = EnumClipboardFormats(0);
-    while (uFormat && start_scan)
+    while (uFormat && start_scan && GetLastError() == ERROR_SUCCESS && --nb_items>0)
     {
+      //check if ok
+      if (IsClipboardFormatAvailable(uFormat) == FALSE)
+      {
+        uFormat = EnumClipboardFormats(uFormat);
+        continue;
+      }
+
       description[0] = 0;
       data[0]= 0;
       GetClipboardFormatName(uFormat, description, MAX_LINE_SIZE);
@@ -264,18 +272,18 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           HDROP H_DropInfo = (HDROP)hMem;
           char tmp[MAX_PATH];
           DWORD i,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, tmp, MAX_PATH);
-          long int s =MAX_LINE_SIZE;
+          long int s2 =MAX_LINE_SIZE;
           for (i=0;i<nb_path;i++)
           {
             //traitement des données ^^
             DragQueryFile(H_DropInfo, i, tmp, MAX_PATH);
 
             //add
-            if (s>0)
+            if (s2>0)
             {
               snprintf(data+strlen(data),s,"%s\r\n",tmp);
               //strncpy(data+strlen(data),tmp,s);
-              s-=strlen(data);
+              s2-=strlen(data);
             }
           }
           convertStringToSQL(data, MAX_LINE_SIZE);

@@ -6,13 +6,13 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addRegistryPathtoDB(char *file, char *hk, char *key, char*value, char *data, char *user, char* RID, char *SID, char *parent_key_update, unsigned int session_id, sqlite3 *db)
+void addRegistryPathtoDB(char *file, char *hk, char *key, char*value, char *data, char *user, char* RID, char *sid, char *parent_key_update, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_path (file,hk,key,value,data,user,rid,sid,parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           file,hk,key,value,data,user,RID,SID,parent_key_update,session_id);
+           file,hk,key,value,data,user,RID,sid,parent_key_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -36,13 +36,13 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
   filetimeToString_GMT(last_update, parent_key_update, DATE_SIZE_MAX);
 
   //read USER + RID + SID
-  char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];
-  GetRegistryKeyOwner(CleTmp, user, RID, SID, MAX_PATH);
+  char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH];
+  GetRegistryKeyOwner(CleTmp, user, RID, sid, MAX_PATH);
 
   //enum values
   char value[MAX_PATH], data[MAX_PATH];
   DWORD valueSize,dataSize,type;
-  for (i=0;i<nbValue;i++)
+  for (i=0;i<nbValue && start_scan;i++)
   {
     valueSize = MAX_PATH;
     dataSize  = MAX_PATH;
@@ -57,7 +57,7 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
         case REG_SZ:
           convertStringToSQL(value, MAX_PATH);
           convertStringToSQL(data, MAX_PATH);
-          addRegistryPathtoDB("",chkey,key,value,data,user,RID,SID,parent_key_update,session_id,db);break;
+          addRegistryPathtoDB("",chkey,key,value,data,user,RID,sid,parent_key_update,session_id,db);break;
         /*case REG_BINARY:
         case REG_LINK:
           {
@@ -65,7 +65,7 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
             snprintf(tmp,MAX_PATH,"%S",data);
             convertStringToSQL(value, MAX_PATH);
             convertStringToSQL(tmp, MAX_PATH);
-            addRegistryPathtoDB("",chkey,key,value,tmp,user,RID,SID,parent_key_update,session_id,db);
+            addRegistryPathtoDB("",chkey,key,value,tmp,user,RID,sid,parent_key_update,session_id,db);
           }
         break;*/
         case REG_MULTI_SZ:
@@ -75,7 +75,7 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
           }
           convertStringToSQL(value, MAX_PATH);
           convertStringToSQL(data, MAX_PATH);
-          addRegistryPathtoDB("",chkey,key,value,data,user,RID,SID,parent_key_update,session_id,db);
+          addRegistryPathtoDB("",chkey,key,value,data,user,RID,sid,parent_key_update,session_id,db);
         break;
       }
     }
@@ -119,7 +119,7 @@ void EnumPath_file(HK_F_OPEN *hks, char*key_before,char *key_after,unsigned int 
   if (nk_h == NULL)return;
 
   char parent_key_update[DATE_SIZE_MAX] = "";
-  char RID[MAX_PATH], SID[MAX_PATH];
+  char RID[MAX_PATH], sid[MAX_PATH];
   char value[MAX_PATH], data[MAX_PATH];
 
   char tmp_key[MAX_PATH],key_path[MAX_PATH];
@@ -134,23 +134,23 @@ void EnumPath_file(HK_F_OPEN *hks, char*key_before,char *key_after,unsigned int 
 
     //key update
     Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
-                 NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                 NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
     //get values
     nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-    for (k=0;k<nbSubValue;k++)
+    for (k=0;k<nbSubValue && start_scan;k++)
     {
       if (GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,data,MAX_PATH))
       {
         //save
         convertStringToSQL(value, MAX_PATH);
         convertStringToSQL(data, MAX_PATH);
-        addRegistryPathtoDB(hks->file,"",key_before,value,data,"",RID,SID,parent_key_update,session_id,db);
+        addRegistryPathtoDB(hks->file,"",key_before,value,data,"",RID,sid,parent_key_update,session_id,db);
       }
     }
   }else
   {
     nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
-    for (i=0;i<nbSubKey;i++)
+    for (i=0;i<nbSubKey && start_scan;i++)
     {
       //for each subkey
       if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, tmp_key, MAX_PATH))
@@ -164,17 +164,17 @@ void EnumPath_file(HK_F_OPEN *hks, char*key_before,char *key_after,unsigned int 
 
         //key update
         Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
-                     NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                     NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
         //get values
         nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-        for (k=0;k<nbSubValue;k++)
+        for (k=0;k<nbSubValue && start_scan;k++)
         {
           if (GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,data,MAX_PATH))
           {
             //save
             convertStringToSQL(value, MAX_PATH);
             convertStringToSQL(data, MAX_PATH);
-            addRegistryPathtoDB(hks->file,"",key_path,value,data,"",RID,SID,parent_key_update,session_id,db);
+            addRegistryPathtoDB(hks->file,"",key_path,value,data,"",RID,sid,parent_key_update,session_id,db);
           }
         }
       }
@@ -195,7 +195,7 @@ DWORD WINAPI Scan_registry_path(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);

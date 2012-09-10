@@ -21,37 +21,73 @@ void addRegistryStarttoDB(char *file, char *hk, char *key,
 //------------------------------------------------------------------------------
 //local function part !!!
 //------------------------------------------------------------------------------
+/*void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqlite3 *db)
+{
+  HKEY CleTmp;
+  if (RegOpenKey(hk,key,&CleTmp)!=ERROR_SUCCESS)return;
+
+  FILETIME lastupdate;
+  DWORD i, nbSubValue=0;
+  if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbSubValue,0,0,0,&lastupdate)!=ERROR_SUCCESS)
+  {
+    RegCloseKey(CleTmp);
+    return;
+  }
+
+  //get date update
+  char date[DATE_SIZE_MAX];
+  filetimeToString_GMT(lastupdate, date, DATE_SIZE_MAX);
+
+  for (i=0;i<nbSubValue;i++)
+  {
+
+  }
+
+  RegCloseKey(CleTmp);
+}*/
+
+
 void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqlite3 *db)
 {
   HKEY CleTmp;
   if (RegOpenKey(hk,key,&CleTmp)==ERROR_SUCCESS)
   {
-    DWORD i,j, nbSubValue = 0, value_size, data_size,type;
+    DWORD k=0,i,j, nbSubValue = 0, value_size, data_size,type;
     char value[MAX_PATH], data[MAX_PATH],date[DATE_SIZE_MAX],tmp[MAX_PATH];
     FILETIME lastupdate;
 
     if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbSubValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
     {
+      printf("nbSubValue:%d\n",nbSubValue);
+
       filetimeToString_GMT(lastupdate, date, DATE_SIZE_MAX);
-      for (i=0;i<nbSubValue;i++)
+      //for (k=0;k<nbSubValue && start_scan;k++)
+      while(k<nbSubValue && start_scan)
       {
+        printf("[a:%d]\n",k);
+
         value_size = MAX_PATH;
         data_size  = MAX_PATH;
         value[0]   = 0;
         data[0]    = 0;
-        if (RegEnumValue (CleTmp,i,value,&value_size,0,(LPDWORD)&type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
+        i = k;
+        if (RegEnumValue (CleTmp,i,value,&value_size,NULL,(LPDWORD)&type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
         {
+          printf("[%d] %s=%s\n",k,value,data);
+
           switch(type)
           {
             case REG_EXPAND_SZ:
             case REG_SZ:
               convertStringToSQL(value, MAX_PATH);
               convertStringToSQL(data, MAX_PATH);
+              printf("[b:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, data, date, session_id, db);break;
             case REG_LINK:
               convertStringToSQL(value, MAX_PATH);
               snprintf(tmp,MAX_PATH,"%S",data);
               convertStringToSQL(tmp, MAX_PATH);
+              printf("[c:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, tmp, date, session_id, db);break;
             case REG_MULTI_SZ:
               for (j=0;j<data_size;j++)
@@ -59,9 +95,12 @@ void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqli
                 if (data[j] == 0)data[j]=';';
               }
               convertStringToSQL(data, MAX_PATH);
+              printf("[d:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, data, date, session_id, db);break;
           }
         }
+        printf("[e:%d]\n",k);
+        k++;
       }
     }
     RegCloseKey(CleTmp);
@@ -134,7 +173,7 @@ int callback_sqlite_registry_run_file(void *datas, int argc, char **argv, char *
         char value[MAX_PATH];
         DWORD i, nbSubKey = GetValueData(local_start_hks.buffer,local_start_hks.taille_fic, nk_h, (local_start_hks.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
 
-        for (i=0;i<nbSubKey;i++)
+        for (i=0;i<nbSubKey && start_scan;i++)
         {
           if (GetValueData(local_start_hks.buffer,local_start_hks.taille_fic, nk_h, (local_start_hks.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_PATH))
           {
@@ -180,13 +219,12 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-
         //verify
         if(OpenRegFiletoMem(&local_start_hks, file))
         {

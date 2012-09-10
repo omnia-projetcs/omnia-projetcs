@@ -6,13 +6,13 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addRegistryMRUtoDB(char *file, char *hk, char *key, char*value, char *data, char*description_id, char *user, char* RID, char *SID, char *parent_key_update, unsigned int session_id, sqlite3 *db)
+void addRegistryMRUtoDB(char *file, char *hk, char *key, char*value, char *data, char*description_id, char *user, char* RID, char *sid, char *parent_key_update, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_mru (file,hk,key,value,data,description_id,user,rid,sid,parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           file,hk,key,value,data,description_id,user,RID,SID,parent_key_update,session_id);
+           file,hk,key,value,data,description_id,user,RID,sid,parent_key_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -37,13 +37,13 @@ void reg_read_enum_MRUvalues(HKEY hk,char *chkey,char *key,char *exclu,char* des
 
   //read USER + RID + SID
   char tmp[MAX_PATH];
-  char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];
-  GetRegistryKeyOwner(CleTmp, user, RID, SID, MAX_PATH);
+  char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH];
+  GetRegistryKeyOwner(CleTmp, user, RID, sid, MAX_PATH);
 
   //enum values
   char value[MAX_PATH], data[MAX_PATH];
   DWORD valueSize,dataSize,type;
-  for (i=0;i<nbValue;i++)
+  for (i=0;i<nbValue && start_scan;i++)
   {
     valueSize = MAX_PATH;
     dataSize  = MAX_PATH;
@@ -59,13 +59,13 @@ void reg_read_enum_MRUvalues(HKEY hk,char *chkey,char *key,char *exclu,char* des
         case REG_SZ:
           convertStringToSQL(value, MAX_PATH);
           convertStringToSQL(data, MAX_PATH);
-          addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+          addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,sid,parent_key_update,session_id,db);break;
         case REG_BINARY:
         case REG_LINK:
           snprintf(tmp,MAX_PATH,"%S",data);
           convertStringToSQL(value, MAX_PATH);
           convertStringToSQL(tmp, MAX_PATH);
-          addRegistryMRUtoDB("",chkey,key,value,tmp,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+          addRegistryMRUtoDB("",chkey,key,value,tmp,description_id,user,RID,sid,parent_key_update,session_id,db);break;
         case REG_MULTI_SZ:
           for (j=0;j<dataSize;j++)
           {
@@ -73,7 +73,7 @@ void reg_read_enum_MRUvalues(HKEY hk,char *chkey,char *key,char *exclu,char* des
           }
           convertStringToSQL(value, MAX_PATH);
           convertStringToSQL(data, MAX_PATH);
-          addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+          addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,sid,parent_key_update,session_id,db);break;
       }
     }
   }
@@ -99,13 +99,13 @@ void reg_read_enum_MRUNvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
 
   //read USER + RID + SID
   char tmp[MAX_PATH];
-  char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];
-  GetRegistryKeyOwner(CleTmp, user, RID, SID, MAX_PATH);
+  char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH];
+  GetRegistryKeyOwner(CleTmp, user, RID, sid, MAX_PATH);
 
   //enum values
   char value[MAX_PATH], data[MAX_PATH];
   DWORD valueSize,dataSize,type;
-  for (i=0;i<nbValue;i++)
+  for (i=0;i<nbValue && start_scan;i++)
   {
     valueSize = MAX_PATH;
     dataSize  = MAX_PATH;
@@ -122,13 +122,13 @@ void reg_read_enum_MRUNvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
           case REG_SZ:
             convertStringToSQL(value, MAX_PATH);
             convertStringToSQL(data, MAX_PATH);
-            addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+            addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,sid,parent_key_update,session_id,db);break;
           case REG_BINARY:
           case REG_LINK:
             snprintf(tmp,MAX_PATH,"%S",data);
             convertStringToSQL(value, MAX_PATH);
             convertStringToSQL(tmp, MAX_PATH);
-            addRegistryMRUtoDB("",chkey,key,value,tmp,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+            addRegistryMRUtoDB("",chkey,key,value,tmp,description_id,user,RID,sid,parent_key_update,session_id,db);break;
           case REG_MULTI_SZ:
             for (j=0;j<dataSize;j++)
             {
@@ -136,7 +136,7 @@ void reg_read_enum_MRUNvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
             }
             convertStringToSQL(value, MAX_PATH);
             convertStringToSQL(data, MAX_PATH);
-            addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,SID,parent_key_update,session_id,db);break;
+            addRegistryMRUtoDB("",chkey,key,value,data,description_id,user,RID,sid,parent_key_update,session_id,db);break;
         }
       }
     }
@@ -162,13 +162,13 @@ void reg_read_enum_MRUWvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
   filetimeToString_GMT(last_update, parent_key_update, DATE_SIZE_MAX);
 
   //read USER + RID + SID
-  char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];
-  GetRegistryKeyOwner(CleTmp, user, RID, SID, MAX_PATH);
+  char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH];
+  GetRegistryKeyOwner(CleTmp, user, RID, sid, MAX_PATH);
 
   //enum values
   char value[MAX_PATH], data[MAX_PATH], data_s[MAX_PATH];
   DWORD valueSize,dataSize,type;
-  for (i=0;i<nbValue;i++)
+  for (i=0;i<nbValue && start_scan;i++)
   {
     valueSize = MAX_PATH;
     dataSize  = MAX_PATH;
@@ -180,7 +180,7 @@ void reg_read_enum_MRUWvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
       convertStringToSQL(value, MAX_PATH);
       snprintf(data_s,MAX_LINE_SIZE,"%S",data);
       convertStringToSQL(data_s, MAX_PATH);
-      addRegistryMRUtoDB("",chkey,key,value,data_s,description_id,user,RID,SID,parent_key_update,session_id,db);
+      addRegistryMRUtoDB("",chkey,key,value,data_s,description_id,user,RID,sid,parent_key_update,session_id,db);
     }
   }
   RegCloseKey(CleTmp);
@@ -212,9 +212,9 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
       char key[MAX_PATH], tmp_key[MAX_PATH], lastupdate[DATE_SIZE_MAX] ="";
       DWORD key_size;
       FILETIME LastWriteTime;
-      char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH];
+      char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH];
 
-      for (i=0;i<nbSubKey;i++)
+      for (i=0;i<nbSubKey && start_scan;i++)
       {
         key[0]    = 0;
         key_size  = MAX_PATH;
@@ -225,11 +225,11 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
           {
             user[0] = 0;
             RID[0]  = 0;
-            SID[0]  = 0;
-            GetRegistryKeyOwner(CleTmp2, user, RID, SID, MAX_PATH);
+            sid[0]  = 0;
+            GetRegistryKeyOwner(CleTmp2, user, RID, sid, MAX_PATH);
 
             filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
-            addRegistryMRUtoDB("",chk,tmp_key,"","",description_id,user,RID,SID,lastupdate,session_id,db);
+            addRegistryMRUtoDB("",chk,tmp_key,"","",description_id,user,RID,sid,lastupdate,session_id,db);
             RegCloseKey(CleTmp2);
           }
         }
@@ -255,9 +255,9 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
       char key[MAX_PATH], key2[MAX_PATH], tmp_key[MAX_PATH], tmp_key2[MAX_PATH], lastupdate[DATE_SIZE_MAX] ="";
       DWORD key_size,key_size2;
       FILETIME LastWriteTime;
-      char user[MAX_PATH], RID[MAX_PATH], SID[MAX_PATH], data[MAX_PATH];
+      char user[MAX_PATH], RID[MAX_PATH], sid[MAX_PATH], data[MAX_PATH];
 
-      for (i=0;i<nbSubKey;i++)
+      for (i=0;i<nbSubKey && start_scan;i++)
       {
         key[0]    = 0;
         key_size  = MAX_PATH;
@@ -273,7 +273,7 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
               continue;
             }
 
-            for (j=0;j<nbSubKey2;j++)
+            for (j=0;j<nbSubKey2 && start_scan;j++)
             {
               key2[0]    = 0;
               key_size2  = MAX_PATH;
@@ -284,15 +284,15 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
                 {
                   user[0] = 0;
                   RID[0]  = 0;
-                  SID[0]  = 0;
+                  sid[0]  = 0;
                   data[0] = 0;
-                  GetRegistryKeyOwner(CleTmp3, user, RID, SID, MAX_PATH);
+                  GetRegistryKeyOwner(CleTmp3, user, RID, sid, MAX_PATH);
                   filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
 
                   if(ReadValue(hk,tmp_key2,value,data, MAX_PATH))
                   {
                     convertStringToSQL(data, MAX_PATH);
-                    addRegistryMRUtoDB("",chk,tmp_key2,value,data,description_id,user,RID,SID,lastupdate,session_id,db);
+                    addRegistryMRUtoDB("",chk,tmp_key2,value,data,description_id,user,RID,sid,lastupdate,session_id,db);
                   }
                   RegCloseKey(CleTmp3);
                 }
@@ -322,7 +322,7 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
 
       char key[MAX_PATH], tmp_key[MAX_PATH];
       DWORD key_size;
-      for (i=0;i<nbSubKey;i++)
+      for (i=0;i<nbSubKey && start_scan;i++)
       {
         key[0]    = 0;
         key_size  = MAX_PATH;
@@ -352,7 +352,7 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
 
       char key[MAX_PATH], tmp_key[MAX_PATH],key2[MAX_PATH], tmp_key2[MAX_PATH];
       DWORD key_size,key_size2;
-      for (i=0;i<nbSubKey;i++)
+      for (i=0;i<nbSubKey && start_scan;i++)
       {
         key[0]    = 0;
         key_size  = MAX_PATH;
@@ -364,13 +364,13 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
           if (RegOpenKey(hk,tmp_key,&CleTmp2)!=ERROR_SUCCESS)continue;
 
           nbSubKey2 = 0;
-          if (RegQueryInfoKey (CleTmp2,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)!=ERROR_SUCCESS)
+          if (RegQueryInfoKey (CleTmp2,NULL,NULL,NULL,&nbSubKey2,NULL,NULL,NULL,NULL,NULL,NULL,NULL)!=ERROR_SUCCESS)
           {
             RegCloseKey(CleTmp2);
             continue;
           }
 
-          for (j=0;j<nbSubKey;j++)
+          for (j=0;j<nbSubKey2 && start_scan;j++)
           {
             key2[0]    = 0;
             key_size2  = MAX_PATH;
@@ -403,7 +403,7 @@ void ReadDatas(unsigned int type, HKEY hk, char *chk, char *key_path, char *valu
 
       char key[MAX_PATH], tmp_key[MAX_PATH];
       DWORD key_size;
-      for (i=0;i<nbSubKey;i++)
+      for (i=0;i<nbSubKey && start_scan;i++)
       {
         key[0]    = 0;
         key_size  = MAX_PATH;
@@ -532,12 +532,12 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
             Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                         argv[1], NULL, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                         argv[1], NULL, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
             //save
             convertStringToSQL(tmp, MAX_LINE_SIZE);
-            addRegistryMRUtoDB(hks_mru.file,"",argv[1],argv[2],tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+            addRegistryMRUtoDB(hks_mru.file,"",argv[1],argv[2],tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
           }
         break;
         case TYPE_ENUM_STRING_RVALUE://all string under one key
@@ -547,15 +547,15 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
             Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
             char value[MAX_PATH];
             DWORD i, nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
 
-            for (i=0;i<nbSubValue;i++)
+            for (i=0;i<nbSubValue && start_scan;i++)
             {
               if (GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
               {
@@ -564,7 +564,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   //save
                   convertStringToSQL(value, MAX_PATH);
                   convertStringToSQL(tmp, MAX_LINE_SIZE);
-                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }
@@ -578,14 +578,14 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
             Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
             char value[MAX_PATH];
             DWORD i, nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-            for (i=0;i<nbSubValue;i++)
+            for (i=0;i<nbSubValue && start_scan;i++)
             {
               if (GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
               {
@@ -594,7 +594,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   //save
                   convertStringToSQL(value, MAX_PATH);
                   convertStringToSQL(tmp, MAX_LINE_SIZE);
-                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }
@@ -608,14 +608,14 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
             Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
             char value[MAX_PATH];
             DWORD i, nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-            for (i=0;i<nbSubValue;i++)
+            for (i=0;i<nbSubValue && start_scan;i++)
             {
               if (GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
               {
@@ -624,7 +624,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   //save
                   convertStringToSQL(value, MAX_PATH);
                   convertStringToSQL(tmp, MAX_LINE_SIZE);
-                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                  addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }
@@ -638,15 +638,15 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
             Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
             char value[MAX_PATH],data[MAX_LINE_SIZE];
             DWORD i, nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
             DWORD sz_value = MAX_LINE_SIZE;
-            for (i=0;i<nbSubValue;i++)
+            for (i=0;i<nbSubValue && start_scan;i++)
             {
               sz_value = MAX_LINE_SIZE;
               if (GetBinaryValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,&sz_value))
@@ -655,7 +655,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                 convertStringToSQL(value, MAX_PATH);
                 snprintf(data,MAX_LINE_SIZE,"%S",tmp);
                 convertStringToSQL(tmp, MAX_LINE_SIZE);
-                addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,data,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                addRegistryMRUtoDB(hks_mru.file,"",argv[1],value,data,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
               }
             }
           }
@@ -668,13 +668,13 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           if (nk_h!=NULL)
           {
             char parent_key_update[DATE_SIZE_MAX]="";
-            char RID[MAX_PATH]="", SID[MAX_PATH]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
 
             //get values
             char value[MAX_PATH], tmp_key[MAX_PATH];
             DWORD i, nbSubnk = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
 
-            for (i=0;i<nbSubnk;i++)
+            for (i=0;i<nbSubnk && start_scan;i++)
             {
               if (GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i, value, MAX_PATH))
               {
@@ -685,10 +685,10 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                 {
                   //key update
                   Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                               NULL, nk_ht, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                               NULL, nk_ht, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
                   //save
                   convertStringToSQL(tmp_key, MAX_PATH);
-                  addRegistryMRUtoDB(hks_mru.file,"",tmp_key,"","",argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                  addRegistryMRUtoDB(hks_mru.file,"",tmp_key,"","",argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }
@@ -701,13 +701,13 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           if (nk_h==NULL)break;
 
           char parent_key_update[DATE_SIZE_MAX]="";
-          char RID[MAX_PATH]="", SID[MAX_PATH]="", data[MAX_PATH];
+          char RID[MAX_PATH]="", sid[MAX_PATH]="", data[MAX_PATH];
           HBIN_CELL_NK_HEADER *nk_ht, *nk_ht2;
 
           //get values
           char value2[MAX_PATH],value[MAX_PATH], tmp_key2[MAX_PATH], tmp_key[MAX_PATH];
           DWORD i,j, nbSubnk2, nbSubnk = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
-          for (i=0;i<nbSubnk;i++)
+          for (i=0;i<nbSubnk && start_scan;i++)
           {
             if (GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, i, value, MAX_PATH))
             {
@@ -715,7 +715,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
               nk_ht = GetRegistryNK(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,tmp_key);
 
               nbSubnk2 = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_ht, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
-              for (j=0;j<nbSubnk2;j++)
+              for (j=0;j<nbSubnk2 && start_scan;j++)
               {
                 if (GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_ht, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, j, value2, MAX_PATH))
                 {
@@ -728,11 +728,11 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   {
                     //key update
                     Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                                 NULL, nk_ht2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                                 NULL, nk_ht2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
                     //save
                     convertStringToSQL(data, MAX_PATH);
-                    addRegistryMRUtoDB(hks_mru.file,"",tmp_key2,argv[2],data,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                    addRegistryMRUtoDB(hks_mru.file,"",tmp_key2,argv[2],data,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                   }
                 }
               }
@@ -746,13 +746,13 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           if (nk_h == NULL)return 0;
 
           char parent_key_update[DATE_SIZE_MAX]="";
-          char RID[MAX_PATH]="", SID[MAX_PATH]="";
+          char RID[MAX_PATH]="", sid[MAX_PATH]="";
           char value[MAX_PATH];
 
           char tmp_key[MAX_PATH], tmp_key2[MAX_PATH], key_path[MAX_PATH];
           HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
           DWORD i,j,k, nbSubValue,nbSubKey2,nbSubKey = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, hks_mru.position, 0, NULL, 0);
-          for (i=0;i<nbSubKey;i++)
+          for (i=0;i<nbSubKey && start_scan;i++)
           {
             if(GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, hks_mru.position, i, tmp_key, MAX_PATH))
             {
@@ -761,7 +761,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
               if (nk_h_tmp == NULL)continue;
 
               nbSubKey2 = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h_tmp, hks_mru.position, 0, NULL, 0);
-              for (j=0;j<nbSubKey2;j++)
+              for (j=0;j<nbSubKey2 && start_scan;j++)
               {
                 if(GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h_tmp, hks_mru.position, j, tmp_key2, MAX_PATH))
                 {
@@ -772,7 +772,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
 
                   //key update
                   Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                               NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                               NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
                   //get values
                   nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h_tmp2, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
@@ -783,7 +783,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                       //save
                       convertStringToSQL(value, MAX_PATH);
                       convertStringToSQL(tmp, MAX_LINE_SIZE);
-                      addRegistryMRUtoDB(hks_mru.file,"",key_path,value,tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                      addRegistryMRUtoDB(hks_mru.file,"",key_path,value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                     }
                   }
                 }
@@ -798,13 +798,13 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
           if (nk_h == NULL)return 0;
 
           char parent_key_update[DATE_SIZE_MAX]="";
-          char RID[MAX_PATH]="", SID[MAX_PATH]="";
+          char RID[MAX_PATH]="", sid[MAX_PATH]="";
           char value[MAX_PATH];
 
           char tmp_key[MAX_PATH], key_path[MAX_PATH];
           HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
           DWORD i,k, nbSubValue,nbSubKey = GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, hks_mru.position, 0, NULL, 0);
-          for (i=0;i<nbSubKey;i++)
+          for (i=0;i<nbSubKey && start_scan;i++)
           {
             if(GetSubNK(hks_mru.buffer, hks_mru.taille_fic, nk_h, hks_mru.position, i, tmp_key, MAX_PATH))
             {
@@ -818,7 +818,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
 
               //key update
               Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
-                           NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,SID, MAX_PATH);
+                           NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
               //get values
               nbSubValue = GetValueData(hks_mru.buffer,hks_mru.taille_fic, nk_h_tmp2, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
@@ -829,7 +829,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   //save
                   convertStringToSQL(value, MAX_PATH);
                   convertStringToSQL(tmp, MAX_LINE_SIZE);
-                  addRegistryMRUtoDB(hks_mru.file,"",key_path,value,tmp,argv[5],"",RID,SID,parent_key_update,session_id,db_scan);
+                  addRegistryMRUtoDB(hks_mru.file,"",key_path,value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }
@@ -855,7 +855,7 @@ DWORD WINAPI Scan_registry_mru(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);

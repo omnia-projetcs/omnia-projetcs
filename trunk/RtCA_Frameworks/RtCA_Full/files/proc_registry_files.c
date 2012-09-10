@@ -444,7 +444,8 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
           if(sk_owner_sid->nb == 0)return TRUE;
 
           //rid
-          if (sk_owner_sid->nb > 4)snprintf(rid,rid_size,"%lu",sk_owner_sid->id[4]);
+          if (sk_owner_sid->nb > 4)
+            if (sk_owner_sid->id[4]<65535)snprintf(rid,rid_size,"%lu",sk_owner_sid->id[4]);
 
           //sid
           unsigned int i, nb = (sk_owner_sid->nb)-1;

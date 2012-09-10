@@ -56,6 +56,16 @@ BEGIN
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
 END
 //------------------------------------------------------------------------------
+//process dialogue
+//------------------------------------------------------------------------------
+DLG_PROCESS DIALOGEX 6,6,400,231
+CAPTION "Process"
+FONT 8,"Arial",0,0
+STYLE 0x00CF0800
+BEGIN
+  CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,0,0,400,231,0x00000200
+END
+//------------------------------------------------------------------------------
 //main dialogue menu
 //------------------------------------------------------------------------------
 MY_ACCEL ACCELERATORS DISCARDABLE
@@ -66,6 +76,7 @@ BEGIN
   "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
   "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
   VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
+  VK_F6                                   ,IDM_TOOLS_PROCESS    , VIRTKEY, NOINVERT
 END
 //------------------------------------------------------------------------------
 MY_MENU MENU
@@ -98,14 +109,14 @@ BEGIN
     MENUITEM "Copy NTDIS.DIT(AD) file"    ,IDM_TOOLS_CP_AD
     MENUITEM "Copy specific file"         ,IDM_TOOLS_CP_FILE
     MENUITEM SEPARATOR
-    /*MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
+    MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
     MENUITEM SEPARATOR
     MENUITEM "Virustotal files checker"   ,IDM_TOOLS_VIRUSTOTAL
     MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
     MENUITEM SEPARATOR
-    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER*/
+    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
   END
   POPUP "Help"      //3
   BEGIN
