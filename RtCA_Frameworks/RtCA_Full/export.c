@@ -229,12 +229,12 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
   if (MyhFile_export != INVALID_HANDLE_VALUE)
   {
-    FORMAT_CALBAK_READ_INFO fcri;
+    FORMAT_CALBAK_READ_INFO fcri2;
     export_type = SAVE_TYPE_PWDUMP;
-    fcri.type   = TYPE_SQL_EXPORT_DATAS;
+    fcri2.type   = TYPE_SQL_EXPORT_DATAS;
 
     snprintf(request, MAX_LINE_SIZE,"SELECT raw_password FROM extract_registry_account_password WHERE session_id = %lu;",cur_session_id);
-    sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
+    sqlite3_exec(db, request, callback_sqlite_export, &fcri2, NULL);
     CloseHandle(MyhFile_export);
   }
 
@@ -280,7 +280,7 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
     return FALSE;
   }
 
-  char line[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+  char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
   DWORD copiee;
   TVITEM tvitem;
   HTREEITEM hitem;
@@ -301,8 +301,8 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
           tvitem.cchTextMax = MAX_LINE_SIZE;
           if (SendMessage(htv, TVM_GETITEM,(WPARAM)0, (LPARAM)&tvitem))
           {
-            snprintf(line,MAX_LINE_SIZE,"%s\r\n",buffer);
-            WriteFile(hfile,line,strlen(line),&copiee,0);
+            snprintf(lines,MAX_LINE_SIZE,"%s\r\n",buffer);
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
           }
         }while((hitem = (HTREEITEM)SendMessage(htv, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)));
       }
@@ -329,8 +329,8 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
           tvitem.cchTextMax = MAX_LINE_SIZE;
           if (SendMessage(htv, TVM_GETITEM,(WPARAM)0, (LPARAM)&tvitem))
           {
-            snprintf(line,MAX_LINE_SIZE,"\"%s\";\"%s\";\r\n",title,buffer);
-            WriteFile(hfile,line,strlen(line),&copiee,0);
+            snprintf(lines,MAX_LINE_SIZE,"\"%s\";\"%s\";\r\n",title,buffer);
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
           }
         }while((hitem = (HTREEITEM)SendMessage(htv, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem)));
       }
@@ -354,7 +354,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
       return FALSE;
     }
 
-    char line[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+    char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
     DWORD copiee;
     unsigned int i=0,j=0;
 
@@ -371,7 +371,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"%s\";",buffer);
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -379,26 +379,26 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           lvc.pszText = buffer;
 
         }
-        strncat(line,"\r\n\0",MAX_LINE_SIZE);
+        strncat(lines,"\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
-        WriteFile(hfile,line,strlen(line),&copiee,0);
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
         //save all line
         for (j=0;j<nb_items;j++)
         {
-          line[0]=0;
+          lines[0]=0;
           for (i=0;i<nb_column;i++)
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"%s\";",buffer);
-            }else snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"\";");
+              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
+            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"\";");
           }
-          snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\r\n");
+          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\r\n");
           copiee = 0;
-          WriteFile(hfile,line,strlen(line),&copiee,0);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
       break;
       case SAVE_TYPE_XML:
@@ -430,8 +430,8 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
-              WriteFile(hfile,line,strlen(line),&copiee,0);
+              snprintf(lines,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
             }
           }
           WriteFile(hfile," </Data>\r\n",10,&copiee,0);
@@ -449,7 +449,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"  <th>%s</th>",buffer);
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"  <th>%s</th>",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -458,15 +458,15 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 
         }
 
-        strncat(line,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
+        strncat(lines,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
-        WriteFile(hfile,line,strlen(line),&copiee,0);
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
         //save all line
         for (j=0;j<nb_items;j++)
         {
-          if (j%2==1)strcpy(line,"  <tr bgcolor=\"#ddddff\">");
-          else strcpy(line,"  <tr>");
+          if (j%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
+          else strcpy(lines,"  <tr>");
 
           for (i=0;i<nb_column;i++)
           {
@@ -474,12 +474,12 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<td>%s</td>",buffer);
-            }else snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<td></td>");
+              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
+            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
           }
-          snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"</tr>\r\n");
+          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"</tr>\r\n");
           copiee = 0;
-          WriteFile(hfile,line,strlen(line),&copiee,0);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
       }
@@ -503,7 +503,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
       return FALSE;
     }
 
-    char line[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+    char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
     DWORD copiee;
     unsigned int i=0,j=0;
 
@@ -520,7 +520,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"%s\";",buffer);
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -528,27 +528,27 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           lvc.pszText = buffer;
 
         }
-        strncat(line,"\r\n\0",MAX_LINE_SIZE);
+        strncat(lines,"\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
-        WriteFile(hfile,line,strlen(line),&copiee,0);
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
         //save all line
         for (j=0;j<nb_items;j++)
         {
           if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
-          line[0]=0;
+          lines[0]=0;
           for (i=0;i<nb_column;i++)
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"%s\";",buffer);
-            }else snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\"\";");
+              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
+            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"\";");
           }
-          snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"\r\n");
+          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\r\n");
           copiee = 0;
-          WriteFile(hfile,line,strlen(line),&copiee,0);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
       break;
       case SAVE_TYPE_XML:
@@ -580,8 +580,8 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
-              WriteFile(hfile,line,strlen(line),&copiee,0);
+              snprintf(lines,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
             }
           }
           WriteFile(hfile," </Data>\r\n",10,&copiee,0);
@@ -599,7 +599,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"  <th>%s</th>",buffer);
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"  <th>%s</th>",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
@@ -608,17 +608,17 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
 
         }
 
-        strncat(line,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
+        strncat(lines,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
         copiee = 0;
-        WriteFile(hfile,line,strlen(line),&copiee,0);
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
         //save all line
         DWORD k=0;
         for (j=0;j<nb_items;j++)
         {
           if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
-          if (k%2==1)strcpy(line,"  <tr bgcolor=\"#ddddff\">");
-          else strcpy(line,"  <tr>");
+          if (k%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
+          else strcpy(lines,"  <tr>");
 
           k++;
 
@@ -628,12 +628,12 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<td>%s</td>",buffer);
-            }else snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"<td></td>");
+              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
+            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
           }
-          snprintf(line+strlen(line),MAX_LINE_SIZE-strlen(line),"</tr>\r\n");
+          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"</tr>\r\n");
           copiee = 0;
-          WriteFile(hfile,line,strlen(line),&copiee,0);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
       }
@@ -644,10 +644,10 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
   }else return FALSE;
 }
 //------------------------------------------------------------------------------
-void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column)
+void CopyDataToClipboard(HANDLE hlv, DWORD nline, unsigned short column)
 {
   char tmp[MAX_LINE_SIZE]="";
-  ListView_GetItemText(hlv,line,column,tmp,MAX_LINE_SIZE);
+  ListView_GetItemText(hlv,nline,column,tmp,MAX_LINE_SIZE);
 
   //copy to clipbord
   if(OpenClipboard(NULL))

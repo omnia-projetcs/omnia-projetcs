@@ -145,7 +145,7 @@ void redimColumnH(HANDLE hlv,int column,unsigned int col_size)
   SendMessage(hlv,LVM_SETCOLUMN,(WPARAM)column, (LPARAM)&lvc);
 }
 //------------------------------------------------------------------------------
-void AddtoLV(HANDLE hlv, unsigned int nb_column, LINE_ITEM *item, BOOL select)
+void AddtoLV(HANDLE hlv, unsigned int nb_column, LINE_ITEM *item, BOOL sel)
 {
   LVITEM lvi;
   lvi.mask = LVIF_TEXT|LVIF_PARAM;
@@ -159,7 +159,7 @@ void AddtoLV(HANDLE hlv, unsigned int nb_column, LINE_ITEM *item, BOOL select)
     ListView_SetItemText(hlv,ref_item,i,item[i].c);
   }while (i++<nb_column);
 
-  if (select)
+  if (sel)
   {
     //sélection of the last !!!
     SendMessage(hlv, LVM_ENSUREVISIBLE, lvi.iItem, 0);

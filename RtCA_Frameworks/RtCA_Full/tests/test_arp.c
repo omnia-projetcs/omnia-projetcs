@@ -31,7 +31,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
   unsigned int session_id = current_session_id;
 
   //load route table);
-  HMODULE hDLL = LoadLibrary( "IPHLPAPI.DLL" );
+  /*HMODULE hDLL = LoadLibrary( "IPHLPAPI.DLL" );
   if (!hDLL) return 0;
 
   //declaration load function
@@ -39,7 +39,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
   GETIPNETTABLE GetIpNetTable = (GETIPNETTABLE) GetProcAddress(hDLL,"GetIpNetTable");
 
   if (GetIpNetTable != NULL)
-  {
+  {*/
     DWORD dwSize = 0,i;
     //allocate momery
     if (GetIpNetTable(NULL, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER)
@@ -81,10 +81,10 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
         }
       }
     }
-  }
+  //}
 
   //free
-  FreeLibrary(hDLL);
+  //FreeLibrary(hDLL);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;

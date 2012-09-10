@@ -291,7 +291,7 @@ void resgistry_userassist_local(unsigned int session_id, sqlite3 *db)
         RegCloseKey(CleTmp2);
         continue;
       }
-      for (j=0;j<nbSubKey2;j++)
+      for (j=0;j<nbSubKey2 && start_scan;j++)
       {
         key_size2 = MAX_PATH;
         key[0]    = 0;
@@ -362,7 +362,7 @@ void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_
 
   HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
   DWORD data_size,i,j,k, nbSubValue,nbSubKey2,nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
-  for (i=0;i<nbSubKey;i++)
+  for (i=0;i<nbSubKey && start_scan;i++)
   {
     //for each subkey
     if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, tmp_key, MAX_PATH))
@@ -372,7 +372,7 @@ void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_
       if (nk_h_tmp == NULL)continue;
 
       nbSubKey2 = GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, 0, NULL, 0);
-      for (j=0;j<nbSubKey2;j++)
+      for (j=0;j<nbSubKey2 && start_scan;j++)
       {
         //for each subkey
         if(GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j, tmp_key2, MAX_PATH))
@@ -387,7 +387,7 @@ void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_
                        NULL, 0, RID, MAX_PATH, SID, MAX_PATH);
 
           nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-          for (k=0;k<nbSubValue;k++)
+          for (k=0;k<nbSubValue && start_scan;k++)
           {
             data_size = MAX_LINE_SIZE;
             if (GetBinaryValueData(hks->buffer,hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,data, &data_size))
@@ -430,7 +430,7 @@ DWORD WINAPI Scan_registry_userassist(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);

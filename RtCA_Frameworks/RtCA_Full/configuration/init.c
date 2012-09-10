@@ -162,11 +162,6 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
     hideDOSForm();
   #endif
 
-  //for cross compilation bug in 64bit
-  #ifndef GWL_WNDPROC
-    #define GWL_WNDPROC (-4)
-  #endif
-
   //global init
   B_AUTOSEARCH      = FALSE;
   h_AUTOSEARCH      = NULL;
@@ -226,6 +221,11 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   //init help messages
   AddtoToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
   AddtoToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
+
+  if (WINE_OS)
+  {
+    EnableMenuItem(GetMenu(h_main),IDM_TOOLS_PROCESS,MF_BYCOMMAND|MF_GRAYED);
+  }
 
   return 0;
 }

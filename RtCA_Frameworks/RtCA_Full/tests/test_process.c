@@ -78,7 +78,7 @@ BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
     lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "ZwQueryInformationProcess");
     if (lpfnNtQueryInformationProcess != NULL)
     {
-      DWORD dwSize;
+      DWORD dwSize=0;
       lpfnNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &dwSize);
 
       //lecture de la mémoire
@@ -145,7 +145,7 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
   DWORD nb_item = 0;
 
   //load function
-  typedef enum  {
+  /*typedef enum  {
     TCP_TABLE_BASIC_LISTENER,
     TCP_TABLE_BASIC_CONNECTIONS,
     TCP_TABLE_BASIC_ALL,
@@ -155,13 +155,13 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
     TCP_TABLE_OWNER_MODULE_LISTENER,
     TCP_TABLE_OWNER_MODULE_CONNECTIONS,
     TCP_TABLE_OWNER_MODULE_ALL
-  }TCP_TABLE_CLASS, *PTCP_TABLE_CLASS;
+  }TCP_TABLE_CLASS, *PTCP_TABLE_CLASS;*/
 
-  typedef enum  {
+ /* typedef enum  {
     UDP_TABLE_BASIC,
     UDP_TABLE_OWNER_PID,
     UDP_TABLE_OWNER_MODULE
-  }UDP_TABLE_CLASS, *PUDP_TABLE_CLASS;
+  }UDP_TABLE_CLASS, *PUDP_TABLE_CLASS;*/
 
   typedef DWORD (WINAPI TypeGetExtendedTcpTable)(PVOID, PDWORD, BOOL, ULONG, TCP_TABLE_CLASS, ULONG);
   TypeGetExtendedTcpTable *MyGetExtendedTcpTable = (TypeGetExtendedTcpTable *)GetProcAddress(hLibrary, "GetExtendedTcpTable");

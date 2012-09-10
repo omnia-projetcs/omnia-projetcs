@@ -231,7 +231,7 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);

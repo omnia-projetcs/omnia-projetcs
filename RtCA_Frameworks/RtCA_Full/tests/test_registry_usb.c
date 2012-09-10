@@ -40,7 +40,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
     char key[MAX_PATH],key2[MAX_PATH];
     char tmp_key[MAX_PATH];
 
-    for (i=0;i<nbSubKey;i++)
+    for (i=0;i<nbSubKey && start_scan;i++)
     {
       key_size  = MAX_PATH;
       key[0]    = 0;
@@ -54,7 +54,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
       nbSubKey2 = 0;
       if (RegQueryInfoKey (CleTmp2,0,0,0,&nbSubKey2,0,0,0,0,0,0,0)==ERROR_SUCCESS)
       {
-        for (j=0;j<nbSubKey2;j++)
+        for (j=0;j<nbSubKey2 && start_scan;j++)
         {
           key_size2 = MAX_PATH;
           key2[0]   = 0;
@@ -103,7 +103,7 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
     char lastupdate[DATE_SIZE_MAX],name[MAX_PATH],vendor_id[MAX_PATH],product_id[MAX_PATH],
     description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH];
 
-    for (i=0;i<nbSubKey;i++)
+    for (i=0;i<nbSubKey && start_scan;i++)
     {
       key_size  = MAX_PATH;
       key[0]    = 0;
@@ -115,7 +115,7 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
       nbSubKey2 = 0;
       if (RegQueryInfoKey (CleTmp2,0,0,0,&nbSubKey2,0,0,0,0,0,0,0)==ERROR_SUCCESS)
       {
-        for (j=0;j<nbSubKey2;j++)
+        for (j=0;j<nbSubKey2 && start_scan;j++)
         {
           key_size2 = MAX_PATH;
           key2[0]   = 0;
@@ -175,7 +175,7 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
 
   HBIN_CELL_NK_HEADER *nk_h_tmp;
   DWORD i,j,nbSubKey2, nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
-  for (i=0;i<nbSubKey;i++)
+  for (i=0;i<nbSubKey && start_scan;i++)
   {
     if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, tmp_key, MAX_PATH))
     {
@@ -184,7 +184,7 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
       if (nk_h_tmp == NULL)continue;
 
       nbSubKey2 = GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, 0, NULL, 0);
-      for (j=0;j<nbSubKey2;j++)
+      for (j=0;j<nbSubKey2 && start_scan;j++)
       {
         if(GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j, tmp_key2, MAX_PATH))
         {
@@ -224,7 +224,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
   char tmp_key[MAX_PATH], tmp_key2[MAX_PATH];
   HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
   DWORD i,j,nbSubKey2, nbSubKey = GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, 0, NULL, 0);
-  for (i=0;i<nbSubKey;i++)
+  for (i=0;i<nbSubKey && start_scan;i++)
   {
     //for each subkey
     if(GetSubNK(hks->buffer, hks->taille_fic, nk_h, hks->position, i, tmp_key, MAX_PATH))
@@ -234,7 +234,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
       if (nk_h_tmp == NULL)continue;
 
       nbSubKey2 = GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, 0, NULL, 0);
-      for (j=0;j<nbSubKey2;j++)
+      for (j=0;j<nbSubKey2 && start_scan;j++)
       {
         //for each subkey
         if(GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j, tmp_key2, MAX_PATH))
@@ -281,7 +281,7 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
-    while(hitem!=NULL)
+    while(hitem!=NULL && start_scan)
     {
       file[0] = 0;
       GetTextFromTrv(hitem, file, MAX_PATH);
