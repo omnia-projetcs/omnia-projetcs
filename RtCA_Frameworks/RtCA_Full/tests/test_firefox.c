@@ -19,14 +19,16 @@ void addFirefoxtoDB(char *file, char *parameter, char *data, char *date, DWORD i
 //------------------------------------------------------------------------------
 int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName)
 {
+  if (datas == NULL || argc < 1) return 0;
   FORMAT_CALBAK_READ_INFO *type = datas;
-  char tmp[MAX_PATH]="";
+  char tmp[MAX_LINE_SIZE]="", tmp2[MAX_PATH]="";
   char date[DATE_SIZE_MAX]="";
-  unsigned int i,size=0;
-  if (type->type > 0 && type->type < nb_sql_FIREFOX)
+
+  unsigned int i;
+  if (type->type > 0 && type->type < nb_sql_FIREFOX && argc>0 && argv != NULL)
   {
     //copy datas
-    for (i=0;i<argc && MAX_PATH-size > 0 && start_scan;i++)
+    for (i=0;i<argc && i<8 && start_scan;i++)
     {
       if (argv[i] == NULL)continue;
 
@@ -39,10 +41,13 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
           continue;
         }
       }
-      if (i>0)snprintf(tmp+size,MAX_PATH-size,", %s",convertUTF8toUTF16(argv[i], strlen(argv[i])+1));
-      else snprintf(tmp+size,MAX_PATH-size,"%s",convertUTF8toUTF16(argv[i], strlen(argv[i])+1));
-      size = strlen(tmp);
+      convertUTF8toUTF16toChar(argv[i], strlen(argv[i]), tmp2, MAX_PATH);
+      strncat(tmp,tmp2,MAX_PATH);
+      strncat(tmp,", \0",MAX_PATH);
     }
+
+    if(strlen(tmp)-2 > 0)tmp[strlen(tmp)-2] = 0;
+
     //get datas and write it
     convertStringToSQL(tmp, MAX_PATH);
     addFirefoxtoDB(tmp_file_firefox,sql_FIREFOX[type->type].params,tmp,date,sql_FIREFOX[type->type].test_string_id,current_session_id,db_scan);

@@ -44,6 +44,7 @@ void InitGlobalLangueString(unsigned int langue_id)
     {
       SendMessage(hlstbox, LB_SETCURSEL, current_item_selected, 0);
       TRI_RESULT_VIEW       = FALSE;
+      TRI_PROCESS_VIEW      = FALSE;
       column_tri            = -1;
       pos_search            = 0;
 
@@ -149,8 +150,10 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   SetDebugPrivilege(TRUE);
 
   //init if 64b
+  #ifndef _WIN64_VERSION_
   OldValue_W64b = FALSE;
   ReviewWOW64Redirect(OldValue_W64b);
+  #endif
 }
 //------------------------------------------------------------------------------
 //init GUI configuration
@@ -167,6 +170,7 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   h_AUTOSEARCH      = NULL;
   ExportStart       = FALSE;
   TRI_RESULT_VIEW   = FALSE;
+  TRI_PROCESS_VIEW  = FALSE;
   column_tri        = -1;
   NB_TESTS          = 0;
   pos_search        = 0;
@@ -179,13 +183,17 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
   {
     //if tmp sqlite file exist free !!
-    if (GetFileAttributes(DEFAULT_TM_SQLITE_FILE) != INVALID_FILE_ATTRIBUTES)
+    //for bug case
+    /*if (GetFileAttributes(DEFAULT_TM_SQLITE_FILE) != INVALID_FILE_ATTRIBUTES)
     {
       DeleteFile(DEFAULT_TM_SQLITE_FILE);
-    }
+    }*/
 
     sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan);
   }
+
+  //for journal incase
+  sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
 
   //Init language cb
   HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);
@@ -283,7 +291,10 @@ void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, ch
 void EndGUIConfig(HANDLE hwnd)
 {
   sqlite3_close(db_scan);
+  #ifndef _WIN64_VERSION_
   ReviewWOW64Redirect(OldValue_W64b);
+  #endif
+
 
   //save current language if not 1
   //get current path

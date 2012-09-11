@@ -289,7 +289,11 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       }
     break;
     case WM_NOTIFY:
-      if (((LPNMHDR)lParam)->code == NM_CLICK && ((LPNMHDR)lParam)->hwndFrom == htrv_test)
+      /*if (((LPNMHDR)lParam)->code == LVN_COLUMNCLICK)
+      {
+        TRI_PROCESS_VIEW = !TRI_PROCESS_VIEW;
+        c_Tri(((LPNMHDR)lParam)->hwndFrom,((LPNMLISTVIEW)lParam)->iSubItem,TRI_PROCESS_VIEW);
+      }else */if (((LPNMHDR)lParam)->code == NM_CLICK && ((LPNMHDR)lParam)->hwndFrom == htrv_test)
       {
         //selected item and state
         TV_HITTESTINFO Struct;

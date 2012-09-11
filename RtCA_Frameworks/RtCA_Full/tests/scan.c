@@ -23,6 +23,8 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   unsigned int j;
   for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
 
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
+
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_log,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_disk,(void*)nb_current_test,0,0); nb_current_test++;
@@ -58,6 +60,8 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
+
   //the end
   start_scan          = FALSE;
   stop_scan           = FALSE;
@@ -78,6 +82,8 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   AddNewSession(LOCAL_SCAN,db_scan);
   for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
   j=0;
+
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
 
   if (safe_mode == FALSE)
   {
@@ -118,6 +124,8 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
+
   //the end
   start_scan          = FALSE;
   return 0;
@@ -128,6 +136,9 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
   unsigned int test = (unsigned int)lParam;
   unsigned int j;
   for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
+
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
+
   switch(test)
   {
     case 0:h_thread_test[0]   = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0);break;
@@ -166,6 +177,8 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
 
   //wait !
   WaitForSingleObject(h_thread_test[0],INFINITE);
+
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
 
   //the end
   start_scan          = FALSE;

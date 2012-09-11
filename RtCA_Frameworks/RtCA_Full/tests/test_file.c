@@ -480,6 +480,10 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
         filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
         filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
+        s_ads[0] = 0;
+        s_acl[0] = 0;
+        s_sha[0] = 0;
+
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
           //directory

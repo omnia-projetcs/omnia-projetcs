@@ -4,7 +4,7 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
-//#define _WIN64_VERSION_        1      //64 OS Compilation
+#define _WIN64_VERSION_        1       //64 OS Compilation
 
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -118,7 +118,7 @@ HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, h
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
-WNDPROC wndproc_hdbclk_info, wndproc_hlstv_info;
+WNDPROC wndproc_hdbclk_info;
 
 HANDLE h_process;
 
@@ -360,7 +360,7 @@ typedef struct
 }LINE_ITEM;
 //------------------------------------------------------------------------------
 //for sort in lstv
-BOOL TRI_RESULT_VIEW;
+BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW;
 int column_tri;
 
 typedef struct SORT_ST
@@ -646,6 +646,7 @@ char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size);
 char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_size);
 char *timeToString(DWORD time, char *str, unsigned int string_size);
 char *convertUTF8toUTF16(char *src, DWORD max_size);
+char *convertUTF8toUTF16toChar(char *src, DWORD size_src, char *dst, DWORD size_dst);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 char *charToLowChar(char *src);
 char *DataToHexaChar(char *data, unsigned int data_size, char *hexa_char, unsigned int hexa_char_size);
