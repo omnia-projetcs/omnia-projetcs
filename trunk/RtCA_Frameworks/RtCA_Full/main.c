@@ -8,10 +8,10 @@
 //------------------------------------------------------------------------------
 //subclass of hdbclk_info
 //------------------------------------------------------------------------------
-LRESULT CALLBACK subclass_hdbclk_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (message == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
-  else return CallWindowProc(wndproc_hdbclk_info, hwnd, message, wParam, lParam);
+  if (uMsg == WM_CLOSE)ShowWindow (hdbclk_info, SW_HIDE);
+  else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -630,7 +630,11 @@ int main(int argc, char* argv[])
 
     SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
     SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-    wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #ifdef _WIN64_VERSION_
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #else
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #endif
 
     //dialogue for process
     h_process     = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS) ,h_main,DialogProc_info);

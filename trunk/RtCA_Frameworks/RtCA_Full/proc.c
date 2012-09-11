@@ -170,7 +170,7 @@ char *timeToString(DWORD t, char *str, unsigned int string_size)
 //------------------------------------------------------------------------------
 char *convertUTF8toUTF16(char *src, DWORD size)
 {
-  if (src == NULL)return src;
+  if (src == NULL && size == 0)return src;
 
   wchar_t *buffer;
   buffer = malloc(sizeof(wchar_t)*size);
@@ -181,6 +181,21 @@ char *convertUTF8toUTF16(char *src, DWORD size)
   }
   free(buffer);
   return src;
+}
+//------------------------------------------------------------------------------
+char *convertUTF8toUTF16toChar(char *src, DWORD size_src, char *dst, DWORD size_dst)
+{
+  if (src == NULL || size_src == 0)return NULL;
+
+  wchar_t *buffer;
+  buffer = malloc(sizeof(wchar_t)*size_src+1);
+  if (buffer)
+  {
+    MultiByteToWideChar(CP_UTF8, 0, src, size_src, buffer, size_src);
+    snprintf(dst,size_dst,"%S",buffer);
+  }
+  free(buffer);
+  return dst;
 }
 //------------------------------------------------------------------------------
 char *charToLowChar(char *src)

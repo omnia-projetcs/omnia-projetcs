@@ -47,7 +47,6 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
     valueSize = MAX_PATH;
     dataSize  = MAX_PATH;
     value[0]  = 0;
-    data[0]   = 0;
     type      = 0;
     if (RegEnumValue (CleTmp,i,(LPTSTR)value,(LPDWORD)&valueSize,0,(LPDWORD)&type,(LPBYTE)data,(LPDWORD)&dataSize)==ERROR_SUCCESS)
     {

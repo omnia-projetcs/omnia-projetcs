@@ -60,7 +60,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
           while (*r)
           {
             //read line
-            lines[0] = 0;
+            memset(lines,0,MAX_PATH);
             strncpy(lines,r,MAX_PATH);
             s = lines;
             while (*s && *s != '\r')s++;
