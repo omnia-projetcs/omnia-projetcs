@@ -429,7 +429,6 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
       //check all tests
       CheckDlgButton(hwnd,BT_ACL_FILE_CHK,BST_CHECKED);
-      CheckDlgButton(hwnd,BT_SHA_FILE_CHK,BST_CHECKED);
       CheckDlgButton(hwnd,BT_ADS_FILE_CHK,BST_CHECKED);
 
       //add icon

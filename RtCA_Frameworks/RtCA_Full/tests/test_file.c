@@ -547,6 +547,101 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
   }while(FindNextFile (hfic,&data) && start_scan);
 }
 //------------------------------------------------------------------------------
+void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
+{
+  WIN32_FIND_DATA data;
+  char tmp_path[MAX_PATH], path_ex[MAX_PATH], file[MAX_PATH];
+
+  char CreationTime[DATE_SIZE_MAX],LastWriteTime[DATE_SIZE_MAX],LastAccessTime[DATE_SIZE_MAX];
+  char size[DEFAULT_TMP_SIZE];
+  char s_ads[MAX_PATH]="";
+  char s_sha[65]="";
+  char s_acl[MAX_PATH]="",owner[MAX_PATH]="",rid[MAX_PATH]="",sid[MAX_PATH]="";
+  char ext[MAX_PATH]="";
+
+  snprintf(tmp_path,MAX_PATH,"%s*.*",path);
+  HANDLE hfic = FindFirstFile(tmp_path, &data);
+  if (hfic == INVALID_HANDLE_VALUE)return;
+  do
+  {
+    // return
+    if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+    else
+    {
+        //dates
+        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
+
+        s_ads[0] = 0;
+        s_acl[0] = 0;
+        s_sha[0] = 0;
+
+        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+        {
+          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+          //directory
+          snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
+
+          //ads
+          if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
+
+          //acls
+          if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
+
+          //ad to bdd
+          addFiletoDB(path_ex, "", "",
+                      CreationTime, LastWriteTime, LastAccessTime,"",
+                      owner, rid, sid, s_acl,
+                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                      s_ads, "", "", "",session_id,db);
+
+          scan_file_ex(path_ex, acl, ads, sha, session_id,db);
+          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+        }else
+        {
+          //file
+          snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+
+          //size
+          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+          else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+          //ads
+          if(ads)EnumADS(file, s_ads, MAX_PATH);
+
+          //sha256
+          if(sha)FileToSHA256(file, s_sha);
+
+          //acl
+          if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
+
+          //extension
+          strncpy(file,data.cFileName,MAX_PATH);
+          extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
+
+          //ad to bdd
+          addFiletoDB(path, data.cFileName, ext,
+                      CreationTime, LastWriteTime, LastAccessTime, size,
+                      owner, rid, sid, s_acl,
+                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                      s_ads, s_sha, "", "",session_id,db);
+        }
+    }
+  }while(FindNextFile (hfic,&data) && start_scan);
+}
+//------------------------------------------------------------------------------
 void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
 {
   WIN32_FIND_DATA data;
@@ -637,6 +732,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
 
   //get local path !
   //get child
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
   if (!LOCAL_SCAN)
   {
@@ -677,7 +773,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
       {
         //get item txt
         GetTextFromTrv(hitem, tmp, MAX_PATH);
-        scan_file_ex(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+        scan_file_exF(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
 
         hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
       }
@@ -694,11 +790,13 @@ DWORD WINAPI Scan_files(LPVOID lParam)
         case DRIVE_RAMDISK:
         case DRIVE_REMOVABLE:
           //for each scan it
-          scan_file_ex(&tmp[i], FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+          scan_file_exF(&tmp[i], FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
         break;
       }
     }
   }
+
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

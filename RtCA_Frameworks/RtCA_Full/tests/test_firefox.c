@@ -21,12 +21,13 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
 {
   if (datas == NULL || argc < 1) return 0;
   FORMAT_CALBAK_READ_INFO *type = datas;
-  char tmp[MAX_LINE_SIZE]="", tmp2[MAX_PATH]="";
   char date[DATE_SIZE_MAX]="";
-
   unsigned int i;
+
   if (type->type > 0 && type->type < nb_sql_FIREFOX && argc>0 && argv != NULL)
   {
+#ifdef _WIN64_VERSION_
+    char tmp[MAX_LINE_SIZE]="", tmp2[MAX_PATH]="";
     //copy datas
     for (i=0;i<argc && i<8 && start_scan;i++)
     {
@@ -47,6 +48,28 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
     }
 
     if(strlen(tmp)-2 > 0)tmp[strlen(tmp)-2] = 0;
+#else
+    char tmp[MAX_LINE_SIZE]="";
+    unsigned int size=0;
+    //copy datas
+    for (i=0;i<argc && MAX_PATH-size > 0 && start_scan;i++)
+    {
+      if (argv[i] == NULL)continue;
+
+      //date or not ?
+      if (strlen(argv[i]) == DATE_SIZE_MAX-1)
+      {
+        if (argv[i][4] == '/' && argv[i][13] == ':')
+        {
+          if (strcmp("1970/01/01 01:00:00",argv[i])!=0)strncpy(date,argv[i],DATE_SIZE_MAX);
+          continue;
+        }
+      }
+      if (i>0)snprintf(tmp+size,MAX_PATH-size,", %s",convertUTF8toUTF16(argv[i], strlen(argv[i])+1));
+      else snprintf(tmp+size,MAX_PATH-size,"%s",convertUTF8toUTF16(argv[i], strlen(argv[i])+1));
+      size = strlen(tmp);
+    }
+#endif
 
     //get datas and write it
     convertStringToSQL(tmp, MAX_PATH);
@@ -60,6 +83,7 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO data;
 
   //get child
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL && LOCAL_SCAN) //local
   {
@@ -156,6 +180,7 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
     }
   }
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

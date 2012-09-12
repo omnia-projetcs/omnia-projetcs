@@ -15,7 +15,7 @@ void LoadPRocessList(HWND hlv)
   if (hCT==INVALID_HANDLE_VALUE)return;
 
   DWORD cbNeeded, k, j, nb_process=0, ref_item;
-  HANDLE hProcess;
+  HANDLE hProcess, parent_hProcess;
   HMODULE hMod[MAX_PATH];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
   LINE_PROC_ITEM port_line[MAX_PATH];
@@ -26,7 +26,9 @@ void LoadPRocessList(HWND hlv)
        owner[DEFAULT_TMP_SIZE],
        rid[DEFAULT_TMP_SIZE],
        sid[DEFAULT_TMP_SIZE],
-       start_date[DATE_SIZE_MAX];
+       start_date[DATE_SIZE_MAX],
+       parent_pid[DEFAULT_TMP_SIZE],
+       parent_path[MAX_PATH];
 
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
 
@@ -47,7 +49,7 @@ void LoadPRocessList(HWND hlv)
     strncpy(process,pe.szExeFile,DEFAULT_TMP_SIZE);
 
     //pid
-    snprintf(pid,DEFAULT_TMP_SIZE,"%04lu",pe.th32ProcessID);
+    snprintf(pid,DEFAULT_TMP_SIZE,"%05lu",pe.th32ProcessID);
 
     //path
     path[0]=0;
@@ -62,6 +64,21 @@ void LoadPRocessList(HWND hlv)
 
     //owner
     GetProcessOwner(pe.th32ProcessID, owner, rid, sid, DEFAULT_TMP_SIZE);
+
+    //parent processID
+    snprintf(parent_pid,DEFAULT_TMP_SIZE,"%05lu",pe.th32ParentProcessID);
+
+    //parent name
+    parent_path[0]=0;
+    parent_hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,pe.th32ParentProcessID);
+    if (parent_hProcess != NULL)
+    {
+      if (EnumProcessModules(parent_hProcess,hMod, MAX_PATH,&cbNeeded))
+      {
+        if (GetModuleFileNameEx(parent_hProcess,hMod[0],parent_path,MAX_PATH) == 0)parent_path[0] = 0;
+      }
+      CloseHandle(parent_hProcess);
+    }
 
     //start date process
     start_date[0] = 0;
@@ -106,8 +123,10 @@ void LoadPRocessList(HWND hlv)
       ListView_SetItemText(hlv,ref_item,12,"");
       ListView_SetItemText(hlv,ref_item,13,"");
       ListView_SetItemText(hlv,ref_item,14,"");
-      ListView_SetItemText(hlv,ref_item,15,"");
-      ListView_SetItemText(hlv,ref_item,16,"");
+      ListView_SetItemText(hlv,ref_item,15,parent_path);
+      ListView_SetItemText(hlv,ref_item,16,parent_pid);
+      ListView_SetItemText(hlv,ref_item,17,"");
+      ListView_SetItemText(hlv,ref_item,18,"");
     }else
     {
       for (k=0;k<j;k++)
@@ -130,8 +149,10 @@ void LoadPRocessList(HWND hlv)
         ListView_SetItemText(hlv,ref_item,12,port_line[k].Port_dst);
         ListView_SetItemText(hlv,ref_item,13,port_line[k].state);
         ListView_SetItemText(hlv,ref_item,14,"");
-        ListView_SetItemText(hlv,ref_item,15,"");
-        ListView_SetItemText(hlv,ref_item,16,"");
+        ListView_SetItemText(hlv,ref_item,15,parent_path);
+        ListView_SetItemText(hlv,ref_item,16,parent_pid);
+        ListView_SetItemText(hlv,ref_item,17,"");
+        ListView_SetItemText(hlv,ref_item,18,"");
       }
     }
     CloseHandle(hProcess);
@@ -144,9 +165,14 @@ void LoadPRocessList(HWND hlv)
 
   //add popup menu ^^
 
+  //add pare,nt pid + process
+  //add icone
+
+  //add export de la liste
+
 
   //verify shadow process !!!
-  //EnumProcessAndThread(nb_process, process_infos,session_id,db);
+  //redev : EnumProcessAndThread(nb_process, process_infos,session_id,db);
 
   CloseHandle(hCT);
 }

@@ -37,7 +37,7 @@ DWORD WINAPI Scan_route(LPVOID lParam)
   //declaration load function
   typedef DWORD (WINAPI *GETIPFORWARDTABLE)(PMIB_IPFORWARDTABLE pIpForwardTable, PULONG pdwSize, BOOL bOrder);
   GETIPFORWARDTABLE GetIpForwardTable = (GETIPFORWARDTABLE) GetProcAddress(hDLL,"GetIpForwardTable");
-
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   if (GetIpForwardTable!= NULL)
   {
     //load all table
@@ -92,6 +92,7 @@ DWORD WINAPI Scan_route(LPVOID lParam)
   //free
   FreeLibrary(hDLL);
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

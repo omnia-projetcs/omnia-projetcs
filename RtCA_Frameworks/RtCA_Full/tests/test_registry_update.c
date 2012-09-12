@@ -273,6 +273,7 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
   HK_F_OPEN hks;
 
   //files or local
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -302,6 +303,8 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
     EnumUpdate(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\", session_id, db, FALSE);
     EnumUpdate(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Component Based Servicing\\Packages\\", session_id, db, FALSE);
   }
+
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

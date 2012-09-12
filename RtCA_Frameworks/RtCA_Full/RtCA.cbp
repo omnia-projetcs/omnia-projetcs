@@ -12,6 +12,9 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
+				<Compiler>
+					<Add option="-O3" />
+				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="comdlg32" />

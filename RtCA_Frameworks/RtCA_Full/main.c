@@ -675,7 +675,7 @@ int main(int argc, char* argv[])
 
   }else
   {
-    printf("CONSOL OPTION IN DEV : DISABLE !!!!\n");
+    printf("CONSOLE OPTION IN DEV : DISABLE !!!!\n");
 
     /*
     if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)

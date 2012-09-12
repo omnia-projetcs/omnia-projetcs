@@ -49,8 +49,8 @@ BEGIN
   CONTROL "",                           TRV_TEST          ,"SysTreeView32"  ,0x50000101|WS_TABSTOP,266,1,190,213,0x00000200
   CONTROL "Settings",                   GRP_CONF          ,"Button"         ,0x50000007,266,217,190,53
   CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,228,174,9
-  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,238,174,9
-  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,248,174,9
+  CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,238,174,9
+  CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,248,174,9
   CONTROL "UTC/GMT",                    BT_UTC_CHK        ,"Button"         ,0x50010003|WS_TABSTOP,272,258,174,9
 
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
