@@ -193,6 +193,7 @@ DWORD WINAPI Scan_registry_software(LPVOID lParam)
   HK_F_OPEN hks;
 
   //files or local
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -220,6 +221,7 @@ DWORD WINAPI Scan_registry_software(LPVOID lParam)
     Scan_registry_softwareKey(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",db,session_id);
   }
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

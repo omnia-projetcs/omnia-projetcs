@@ -91,6 +91,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
 
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   //lecture du contenu du presse papier et extraction
   if (OpenClipboard(0))
@@ -369,6 +370,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
     }
     CloseClipboard();
   }
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;

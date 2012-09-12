@@ -37,6 +37,7 @@ DWORD WINAPI Scan_share(LPVOID lParam)
 {
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   if (!LOCAL_SCAN)
   {
@@ -116,6 +117,8 @@ DWORD WINAPI Scan_share(LPVOID lParam)
     }
     FreeLibrary(hDLL);
   }
+
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

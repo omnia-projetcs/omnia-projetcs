@@ -543,6 +543,7 @@ DWORD WINAPI Scan_registry_setting(LPVOID lParam)
   char file[MAX_PATH];
 
   //files or local
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -559,6 +560,7 @@ DWORD WINAPI Scan_registry_setting(LPVOID lParam)
     }
   }else Scan_registry_setting_local(db_scan); //local
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

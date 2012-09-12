@@ -164,6 +164,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
 {
   unsigned int session_id = current_session_id;
   //db
+  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   sqlite3 *db = (sqlite3 *)db_scan;
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
   if (hitem!=NULL || !LOCAL_SCAN)
@@ -222,6 +223,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
 
   }
 
+  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

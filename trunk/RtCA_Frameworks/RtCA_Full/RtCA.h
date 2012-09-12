@@ -4,7 +4,7 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
-#define _WIN64_VERSION_        1       //64 OS Compilation
+//#define _WIN64_VERSION_        1       //64 OS Compilation
 
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -371,7 +371,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         70
+#define NB_COMPONENT_STRING         72
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -429,7 +429,7 @@ typedef struct SORT_ST
 #define TXT_OPEN_REG_PATH           49
 
 #define TXT_COLUMN_PROCESS_REF      52
-#define NB_COLUMN_PROCESS_DEF       17
+#define NB_COLUMN_PROCESS_DEF       19
 
 typedef struct
 {
