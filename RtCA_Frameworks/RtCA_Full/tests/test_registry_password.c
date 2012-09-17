@@ -48,7 +48,7 @@ void vncpwd(unsigned char *pwd, int bytelen)
 //------------------------------------------------------------------------------
 void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
 {
-  char login[MAX_PATH], password[MAX_PATH], raw_password[MAX_PATH],tmp[MAX_PATH];
+  char login[MAX_PATH], password[MAX_PATH], raw_password[MAX_PATH],tmp[MAX_PATH], source[MAX_PATH];
 
   //VNC3
   login[0] = 0;
@@ -56,15 +56,24 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   raw_password[0] = 0;
 
   if (ReadValue(HKEY_CURRENT_USER,"SOFTWARE\\ORL\\WinVNC3","Password",password, MAX_PATH) == FALSE)
+  {
     if (ReadValue(HKEY_CURRENT_USER,"SOFTWARE\\ORL\\WinVNC3\\Default","Password",password, MAX_PATH) == FALSE)
+    {
       if (ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\ORL\\WinVNC3","Password",password, MAX_PATH) == FALSE)
+      {
         ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\ORL\\WinVNC3\\Default","Password",password, MAX_PATH);
+        strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3\\Default");
+      }else strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3");
+    }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3\\Default");
+  }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3");
+
+
 
   if (strlen(password)>3)
   {
     snprintf(raw_password,MAX_PATH,"0x%02x%02x%02x%02x",password[0]&255,password[1]&255,password[2]&255,password[3]&255);
     vncpwd((u_char *)password,8);
-    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,password,raw_password,REG_PASSWORD_STRING_VNC,session_id,db);
+    addPasswordtoDB(source,login,password,raw_password,REG_PASSWORD_STRING_VNC,session_id,db);
   }
 
   //Screen saver
@@ -74,7 +83,11 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   tmp[0] = 0;
 
   if (ReadValue(HKEY_CURRENT_USER,".DEFAULT\\CONTROL PANEL\\DESKTOP","ScreenSave_Data",tmp, MAX_PATH) == FALSE)
+  {
     ReadValue(HKEY_USERS,".DEFAULT\\CONTROL PANEL\\DESKTOP","ScreenSave_Data",tmp, MAX_PATH);
+    strcpy(source,"HKEY_USERS\\.DEFAULT\\CONTROL PANEL\\DESKTOP");
+  }else strcpy(source,"HKEY_CURRENT_USER\\.DEFAULT\\CONTROL PANEL\\DESKTOP");
+
 
   if (tmp[0] != 0)
   {
@@ -110,7 +123,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
       tmp[size/2] = 0;
       strcpy(password,tmp);
 
-      addPasswordtoDB(cps[TXT_MSG_BDR].c,login,password,raw_password,REG_PASSWORD_STRING_SCREENSAVER,session_id,db);
+      addPasswordtoDB(source,login,password,raw_password,REG_PASSWORD_STRING_SCREENSAVER,session_id,db);
     }
   }
 
@@ -120,12 +133,17 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   raw_password[0] = 0;
 
   if (ReadValue(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\DefaultUserConfiguration","password",raw_password, MAX_PATH) == FALSE)
+  {
     if (ReadValue(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\Console","password",raw_password, MAX_PATH) == FALSE)
+    {
       ReadValue(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp","password",raw_password, MAX_PATH);
+      strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp");
+    }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\Console");
+  }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\DefaultUserConfiguration");
 
   if (raw_password[0] != 0)
   {
-    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,raw_password,raw_password,REG_PASSWORD_STRING_TERMINAL_SERVER,session_id,db);
+    addPasswordtoDB(source,login,raw_password,raw_password,REG_PASSWORD_STRING_TERMINAL_SERVER,session_id,db);
   }
 
   //Session auto login
@@ -141,7 +159,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   if (tmp[0] != 0 || password[0] != 0 || raw_password[0] != 0)
   {
     snprintf(login,MAX_PATH,"%s\\%s",tmp,password); //domaine\\user
-    addPasswordtoDB(cps[TXT_MSG_BDR].c,login,raw_password,raw_password,REG_PASSWORD_STRING_AUTO_LOGON,session_id,db);
+    addPasswordtoDB("HKEY_LOCAL_MACHINE\\Software\\Windows NT\\CurrentVersion\\Winlogon",login,raw_password,raw_password,REG_PASSWORD_STRING_AUTO_LOGON,session_id,db);
   }
 
   //--------------------------------------------------

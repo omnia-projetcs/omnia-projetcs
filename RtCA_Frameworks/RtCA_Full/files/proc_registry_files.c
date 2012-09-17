@@ -98,7 +98,7 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
       //get value
       if (value!=NULL && value_size!=0)
       {
-        strncpy(value,vk_h->value,value_size);
+        memcpy(value,vk_h->value,value_size);
         if (vk_h->name_size>=value_size)value[value_size-1]=0;
         else value[vk_h->name_size]=0;
       }

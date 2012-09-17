@@ -141,7 +141,6 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
   unsigned int session_id = current_session_id;
 
   //get child
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL && LOCAL_SCAN) //local
   {
@@ -186,8 +185,10 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                   {
                     if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
 
+                    sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                     snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
                     ReadDATFile(tmp_path, 15, session_id, db);
+                    sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                     //get file and tests it
                     WIN32_FIND_DATA wfd1;
                     HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
@@ -198,8 +199,10 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                       {
                         if(wfd1.cFileName[0] == '.' && (wfd1.cFileName[1] == 0 || wfd1.cFileName[1] == '.'))continue;
 
+                        sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                         snprintf(tmp_path2,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\%s\\index.dat",tmp_key,wfd0.cFileName,wfd1.cFileName);
                         ReadDATFile(tmp_path2, 15, session_id, db);
+                        sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                       }
                     }while(FindNextFile (hfic,&wfd1) && start_scan);
                   }
@@ -216,14 +219,14 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
     while(hitem!=NULL && start_scan)
     {
       //get item txt
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       GetTextFromTrv(hitem, tmp_file, MAX_PATH);
       ReadDATFile(tmp_file, 15, session_id, db);
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
-
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

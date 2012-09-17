@@ -143,17 +143,36 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
   char tmp[value_size+1];
   ROTTOASCII(value,tmp,value_size);
   strncpy(raw_type,tmp,raw_type_size);
+  char tmp_path[MAX_PATH];
 
-  char *c = raw_type;
-  while (*c && *c!=':')c++;
-  if (*c == ':')
+  char *c       = raw_type;
+  DWORD type_id = 0;
+
+  if (*c == '{') //guid win7, 2008, 8...
   {
-    *c = 0;
-    c++;
-    strncpy(path,c,path_size);
+    while (*c && *c!='}')c++;
+    if (*c == '}')
+    {
+      c++;
+      strncpy(path,c,path_size);
+      *c = 0;
+    }
+  }else if (c[1] == ':' && c[2] == '\\') //path type
+  {
+    type_id = 311;
+    strncpy(path,raw_type,path_size);
+    raw_type[0] = 0;
+  }else //normal
+  {
+    while (*c && *c!=':')c++;
+    if (*c == ':')
+    {
+      *c = 0;
+      c++;
+      strncpy(path,c,path_size);
+    }
   }
 
-  DWORD type_id = 0;
        if (strcmp(raw_type,"UEME_RUNPIDL") == 0)    type_id = 310;
   else if (strcmp(raw_type,"UEME_RUNPATH") == 0)    type_id = 311;
   else if (strcmp(raw_type,"UEME_CTLSESSION") == 0) type_id = 312;
@@ -178,7 +197,171 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
     else  if (strcmp(path,"0x1701b") == 0 || strcmp(path,"0x4701b") == 0)snprintf(path,value_size,"%s (Undo)",path);
     else  if (strcmp(path,"0x1701e") == 0 || strcmp(path,"0x4701e") == 0)snprintf(path,value_size,"%s (Copy To)",path);
     else  if (strcmp(path,"0x1701f") == 0 || strcmp(path,"0x4701f") == 0)snprintf(path,value_size,"%s (Move To)",path);
-  }else type_id = 215;
+  //source http://msdn.microsoft.com/en-us/library/bb882665.aspx
+  }else if (strcmp(raw_type,"{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(CommonPrograms)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(System)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{6D809377-6AF0-444B-8957-A3773F02200E}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFilesX64)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{7C5A40EF-A0FB-4BFC-874A-C0F2E0B9FA8E}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFilesX86)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{9E3995AB-1F9C-4F13-B827-48B24B6C7174}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(CommonPrograms)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{A77F5D77-2E2B-44C3-A6A2-ABA601054A51}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Programs)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{D65231B0-B2F1-4857-A4CE-A8E7C6EA7D27}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(SystemX86)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{3EB685DB-65F9-4CF6-A03A-E3EF65729F3D}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(RoamingAppData)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{B7534046-3ECB-4C18-BE4E-64CD4CB7D6AC}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(RecycleBin)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{AE50C081-EBD2-438A-8655-8A092E34987A}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Recent)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{52A4F021-7B75-48A9-9F6B-4B87A210BC8F}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(QuickLaunch)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{5E6C858F-0E22-4760-9AFE-EA3317B67173}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Profile)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{62AB5D82-FDC1-4DC3-A9DD-070D1D495D97}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramData)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{905E63B6-C1BF-494E-B29C-65B732D3D21A}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFiles)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{DE974D24-D9C6-4D3E-BF91-F4455120B917}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFilesCommonX86)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{6365D5A7-0F0D-45E5-87F6-0DA56B6A4F7D}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFilesCommonX64)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{F7F1ED05-9F6D-47A2-AAAE-29D317C6F066}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ProgramFilesCommon)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{1777F761-68AD-4D8A-87BD-30B759FA33DD}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Favorites)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{F1B32785-6FBA-4FCF-9D55-7B8E7F157091}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(LocalAppData)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{D20BEEC4-5CA8-4905-AE3B-BF251EA09B53}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Network)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Desktop)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{FDD39AD0-238F-46AF-ADB4-6C85480369C7}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Documents)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{374DE290-123F-4565-9164-39C4925E467B}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Downloads)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{D0384E7D-BAC3-4797-8F14-CBA229B392B5}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(CommonAdminTools)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{82A74AEB-AEB4-465C-A014-D097EE346D63}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(ControlPanel)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{A4115719-D62E-491D-AA7C-E74B8BE3B067}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(CommonStartMenu)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{724EF170-A42D-4FEF-9F26-B60E846FBA4F}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(AdminTools)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{8983036C-27C0-404B-8F08-102D10DCFD74}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(SendTo)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{625B53C3-AB48-4EC1-BA1F-A1EF4146FC19}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(StartMenu)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{0762D272-C50A-4BB0-A382-697DCD729B80}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(UserProfiles)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{F3CE0F7C-4901-4ACC-8648-D5D44B04EF8F}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(UsersFiles)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (strcmp(raw_type,"{F38BF404-1D43-42F2-9305-67DE0B28FC23}") == 0)
+  {
+    type_id = 311;
+    snprintf(tmp_path,MAX_PATH,"(Windows)%s",path);
+    strncpy(path,tmp_path,path_size);
+  }else if (raw_type[0] == 'M' && raw_type[9] == '.' && raw_type[10] != 'A') //Microsoft.
+  {
+    type_id = 318;
+  }else if (type_id == 0)type_id = 215;
 
   //get DATAS
   typedef struct
@@ -328,7 +511,7 @@ void resgistry_userassist_local(unsigned int session_id, sqlite3 *db)
               type_id = ReadUserassistDatas(value, value_size, data, data_size, raw_type,MAX_PATH,
                                             path,MAX_PATH, use_count,MAX_PATH,
                                             session_number,MAX_PATH, time, MAX_PATH, last_use,DATE_SIZE_MAX);
-              if (type_id != 0)
+              if (value[0] != 0)
               {
                 convertStringToSQL(path, MAX_PATH);
                 addRegistryUserassisttoDB("", "HKEY_USERS", key_path2, raw_type,type_id,
@@ -390,7 +573,10 @@ void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_
           for (k=0;k<nbSubValue && start_scan;k++)
           {
             data_size = MAX_LINE_SIZE;
-            if (GetBinaryValueData(hks->buffer,hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,data, &data_size))
+            value[0]  = 0;
+            data[0]   = 0;
+            GetBinaryValueData(hks->buffer,hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,data, &data_size);
+            if (value[0] != 0)
             {
               raw_type[0]       = 0;
               path[0]           = 0;
@@ -441,8 +627,7 @@ DWORD WINAPI Scan_registry_userassist(LPVOID lParam)
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          resgistry_userassist_file(&hks,"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\UserAssist",session_id,db);
-
+          resgistry_userassist_file(&hks,"software\\microsoft\\windows\\currentversion\\explorer\\userassist",session_id,db);
           CloseRegFiletoMem(&hks);
         }
       }

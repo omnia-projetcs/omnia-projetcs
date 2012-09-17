@@ -6,13 +6,13 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addSharetoDB(char *share, char *path, char *description, char *type, char *connexion, unsigned int session_id, sqlite3 *db)
+void addSharetoDB(char *file, char *share, char *path, char *description, char *type, char *connexion, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_share (share,path,description,type,connexion,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           share,path,description,type,connexion,session_id);
+           "INSERT INTO extract_share (file,share,path,description,type,connexion,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           file,share,path,description,type,connexion,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -28,7 +28,7 @@ void EnumShare(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db, char*reg_pa
     if (GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, i,share,MAX_PATH,description,MAX_LINE_SIZE))
     {
       convertStringToSQL(description, MAX_LINE_SIZE);
-      addSharetoDB(share, "", description, "", "", session_id, db);
+      addSharetoDB(hks->file,share, "", description, "", "", session_id, db);
     }
   }
 }
@@ -111,7 +111,7 @@ DWORD WINAPI Scan_share(LPVOID lParam)
 
           convertStringToSQL(path, MAX_PATH);
           convertStringToSQL(description, MAX_PATH);
-          addSharetoDB(share, path, description, type, connexion, session_id, db);
+          addSharetoDB("",share, path, description, type, connexion, session_id, db);
         }
       }while(res==ERROR_MORE_DATA);
     }

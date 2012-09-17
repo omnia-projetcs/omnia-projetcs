@@ -10,26 +10,111 @@ void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, unsigned in
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_tache (id_ev,type,next_run,data,session_id) "
+           "INSERT INTO extract_tache (id_ev,type,data,next_run,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            id_ev,type,data,next_run,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
+void JobCheck(unsigned int session_id, sqlite3 *db, char *file)
+{
+  //default path : C:\WINDOWS\Tasks
+  // source http://msdn.microsoft.com/en-us/library/cc248286%28PROT.13%29.aspx
+  // http://lprng.sourceforge.net/LPRng-Reference-Multipart/jobfileformatconversion.htm
+  // http://msdn.microsoft.com/en-us/library/cc248286%28v=prot.13%29.aspx
+  typedef struct
+  {
+    unsigned short Product_Version;
+    unsigned short File_Version;
+    unsigned char Job_id[16];
+    unsigned short App_Name_Len_Offset; //offset of short seize + unicode char
+    unsigned short id_Offset;
+  }HDR_JOB;
+  HDR_JOB *hb;
+
+  typedef struct
+  {
+    unsigned short year;
+    unsigned short month;
+    unsigned short day;
+    unsigned char unsed[6];
+    unsigned short hour;
+    unsigned short minute;
+    unsigned short second;
+  }S_TIME_JOB;
+
+  //open file and read first datas
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hfile != INVALID_HANDLE_VALUE)
+  {
+    DWORD sz_prefetch_job = GetFileSize(hfile,NULL);
+    if ( sz_prefetch_job!= INVALID_FILE_SIZE)
+    {
+      char *buffer = malloc(sizeof(char)*sz_prefetch_job+1);
+      if (buffer != NULL)
+      {
+        DWORD copiee;
+        if(ReadFile(hfile, buffer, sz_prefetch_job,&copiee,0))
+        {
+          hb = (HDR_JOB*)buffer;
+          if (hb->App_Name_Len_Offset+2 < sz_prefetch_job)
+          {
+            //time
+            char time[MAX_PATH]="";
+            if (hb->id_Offset+6+sizeof(S_TIME_JOB) < sz_prefetch_job)
+            {
+              S_TIME_JOB *stj = (S_TIME_JOB *)(buffer + (hb->id_Offset+6));
+              snprintf(time,DATE_SIZE_MAX,"%d/%02d/%02d %02d:%02d:%02d",
+                       stj->year,stj->month,stj->day,
+                       stj->hour,stj->minute,stj->second);
+            }
+
+            //description
+            char cmd[MAX_PATH]="";
+            snprintf(cmd,MAX_PATH,"%S",buffer+(hb->App_Name_Len_Offset+2));
+
+            addTasktoDB(file, ""/*type*/, cmd, time, session_id, db);
+          }
+        }
+        free(buffer);
+      }
+    }
+    CloseHandle(hfile);
+  }
+}
+
+//------------------------------------------------------------------------------
 DWORD WINAPI Scan_task(LPVOID lParam)
 {
-  //check if local or not :)
-  if (!LOCAL_SCAN || WINE_OS)
+  sqlite3 *db = (sqlite3 *)db_scan;
+  unsigned int session_id = current_session_id;
+
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  if (hitem!=NULL || !LOCAL_SCAN || WINE_OS)
   {
+    sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+    char tmp_file_job[MAX_PATH],ext[MAX_PATH];
+    while(hitem!=NULL)
+    {
+      tmp_file_job[0] = 0;
+      ext[0]           = 0;
+      GetTextFromTrv(hitem, tmp_file_job, MAX_PATH);
+      if (!strcmp("job",extractExtFromFile(charToLowChar(tmp_file_job), ext, MAX_PATH)))
+      {
+        JobCheck(session_id, db, tmp_file_job);
+      }
+
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+    }
+
+    sqlite3_exec(db,"END TRANSACTION;", NULL, NULL, NULL);
+
     h_thread_test[(unsigned int)lParam] = 0;
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-    MessageBox(0,"OK","test",MB_OK);
     return 0;
   }
 
   //init
-  sqlite3 *db = (sqlite3 *)db_scan;
-  unsigned int session_id = current_session_id;
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   HMODULE hDLL = LoadLibrary( "NETAPI32.dll");

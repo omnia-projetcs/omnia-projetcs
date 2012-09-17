@@ -14,15 +14,15 @@ void DecodeSAMHashXP(char *sk,char *datas_hs, int rid, char *user, BYTE *b_f);
 void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,unsigned int description_id,unsigned int session_id, sqlite3 *db);
 BOOL registry_syskey_file(HK_F_OPEN *hks, char*sk, unsigned int sk_size);
 //------------------------------------------------------------------------------
-void addRegistryUsertoDB(char *name, char *RID, char *SID, char *group,
+void addRegistryUsertoDB(char *source, char *name, char *RID, char *SID, char *group,
                          char *description, char *last_logon, char *last_password_change,
                          DWORD nb_connexion, char *type, DWORD state_id, DWORD session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_registry_user (name,RID,SID,grp,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",%lu,%lu);",
-           name,RID,SID,group,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id);
+           "INSERT INTO extract_registry_user (source,name,RID,SID,grp,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",%lu,%lu);",
+           source,name,RID,SID,group,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -200,7 +200,7 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
                   default:snprintf(type,MAX_PATH,"0x%02x : %s",(pBuf_info->usri2_priv & 0xff),cps[TXT_MSG_UNK].c);break;
                 }
 
-                addRegistryUsertoDB(name, RID, SID, group, description,
+                addRegistryUsertoDB("NETAPI32",name, RID, SID, group, description,
                                     last_logon, last_password_change,
                                     nb_connexion, type, state_id, session_id, db);
               }
@@ -286,7 +286,7 @@ void GetUserGroupFRF(DWORD userRID, char *group, DWORD size_max_group)
   }
 }
 //------------------------------------------------------------------------------
-void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id, BOOL os_type_XP, char *computer_name)
+void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id, char *computer_name)
 {
   DWORD userRID = 0;
   USERS_INFOS User_infos;
@@ -360,18 +360,12 @@ void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_i
       //get hashs
       if(b_f[0] != 0 && _SYSKEY[0] != 0)
       {
-        //if Windows < Vista
-        if (os_type_XP) DecodeSAMHashXP(_SYSKEY,User_infos.pwdump_pwd_raw_format,userRID,User_infos.name,b_f);
-        else
-        {
-          /*a coder*/
-
-        }
+        DecodeSAMHashXP(_SYSKEY,User_infos.pwdump_pwd_raw_format,userRID,User_infos.name,b_f);
       }
 
       //add user
       convertStringToSQL(User_infos.description, MAX_PATH);
-      addRegistryUsertoDB(User_infos.name, User_infos.RID, User_infos.SID, User_infos.group,
+      addRegistryUsertoDB(hks->file,User_infos.name, User_infos.RID, User_infos.SID, User_infos.group,
                           User_infos.description, User_infos.last_logon, User_infos.last_password_change,
                           User_infos.nb_connexion, User_infos.type, User_infos.state_id,session_id, db);
 
@@ -392,8 +386,6 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
   HK_F_OPEN hks;
 
   char sk[MAX_PATH]="";
-  int ret_os_type = -1;
-  BOOL ok_os = FALSE;
 
   char computer[DEFAULT_TMP_SIZE]="";
   BOOL ok_computer = FALSE;
@@ -423,13 +415,6 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
           //get syskey
           registry_syskey_file(&hks, sk, MAX_PATH);
 
-          //get OS_Type
-          if (!ok_os)
-          {
-            ret_os_type = GetRegistryOs(&hks);
-            if (ret_os_type != -1) ok_os = TRUE;
-          }
-
           if (!ok_computer)
           {
             char tmp[DEFAULT_TMP_SIZE]="";
@@ -442,7 +427,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
             }
           }
 
-          Scan_registry_user_file(&hks, db, session_id, ret_os_type == -1 || ret_os_type == 1?TRUE:FALSE,computer);
+          Scan_registry_user_file(&hks, db, session_id,computer);
 
           CloseRegFiletoMem(&hks);
         }
@@ -456,7 +441,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
       //open file + verify
       if(OpenRegFiletoMem(&hks, file_SAM))
       {
-        Scan_registry_user_file(&hks, db, session_id, ret_os_type == -1 || ret_os_type == 1?TRUE:FALSE,computer);
+        Scan_registry_user_file(&hks, db, session_id,computer);
         CloseRegFiletoMem(&hks);
       }
     }
