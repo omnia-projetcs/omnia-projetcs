@@ -26,8 +26,12 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
 
   if (type->type > 0 && type->type < nb_sql_FIREFOX && argc>0 && argv != NULL)
   {
+    char *tmp = malloc(argc*MAX_PATH);
+    if (tmp == NULL)return 0;
+
 #ifdef _WIN64_VERSION_
-    char tmp[MAX_LINE_SIZE]="", tmp2[MAX_PATH]="";
+    char tmp2[MAX_PATH]="";
+
     //copy datas
     for (i=0;i<argc && i<8 && start_scan;i++)
     {
@@ -49,7 +53,6 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
 
     if(strlen(tmp)-2 > 0)tmp[strlen(tmp)-2] = 0;
 #else
-    char tmp[MAX_LINE_SIZE]="";
     unsigned int size=0;
     //copy datas
     for (i=0;i<argc && MAX_PATH-size > 0 && start_scan;i++)
@@ -74,6 +77,8 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
     //get datas and write it
     convertStringToSQL(tmp, MAX_PATH);
     addFirefoxtoDB(tmp_file_firefox,sql_FIREFOX[type->type].params,tmp,date,sql_FIREFOX[type->type].test_string_id,current_session_id,db_scan);
+
+    free(tmp);
   }
   return 0;
 }
@@ -83,7 +88,6 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO data;
 
   //get child
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL && LOCAL_SCAN) //local
   {
@@ -143,7 +147,9 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
                           {
                             for (data.type =0;data.type <nb_sql_FIREFOX && start_scan;data.type = data.type+1)
                             {
+                              sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                               sqlite3_exec(db_tmp, sql_FIREFOX[data.type].sql, callback_sqlite_firefox, &data, NULL);
+                              sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                             }
                             sqlite3_close(db_tmp);
                           }
@@ -172,7 +178,9 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
       {
         for (data.type =0;data.type <nb_sql_FIREFOX && start_scan;data.type = data.type+1)
         {
+          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           sqlite3_exec(db_tmp, sql_FIREFOX[data.type].sql, callback_sqlite_firefox, &data, NULL);
+          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
         }
         sqlite3_close(db_tmp);
       }
@@ -180,7 +188,6 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
     }
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

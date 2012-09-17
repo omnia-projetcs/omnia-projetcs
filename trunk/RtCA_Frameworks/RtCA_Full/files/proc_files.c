@@ -26,10 +26,10 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       check_treeview(htrv_test, H_tests[TEST_LOGS], TRV_STATE_CHECK);
     }else if (strcmp(ext,"reg")==0 ||
               strcmp(lowcase_file,"security.dat")==0 ||
-              strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser") && strcmp(ext,"dat")==0)   ||
-              strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings") && strcmp(ext,"dat")==0)   || //win8
-              strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass") && strcmp(ext,"dat")==0) ||
-              strcmp(lowcase_file,"classes.dat")==0  || (startWith(lowcase_file,"classes") && strcmp(ext,"dat")==0)) //registry
+              strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser_") && strcmp(ext,"dat")==0)   ||
+              strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings_") && strcmp(ext,"dat")==0)   || //win8
+              strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass_") && strcmp(ext,"dat")==0) ||
+              strcmp(lowcase_file,"classes.dat")==0  || (startWith(lowcase_file,"classes_") && strcmp(ext,"dat")==0)) //registry
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       else
@@ -50,11 +50,11 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
 
-    }else if (strcmp(ext,"db")==0 ||              //android
+    }else if (strcmp(ext,"db")==0     ||          //android
               strcmp(ext,"sqlite")==0 ||          //firefox
-              strcmp(ext,"dat")==0 ||             //ie
-              strcmp(lowcase_file,"index.dat")==0 || (startWith(lowcase_file,"index") && strcmp(ext,"dat")==0) ||
-              strcmp(lowcase_file,"ntds.dit")==0  || (startWith(lowcase_file,"ntds") && strcmp(ext,"dit")==0)) //applications
+              strcmp(ext,"dat")==0    ||          //ie
+              strcmp(lowcase_file,"index.dat")==0 || (startWith(lowcase_file,"index_") && strcmp(ext,"dat")==0) ||
+              strcmp(lowcase_file,"ntds.dit")==0  || (startWith(lowcase_file,"ntds_") && strcmp(ext,"dit")==0)) //applications
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
       else
@@ -66,6 +66,24 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       check_treeview(htrv_test, H_tests[TEST_CHROME], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_FIREFOX], TRV_STATE_CHECK);
       check_treeview(htrv_test, H_tests[TEST_IE], TRV_STATE_CHECK);
+    }else if (!strcmp(ext,"pf")) //prefetch
+    {
+      if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+      else
+      {
+        snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
+        AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+      }
+      check_treeview(htrv_test, H_tests[TEST_PREFETCH], TRV_STATE_CHECK);
+    }else if (!strcmp(ext,"job")) //prefetch
+    {
+      if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+      else
+      {
+        snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
+        AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+      }
+      check_treeview(htrv_test, H_tests[TEST_TASK], TRV_STATE_CHECK);
     }
   }else
   {
@@ -80,7 +98,20 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         strcmp(lowcase_file,"drivers")==0     || //win8
         strcmp(lowcase_file,"bbi")==0         || //win8
         strcmp(lowcase_file,"elam")==0        || //win8
-        strcmp(lowcase_file,"fp")==0)            //win8
+        strcmp(lowcase_file,"fp")==0          || //win8
+
+        startWith(lowcase_file,"sam_")         ||
+        startWith(lowcase_file,"software_")    ||
+        startWith(lowcase_file,"system_")      ||
+        startWith(lowcase_file,"default_")     ||
+        startWith(lowcase_file,"hardware_")    ||
+        startWith(lowcase_file,"security_")    ||
+        startWith(lowcase_file,"bcd-template_")|| //win8
+        startWith(lowcase_file,"components_")  || //win8
+        startWith(lowcase_file,"drivers_")     || //win8
+        startWith(lowcase_file,"bbi_")         || //win8
+        startWith(lowcase_file,"elam_")        || //win8
+        startWith(lowcase_file,"fp_")) //win8
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       else

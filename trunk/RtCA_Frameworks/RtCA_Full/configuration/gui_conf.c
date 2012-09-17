@@ -72,6 +72,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                               "*.db\0*.db\0"
                               "*.sqlite\0*.sqlite\0"
                               "*.dat\0*.dat\0"
+                              "*.pf\0*.pf\0"
+                              "*.job\0*.job\0"
                               "ntds.dit\0ntds.dit\0"
                               "*.reg\0*.reg\0"
                               "sam\0sam\0"
@@ -430,6 +432,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       //check all tests
       CheckDlgButton(hwnd,BT_ACL_FILE_CHK,BST_CHECKED);
       CheckDlgButton(hwnd,BT_ADS_FILE_CHK,BST_CHECKED);
+      CheckDlgButton(hwnd,BT_UTC_CHK,BST_CHECKED);
 
       //add icon
       SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(GetModuleHandle(0), MAKEINTRESOURCE(ICON_APP)));

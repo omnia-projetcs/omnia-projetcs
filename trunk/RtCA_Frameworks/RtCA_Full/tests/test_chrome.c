@@ -86,7 +86,6 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO data;
 
   //get child
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL && LOCAL_SCAN) //local
   {
@@ -137,7 +136,9 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
                       {
                         for (data.type =0;data.type <nb_sql_CHROME && start_scan;data.type = data.type+1)
                         {
+                          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
+                          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                         }
                         sqlite3_close(db_tmp);
                       }
@@ -164,14 +165,15 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
       {
         for (data.type =0;data.type <nb_sql_CHROME && start_scan;data.type = data.type+1)
         {
+          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
+          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
         }
         sqlite3_close(db_tmp);
       }
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;

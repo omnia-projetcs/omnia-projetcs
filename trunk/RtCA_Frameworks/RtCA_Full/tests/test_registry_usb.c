@@ -8,19 +8,21 @@
 //------------------------------------------------------------------------------
 void addRegistryUSBtoDB(char *file, char *hk, char *key, char *name,
                              char *vendor_id, char*product_id, char*description,
-                             char *last_use,unsigned int session_id, sqlite3 *db)
+                             char *pusb, char *lecteur,char *last_use,
+                             unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_registry_usb (file,hk,key,name,vendor_id,product_id,description,last_use,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           file,hk,key,name,vendor_id,product_id,description,last_use,session_id);
+           "INSERT INTO extract_registry_usb (file,hk,key,name,vendor_id,product_id,description,pusb,lecteur,last_use,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           file,hk,key,name,vendor_id,product_id,description,pusb,lecteur,last_use,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
 //local function part !!!
 //------------------------------------------------------------------------------
-void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *product_id,DWORD product_id_size)
+void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *product_id,DWORD product_id_size,
+                        char *pusb,DWORD pusb_size,char *lecteur,DWORD lecteur_size)
 {
   //prepare real key
   DWORD size_key = strlen(s_key);
@@ -30,6 +32,9 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
   strncpy(v_key,s_key,MAX_PATH);
   v_key[size_key-2]=0;
 
+  char value[MAX_PATH],data[MAX_PATH];
+  DWORD value_size = MAX_PATH,data_size = MAX_PATH;
+
   //search the vkey
   HKEY CleTmp,CleTmp2;
   if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Enum\\USB",&CleTmp)!=ERROR_SUCCESS)return;
@@ -38,7 +43,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
   if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
   {
     char key[MAX_PATH],key2[MAX_PATH];
-    char tmp_key[MAX_PATH];
+    char tmp_key[MAX_PATH],tmp_key2[MAX_PATH],symbolicname[MAX_PATH];
 
     for (i=0;i<nbSubKey && start_scan;i++)
     {
@@ -76,6 +81,45 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
               product_id[3] = key[16];
               product_id[4] = 0;
 
+              strncpy(pusb,key,pusb_size);
+
+              //get SymbolicName
+              lecteur[0]      = 0;
+              symbolicname[0] = 0;
+              snprintf(tmp_key2,MAX_PATH,"%s\\%s\\device parameters",tmp_key,key2);
+              if (ReadValue(HKEY_LOCAL_MACHINE,tmp_key2,"SymbolicName",symbolicname, MAX_PATH))
+              {
+                HKEY CleTmp3;
+                if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\MountedDevices",&CleTmp3)==ERROR_SUCCESS)
+                {
+                  //test if one match
+                  DWORD nbValue = 0, k;
+                  if (RegQueryInfoKey (CleTmp3,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
+                  {
+                    for (k=0;k<nbValue;k++)
+                    {
+                      value_size = MAX_PATH;data_size = MAX_PATH;
+                      value[0] = 0;
+                      data[0]  = 0;
+                      if (RegEnumValue (CleTmp3,k,value,&value_size,0,0,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
+                      {
+                        if (value[0] == '\\' && value[3] != '\\')
+                        {
+                          snprintf(lecteur,lecteur_size,"%S",data);
+                          if (!strcmp(lecteur,symbolicname))
+                          {
+                            strncpy(lecteur,value,lecteur_size);
+                            break;
+                          }
+                        }
+                      }
+                      lecteur[0] = 0;
+                    }
+                  }
+                  RegCloseKey(CleTmp3);
+                }
+              }
+
               RegCloseKey(CleTmp2);
               RegCloseKey(CleTmp);
               return;
@@ -98,10 +142,9 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
   if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
   {
     char key[MAX_PATH],key2[MAX_PATH];
-    FILETIME LastWriteTime;
     char tmp_key[MAX_PATH],tmp_key2[MAX_PATH];
     char lastupdate[DATE_SIZE_MAX],name[MAX_PATH],vendor_id[MAX_PATH],product_id[MAX_PATH],
-    description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH];
+    description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH],pusb[MAX_PATH],lecteur[MAX_PATH];
 
     for (i=0;i<nbSubKey && start_scan;i++)
     {
@@ -119,7 +162,7 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
         {
           key_size2 = MAX_PATH;
           key2[0]   = 0;
-          if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
+          if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,0)==ERROR_SUCCESS)
           {
             snprintf(tmp_key2,MAX_PATH,"%s\\%s",tmp_key,key2);
 
@@ -131,19 +174,22 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
             description[0]= 0;
             description1[0]= 0;
             description2[0]= 0;
-            filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);
+            pusb[0]       = 0;
+            lecteur[0]    = 0;
 
             if (ReadValue(hk,tmp_key2,"Class",description1, MAX_PATH))
             {
+              ReadKeyUpdate(hk,tmp_key2, lastupdate, DATE_SIZE_MAX);
+
               ReadValue(hk,tmp_key2,"Mfg",description2, MAX_PATH);
               snprintf(description,MAX_PATH,"%s %s (%s)",description1,description2,key);
 
               ReadValue(hk,tmp_key2,"FriendlyName",name, MAX_PATH);
 
-              SearchVidPid_local(key2,vendor_id,MAX_PATH,product_id,MAX_PATH);
+              SearchVidPid_local(key2,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
 
               convertStringToSQL(description, MAX_PATH);
-              addRegistryUSBtoDB("", s_hk, tmp_key2, name, vendor_id, product_id, description, lastupdate,session_id, db);
+              addRegistryUSBtoDB("", s_hk, tmp_key2, name, vendor_id, product_id, description, pusb, lecteur,lastupdate,session_id, db);
             }
           }
         }
@@ -156,7 +202,8 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
 //------------------------------------------------------------------------------
 //file registry part
 //------------------------------------------------------------------------------
-void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id, DWORD vendor_id_size, char *product_id, DWORD product_id_size)
+void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id, DWORD vendor_id_size,
+                       char *product_id, DWORD product_id_size,char *pusb, DWORD pusb_size,char *lecteur, DWORD lecteur_size)
 {
   //prepare real key
   if(vendor_id != NULL)vendor_id[0] = 0;
@@ -165,9 +212,13 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
   DWORD size_key = strlen(s_key);
   if (size_key<4 || product_id_size<5 || vendor_id_size<5)return;
 
-  char v_key[MAX_PATH],tmp_key[MAX_PATH],tmp_key2[MAX_PATH];
+  char v_key[MAX_PATH],tmp_key[MAX_PATH],tmp_key2[MAX_PATH],
+  symbolicname[MAX_PATH],tmp_key3[MAX_PATH];
   strncpy(v_key,s_key,MAX_PATH);
   v_key[size_key-2]=0;
+
+  char value[MAX_PATH],data[MAX_PATH];
+  DWORD value_size = MAX_PATH,data_size = MAX_PATH;
 
   //exist or not in the file ?
   HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, ckey);
@@ -203,6 +254,45 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
               product_id[2] = tmp_key[15];
               product_id[3] = tmp_key[16];
               product_id[4] = 0;
+
+              strncpy(pusb,tmp_key,pusb_size);
+
+              //get SymbolicName
+              lecteur[0]      = 0;
+              symbolicname[0] = 0;
+              snprintf(tmp_key3,MAX_PATH,"%s\\%s\\%s\\device parameters",ckey,tmp_key,tmp_key2);
+              if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, tmp_key3, NULL,"symbolicname", symbolicname, MAX_PATH))
+              {
+                HBIN_CELL_NK_HEADER *nk_h_tmp2 = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "mounteddevices");
+                if (nk_h != NULL)
+                {
+                  DWORD nbValue = GetValueData(hks->buffer, hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE,0,NULL,0,NULL,0)
+                        ,k;
+                  if (nbValue)
+                  {
+                    for (k=0;k<nbValue;k++)
+                    {
+                      value_size = MAX_PATH;data_size = MAX_PATH;
+                      value[0] = 0;
+                      data[0]  = 0;
+                      if(GetValueData(hks->buffer, hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE,
+                                      k,value,value_size,data,data_size))
+                      {
+                        if (value[0] == '\\' && value[3] != '\\')
+                        {
+                          snprintf(lecteur,lecteur_size,"%S",data);
+                          if (!strcmp(lecteur,symbolicname))
+                          {
+                            strncpy(lecteur,value,lecteur_size);
+                            return;
+                          }
+                        }
+                      }
+                      lecteur[0] = 0;
+                    }
+                  }
+                }
+              }
               return;
           }
         }
@@ -219,7 +309,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
 
   char key_path[MAX_PATH];
   char lastupdate[DATE_SIZE_MAX],name[MAX_PATH],vendor_id[MAX_PATH],product_id[MAX_PATH],
-       description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH];
+       description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH],pusb[MAX_PATH],lecteur[MAX_PATH];
 
   char tmp_key[MAX_PATH], tmp_key2[MAX_PATH];
   HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
@@ -256,10 +346,10 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
 
             Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"FriendlyName", name, MAX_PATH);
 
-            SearchVidPid_file(hks, _ckey, tmp_key2,vendor_id,MAX_PATH,product_id,MAX_PATH);
+            SearchVidPid_file(hks, _ckey, tmp_key2,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
 
             convertStringToSQL(description, MAX_PATH);
-            addRegistryUSBtoDB(hks->file, "", key_path, name, vendor_id, product_id, description, lastupdate, session_id, db);
+            addRegistryUSBtoDB(hks->file, "", key_path, name, vendor_id, product_id, description,pusb,lecteur, lastupdate, session_id, db);
           }
         }
       }

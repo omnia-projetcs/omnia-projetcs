@@ -221,6 +221,27 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_I_18:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 18);break;
               case POPUP_I_19:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 19);break;
               //-----------------------------------------------------
+              case POPUP_H_00:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_01:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_02:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_03:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_04:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_05:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_06:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_07:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_08:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_09:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_10:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_11:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_12:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_13:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_14:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_15:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_16:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_17:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_18:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              case POPUP_H_19:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
+              //-----------------------------------------------------
               case POPUP_OPEN_PATH:
               {
                 char path[MAX_PATH]="";
@@ -394,6 +415,61 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               }
             }
           break;
+          //popup menu for view column !!
+          case NM_RCLICK:
+          {
+            //src code : http://support.microsoft.com/kb/125694
+            //get click pos
+            DWORD dwPos = GetMessagePos();
+            POINT pointScreen;
+            pointScreen.x = LOWORD (dwPos);
+            pointScreen.y = HIWORD (dwPos);
+
+            //set to lstv pos
+            ScreenToClient (hlstv, &pointScreen);
+            HANDLE hChildWnd = ChildWindowFromPoint(hlstv, pointScreen);
+
+            if (hChildWnd != hlstv) //header have been clicked
+            {
+              //view popup menu
+              HMENU hmenu;
+              if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_HDR)))!= NULL)
+              {
+                //load column text
+                char buffer[DEFAULT_TMP_SIZE]="";
+                LVCOLUMN lvc;
+                lvc.mask = LVCF_TEXT|LVCF_WIDTH;
+                lvc.cchTextMax = DEFAULT_TMP_SIZE;
+                lvc.pszText = buffer;
+                lvc.cx = 0;
+
+                unsigned int i=0;
+                while (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))
+                {
+                  ModifyMenu(hmenu,POPUP_H_00+i,MF_BYCOMMAND|MF_STRING,POPUP_H_00+i,buffer);
+                  if(lvc.cx > 20 )CheckMenuItem(hmenu,POPUP_H_00+i,MF_BYCOMMAND|MF_CHECKED);
+                  else CheckMenuItem(hmenu,POPUP_H_00+i,MF_BYCOMMAND|MF_UNCHECKED);
+
+                  //reinit
+                  buffer[0] = 0;
+                  lvc.mask = LVCF_TEXT|LVCF_WIDTH;
+                  lvc.cchTextMax = DEFAULT_TMP_SIZE;
+                  lvc.pszText = buffer;
+                  lvc.cx = 0;
+                  i++;
+                }
+
+                //remove other items
+                for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_H_00+i,MF_BYCOMMAND);
+
+                //view popup
+                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(dwPos), HIWORD(dwPos), hwnd, NULL);
+                DestroyMenu(hmenu);
+              }
+              disable_m_context = TRUE;
+            }
+          }
+          break;
         }
       }
       break;
@@ -401,6 +477,12 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       //if item
       if (ListView_GetItemCount(hlstv) > 0 && (HWND)wParam == hlstv)
       {
+        if (disable_m_context)
+        {
+          disable_m_context = FALSE;
+          break;
+        }
+
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV)))!= NULL)
         {
@@ -458,6 +540,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case INDEX_NAV_CHROME:
             case INDEX_NAV_IE:
             case INDEX_ANDROID:
+            case INDEX_PREFETCH:
               //open file path
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
             break;
@@ -488,14 +571,22 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         }else
         {
           MoveWindow(htoolbar,0,0,mWidth,22,TRUE);
-          MoveWindow(hstatus_bar,0,0,mWidth,22,TRUE);
 
           MoveWindow(hlstbox,0,32,230,mHeight-55,TRUE);
           MoveWindow(hlstv,232,32,mWidth-234,mHeight-55,TRUE);
 
+          MoveWindow(hstatus_bar,0,mHeight-22,mWidth,22,TRUE);
+
           //column resise
           unsigned int i;
-          if (nb_current_columns>0)for (i=0;i<nb_current_columns;i++)redimColumnH(hlstv,i,(mWidth-274)/nb_current_columns);
+          if (nb_current_columns)
+          {
+            DWORD column_sz = (mWidth-274)/nb_current_columns;
+            for (i=0;i<nb_current_columns;i++)
+            {
+              redimColumnH(hlstv,i,column_sz);
+            }
+          }
         }
         InvalidateRect(hwnd, NULL, TRUE);
       }

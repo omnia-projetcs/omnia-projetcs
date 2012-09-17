@@ -6,7 +6,7 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addLogtoDB(char *eventname, char *indx, char *log_id,
+void addLogtoDB(  char *eventname, char *indx, char *log_id,
                   char *send_date, char *write_date,
                   char *source, char *description, char *user, char *rid, char *sid,
                   char *state, char *critical, unsigned int session_id, sqlite3 *db)
@@ -164,7 +164,6 @@ DWORD WINAPI Scan_log(LPVOID lParam)
 {
   unsigned int session_id = current_session_id;
   //db
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   sqlite3 *db = (sqlite3 *)db_scan;
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
   if (hitem!=NULL || !LOCAL_SCAN)
@@ -177,11 +176,13 @@ DWORD WINAPI Scan_log(LPVOID lParam)
       GetTextFromTrv(hitem, tmp, MAX_PATH);
 
       //get extension on verify
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       ext[0] = 0;
       extractExtFromFile(tmp, ext, 10);
       if (strcmp("evt",ext) == 0)TraiterEventlogFileEvt(tmp, db, session_id);
       else if (strcmp("evtx",ext) == 0)TraiterEventlogFileEvtx(tmp, db, session_id);
       else if (strcmp("log",ext) == 0)TraiterEventlogFileLog(tmp, db, session_id);
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
@@ -205,7 +206,9 @@ DWORD WINAPI Scan_log(LPVOID lParam)
             if (RegEnumKeyEx (CleTmp,i,eventname,(LPDWORD)&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
             {
               ok=TRUE;
+              sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
               OpenDirectEventLog(eventname,db,session_id);
+              sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
             }
           }
         }
@@ -214,16 +217,29 @@ DWORD WINAPI Scan_log(LPVOID lParam)
     }
     if (!ok)
     {
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       OpenDirectEventLog("Application",db,session_id);       //journal application
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       OpenDirectEventLog("Security",db,session_id);          //journal sécurité
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       OpenDirectEventLog("System",db,session_id);            //journal système
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       OpenDirectEventLog("Internet Explorer",db,session_id); //Internet Explorer
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       OpenDirectEventLog("OSession",db,session_id);          //session Office
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
     }
 
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

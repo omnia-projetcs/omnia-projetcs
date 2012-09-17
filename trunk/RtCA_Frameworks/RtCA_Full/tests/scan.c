@@ -56,6 +56,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0); nb_current_test++;
+  if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_prefetch,(void*)nb_current_test,0,0); nb_current_test++;
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
@@ -120,6 +121,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   h_thread_test[j++] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);nb_current_test++;
+  h_thread_test[j++] = CreateThread(NULL,0,Scan_prefetch,(void*)nb_current_test,0,0);nb_current_test++;
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
@@ -172,6 +174,7 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
     case 28:h_thread_test[0]  = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);break;
     case 29:h_thread_test[0]  = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);break;
     case 30:h_thread_test[0]  = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);break;
+    case 31:h_thread_test[0]  = CreateThread(NULL,0,Scan_prefetch,(void*)nb_current_test,0,0);break;
   }
   nb_current_test++;
 

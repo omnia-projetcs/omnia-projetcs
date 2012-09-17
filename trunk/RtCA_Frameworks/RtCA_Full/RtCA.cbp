@@ -160,6 +160,9 @@
 		<Unit filename="tests\test_pipe.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tests\test_prefetch.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tests\test_process.c">
 			<Option compilerVar="CC" />
 		</Unit>

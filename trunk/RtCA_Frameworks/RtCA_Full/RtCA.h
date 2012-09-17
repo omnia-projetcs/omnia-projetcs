@@ -122,6 +122,8 @@ WNDPROC wndproc_hdbclk_info;
 
 HANDLE h_process;
 
+BOOL disable_m_context, disable_p_context;
+
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
 #define GRP_CONF                 2002
@@ -235,6 +237,29 @@ unsigned int nb_column_process_view;
 #define POPUP_OPEN_PATH                       13100
 #define POPUP_OPEN_REG_PATH                   13101
 #define POPUP_OPEN_FILE_PATH                  13102
+
+#define POPUP_LSTV_HDR                        13110
+#define POPUP_H_00                            13110
+#define POPUP_H_01                            13111
+#define POPUP_H_02                            13112
+#define POPUP_H_03                            13113
+#define POPUP_H_04                            13114
+#define POPUP_H_05                            13115
+#define POPUP_H_06                            13116
+#define POPUP_H_07                            13117
+#define POPUP_H_08                            13118
+#define POPUP_H_09                            13119
+#define POPUP_H_10                            13120
+#define POPUP_H_11                            13121
+#define POPUP_H_12                            13122
+#define POPUP_H_13                            13123
+#define POPUP_H_14                            13124
+#define POPUP_H_15                            13125
+#define POPUP_H_16                            13126
+#define POPUP_H_17                            13127
+#define POPUP_H_18                            13128
+#define POPUP_H_19                            13129
+
 //------------------------------------------------------------------------------
 char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 //------------------------------------------------------------------------------
@@ -263,6 +288,7 @@ HWND h_main, h_conf;
 #define TEST_FILES                                0
 #define TEST_LOGS                                 1
 #define TEST_ENV                                  4
+#define TEST_TASK                                 5
 #define TEST_REG_NETWORK                          8
 
 #define TEST_SHARE                               12
@@ -276,6 +302,8 @@ HWND h_main, h_conf;
 #define TEST_CHROME                              28
 #define TEST_IE                                  29
 #define TEST_ANDROID                             30
+
+#define TEST_PREFETCH                            31
 
 unsigned int NB_TESTS, nb_current_test;
 HTREEITEM H_tests[NB_MAX_TESTS];          //list of tests
@@ -311,6 +339,7 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 #define INDEX_NAV_CHROME           28
 #define INDEX_NAV_IE               29
 #define INDEX_ANDROID              30
+#define INDEX_PREFETCH             31
 //------------------------------------------------------------------------------
 //parameters
 BOOL WINE_OS;     //if run in wine !!!
@@ -718,8 +747,8 @@ char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsi
 BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file);
 void CloseRegFiletoMem(HK_F_OPEN *hks);
 HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path);
-DWORD GetSubNK(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h,
-               DWORD pos_fhbin, unsigned int index, char *subkey, unsigned int subkey_size);
+DWORD GetSubNK(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
+               unsigned int index, char *subkey, unsigned int subkey_size);
 HBIN_CELL_NK_HEADER * GetSubNKtonk(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin, unsigned int index);
 
 DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
@@ -786,6 +815,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam);
 DWORD WINAPI Scan_task(LPVOID lParam);
 DWORD WINAPI Scan_antivirus(LPVOID lParam);
 DWORD WINAPI Scan_firewall(LPVOID lParam);
+DWORD WINAPI Scan_prefetch(LPVOID lParam);
 
 DWORD WINAPI CMDScanNum(LPVOID lParam);
 DWORD WINAPI CMDScan(LPVOID lParam);
