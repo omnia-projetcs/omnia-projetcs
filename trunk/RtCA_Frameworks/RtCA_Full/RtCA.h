@@ -61,7 +61,6 @@
 #include "crypt/d3des.h"        //Crypto
 #include <lmaccess.h>           //group account list
 //---------------------------------------------------------------------------
-#define NB_MAX_THREAD           5 //thread nb
 PVOID OldValue_W64b;            //64bits OS
 
 //for cross compilation bug in 64bit
@@ -332,6 +331,7 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 #define INDEX_REG_START            18
 #define INDEX_REG_USERASSIST       20
 #define INDEX_REG_MRU              21
+#define INDEX_REG_PASSWORD         22
 #define INDEX_REG_PATH             23
 #define INDEX_REG_GUIDE            24
 #define INDEX_REG_FIREWALL         26
