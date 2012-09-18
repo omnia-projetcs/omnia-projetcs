@@ -76,7 +76,6 @@ BEGIN
   "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
   "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
   VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
-  VK_F6                                   ,IDM_TOOLS_PROCESS    , VIRTKEY, NOINVERT
 END
 //------------------------------------------------------------------------------
 MY_MENU MENU

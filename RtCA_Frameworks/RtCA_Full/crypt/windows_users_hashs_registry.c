@@ -1029,7 +1029,6 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   tmp[6] = buffer[312];
   tmp[7] = buffer[313];
   unsigned int of_lmpw = (204+ HTDF(tmp,8))*2;
-  //printf("of_lmpw : %d\n",of_lmpw);
   //0xA0
   tmp[0] = buffer[326];
   tmp[1] = buffer[327];
@@ -1040,7 +1039,6 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   tmp[6] = buffer[320];
   tmp[7] = buffer[321];
   unsigned int taille_lmpw = HTDF(tmp,8)*2;
-  //printf("taille_lmpw : %d\n",taille_lmpw);
 
 //-- NT PASSWORD
   //0xA8
@@ -1053,7 +1051,6 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   tmp[6] = buffer[336];
   tmp[7] = buffer[337];
   unsigned int of_ntpw = (204+ HTDF(tmp,8))*2;
-  //printf("of_ntpw : %d\n",of_ntpw);
   //0xAC
   tmp[0] = buffer[350];
   tmp[1] = buffer[351];
@@ -1064,7 +1061,6 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   tmp[6] = buffer[344];
   tmp[7] = buffer[345];
   unsigned int taille_ntpw = HTDF(tmp,8)*2;
-  //printf("taille_ntpw : %d\n",taille_ntpw);
 
   //---results---
   //name
@@ -1229,21 +1225,17 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     tmp2[0]=0;
     tmp3[0]=0;
     //8 => 4 size of separator
-    //printf("of_lmpw + taille_lmpw + 8 / size_total = %d / %d\n",of_lmpw + 8+ taille_lmpw,size_total);
     if (taille_lmpw > 8 && of_lmpw>0 && (of_lmpw + 8+ taille_lmpw)<=size_total)
     {
       strncpy(tmp2,buffer+of_lmpw+8,MAX_PATH);
       tmp2[32]=0;
     }else strcpy(tmp2,"NO PASSWORD*********************");//LM
 
-    //printf("of_ntpw + taille_ntpw + 8 / size_total = %d / %d\n",of_ntpw + 8+ taille_ntpw,size_total);
     if (taille_ntpw > 8 && of_ntpw>0 && (of_ntpw + taille_ntpw)<=size_total)
     {
       strncpy(tmp3,buffer+(of_ntpw+8),MAX_PATH);
       tmp3[32]=0;
     }else strcpy(tmp3,"NO PASSWORD*********************");//NT
-
-    //system("PAUSE");
 
     if (tmp2[0]!=0 && tmp3[0]!=0)
     {
@@ -1572,18 +1564,6 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
   char computer_name[COMPUTER_NAME_SIZE_MAX]="";
   DWORD taille = COMPUTER_NAME_SIZE_MAX;
   GetComputerName(computer_name,&taille);
-
-  //current OS
-  char currentOS[MAX_PATH]="";
-  /*BOOL os_type_XP = TRUE;
-  if (ReadValue(HKEY_LOCAL_MACHINE,"software\\microsoft\\windows nt\\currentversion","ProductName",currentOS, MAX_PATH))
-  {
-    if (Contient(currentOS,GUIDE_REG_OS_2000) ||
-        Contient(currentOS,GUIDE_REG_OS_XP_32b) ||
-        Contient(currentOS,GUIDE_REG_OS_2003_32b) ||
-        Contient(currentOS,GUIDE_REG_OS_VISTA_32b))os_type_XP = TRUE;
-    else os_type_XP = FALSE;
-  }*/
 
   //Set ACL in registry
   int ret = set_sam_tree_access(HKEY_LOCAL_MACHINE,"SECURITY\\SAM\\Domains\\Account\\Users");
