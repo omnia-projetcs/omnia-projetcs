@@ -344,8 +344,6 @@ void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned 
   GetFileSecurity(file, OWNER_SECURITY_INFORMATION, 0, 0, &ssd);
   if (ssd != 0)
   {
-    printf("OK _0\n");
-
     PSECURITY_DESCRIPTOR psd = NULL;
     psd = HeapAlloc(GetProcessHeap(), 0, ssd+1);
     if (psd == NULL)return;
