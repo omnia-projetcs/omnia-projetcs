@@ -132,7 +132,6 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
 
     do
     {
-      // return
       if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.') || data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){}
       else
       {
