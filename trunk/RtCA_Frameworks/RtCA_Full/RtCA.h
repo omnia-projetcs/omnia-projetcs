@@ -36,7 +36,7 @@
 #define MY_ACCEL                  200
 //******************************************************************************
 //debug mode dev test
-//#define DEV_DEBUG_MODE              1
+#define DEV_DEBUG_MODE              1
 //******************************************************************************
 #include <time.h>
 #include <stdio.h>
