@@ -58,14 +58,10 @@ void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqli
 
     if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbSubValue,0,0,0,&lastupdate)==ERROR_SUCCESS)
     {
-      printf("nbSubValue:%d\n",nbSubValue);
-
       filetimeToString_GMT(lastupdate, date, DATE_SIZE_MAX);
       //for (k=0;k<nbSubValue && start_scan;k++)
       while(k<nbSubValue && start_scan)
       {
-        printf("[a:%d]\n",k);
-
         value_size = MAX_PATH;
         data_size  = MAX_PATH;
         value[0]   = 0;
@@ -73,21 +69,17 @@ void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqli
         i = k;
         if (RegEnumValue (CleTmp,i,value,&value_size,NULL,(LPDWORD)&type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
         {
-          printf("[%d] %s=%s\n",k,value,data);
-
           switch(type)
           {
             case REG_EXPAND_SZ:
             case REG_SZ:
               convertStringToSQL(value, MAX_PATH);
               convertStringToSQL(data, MAX_PATH);
-              printf("[b:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, data, date, session_id, db);break;
             case REG_LINK:
               convertStringToSQL(value, MAX_PATH);
               snprintf(tmp,MAX_PATH,"%S",data);
               convertStringToSQL(tmp, MAX_PATH);
-              printf("[c:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, tmp, date, session_id, db);break;
             case REG_MULTI_SZ:
               for (j=0;j<data_size;j++)
@@ -95,11 +87,9 @@ void EnumRegRunValue(HKEY hk, char *s_hk,char *key,unsigned int session_id, sqli
                 if (data[j] == 0)data[j]=';';
               }
               convertStringToSQL(data, MAX_PATH);
-              printf("[d:%d]\n",k);
               addRegistryStarttoDB("", s_hk, key, value, data, date, session_id, db);break;
           }
         }
-        printf("[e:%d]\n",k);
         k++;
       }
     }
