@@ -6,13 +6,13 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, char *create_date, char*update_date, char *access_date,char*details, unsigned int session_id, sqlite3 *db)
+void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, char *create_date, char*update_date, char *access_date,char*user,char*details, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_tache (id_ev,type,data,next_run,create_date,update_date,access_date,details,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           id_ev,type,data,next_run,create_date,update_date,access_date,details,session_id);
+           "INSERT INTO extract_tache (id_ev,type,data,next_run,create_date,update_date,access_date,user,details,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           id_ev,type,data,next_run,create_date,update_date,access_date,user,details,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -137,14 +137,18 @@ void JobCheck(unsigned int session_id, sqlite3 *db, char *file)
 
             for (i=0;i<10;i++)
             {
-              if (items[i].s[2] != 0) //min 3 caracteres
+              if (items[i].s[2] != 0 && i!=2) //min 3 caracteres
               {
                 if (desc[0] != 0)strncat(desc,", ",MAX_PATH);
                 strncat(desc,items[i].s,MAX_PATH);
               }
             }
             strncat(desc,"\0",MAX_PATH);
-            addTasktoDB(file, type, cmd, time, CreationTime, LastWriteTime, LastAccessTime, desc, session_id, db);
+
+            convertStringToSQL(cmd, MAX_PATH);
+            convertStringToSQL(items[2].s, DEFAULT_TMP_SIZE);
+            convertStringToSQL(desc, MAX_LINE_SIZE);
+            addTasktoDB(file, type, cmd, time, CreationTime, LastWriteTime, LastAccessTime, items[2].s,desc, session_id, db);
           }
         }
         free(buffer);
@@ -187,7 +191,6 @@ DWORD WINAPI Scan_task(LPVOID lParam)
     unsigned int nb_ok = 0;
 
     char tmp_file_job[MAX_PATH];
-    HANDLE hfile;
 
     WIN32_FIND_DATA data;
     HANDLE hfic = FindFirstFile(path, &data);
@@ -258,13 +261,13 @@ DWORD WINAPI Scan_task(LPVOID lParam)
 
                 switch(b->Flags)
                 {
-                  case 1: addTasktoDB(id_ev,"JOB_RUN_PERIODICALLY",data,next_run,"","","","",session_id,db);break;
-                  case 2: addTasktoDB(id_ev,"JOB_EXEC_ERROR",data,next_run,"","","","",session_id,db);break;
-                  case 4: addTasktoDB(id_ev,"JOB_RUNS_TODAY",data,next_run,"","","","",session_id,db);break;
-                  case 16:addTasktoDB(id_ev,"JOB_NONINTERACTIVE",data,next_run,"","","","",session_id,db);break;
+                  case 1: addTasktoDB(id_ev,"JOB_RUN_PERIODICALLY",data,next_run,"","","","","",session_id,db);break;
+                  case 2: addTasktoDB(id_ev,"JOB_EXEC_ERROR",data,next_run,"","","","","",session_id,db);break;
+                  case 4: addTasktoDB(id_ev,"JOB_RUNS_TODAY",data,next_run,"","","","","",session_id,db);break;
+                  case 16:addTasktoDB(id_ev,"JOB_NONINTERACTIVE",data,next_run,"","","","","",session_id,db);break;
                   default:
                     snprintf(type,DEFAULT_TMP_SIZE,"UNKNOW (%d)",b->Flags);
-                    addTasktoDB(id_ev,type,data,next_run,"","","","",session_id,db);
+                    addTasktoDB(id_ev,type,data,next_run,"","","","","",session_id,db);
                   break;
                 }
               }

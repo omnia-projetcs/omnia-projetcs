@@ -644,26 +644,49 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
   }else return FALSE;
 }
 //------------------------------------------------------------------------------
-void CopyDataToClipboard(HANDLE hlv, DWORD nline, unsigned short column)
+void CopyStringToClipboard(char *s)
 {
-  char tmp[MAX_LINE_SIZE]="";
-  ListView_GetItemText(hlv,nline,column,tmp,MAX_LINE_SIZE);
-
   //copy to clipbord
   if(OpenClipboard(NULL))
   {
     EmptyClipboard();
-    HANDLE hGlobal = GlobalAlloc(GHND | GMEM_SHARE, strlen(tmp)+1);
+    HANDLE hGlobal = GlobalAlloc(GHND | GMEM_SHARE, strlen(s)+1);
     if (hGlobal!=NULL)
     {
       char *p = (char *)GlobalLock(hGlobal);
       if (p != NULL)
       {
-        strcpy(p, tmp);
+        strcpy(p, s);
       }
       GlobalUnlock(hGlobal);
       SetClipboardData(CF_TEXT, hGlobal);
     }
     CloseClipboard();
   }
+}
+
+//------------------------------------------------------------------------------
+void CopyDataToClipboard(HANDLE hlv, DWORD nline, unsigned short column)
+{
+  char tmp[MAX_LINE_SIZE]="";
+  ListView_GetItemText(hlv,nline,column,tmp,MAX_LINE_SIZE);
+
+  //copy to clipbord
+  CopyStringToClipboard(tmp);
+}
+//------------------------------------------------------------------------------
+void CopyAllDataToClipboard(HANDLE hlv, DWORD nline, unsigned short nbcolumn)
+{
+  if (nbcolumn ==0) return;
+  unsigned int i;
+  char mem[MAX_LINE_DBSIZE]="";
+
+  //copy all datas
+  for (i=0;i<nbcolumn;i++)
+  {
+    ListView_GetItemText(hlv,nline,i,&mem[strlen(mem)],MAX_PATH);
+    strncat(mem,";\0",MAX_PATH);
+  }
+  //copy to clipbord
+  CopyStringToClipboard(mem);
 }
