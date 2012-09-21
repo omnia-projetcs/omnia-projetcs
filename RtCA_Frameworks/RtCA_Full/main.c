@@ -27,6 +27,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           case BN_CLICKED:
             switch(LOWORD(wParam))
             {
+              case IDM_QUIT:EndGUIConfig(hwnd);break;
               case IDM_NEW_SESSION:
                 //create dialogue !!!
                 h_conf = CreateDialog(0, MAKEINTRESOURCE(DLG_CONF), 0, DialogProc_conf);
@@ -220,6 +221,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_I_17:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 17);break;
               case POPUP_I_18:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 18);break;
               case POPUP_I_19:CopyDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 19);break;
+              case POPUP_CP_LINE:CopyAllDataToClipboard(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), nb_current_columns);break;
+
               //-----------------------------------------------------
               case POPUP_H_00:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
               case POPUP_H_01:if(ListView_GetColumnWidth(hlstv,LOWORD(wParam)-POPUP_H_00) > 20)redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,0);else redimColumnH(hlstv,LOWORD(wParam)-POPUP_H_00,50);break;
@@ -490,6 +493,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING ,POPUP_S_VIEW           ,cps[TXT_POPUP_S_VIEW].c);
           ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING ,POPUP_S_SELECTION      ,cps[TXT_POPUP_S_SELECTION].c);
           ModifyMenu(hmenu,POPUP_A_SEARCH         ,MF_BYCOMMAND|MF_STRING ,POPUP_A_SEARCH         ,cps[TXT_POPUP_A_SEARCH].c);
+          ModifyMenu(hmenu,POPUP_CP_LINE          ,MF_BYCOMMAND|MF_STRING ,POPUP_CP_LINE          ,cps[TXT_POPUP_CP_LINE].c);
           ModifyMenu(GetSubMenu(hmenu, 0),POPUP_COPY_TO_CLIPBORD ,MF_BYPOSITION|MF_STRING,POPUP_COPY_TO_CLIPBORD ,cps[TXT_POPUP_CLIPBORAD].c);
 
           //load column text
@@ -519,8 +523,32 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
           {
             case INDEX_FILE:
+            case INDEX_ANTIVIRUS:
               //openpath
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH,cps[TXT_OPEN_PATH].c);
+            break;
+
+            case INDEX_LOG:
+            case INDEX_ENV:
+            case INDEX_LAN:
+            case INDEX_SHARE:
+            case INDEX_REG_USERS:
+            case INDEX_REG_PASSWORD:
+            {
+              //check path
+              char _tmp[MAX_PATH]="";
+              ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),0,_tmp,MAX_PATH);
+              if (_tmp[0]!=0 && _tmp[1]==':'&& _tmp[2]=='\\')
+              {
+                //open file path
+                ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
+              }else
+              {
+                //supp menu
+                RemoveMenu(GetSubMenu(hmenu,0),4,MF_BYPOSITION);
+                RemoveMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND);
+              }
+            }
             break;
             case INDEX_REG_CONF:
             case INDEX_REG_SERVICES:
@@ -533,8 +561,21 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case INDEX_REG_PATH:
             case INDEX_REG_GUIDE:
             case INDEX_REG_FIREWALL:
-              //open registry path
-              ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_REG_PATH,cps[TXT_OPEN_REG_PATH].c);
+            {
+              //check if path in first or registry case !!!
+              char _tmp[MAX_PATH]="";
+              ListView_GetItemText(hlstv,SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),1,_tmp,MAX_PATH);
+              if (_tmp[0] != 0)
+              {
+                //open registry path
+                ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_REG_PATH,cps[TXT_OPEN_REG_PATH].c);
+              }else
+              {
+                //open file path
+                ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
+              }
+            }
+
             break;
             case INDEX_NAV_FIREFOX:
             case INDEX_NAV_CHROME:

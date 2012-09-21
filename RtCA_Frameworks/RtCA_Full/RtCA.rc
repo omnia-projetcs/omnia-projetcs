@@ -96,6 +96,8 @@ BEGIN
       MENUITEM "*.html"                   ,POPUP_E_HTML
       MENUITEM "*.xml"                    ,POPUP_E_XML
     END
+    MENUITEM SEPARATOR
+    MENUITEM "Quit"                       ,IDM_QUIT
   END
   POPUP "Settings"  //1
   BEGIN
@@ -164,13 +166,14 @@ POPUP_LSTV MENU DISCARDABLE
 BEGIN
   POPUP "LSTV"
     BEGIN
-      MENUITEM "Save view"                ,POPUP_S_VIEW
-      MENUITEM "Save Selection"           ,POPUP_S_SELECTION
+      MENUITEM "Save view"                 ,POPUP_S_VIEW
+      MENUITEM "Save Selection"            ,POPUP_S_SELECTION
       MENUITEM SEPARATOR
-      MENUITEM "Select all line in search",POPUP_A_SEARCH
+      MENUITEM "Select all line in search" ,POPUP_A_SEARCH
       MENUITEM SEPARATOR
-      MENUITEM "Open path"                ,POPUP_O_PATH
+      MENUITEM "Open path"                 ,POPUP_O_PATH
       MENUITEM SEPARATOR
+      MENUITEM "Copy the line to clipboard",POPUP_CP_LINE
       POPUP "Copy to clipboard"
       BEGIN
         MENUITEM "",POPUP_I_00

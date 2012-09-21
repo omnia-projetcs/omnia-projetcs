@@ -195,7 +195,9 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   }
 
   //for journal incase
+  #ifdef LOG_SQLITE_ON
   sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
+  #endif
 
   //Init language cb
   HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);

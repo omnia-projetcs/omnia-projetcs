@@ -37,6 +37,8 @@
 //******************************************************************************
 //debug mode dev test
 //#define DEV_DEBUG_MODE              1
+//enable log file of sqlite
+#define LOG_SQLITE_ON               1
 //******************************************************************************
 #include <time.h>
 #include <stdio.h>
@@ -167,6 +169,7 @@ unsigned int nb_column_process_view;
 #define IDM_SAVE_SESSION_FILE   10020
 #define IDM_TOOLS_CP_HIBERNATE  10021
 #define IDM_UNCHECK_ALL_TESTS   10022
+#define IDM_QUIT                10023
 
 #define IDM_TOOLS_CP_REGISTRY   10100
 #define IDM_TOOLS_CP_AUDIT      10101
@@ -208,7 +211,8 @@ unsigned int nb_column_process_view;
 #define POPUP_S_SELECTION                     13002
 #define POPUP_O_PATH                          13003
 #define POPUP_A_SEARCH                        13004
-#define POPUP_COPY_TO_CLIPBORD                    7
+#define POPUP_COPY_TO_CLIPBORD                    8
+#define POPUP_CP_LINE                         13005
 
 #define POPUP_I_00                            13010
 #define POPUP_I_01                            13011
@@ -323,6 +327,15 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
 
 #define INDEX_FILE                  0
+
+#define INDEX_LOG                   1
+#define INDEX_ENV                   4
+#define INDEX_LAN                   8
+#define INDEX_SHARE                12
+#define INDEX_REG_USERS            19
+#define INDEX_REG_PASSWORD         22
+#define INDEX_ANTIVIRUS            25
+
 #define INDEX_REG_CONF             13
 #define INDEX_REG_SERVICES         14
 #define INDEX_REG_USB              15
@@ -331,7 +344,6 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 #define INDEX_REG_START            18
 #define INDEX_REG_USERASSIST       20
 #define INDEX_REG_MRU              21
-#define INDEX_REG_PASSWORD         22
 #define INDEX_REG_PATH             23
 #define INDEX_REG_GUIDE            24
 #define INDEX_REG_FIREWALL         26
@@ -459,6 +471,8 @@ typedef struct SORT_ST
 
 #define TXT_COLUMN_PROCESS_REF      52
 #define NB_COLUMN_PROCESS_DEF       19
+
+#define TXT_POPUP_CP_LINE           71
 
 typedef struct
 {
@@ -664,6 +678,7 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type);
 DWORD WINAPI SaveAll(LPVOID lParam);
 DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
+void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
 
 //usuals functions
 void ReviewWOW64Redirect(PVOID OldValue_W64b);

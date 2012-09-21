@@ -401,8 +401,9 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
+        charToLowChar(file);
         //check for SAM files
-        if ((Contient(file,"SAM") || Contient(file,"sam")) && file_SAM[0] != 0)
+        if ((Contient(file,"sam")) && file_SAM[0] == 0)
         {
           strcpy(file_SAM,file);
           hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
