@@ -228,3 +228,46 @@ BEGIN
       MENUITEM "",POPUP_H_19
     END
 END
+//------------------------------------------------------------------------------
+POPUP_LSTV_PROCESS MENU DISCARDABLE
+BEGIN
+  POPUP "PROCESS"
+  BEGIN
+    MENUITEM "Refresh"                   ,POPUP_PROCESS_REFRESH
+    MENUITEM "Save view"                 ,POPUP_S_VIEW
+    MENUITEM "Open path"                 ,POPUP_OPEN_PATH
+    MENUITEM SEPARATOR
+    MENUITEM "Kill process"              ,POPUP_KILL_PROCESS
+    MENUITEM "Dump process memory"       ,POPUP_DUMP_MEMORY
+    MENUITEM SEPARATOR
+    POPUP "Dll injection"
+    BEGIN
+      MENUITEM "Add remote thread injection"        ,POPUP_ADD_DLL_INJECT_REMOTE_THREAD
+      MENUITEM "Remove remote thread injection"     ,POPUP_REM_DLL_INJECT_REMOTE_THREAD
+    END
+    MENUITEM SEPARATOR
+    MENUITEM "Copy the line to clipboard",POPUP_CP_LINE
+    POPUP "Copy to clipboard"
+    BEGIN
+      MENUITEM "",POPUP_I_00
+      MENUITEM "",POPUP_I_01
+      MENUITEM "",POPUP_I_02
+      MENUITEM "",POPUP_I_03
+      MENUITEM "",POPUP_I_04
+      MENUITEM "",POPUP_I_05
+      MENUITEM "",POPUP_I_06
+      MENUITEM "",POPUP_I_07
+      MENUITEM "",POPUP_I_08
+      MENUITEM "",POPUP_I_09
+      MENUITEM "",POPUP_I_10
+      MENUITEM "",POPUP_I_11
+      MENUITEM "",POPUP_I_12
+      MENUITEM "",POPUP_I_13
+      MENUITEM "",POPUP_I_14
+      MENUITEM "",POPUP_I_15
+      MENUITEM "",POPUP_I_16
+      MENUITEM "",POPUP_I_17
+      MENUITEM "",POPUP_I_18
+    END
+  END
+END

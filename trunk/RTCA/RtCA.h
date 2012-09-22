@@ -263,6 +263,18 @@ unsigned int nb_column_process_view;
 #define POPUP_H_18                            13128
 #define POPUP_H_19                            13129
 
+#define POPUP_LSTV_PROCESS                    13200
+#define POPUP_KILL_PROCESS                    13201
+#define POPUP_DUMP_MEMORY                     13202
+#define POPUP_ADD_DLL_INJECT_REMOTE_THREAD    13203
+#define POPUP_REM_DLL_INJECT_REMOTE_THREAD    13204
+#define POPUP_PROCESS_REFRESH                 13205
+
+#define POPUP_DLL_INJECT                          7
+#define POPUP_PROCESS_COPY_TO_CLIPBORD           11
+
+#define NB_PROCESS_COLUMN                        19
+
 //------------------------------------------------------------------------------
 char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 //------------------------------------------------------------------------------
@@ -412,7 +424,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         72
+#define NB_COMPONENT_STRING         78
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -473,6 +485,13 @@ typedef struct SORT_ST
 #define NB_COLUMN_PROCESS_DEF       19
 
 #define TXT_POPUP_CP_LINE           71
+
+#define TXT_KILL_PROCESS            72
+#define TXT_DUMP_PROC_MEM           73
+#define TXT_POPUP_DLLINJECT         74
+#define TXT_ADD_THREAD_INJECT_DLL   75
+#define TXT_REM_THREAD_INJECT_DLL   76
+#define TXT_POPUP_REFRESH           77
 
 typedef struct
 {
@@ -841,3 +860,5 @@ DWORD WINAPI BackupRegFile(LPVOID lParam);
 DWORD WINAPI BackupEvtFile(LPVOID lParam);
 DWORD WINAPI BackupNTDIS(LPVOID lParam);
 DWORD WINAPI BackupFile(LPVOID lParam);
+
+DWORD WINAPI DumpProcessMemory(LPVOID lParam);
