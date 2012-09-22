@@ -407,6 +407,6 @@ void GetColumnInfo(unsigned int id)
   fcri.type = TYPE_SQLITE_FLAG_COLUMN_COUNT_INIT;
   snprintf(request, MAX_LINE_SIZE,"SELECT count,request,mode "
                                   "FROM language_strings_columns_settings "
-                                  " WHERE ord = %d;",id);
+                                  "WHERE ord = %d;",id);
   sqlite3_exec(db_scan, request, callback_sqlite, &fcri, NULL);
 }

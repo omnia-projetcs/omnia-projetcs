@@ -296,7 +296,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ShowWindow(h_process,SW_SHOW);
               break;
               /*
-    MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
     //MENUITEM SEPARATOR

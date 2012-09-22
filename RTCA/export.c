@@ -18,16 +18,16 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
       switch(export_type)
       {
         case SAVE_TYPE_CSV:
-          snprintf(datas,MAX_LINE_SIZE,"\"%s\";",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
+          snprintf(datas,MAX_LINE_SIZE,"\"%s\";",argv[0]);
           stat_export_column++;
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
         break;
         case SAVE_TYPE_XML:
           if (stat_export_column<NB_MAX_ITEMS_HEADERS_XML)
-            strncpy(S_tests_XML_header[stat_export_column++].s,convertUTF8toUTF16(argv[0], strlen(argv[0])+1),DEFAULT_TMP_SIZE);
+            strncpy(S_tests_XML_header[stat_export_column++].s,argv[0],DEFAULT_TMP_SIZE);
         break;
         case SAVE_TYPE_HTML:
-          snprintf(datas,MAX_LINE_SIZE,"    <th>%s</th>",convertUTF8toUTF16(argv[0], strlen(argv[0])+1));
+          snprintf(datas,MAX_LINE_SIZE,"    <th>%s</th>",argv[0]);
           stat_export_column++;
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
         break;
@@ -42,12 +42,12 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
             if (stat_export_column+1==argc)
             {
               if (argv[stat_export_column]!=0)
-                snprintf(datas,MAX_LINE_SIZE,"\"%s\";\r\n",convertUTF8toUTF16(argv[stat_export_column], strlen(argv[stat_export_column])+1));
+                snprintf(datas,MAX_LINE_SIZE,"\"%s\";\r\n",argv[stat_export_column]);
               else strncpy(datas,"\"\";",MAX_LINE_SIZE);
             }else
             {
               if (argv[stat_export_column]!=0)
-                snprintf(datas,MAX_LINE_SIZE,"\"%s\";",convertUTF8toUTF16(argv[stat_export_column], strlen(argv[stat_export_column])+1));
+                snprintf(datas,MAX_LINE_SIZE,"\"%s\";",argv[stat_export_column]);
               else strncpy(datas,"\"\";",MAX_LINE_SIZE);
             }
             WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
@@ -61,7 +61,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
             if (argv[stat_export_column]!=0)
               snprintf(datas,MAX_LINE_SIZE,"     <%s><![CDATA[%s]]></%s>\r\n",
                        S_tests_XML_header[stat_export_column].s,
-                       convertUTF8toUTF16(argv[stat_export_column], strlen(argv[stat_export_column])+1),
+                       argv[stat_export_column],
                        S_tests_XML_header[stat_export_column].s);
             else snprintf(datas,MAX_LINE_SIZE,"     <%s><![CDATA[]]></%s>\r\n",
                        S_tests_XML_header[stat_export_column].s,S_tests_XML_header[stat_export_column].s);
@@ -80,7 +80,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
           for (stat_export_column=0;stat_export_column<argc;stat_export_column++)
           {
             if (argv[stat_export_column]!=0)
-              snprintf(datas,MAX_LINE_SIZE,"    <td>%s</td>",convertUTF8toUTF16(argv[stat_export_column], strlen(argv[stat_export_column])+1));
+              snprintf(datas,MAX_LINE_SIZE,"    <td>%s</td>",argv[stat_export_column]);
             else strncpy(datas,"    <td></td>",MAX_LINE_SIZE);
 
             WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
@@ -173,8 +173,8 @@ DWORD WINAPI SaveAll(LPVOID lParam)
     stat_export_column = 0;
     fcri.type = TYPE_SQL_EXPORT_HEAD;
     snprintf(request, MAX_LINE_SIZE,"SELECT string "
-                                    "FROM language_strings_columns_string, language "
-                                    "WHERE language.id =%d AND language.id = id_language AND id_item=%d order by column;",current_lang_id,i);
+                                    "FROM language_strings_columns_string, language,language_strings_columns_settings "
+                                    "WHERE language.id =%d AND language.id = id_language AND language_strings_columns_string.id_item = language_strings_columns_settings.id_item AND ord=%d order by column;",current_lang_id,i);
 
     sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
 
@@ -204,11 +204,11 @@ DWORD WINAPI SaveAll(LPVOID lParam)
           snprintf(request, MAX_LINE_SIZE,"%s session_id=%lu;",st_columns.request,cur_session_id);
           sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
         break;
-        case MODE_SQL_LOGS: //special stat for audit log
+        /*case MODE_SQL_LOGS: //special stat for audit log
           snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%lu WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;",st_columns.request,
                    current_lang_id,cur_session_id);
           sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-        break;
+        break;*/
     }
 
     //file foot
@@ -223,7 +223,7 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   }
 
   //pwdump_users export
-  snprintf(file,MAX_PATH,"%s_%s_pwdump.txt",path,test_name);
+  snprintf(file,MAX_PATH,"%s_pwdump.txt",path);
 
   //open file
   MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
