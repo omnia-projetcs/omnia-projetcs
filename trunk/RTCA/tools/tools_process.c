@@ -631,32 +631,32 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       //binary infos
       char tmp1[MAX_PATH], tmp2[MAX_PATH], tmp3[MAX_PATH];
       GetFileInfos(path, tmp, MAX_PATH, tmp1, tmp2, MAX_PATH);
-      strncat(buffer,"Size:",DIXM);
+      strncat(buffer,"Size:^",DIXM);
       strncat(buffer,tmp,DIXM);
-      strncat(buffer,"\r\nFile create time:",DIXM);
+      strncat(buffer,"\r\nFile create time: ",DIXM);
       strncat(buffer,tmp1,DIXM);
-      strncat(buffer,"\r\nFile last update time:",DIXM);
+      strncat(buffer,"\r\nFile last update time: ",DIXM);
       strncat(buffer,tmp2,DIXM);
 
       GetACLS(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-      strncat(buffer,"\r\nACL Owner:",DIXM);
+      strncat(buffer,"\r\nACL Owner: ",DIXM);
       strncat(buffer,tmp1,DIXM);
       strncat(buffer," (",DIXM);
       strncat(buffer,tmp3,DIXM);
-      strncat(buffer,")\r\nACLs:",DIXM);
+      strncat(buffer,")\r\nACLs: ",DIXM);
       strncat(buffer,tmp,DIXM);
       strncat(buffer,"\r\n\0",DIXM);
       strncat(buffer,SEPARATOR,DIXM);
 
       //file binary informations
       FileInfoRead(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-      strncat(buffer,"ProductName:",DIXM);
+      strncat(buffer,"ProductName: ",DIXM);
       strncat(buffer,tmp,DIXM);
-      strncat(buffer,"\r\nFileVersion:",DIXM);
+      strncat(buffer,"\r\nFileVersion: ",DIXM);
       strncat(buffer,tmp1,DIXM);
-      strncat(buffer,"\r\nCompanyName:",DIXM);
+      strncat(buffer,"\r\nCompanyName: ",DIXM);
       strncat(buffer,tmp2,DIXM);
-      strncat(buffer,"\r\nFileDescription:",DIXM);
+      strncat(buffer,"\r\nFileDescription: ",DIXM);
       strncat(buffer,tmp3,DIXM);
       strncat(buffer,"\r\n\0",DIXM);
       strncat(buffer,SEPARATOR,DIXM);
@@ -863,9 +863,9 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         {
           //set text !!!
 
-          ModifyMenu(hmenu,POPUP_PROCESS_REFRESH  ,MF_BYCOMMAND|MF_STRING ,POPUP_PROCESS_REFRESH  ,cps[TXT_POPUP_REFRESH].c);
-          ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING ,POPUP_S_VIEW           ,cps[TXT_POPUP_S_VIEW].c);
-          ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING ,POPUP_S_SELECTION      ,cps[TXT_POPUP_S_SELECTION].c);
+          ModifyMenu(hmenu,POPUP_PROCESS_REFRESH  ,MF_BYCOMMAND|MF_STRING,POPUP_PROCESS_REFRESH   ,cps[TXT_POPUP_REFRESH].c);
+          ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING,POPUP_S_VIEW            ,cps[TXT_POPUP_S_VIEW].c);
+          ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING,POPUP_S_SELECTION       ,cps[TXT_POPUP_S_SELECTION].c);
           ModifyMenu(hmenu,POPUP_OPEN_PATH        ,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH         ,cps[TXT_OPEN_PATH].c);
           ModifyMenu(hmenu,POPUP_KILL_PROCESS     ,MF_BYCOMMAND|MF_STRING,POPUP_KILL_PROCESS      ,cps[TXT_KILL_PROCESS].c);
           ModifyMenu(hmenu,POPUP_DUMP_MEMORY      ,MF_BYCOMMAND|MF_STRING,POPUP_DUMP_MEMORY       ,cps[TXT_DUMP_PROC_MEM].c);

@@ -66,6 +66,36 @@ BEGIN
   CONTROL ""              ,LV_VIEW              ,"SysListView32",0x40810089,0,0,400,231,0x00000200
 END
 //------------------------------------------------------------------------------
+//network raw capture dialogue
+//------------------------------------------------------------------------------
+DLG_NETWORK_SNIFF DIALOGEX 55,0,550,300
+FONT 8,"Ms Shell Dlg 2",400,0,1
+STYLE 0x00CF0800
+BEGIN
+  CONTROL ""                        ,DLG_NS_SNIFF_LB_FILTRE       ,"ListBox",0x50010141,2,1,100,273,0x00000200
+  CONTROL ""                        ,DLG_NS_LSTV                  ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SINGLESEL|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT |WS_CHILD,2,1,546,273
+  CONTROL ""                        ,DLG_NS_LSTV_FILTRE           ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SINGLESEL|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT |WS_CHILD,104,1,444,273
+  CONTROL ""                        ,DLG_NS_LSTV_PAQUETS          ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT | WS_VISIBLE|WS_CHILD|LVS_OWNERDRAWFIXED,104,1,444,273
+
+  CONTROL ""                        ,DLG_CONF_INTERFACE           ,"ComboBox",0x50210042|CBS_SIMPLE| WS_TABSTOP,306,53,240,50
+  CONTROL "Promiscuous"             ,DLG_NS_SNIFF_CHK_PROMISCUOUS ,"Button",0x50010003| WS_TABSTOP,118,286,74,9
+  CONTROL "IP"                      ,DLG_NS_SNIFF_CHK_DISCO       ,"Button",0x50010003| WS_TABSTOP,200,286,54,9
+  CONTROL "Save"                    ,DLG_NS_BT_SAVE               ,"Button",0x50010000| WS_TABSTOP,384,282,64,13
+  CONTROL "Start"                   ,DLG_NS_BT_START              ,"Button",0x50010000| WS_TABSTOP,454,276,94,22
+END
+//------------------------------------------------------------------------------
+/*INFO_TRAME DIALOGEX 6,6,372,214
+CAPTION "Infos Trame"
+FONT 8,"Lucida Console",0,0 //font pour que chacun des caractère prène al même place
+STYLE 0x00CF0000
+EXSTYLE 0x00000088
+BEGIN
+  CONTROL "",TREE_DONNEES,"SysTreeView32",0x50310003,0,0,372,214,0x00000200
+  CONTROL "",RE,"RichEdit20A",WS_CHILD | ES_LEFT | ES_MULTILINE | ES_WANTRETURN | WS_HSCROLL | WS_VSCROLL,106,1,442,258,0x00000200
+
+END
+*/
+//------------------------------------------------------------------------------
 //main dialogue menu
 //------------------------------------------------------------------------------
 MY_ACCEL ACCELERATORS DISCARDABLE
@@ -113,9 +143,6 @@ BEGIN
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
-    MENUITEM SEPARATOR
-    MENUITEM "Virustotal files checker"   ,IDM_TOOLS_VIRUSTOTAL
-    MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
     MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
   END
@@ -269,5 +296,23 @@ BEGIN
       MENUITEM "",POPUP_I_17
       MENUITEM "",POPUP_I_18
     END
+  END
+END
+//------------------------------------------------------------------------------
+POPUP_LSTV_SNIFF MENU DISCARDABLE
+BEGIN
+  POPUP "POPUP_LSTV_SNIFF"
+  BEGIN
+      MENUITEM "Filter by source IP"              ,POPUP_SNIFF_FILTRE_IP_SRC
+      MENUITEM "Filter by destination IP"         ,POPUP_SNIFF_FILTRE_IP_DST
+      MENUITEM SEPARATOR
+      MENUITEM "Filter by source port"            ,POPUP_SNIFF_FILTRE_PORT_SRC
+      MENUITEM "Filter by destination port"       ,POPUP_SNIFF_FILTRE_PORT_DST
+      MENUITEM SEPARATOR
+      MENUITEM "Follow TCP/UDP stream"            ,POPUP_LINK
+
+      MENUITEM SEPARATOR
+      MENUITEM "Save view"                        ,POPUP_S_VIEW
+      MENUITEM "Save Selection"                   ,POPUP_S_SELECTION
   END
 END
