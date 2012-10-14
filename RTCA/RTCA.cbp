@@ -217,6 +217,7 @@
 		<Unit filename="tools\tools_memory.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools\tools_network\_entetes.h" />
 		<Unit filename="tools\tools_process.c">
 			<Option compilerVar="CC" />
 		</Unit>

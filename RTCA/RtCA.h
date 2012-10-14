@@ -43,6 +43,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <Winsock2.h>           //gestion socket (avant windows.h car existe la version 1 dans windows.h)
 #include <windows.h>
 #include "version.h"            //for version tracking
 #include <commctrl.h>           //componants
@@ -121,7 +122,7 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process;
+HANDLE h_process, h_sniff;
 
 BOOL disable_m_context, disable_p_context;
 
@@ -151,6 +152,33 @@ BOOL disable_m_context, disable_p_context;
 
 #define DLG_PROCESS              4000
 unsigned int nb_column_process_view;
+
+#define DLG_NETWORK_SNIFF           5000
+#define DLG_NS_SNIFF_LB_FILTRE      5001
+#define DLG_NS_BT_START             5002
+#define DLG_NS_LSTV                 5003
+#define DLG_NS_LSTV_FILTRE          5004
+#define DLG_NS_LSTV_PAQUETS         5005
+#define DLG_NS_BT_SAVE              5006
+#define DLG_NS_SNIFF_CHK_PROMISCUOUS 5007
+#define DLG_NS_SNIFF_CHK_DISCO      5008
+
+#define POPUP_SNIFF_FILTRE_IP_SRC   5009
+#define POPUP_SNIFF_FILTRE_IP_DST   5010
+#define POPUP_SNIFF_FILTRE_PORT_SRC 5011
+#define POPUP_SNIFF_FILTRE_PORT_DST 5012
+#define POPUP_LINK                  5013
+#define POPUP_LSTV_SNIFF            5014
+#define DLG_CONF_INTERFACE          5015
+
+#define DLG_SNIFF_STATE_PAQUETS_NB_COLUMN  7
+#define DLG_SNIFF_STATE_FILTER_NB_COLUMN   7
+#define DLG_SNIFF_STATE_IP_NB_COLUMN       6
+
+#define FILTER_IP_SRC               0
+#define FILTER_IP_DST               1
+#define FILTER_PORT_SRC             2
+#define FILTER_PORT_DST             3
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -178,8 +206,6 @@ unsigned int nb_column_process_view;
 #define IDM_TOOLS_PROCESS       10104
 #define IDM_TOOLS_REG_EXPLORER  10105
 #define IDM_TOOLS_SNIFF         10106
-#define IDM_TOOLS_VIRUSTOTAL    10107
-#define IDM_TOOLS_CLEAN         10108
 #define IDM_TOOLS_ANALYSER      10109
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
@@ -282,6 +308,9 @@ char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 #define SAVE_TYPE_CSV                             1
 #define SAVE_TYPE_XML                             2
 #define SAVE_TYPE_HTML                            3
+#define SAVE_TYPE_PCAP                            4
+
+//sqlite only
 #define SAVE_TYPE_TXT                             4
 #define SAVE_TYPE_PWDUMP                          5
 
@@ -308,6 +337,8 @@ HWND h_main, h_conf;
 
 #define TEST_SHARE                               12
 #define TEST_REG_START                           13
+#define TEST_REG_PASSWORD                        22
+BOOL TEST_REG_PASSWORD_ENABLE;
 #define TEST_REG_END                             24
 
 #define TEST_REG_ANTIVIRUS                       25
@@ -413,7 +444,7 @@ typedef struct
 }LINE_ITEM;
 //------------------------------------------------------------------------------
 //for sort in lstv
-BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW;
+BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW;
 int column_tri;
 
 typedef struct SORT_ST
@@ -424,7 +455,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         78
+#define NB_COMPONENT_STRING         84
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -493,6 +524,14 @@ typedef struct SORT_ST
 #define TXT_REM_THREAD_INJECT_DLL   76
 #define TXT_POPUP_REFRESH           77
 
+#define TXT_POPUP_SNIFF_FILTRE_IP_SRC   78
+#define TXT_POPUP_SNIFF_FILTRE_IP_DST   79
+#define TXT_POPUP_SNIFF_FILTRE_PORT_SRC 80
+#define TXT_POPUP_SNIFF_FILTRE_PORT_DST 81
+#define TXT_POPUP_LINK                  82
+
+#define TXT_SNIFF_FILTRE                83
+
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
@@ -558,6 +597,44 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 
 char current_OS[DEFAULT_TMP_SIZE];
 BOOL current_OS_BE_64b;
+
+//------------------------------------------------------------------------------
+#define SIO_RCVALL _WSAIOW(IOC_VENDOR,1)
+#define TAILLE_MAX_BUFFER_HEADER    256
+#define TAILLE_MAX_BUFFER_TRAME     2600
+typedef struct zone_trame
+{
+  BYTE           buffer_header[TAILLE_MAX_BUFFER_HEADER];
+  BYTE           buffer[TAILLE_MAX_BUFFER_TRAME];         // taille max d'un trame normalement  = 1500 + ...
+
+  unsigned int   taille_buffer;
+  unsigned int   ProtoType;                               // ethernet, .... (code exacte)
+  char           ip_src[IP_SIZE_MAX];
+  unsigned short src_port;
+  char           ip_dst[IP_SIZE_MAX];
+  unsigned short dst_port;
+  unsigned short TTL;
+}TRAME_BUFFER;
+
+HANDLE hMutex_TRAME_BUFFER;
+TRAME_BUFFER *Trame_buffer;                               //liste des trames lues
+unsigned long int NB_trame_buffer;                        //nombre de trames lues
+BOOL start_sniff;
+HANDLE Hsniff;
+HANDLE hdbclk_sniff;
+WNDPROC wndproc_hdbclk_sniff;
+BOOL read_trame_sniff, follow_sniff;
+
+//color for sniff
+#define TXT_TCP_IPV4 "TCP/IPv4"
+#define TXT_TCP_IPV6 "TCP/IPv6"
+#define TXT_UDP_IPV4 "UDP/IPv4"
+#define TXT_UDP_IPV6 "UDP/IPv6"
+
+#define TXT_ICMPV4   "ICMPv4"
+#define TXT_ICMPV6   "ICMPv6"
+#define TXT_IGMP     "IGMP"
+HBRUSH Hb_green, Hb_blue, Hb_pink, Hb_violet;
 //------------------------------------------------------------------------------
 //users
 typedef struct
@@ -816,6 +893,10 @@ void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+
+//subclass
+LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Scan function
 DWORD WINAPI Scan_files(LPVOID lParam);

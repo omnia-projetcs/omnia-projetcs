@@ -1650,7 +1650,8 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
                               User_infos.nb_connexion, User_infos.type, User_infos.state_id,session_id, db);
 
           //add password
-          addPasswordtoDB("HKEY_LOCAL_MACHINE\\SAM", User_infos.name, User_infos.pwdump_pwd_format, User_infos.pwdump_pwd_raw_format, REG_PASSWORD_STRING_LOCAL_USER, session_id, db);
+          if (TEST_REG_PASSWORD_ENABLE)
+            addPasswordtoDB("HKEY_LOCAL_MACHINE\\SAM", User_infos.name, User_infos.pwdump_pwd_format, User_infos.pwdump_pwd_raw_format, REG_PASSWORD_STRING_LOCAL_USER, session_id, db);
           ok = TRUE;
         }
       }

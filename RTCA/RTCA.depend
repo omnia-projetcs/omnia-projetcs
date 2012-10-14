@@ -1144,10 +1144,11 @@
 1347744226 source:z:\svn_omnia\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1348340122 z:\svn_omnia\rtca\rtca.h
+1350163536 z:\svn_omnia\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
+	<Winsock2.h>
 	<windows.h>
 	"version.h"
 	<commctrl.h>
@@ -1168,7 +1169,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1348344015 z:\svn_omnia\rtca\version.h
+1350216522 z:\svn_omnia\rtca\version.h
 
 1341149794 z:\svn_omnia\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -1192,7 +1193,7 @@
 
 1341149788 z:\svn_omnia\rtca\crypt\opensslv.h
 
-1348263693 source:z:\svn_omnia\rtca\configuration\init.c
+1350155051 source:z:\svn_omnia\rtca\configuration\init.c
 	"../RtCA.h"
 
 1341149787 source:z:\svn_omnia\rtca\crypt\d3des.c
@@ -1256,7 +1257,7 @@
 1341149788 z:\svn_omnia\rtca\crypt\sha2.h
 	<limits.h>
 
-1347997969 source:z:\svn_omnia\rtca\crypt\windows_users_hashs_registry.c
+1350163659 source:z:\svn_omnia\rtca\crypt\windows_users_hashs_registry.c
 	"../RtCA.h"
 
 1348343884 source:z:\svn_omnia\rtca\export.c
@@ -1268,7 +1269,7 @@
 1347739096 source:z:\svn_omnia\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1348331796 source:z:\svn_omnia\rtca\main.c
+1350135180 source:z:\svn_omnia\rtca\main.c
 	"RtCA.h"
 
 1347475555 source:z:\svn_omnia\rtca\proc.c
@@ -1336,7 +1337,7 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1347731113 source:z:\svn_omnia\rtca\tests\scan.c
+1350163629 source:z:\svn_omnia\rtca\tests\scan.c
 	"../RtCA.h"
 
 1347478396 source:z:\svn_omnia\rtca\tests\test_android.c
@@ -1430,7 +1431,7 @@
 1347743793 source:z:\svn_omnia\rtca\tests\test_registry_userassist.c
 	"../RtCA.h"
 
-1348258424 source:z:\svn_omnia\rtca\tests\test_registry_users.c
+1350163659 source:z:\svn_omnia\rtca\tests\test_registry_users.c
 	"../RtCA.h"
 
 1347479079 source:z:\svn_omnia\rtca\tests\test_route.c
@@ -1454,8 +1455,9 @@
 1346592601 source:z:\svn_omnia\rtca\tools\tools_registry.c
 	"../RtCA.h"
 
-1346592601 source:z:\svn_omnia\rtca\tools\tools_sniff.c
+1350162826 source:z:\svn_omnia\rtca\tools\tools_sniff.c
 	"../RtCA.h"
+	"tools_network/_entetes.h"
 
 1346592590 source:z:\svn_omnia\rtca\tools\tools_state.c
 	"../RtCA.h"
@@ -1463,9 +1465,11 @@
 1346592587 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1348339991 source:z:\svn_omnia\rtca\rtca.rc
+1349528665 source:z:\svn_omnia\rtca\rtca.rc
 	"RtCA.h"
 
-1348340172 source:z:\svn_omnia\rtca\tools\tools_process.c
+1349292683 source:z:\svn_omnia\rtca\tools\tools_process.c
 	"../RtCA.h"
+
+1350142245 z:\svn_omnia\rtca\tools\tools_network\_entetes.h
 

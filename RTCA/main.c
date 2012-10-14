@@ -281,6 +281,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);break;
               case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);break;
               case IDM_TOOLS_PROCESS:
+              {
                 LoadPRocessList(hlstv_process);
 
                 //set language
@@ -294,14 +295,23 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 }
 
                 ShowWindow(h_process,SW_SHOW);
+              }
               break;
+              case IDM_TOOLS_SNIFF:
+              {
+                //set text
+                SetWindowText(GetDlgItem((HWND)h_sniff,DLG_NS_BT_START),cps[TXT_BT_START].c);
+                SetWindowText(GetDlgItem((HWND)h_sniff,DLG_NS_BT_SAVE),cps[TXT_BT_EXPORT_START].c);
+
+                SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_RESETCONTENT, (WPARAM)0, (LPARAM)0);
+                SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_INSERTSTRING, (WPARAM)-1, (LPARAM)cps[TXT_SNIFF_FILTRE].c);
+
+                ShowWindow(h_sniff,SW_SHOW);
+              }
+              break;
+
               /*
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
-    MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
-    //MENUITEM SEPARATOR
-    //MENUITEM "Virustotal files checker"   ,IDM_TOOLS_VIRUSTOTAL
-    //MENUITEM "Clean all local history"    ,IDM_TOOLS_CLEAN
-    MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
               */
             }
@@ -754,7 +764,7 @@ int main(int argc, char* argv[])
     htooltip          = CreateWindow(TOOLTIPS_CLASS, NULL, WS_POPUP|TTS_NOPREFIX|TTS_BALLOON|TTS_ALWAYSTIP,CW_USEDEFAULT,CW_USEDEFAULT,
                                      CW_USEDEFAULT,CW_USEDEFAULT,h_main,NULL,hinst,NULL);
     //edit dblclick
-    hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844,
+    hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
                                  GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                                  GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                                  h_main, NULL, hinst, NULL);
@@ -768,7 +778,7 @@ int main(int argc, char* argv[])
     #endif
 
     //dialogue for process
-    h_process     = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS) ,h_main,DialogProc_info);
+    h_process     = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS) ,NULL,DialogProc_info);
     hlstv_process = GetDlgItem(h_process,LV_VIEW);
     SendMessage(h_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     SetWindowText(h_process,NOM_FULL_APPLI);
@@ -787,6 +797,112 @@ int main(int argc, char* argv[])
       SendMessage(hlstv_process,LVM_INSERTCOLUMN,(WPARAM)i, (LPARAM)&lvc);
     }
     SendMessage(hlstv_process,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
+    //dialogue for network sniff
+    h_sniff = CreateDialog(0, MAKEINTRESOURCE(DLG_NETWORK_SNIFF), NULL,DialogProc_sniff);
+    SendMessage(h_sniff, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SetWindowText(h_sniff,NOM_FULL_APPLI);
+
+    //add columns
+    lvc.cx      = 110;
+    lvc.pszText = "IP src";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 0, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 0, &lvc);
+    lvc.cx      = 80;
+    lvc.pszText = "Port src";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 1, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 1, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "IP dst";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 2, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 2, &lvc);
+    lvc.cx      = 80;
+    lvc.pszText = "Port dst";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 3, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 3, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "Protocol";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 4, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 4, &lvc);
+    lvc.cx      = 200;
+    lvc.pszText = "Desc";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 5, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 5, &lvc);
+    lvc.cx      = 50;
+    lvc.pszText = "ID";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS), 6, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE) , 6, &lvc);
+
+    lvc.cx      = 110;
+    lvc.pszText = "IP";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 0, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "Name";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 1, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "TTL";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 2, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "OS";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 3, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "Protocol";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 4, &lvc);
+    lvc.cx      = 110;
+    lvc.pszText = "Malware";
+    ListView_InsertColumn(GetDlgItem(h_sniff,DLG_NS_LSTV), 5, &lvc);
+
+    SendDlgItemMessage(h_sniff,DLG_NS_LSTV_FILTRE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_sniff,DLG_NS_LSTV_PAQUETS,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_sniff,DLG_NS_LSTV,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
+    //init all network interfaces
+    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_RESETCONTENT,0, 0);
+    struct hostent *local;
+    struct in_addr addr;
+
+    WSADATA WSAData;
+    WSAStartup(0x02, &WSAData);
+    char name[DEFAULT_TMP_SIZE]="";
+    if (gethostname(name, DEFAULT_TMP_SIZE) != SOCKET_ERROR)
+    {
+      if ((local = gethostbyname(name))!=0)
+      {
+        for (i = 0; local->h_addr_list[i] != 0; ++i)
+        {
+          memcpy(&addr, local->h_addr_list[i], sizeof(struct in_addr));
+          snprintf(name,IP_SIZE_MAX,"%s",inet_ntoa(addr));
+          SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_INSERTSTRING,(WPARAM)-1, (LPARAM)name);
+        }
+        SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_SETCURSEL,0,0);
+      }
+    }
+    WSACleanup();
+
+    //init brush interfaces
+    Hb_green = CreateSolidBrush(RGB(204, 255, 204));
+    Hb_blue = CreateSolidBrush(RGB(153, 255, 255));
+    Hb_pink = CreateSolidBrush(RGB(255, 204, 204));
+    Hb_violet = CreateSolidBrush(RGB(204, 204, 255));
+
+    //create fom for infos
+    //edit dblclick
+    hdbclk_sniff = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                 h_sniff, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_sniff, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
+    SendMessage(hdbclk_sniff, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    #ifdef _WIN64_VERSION_
+      wndproc_hdbclk_sniff = (WNDPROC)SetWindowLongPtr(hdbclk_sniff, GWL_WNDPROC,(LONG)subclass_hdbclk_sniff);
+    #else
+      wndproc_hdbclk_sniff = (WNDPROC)SetWindowLong(hdbclk_sniff, GWL_WNDPROC,(LONG)subclass_hdbclk_sniff);
+    #endif
+
+    //if no interface disable sniff
+    if (SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCOUNT,0,0) == 0)
+      EnableMenuItem(GetMenu(h_main),IDM_TOOLS_SNIFF,MF_BYCOMMAND|MF_GRAYED);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
 

@@ -180,6 +180,11 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   current_OS_BE_64b = FALSE;
   nb_current_columns= 0;
   current_lang_id   = 1;
+  read_trame_sniff  = FALSE;
+  follow_sniff      = FALSE;
+
+  Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
+  hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
 
   //open sqlite file
   if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
@@ -299,6 +304,14 @@ void EndGUIConfig(HANDLE hwnd)
   ReviewWOW64Redirect(OldValue_W64b);
   #endif
 
+  //clean
+  DeleteObject(Hb_green);
+  DeleteObject(Hb_blue);
+  DeleteObject(Hb_pink);
+  DeleteObject(Hb_violet);
+
+  if (Trame_buffer != NULL) free(Trame_buffer);
+  CloseHandle(hMutex_TRAME_BUFFER);
 
   //save current language if not 1
   //get current path

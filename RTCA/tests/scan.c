@@ -24,6 +24,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
 
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
+  TEST_REG_PASSWORD_ENABLE = Ischeck_treeview(htrv_test, H_tests[TEST_REG_PASSWORD]);
 
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_log,(void*)nb_current_test,0,0); nb_current_test++;
@@ -85,6 +86,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   j=0;
 
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
+  TEST_REG_PASSWORD_ENABLE = TRUE;
 
   if (safe_mode == FALSE)
   {
@@ -165,7 +167,7 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
     case 19:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_user,(void*)nb_current_test,0,0);break;
     case 20:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_userassist,(void*)nb_current_test,0,0);break;
     case 21:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_mru,(void*)nb_current_test,0,0);break;
-    case 22:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_password,(void*)nb_current_test,0,0);break;
+    case 22:TEST_REG_PASSWORD_ENABLE = TRUE;h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_password,(void*)nb_current_test,0,0);break;
     case 23:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_path,(void*)nb_current_test,0,0);break;
     case 24:h_thread_test[0]  = CreateThread(NULL,0,Scan_guide,(void*)nb_current_test,0,0);break;
     case 25:h_thread_test[0]  = CreateThread(NULL,0,Scan_antivirus,(void*)nb_current_test,0,0);break;
