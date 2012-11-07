@@ -2662,7 +2662,7 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
     \item[$\Square$] Effectuer un \textit{Dump} de la m\'emoire de l'utilisateur.
     \item[$\Square$] Effectuer une copie des disques bit-\`a-bit. 
     \item[$\Square$] V\'erifier l'int\'egrit\'e de l'image en effectuant un checksum SHA du disque original et de l'image.
-    \item[$\Square$] Ne pas \'eteindre la machine, la d\'econnecter de tout r\'eseau.
+    \item[$\Square$] Ne pas \'eteindre la machine, la d\'econnecter de tout r\'eseau en cas de risques de compromissions.
     \item[$\Square$] En cas de disque chiffr\'e, r\'ecup\'erer la cl\'ee de d\'echiffrement et le type de solution utilis\'ee. 
 \end{description}
 
@@ -2724,7 +2724,7 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 \fl{\textbf{raw2vmdk}\\\url{http://sourceforge.net/projects/raw2vmdk}}{Permet la cr\'eation rapide d'un lien \`a partir d'un disque RAW vers un VMDK (plus besoin de convertir le disque).}{1.2cm}
 \fl{\textbf{P2 eXplorer}\\\url{http://www.paraben.com/programs/download.php?f=p2x.exe}}{Permet l'ouverture d'un grand nombre de format d'image sans modification.}{1.2cm}
 
-\fl{\textbf{TestDisk + PhotoRec}\\\url{http://www.cgsecurity.org}}{Recherche de partition et fichier effac\'es (FAT, NTFS, EXT2/EXT3, HFS+).
+\fl{\textbf{TestDisk + PhotoRec}\\\url{http://www.cgsecurity.org}}{Recherche de partitions et fichiers effac\'es (FAT, NTFS, EXT2/EXT3, HFS+).
 Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_Formats_Recovered_By_PhotoRec}}{1.2cm}
 \fl{\textbf{Windows File Analyzer}\\\url{http://www.mitec.cz/wfa.html}}{Analyseur de fichiers : Thumbs.db, prefetch, raccourcis, Index.DAT et corbeille.}{0.8cm}
 
@@ -2764,7 +2764,10 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \textbf{Nom/URL} & \textbf{Description} \\
 \hline
 \fl{\textbf{Clam Antivirus}\\\url{http://www.clamav.net}}{Antivirus en ligne de commande fonctionnant sur un grand nombre de syst\`emes.}{0.8cm}
-\fl{\textbf{VirusTotal}\\\url{http://www.virustotal.com}}{Analyse de fichier en ligne par un grand nombre d'antivirus. Application Windows : \url{http://www.virustotal.com/vtsetup.exe}}{0.8cm}
+\fl{\textbf{VirusTotal}\\\url{http://www.virustotal.com}\\
+\textbf{Bit9 FileAdvisor}\\
+\url{https://fileadvisor.bit9.com}
+}{Analyse de fichier en ligne par un grand nombre d'antivirus. Application Windows : \url{http://www.virustotal.com/vtsetup.exe}}{1.5cm}
 \end{tabular}
 }\vskip+0.4cm
 
@@ -2825,7 +2828,6 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \fl{\textbf{Rifiuti}\\\url{http://www.mcafee.com/us/downloads/free-tools/rifiuti.aspx}}{Fichier corbeille}{1.2cm}
 \fl{\textbf{RecycleReader}\\\url{http://www.live-forensics.com/dl/RecycleReader.zip}}{Fichier corbeille}{1.2cm}
 \fl{\textbf{Vinetto}\\\url{http://sourceforge.net/projects/vinetto/}}{Thumbs.db}{1.2cm}
-\fl{\textbf{XPDF}\\\url{http://www.foolabs.com/xpdf/}}{Fichier PDF}{0.8cm}
 \fl{\textbf{Exif}\\\url{http://araskin.webs.com/exif/exif.html}}{Pluggin Firefox/thunderbird, pour extraction des informations des fichier Exif d'index d'appareil num\'erique (exemple : photos)}{1.2cm}
 \fl{\textbf{Meta-extractor}\\\url{http://meta-extractor.sourceforge.net/}}{Fichiers image, BMP, GIF, JPEG et TIFF}{1.2cm}
 \fl{\textbf{Hachoir}\\\url{https://bitbucket.org/haypo/hachoir/wiki/Home}}{Librairie Python pour extraire les m\'etadonn\'ees : Vid\'eos, musiques, images, archives ZIP, TAR, PDF, torrent, HTML}{1.2cm}
@@ -2887,7 +2889,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \end{itemize}
 }
 {
-\textbf{Sauvegarde d'un disque bit \`a bit : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/fichier\_resultat.raw}\\
+\textbf{Sauvegarde d'un disque bit \`a bit : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/fichier\_resultat.raw conv=noerror,sync}\\
 \textbf{Sauvegarde du MBR d'un disque : } {\sl \color{blue}dd if=/dev/sdc of=/media/sav/mbr.raw bs=512 count=1}\\
 \textbf{Sauvegarde de la m\'emoire RAM : } {\sl \color{blue}dd if=/dev/mem of=/media/sav/fichier\_resultat.raw}\\
 \textbf{Sauvegarde de la liste des processus et \'etat : } {\sl \color{blue}tar cvjf proc.tar.bz2 /proc}\\
@@ -2971,8 +2973,8 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 
 \vskip+0.2cm
 \textbf{Copie du disque dur bit \`a bit :}\\
-\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour un disk-buffer de 4mo  (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
-{\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw bs=4096}
+\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour une taille de secteur de 4096, peut \^etre \'etendu \`a la taille de buffer du disque (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
+{\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw bs=4096 conv=noerror,sync}
 
 \vskip+0.2cm
 \textbf{Checksum du disque :}\\
@@ -2995,7 +2997,8 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 Sous Linux plusieurs outils existent :
 \begin{itemize}
 \item Dislocker : \url{http://www.hsc.fr/ressources/outils/dislocker/index.html}
-\item NVbit : \url{http://www.nvlabs.in/archives/1-NVbit-Accessing-Bitlocker-volumes-from-linux.html}
+\item libbde (lib et outils) : \url{http://code.google.com/p/libbde/}
+\item Proof Of Concept NVbit : \url{http://www.nvlabs.in}
 \end{itemize}
 
 \vskip+0.2cm
@@ -3137,6 +3140,8 @@ Copier un fichier \`a partir/vers du serveur FTP : {\color{blue}get monbeaufichi
 	\item MetaGooFil : \url{http://www.edge-security.com/metagoofil.php}
 	\item Vos traces sur Google : \url{https://www.google.com/settings/ads/onweb/}
 \end{itemize}
+\vskip+0.2cm
+{\color{red}Attention un grand nombre de \textit{dorks} ne sont plus fonctionnelles sur google.}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Hping}{hping.jpg}{
@@ -3563,7 +3568,7 @@ Mimikatz 		& Injection DLL 		& AD+local 						& Tous 	& \url{http://www.gentilki
 Pwdump6/Fgdump & Injection DLL 		& AD+local 						& Tous 	& \url{http://www.foofus.net/fizzgig/}\\
 Pwdump7			& Injection DLL 		& AD+local+CacheDump			& Tous 	& \url{http://www.tarasco.org/security/pwdump_7/}\\\rowcolor[gray]{.9}
 WCE 				& M\'emoire				& Kerberos+CacheDump +actuel & Tous & \url{http://www.ampliasecurity.com/research.html}\\
-SAMDump2/Bkhive Ophcrack& Registre				& local							& XP,2003,Vista			& \url{http://sourceforge.net/projects/ophcrack/}\\\rowcolor[gray]{.9}
+SAMDump2/Bkhive Ophcrack& Registre				& local							& Tous \`a partir de la v3			& \url{http://sourceforge.net/projects/ophcrack/}\\\rowcolor[gray]{.9}
 ntds\_dump\_hash ntdsxtract& NTDIS.DIT			& AD+CacheDump					& 2003,2008					& \url{http://www.ntdsxtract.com/}\\
 \end{tabular}
 \vskip +0.5cm
@@ -4098,8 +4103,8 @@ pour activer le SHA : \textbf{/etc/pam.d/common-password}}
 \vskip-0.1cm
 \textbf{Mises \`a jour :}
 \begin{description}
-	\item[$\Square$] V\'erifier la version du noyaux. 
-{\sl \color{blue}\textbf{uname -arv}}
+	\item[$\Square$] V\'erifier la version du noyaux, distribution. 
+{\sl \color{blue}\textbf{uname -arv}} ou {\sl \color{blue}\textbf{lsb\_release -a}}
 
 	\item[$\Square$] V\'erifier les version des logiciels et paquets. 
 {\sl \color{blue}Liste des applications : \textbf{rpm -qai}, \textbf{pkginfo}, \textbf{dpkg -l}}
@@ -5161,9 +5166,9 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			\hline
 			\rowcolor[gray]{.9} \textbf{Commandes utiles}\\\hline
 			\MbFCmd{0.7cm}
-			{Version du noyau, dur\'ee et charge syst\` eme :}
+			{Noyau, distribution, dur\'ee et charge syst\` eme :}
 			{
-				uname -arv, uptime
+				uname -arv, lsb\_release -a, uptime
 			}\\
 			\MbFCmd{0.7cm}
 			{\'Etat de la m\'emoire :}
@@ -6244,6 +6249,7 @@ PROXYPASS=}\\
 {
 \textbf{Mise \`a jour de la base :}  {\sl \color{blue}nikto -update}\\
 \textbf{V\'erifier la base :}  {\sl \color{blue}nikto -dbcheck}\\
+\textbf{Tous les tests :} {\sl \color{blue}nikto -Cgidirs all -host http://www.google.fr}\\
 \textbf{D\'ecouverte seule des services HTTP/HTTPS avec l'ent\^ete de connexion :}\\
 \textit{La cible peut \^etre une IP, URL, un fichier ou un flux (exemple NMAP).}\\
 {\sl \color{blue}nikto -h www.google.fr -findonly}\vskip+0.1cm
@@ -6261,7 +6267,7 @@ PROXYPASS=}\\
 \textbf{Test de vuln\'erabilit\'e sur le port 443 :}\\
 {\sl \color{blue}nikto -h www.google.fr -p 443} ou {\sl \color{blue}nikto -h https://www.google.fr:443/}\vskip+0.1cm
 
-\textbf{Test de vuln\'erabilit\'e sans tester en SSL, sans faire les tests de pages non trouv\'ees 404, en effectuant un test toutes les 5 secondes :}\\
+\textbf{Test de vuln\'erabilit\'e sans tester en SSL, sans faire les tests de pages non trouv\'ees 404, en effectuant un test toutes les 5 secondes :} 
 {\sl \color{blue}nikto -h www.google.fr -nossl -no404 -Pause 5}\vskip+0.1cm
 
 \textbf{Test de vuln\'erabilit\'e sur plusieurs ports 80, 443 :}  {\sl \color{blue}nikto -h www.google.fr -p 80,443}\vskip+0.1cm
@@ -6309,11 +6315,11 @@ x - exclue les tests suivants}\\
 \\Outil (Windows, Unix/Linux et MacOS) d'exploration r\'eseau et scanneur de ports/s\'ecurit\'e (utilise la lib Pcap), il permet d'effectuer du SYN scan, du scan de machine par rebond, d'identifier les services\dots{}
 }
 {
-\textit{Scan par ping \textbf{(-sP)} ou sans \textbf{(-P0)}, par d\'efaut le scan de port se fait en \textbf{vanilla TCP connect} sur les ports les plus utilis\'es (1697 ports). On peut aussi effectuer un scan sur un seul port \textbf{(-p num\_port}). L'option \textbf{(-vv)} permet d'activer les informations de d\'eroulement. \textbf{(-oX)} permet d'enregistrer les informations au format XML, le fichier de style pour le rendu \'etant dans le r\'epertoire Nmap \textbf{(nmap.xsl)}.}\\
+\textit{Scan par ping \textbf{(-sP)} ou sans \textbf{(-Pn)}, par d\'efaut le scan de port se fait en \textbf{vanilla TCP connect} sur les ports les plus utilis\'es (1697 ports). On peut aussi effectuer un scan sur un seul port \textbf{(-p num\_port}). L'option \textbf{(-vv)} permet d'activer les informations de d\'eroulement. \textbf{(-oX)} permet d'enregistrer les informations au format XML, le fichier de style pour le rendu \'etant dans le r\'epertoire Nmap \textbf{(nmap.xsl)}.}\\
 \textbf{D\'ecouvrir les machines du r\'eseau :}\\
 {\sl \color{blue}nmap -vv -sP 192.168.0.1-254}\\
-{\sl \color{blue}nmap -vv -P0 -p 25,80 192.168.0.1-254}\\
-{\sl \color{blue}nmap -vv -P0 192.168.0.1-254 -oX FichierResultat.xml}\vskip +0.15cm
+{\sl \color{blue}nmap -vv -Pn -p 25,80 192.168.0.1-254}\\
+{\sl \color{blue}nmap -vv -Pn 192.168.0.1-254 -oX FichierResultat.xml}\vskip +0.15cm
 
 \textit{On peut aussi d\'efinit le time-out de d\'etection ainsi que le temps d'incr\'ementation du prob \textbf{(-T Insane/Agressive/\dots{})}, tenter de d\'etecter le syst\`eme d'exploitation \textbf{(-AR)}, et d\'efinir les ports \`a scanner \textbf{(-p 1-50 ou -p- pour les 65535 ports)} .}\\
 \textbf{Scan de port en mode connect\'e : } {\sl \color{blue}nmap -vv -T Insane -AR -p- 192.168.0.1-254}\vskip +0.15cm
@@ -6323,13 +6329,13 @@ x - exclue les tests suivants}\\
 {\sl \color{blue}nmap -vvv -p- -sV 192.168.0.1-254 -oX FichierResultat.xml}\\
 ou\\
 {\sl \color{blue}nmap -vv -sV -sR -sS -sU -p10-500 192.168.0.1-254 -oX FichierResultat.xml}\\
-{\sl \color{blue}nmap -vvv -P0 -sVRSU -p- 192.168.0.1 -oX FichierResultat.xml}\vskip +0.15cm
+{\sl \color{blue}nmap -vvv -Pn -sVRSU -p- 192.168.0.1 -oX FichierResultat.xml}\vskip +0.15cm
 
 \textit{Dans le cas de test de firewall, IDS, IPS, on peut effectuer un scan de port par rebond \textbf{(-sI~IP\_Zombie:Port\_non\_filtr\'e~IP\_Cible)}, rebond par serveur FTP \textbf{(-b IP\_Serveur\_FTP IP\_Cible)}, en fragmentant les paquets \textbf{(-f)}. \textbf{(-PN)} permet de d\'esactiver la r\'esolution de nom (plus furtif). L'option \textbf{({-}{-}packet-trace)} permet de tracer le scan. Attention pour Unix/Linux il faut indiquer pour certains des tests l'interface r\'eseau \textbf{(-e eth0)}}\\
 \textbf{Scan de ports pour Firewall/IDS/IPS : }\\
 {\sl \color{blue}nmap -PN -p- -sI 192.168.0.100 192.168.0.1}\\
 {\sl \color{blue}nmap -PN -p 139 {-}{-}packet-trace -sI 192.168.0.100:50000 192.168.0.1}\\
-{\sl \color{blue}nmap -PN -P0 -p 139 -b 192.168.0.100 192.168.0.1}\vskip +0.15cm
+{\sl \color{blue}nmap -PN -Pn -p 139 -b 192.168.0.100 192.168.0.1}\vskip +0.15cm
 
 \textbf{FTP bounce attack (Attaque par rebond) :}\\
 \textit{Cet attaque consiste \`a utiliser un serveur FTP anonyme (imprimante, serveur\dots{}) comme relais pour se connecter \`a d'autres serveurs FTP ou effectuer des scannes de ports.}\\
@@ -6517,6 +6523,39 @@ en sp\'ecifiant le port (-P) et en d\'esactivant le test des comptes par d\'efau
 
 \textbf{Pour visualiser le resultat :}\\
 {\sl \color{blue}reportviewer oscanner\_192\_168\_0\_1\_report.xml}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{OpenVAS}{openvas.png}
+{
+\small
+\url{http://www.openvas.org}\\
+\url{http://doc.ubuntu-fr.org/openvas}
+}
+{
+\\Open Source vulnerability scanner and manager (OpenVAS) est un framework bas\'e sur la derni\`ere version Open Source de Nessus. 
+Il est compos\'e d'une partie serveur effectuant les tests et d'une partie cliente permettant de configurer le serveur et d'en extraire les donn\'ees.
+}
+{
+\textbf{Installation :}\\
+{\sl \color{blue}apt-get install openvas-server openvas-client}\vskip+0.1cm
+
+\textit{Cr\'eation d'un utilisateur :}\\
+{\sl \color{blue}openvas-adduser}\vskip+0.1cm
+
+\textit{Mise \`a jour de la base de pluggins :}\\
+{\sl \color{blue}openvas-nvt-sync}\\
+
+\textbf{Utilisation :}\vskip+0.1cm
+\textit{Lancer le serveur :}\\
+{\sl \color{blue}sudo service openvas-server start}\vskip+0.1cm
+
+\textit{Lancer le client :}\\
+{\sl \color{blue}openvas-client }\\
+
+\textbf{Remarques :}\\
+L'impact du scanner sur une cible est le multiple du nombre de thread (ex\'ecution de test symultan\'ee) et de la criticité des pluggins.\\
+Il est donc fortement recommand\'e de limiter le nombre de thread \`a 10 et de d\'esactiver tous les tests de type DOS. 
+De plus, afin de limiter la dur\'ee des tests, il est important de s\'electionner exclusivement les pluggins en rapport avec les tests et de suivre l\'etat des tests (permet d'identifier des probl\`emes en cas de faiblesse des cibles).
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Oracle}{oracle.png}
@@ -6744,12 +6783,12 @@ Fin du document\\
 }
 {
 \textbf{peepdf}\addcontentsline{toc}{subsubsection}{peepdf}\\
-\textit{Analyse de la strcuture de fichier PDF, la commande (-i) interactive permet une exploitation direct plus fine.}\\
+\textit{Analyse de la structure de fichier PDF, la commande (-i) interactive permet une exploitation direct plus fine.}\\
 \url{http://eternal-todo.com/tools/peepdf-pdf-analysis-tool}\\
 Extraction en ignorant les erreurs : {\sl \color{blue}./peedpdf.py -f <fichier.pdf>}\vskip+0.2cm
 
-\textbf{pdfextrtact}\addcontentsline{toc}{subsubsection}{pdfextrtact}\\
-\textit{Du frameworks Origami codé en tuby, extraction d'objets d'un PDF (image, texte, scripts, polices) :}\\
+\textbf{pdfextract}\addcontentsline{toc}{subsubsection}{pdfextract}\\
+\textit{Du frameworks Origami codé en ruby, extraction d'objets d'un PDF (image, texte, scripts, polices) :}\\
 \url{http://code.google.com/p/origami-pdf/}\\
 {\sl \color{blue}pdfextract <fichier.pdf>}\vskip+0.2cm
 
@@ -6764,6 +6803,12 @@ Extraction en ignorant les erreurs : {\sl \color{blue}./peedpdf.py -f <fichier.p
 \textbf{graphicsmagick-imagemagick-compat}\\
 \textit{Assemble, convertit des images vers du PDF.\\ Sous syst\`emes Debian apt-get install graphicsmagick-imagemagick-compat}\\
 {\sl \color{blue}convert -compress jpeg * <fichier.pdf>}\vskip+0.2cm
+
+\textbf{pdfsam}\\
+\textit{Permet la conversion et la concat\'enation de document pdf de mani\`ere graphique.}\vskip+0.2cm
+
+\textbf{PDFmod}\\
+\textit{Permet la rotation de page, suppression ou ajout.}\vskip+0.2cm
 
 \textbf{Documentation}
 \begin{itemize}
@@ -6864,7 +6909,7 @@ Les droits administrateurs sont requis.
 {\sl \color{blue}bkhive /mnt/sda2/windows/system32/config/system syskey}\vskip +0.2cm
 \addcontentsline{toc}{subsubsection}{Samdump2}
 \textit{Exclusivement pour les syst\`emes Windows XP/2003 et antérieurs.}\\
-\textbf{Utilisation de samdump2 pour cr\'eer un fichier pour john ou Ophcrack pour trouver les mots de passe.}\\
+\textbf{Utilisation de samdump2 (\`a partir de la v3 apr\`es XP) pour cr\'eer un fichier pour john ou Ophcrack pour trouver les mots de passe.}\\
 {\sl \color{blue}samdump2 /mnt/sda2/windows/system32/config/sam syskey.txt}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -7112,7 +7157,7 @@ send(p)}\vskip+0.1cm
 \begin{enumerate}
 	\item \textbf{Identifier le type et la version du serveur :}
 	\begin{itemize}
-		\item Avec Telnet :
+		\item Avec Telnet ou ncat :
 	{\sl \color{blue}
 	telnet 192.168.0.1 80\\
 	HEAD / HTTP/1.0 <ENTREE><ENTREE>
@@ -7128,7 +7173,7 @@ send(p)}\vskip+0.1cm
 		\item Avec Httprint, par statistique sur la r\'eponse : 
 	{\sl \color{blue}httprint -h http://www.google.fr -s signature.txt}
 		\item Par technologie : ASP.NET = IIS
-		\item Par Internet : \url{http://toolbar.netcraft.com/site_report?url=http://www.google.fr}
+		\item Par historique Internet : \url{http://toolbar.netcraft.com/site_report?url=http://www.google.fr}
 	\end{itemize}
 
 	\item \textbf{Identification de la plate forme utilis\'ee (CMS et Langage) :}
@@ -7144,10 +7189,10 @@ send(p)}\vskip+0.1cm
 	\item \textbf{Identification des failles li\'ees \`a la plateforme :}
 	\begin{itemize}
 		\item Recherche de vuln\'erabilit\'e automatique utilisant nmap, metasploit (et Armitage).
+			Pour WordPress, Joomla : \url{http://wpscan.org}, \url{http://blog.pepelux.org/2012/07/15/joomlascan-v1-4/}
 		\item Recherche dans la base des vuln\'erabilit\'es de \textbf{exploit-db} :\\
 	\url{http://www.exploit-db.com/archive.tar.bz2}
-		\item en utilisant Metasploit :\\
-		\url{http://www.metasploit.com/redmine/projects/framework/wiki/WMAP}
+		\item en utilisant Metasploit : \url{http://www.metasploit.com/redmine/projects/framework/wiki/WMAP}
 	\end{itemize}
 
 	\item \textbf{Cartographie du site :}
@@ -7157,22 +7202,18 @@ send(p)}\vskip+0.1cm
 		\item Spider simple / avec dictionnaire :\\
 		Dirbuster : \url{http://sourceforge.net/projects/dirbuster/}\\
 		Burp suite : \url{http://portswigger.net/suite/}\\
-		Wfuzz : \url{http://code.google.com/p/wfuzz/}\\
-		WebScarab : \url{http://www.owasp.org/index.php/Category:OWASP_WebScarab_Project}\\
+		Zap : \url{http://code.google.com/p/zaproxy/}\\
 		Wikto : \url{http://www.sensepost.com/research/wikto/}
 	\end{itemize}
 
 	\item \textbf{V\'erification des m\'ethodes et technologies de transfert d'informations :}
 	\begin{itemize}
 		\item V\'erifier que ces m\'ethodes soient d\'esactiv\'ees : {\sl \color{blue}OPTIONS, PUT, CONNECT, DELETE et TRACE} %ou JEFF CATS FOOBAR
-		\item Utilisation d'un proxy HTTP/HTTPS : WebScarab
-		\item Utilisation d'un navigateur internet : Firefox\\
-		\textit{Configurer le navigateur pour qu'il utilise le proxy : \\
-					Menu Outils->Options\dots{}->Avanc\'e->R\'eseau->Param\`etres\dots{}\\
-					Il suffit maintenant d'effectuer une navigation sur le site pour identifier les technologies.}
+		\item Utilisation d'un proxy HTTP/HTTPS : Zap ou Burp
 		\item Par d\'efaut un URL de type \url{http://www.google.fr/search?hl=fr&q=test} montre l'utilisation de m\'ethode GET (param\`etres s\'epar\'es par \&).
 		\item V\'erifier les fichier de style (CSS), javascripts (JS), et d\'efaut (phpinfo.php, /admin:\dots{}).
 		\item V\'erifier la verbosit\'e des messages d'erreur.\\
+		\item \dots{}
 	\end{itemize}
 \end{enumerate}
 }
@@ -7723,7 +7764,8 @@ Il suffit d'envoyer un mail contenant du code HTML qui pointe vers un site web m
 \textit{Lecture d'informations (ici sur la machine \textit{192.168.1.1}, avec le nom de communaut\'e \textit{public}).}\\
 	\textbf{SnmpWalk : (sous Linux)}\\ 
    \url{http://www.net-snmp.org/docs/man/snmpwalk.html} \addcontentsline{toc}{subsubsection}{Snmpwalk}\\
-   {\sl \color{blue}snmpwalk -c public 192.168.0.1}\vskip +0.1cm
+   {\sl \color{blue}snmpwalk -c public 192.168.0.1}
+   Avec la version v1 {\sl \color{blue}snmpwalk -v1 -c public 192.168.0.1}\vskip +0.1cm
 \textit{Repr\'esentation et visionnage SNMP du r\'eseau.}\\
 	\textbf{CiscoSnmpTool :}\\   
 	\url{http://www.download3k.com/DownloadLink1-Cisco-Snmp-Tool.html}\vskip +0.1cm
@@ -8394,6 +8436,55 @@ Ou 63 sectors * 512 = 32256.}\\
 {\sl \color{blue}mount /dev/loop0 /mnt}\vskip+0.2cm
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{VMware CLI ESX}{vmware.png}
+{
+\url{http://pubs.vmware.com/vsphere-51/index.jsp?topic=/com.vmware.vcli.getstart.doc/cli_about.html}\\
+\url{http://www.virtual-node.net/}
+}
+{
+\\Les commandes suivantes sont utilisé afin de configurer directement en ligne de commande un serveur VMware.
+}
+{
+\textbf{Lecture de la configuration}\\
+Informations sur la configuration du serveur : {\sl \color{blue}esxcfg-info}\vskip+0.1cm
+Version de VMware : {\sl \color{blue}vmware -l}\vskip+0.1cm
+Afficher les partitions : {\sl \color{blue}vdf -h}\vskip+0.1cm
+Liste des modules charg\'es au d\'emarrage : {\sl \color{blue}esxcfg-module -l}\vskip+0.1cm
+\'Etat global du syst\`eme : {\sl \color{blue}esxtop}\vskip+0.1cm 
+Liste des services et leurs \'etats : {\sl \color{blue}service {-}{-}status-all}, {\sl \color{blue}chkconfig {-}{-}list}\vskip+0.1cm 
+Liste des correctifs install\'es : {\sl \color{blue}esxupdate query}\vskip+0.1cm 
+Liste des drivers et versions install\'es : {\sl \color{blue}esxupdate query {-}{-}vib-view}\\
+
+\textbf{Administration}
+Modifier la s\'equence de d\'emarrage : {\sl \color{blue}esxcfg-boot}\vskip+0.1cm
+Configuration d'ESX : {\sl \color{blue}esxcfg-advcfg}\vskip+0.1cm
+Configuration de l'authentification : {\sl \color{blue}esxcfg-auth}\vskip+0.1cm
+Gestion des modules ESX : {\sl \color{blue}esxcfg-module}\vskip+0.1cm
+Gestion des extensions ESX : {\sl \color{blue}esxcfg-addons}\vskip+0.1cm
+Modifier l'heure : {\sl \color{blue}date MMDDhhmmYYYY}\vskip+0.1cm
+Synchroniser l'heure du BIOS avec ESX : {\sl \color{blue}hwclock -systohc}\vskip+0.1cm
+Mise \`a jour d'ESX : {\sl \color{blue}esxcfg-upgrade}\\
+
+\textbf{Administration - compl\'ements}\\
+Mode de maintenance :
+\begin{itemize}
+	\item Activer : {\sl \color{blue}vimsh -n -e /hostsvc/maintenance\_mode\_enter}
+	\item D\'esactiver : {\sl \color{blue}vimsh -n -e /hostsvc/maintenance\_mode\_exit}	
+\end{itemize}
+
+G\'eneration d'un journal pour le support VMware : {\sl \color{blue}vm-support}\vskip+0.1cm
+Transcription des codes d'erreur en description : {\sl \color{blue}vmkerrcode <code>}\vskip+0.1cm
+
+Services standards de VMware :
+\begin{itemize}
+	\item {\sl \color{blue}mgmt-vmware} (Serveur hôte)
+	\item {\sl \color{blue}vmware-hostd} (Serveur hôte)
+	\item {\sl \color{blue}vmware-vmkauthd} (Authentification) 
+	\item {\sl \color{blue}vmware-vpxa} (Agent vCenter) 
+	\item {\sl \color{blue}vmware-webAccess} (Interface Web)
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{VPN}{openvpn.png}
 {
 \url{http://openvpn.net}\\
@@ -8759,6 +8850,7 @@ Depuis la cr\'eation des syst\`emes d'exploitation graphique de Microsoft la bas
 \item \textbf{Digital Forensics Framework} : \url{http://www.digital-forensic.org}
 \item \textbf{Regviewer} : \url{http://sourceforge.net/projects/regviewer/}
 \item \textbf{Registry decoder} : \url{http://code.google.com/p/registrydecoder/}
+\item \textbf{RegRipper} : \url{http://regripper.wordpress.com}
 \end{itemize}
 \vskip+0.2cm
 \textbf{Liste d'informations disponibles dans le registre (non exaustif) :}
@@ -8869,12 +8961,20 @@ Il existe deux formats de fichiers d'audit sous syst\`emes Windows : Evt (versio
 \end{itemize}
 
 \vskip+0.4cm
+\textbf{Ressources :}
+\begin{itemize}
+	\item Récapitulatif des id de journaux : \url{http://www.ultimatewindowssecurity.com/securitylog/quickref/Default.aspx}
+\end{itemize}
+
+\vskip+0.4cm
 \textbf{Outils :}
 \begin{itemize}
 	\item MyEventViewer : \url{http://www.nirsoft.net/utils/my_event_viewer.html}
 	\item SearchEvent/Filter Events : \url{http://ctxadmtools.musumeci.com.ar/}
+	\item EvtLogParser : \url{http://martin77s.wordpress.com/2010/01/16/evtlogparser/}
 	\item EvtxParser : \url{http://computer.forensikblog.de/files/evtx/Parse-Evtx-current.zip}
-	\item RtCA : \url{http://omnia-projetcs.googlecode.com/svn/trunk/RtCA/RtCA.exe}
+	\item Revealer Toolkit (evtparse.pl et evtrpt.pl) permet de faire des statistiques :\\ \url{http://code.google.com/p/revealertoolkit/}
+	\item RtCA : \url{http://omnia-projetcs.googlecode.com}
 \end{itemize}
 
 \vskip+0.4cm
