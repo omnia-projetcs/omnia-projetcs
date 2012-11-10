@@ -198,7 +198,7 @@ DWORD WINAPI Scan_task(LPVOID lParam)
     {
       do
       {
-        if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.') || data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){}
+        if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.') || (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){}
         else
         {
           strncpy(tmp_file_job,path,MAX_PATH);

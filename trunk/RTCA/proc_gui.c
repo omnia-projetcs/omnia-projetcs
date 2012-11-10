@@ -187,16 +187,17 @@ HTREEITEM AddItemTreeView(HANDLE Htreeview,char *txt, HTREEITEM hparent)
   tvinsertitem.item.pszText = txt;
   return (HTREEITEM)SendMessage(Htreeview,TVM_INSERTITEM ,(WPARAM) 0, (LPARAM)&tvinsertitem);
 }
+
 //------------------------------------------------------------------------------
-HTREEITEM AddItemTreeViewTest(HANDLE Htreeview,char *txt, HTREEITEM hparent, unsigned int id)
+HTREEITEM AddItemTreeViewImg(HANDLE Htreeview, char *txt, HTREEITEM hparent, unsigned int index_img)
 {
-  TV_INSERTSTRUCT tvinsertitem;
-  tvinsertitem.hParent        = hparent;
-  tvinsertitem.hInsertAfter   = TVI_ROOT;
-  tvinsertitem.item.mask      = TVIF_TEXT | TVIF_PARAM;
-  tvinsertitem.item.pszText   = txt;
-  tvinsertitem.item.lParam    = id;
-  return (HTREEITEM)SendMessage(Htreeview,TVM_INSERTITEM ,(WPARAM) 0, (LPARAM)&tvinsertitem);
+  TV_INSERTSTRUCT tvitem;
+  tvitem.hParent = hparent;
+  tvitem.hInsertAfter = TVI_ROOT;
+  tvitem.item.mask = TVIF_TEXT|TVIF_IMAGE|TVIF_SELECTEDIMAGE;
+  tvitem.item.pszText = txt;
+  tvitem.item.iImage=tvitem.item.iSelectedImage=index_img;
+  return (HTREEITEM)SendMessage(Htreeview, TVM_INSERTITEM,(WPARAM)0, (LPARAM)&tvitem);
 }
 //------------------------------------------------------------------------------
 //check treeview items state
@@ -291,16 +292,28 @@ void AddComboBoxItem(HANDLE hcombo, char *txt, DWORD img)
   SendMessage(hcombo,CBEM_INSERTITEM,0,(LPARAM)&item);
 }
 //-----------------------------------------------------------------------------
-void IDM_STAY_ON_TOP_fct(HANDLE hm)
+void IDM_STAY_ON_TOP_fct()
 {
   STAY_ON_TOP = !STAY_ON_TOP;
   if (STAY_ON_TOP)
   {
-    SetWindowPos(hm,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-    CheckMenuItem(GetMenu(hm),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_CHECKED);
+    SetWindowPos(h_main     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_process  ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_sniff    ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_reg_file ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_reg      ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_date     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+
+    CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_CHECKED);
   }else
   {
-    SetWindowPos(hm,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-    CheckMenuItem(GetMenu(hm),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
+    SetWindowPos(h_main     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_process  ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_sniff    ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_reg_file ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_reg      ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_date     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+
+    CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
   }
 }

@@ -35,6 +35,13 @@
 
 #define MY_ACCEL                  200
 //******************************************************************************
+#define ICON_DIRECTORY_REG        0x00
+#define ICON_FILE_REG             0x01
+#define ICON_FILE_BIN_REG         0x02
+#define ICON_FILE_DWORD_REG       0x03
+#define ICON_FILE_TXT_REG         0x04
+#define ICON_FILE_UNKNOW_REG      0x05
+//******************************************************************************
 //debug mode dev test
 //#define DEV_DEBUG_MODE              1
 //enable log file of sqlite
@@ -122,7 +129,7 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process, h_sniff;
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date;
 
 BOOL disable_m_context, disable_p_context;
 
@@ -170,6 +177,8 @@ unsigned int nb_column_process_view;
 #define POPUP_LINK                  5013
 #define POPUP_LSTV_SNIFF            5014
 #define DLG_CONF_INTERFACE          5015
+#define POPUP_TV_REGISTRY           5016
+#define POPUP_LSTV_REGISTRY         5017
 
 #define DLG_SNIFF_STATE_PAQUETS_NB_COLUMN  7
 #define DLG_SNIFF_STATE_FILTER_NB_COLUMN   7
@@ -179,6 +188,53 @@ unsigned int nb_column_process_view;
 #define FILTER_IP_DST               1
 #define FILTER_PORT_SRC             2
 #define FILTER_PORT_DST             3
+
+BOOL reg_file_start_process;
+#define DLG_REGISTRY_EXPLORER_FILE  6000
+#define DLG_REG_ED_NTUSER           6001
+#define DLG_REG_ED_SAM              6002
+#define DLG_REG_ED_SECURITY         6003
+#define DLG_REG_ED_SOFTWARE         6004
+#define DLG_REG_ED_SYSTEM           6005
+#define DLG_REG_ED_OTHER            6006
+#define DLG_REG_BT_NTUSER           6010
+#define DLG_REG_BT_SAM              6011
+#define DLG_REG_BT_SECURITY         6012
+#define DLG_REG_BT_SOFTWARE         6013
+#define DLG_REG_BT_SYSTEM           6014
+#define DLG_REG_BT_OTHER            6015
+#define BT_REG_RECOVERY_MODE_CHK    6020
+#define BT_REG_START                6021
+
+#define DLG_REGISTRY_EXPLORER_VIEW  6050
+#define BT_TREE_VIEW                6051
+#define TV_VIEW                     6052
+#define STB                         6053
+
+#define DLG_REG_LV_NB_COLUMN          8
+
+//date
+#define DLG_DATE                    7000
+#define DLG_DATE_EDT_HEX            7001
+#define DLG_DATE_EDT_DEC            7002
+#define DLG_DATE_BT_HEX             7003
+#define DLG_DATE_BT_DEC             7004
+#define DLG_DATE_CB_UTC             7005
+#define DLG_DATE_EDT2               7007
+#define DLG_DATE_EDT3               7008
+#define DLG_DATE_EDT4               7009
+#define DLG_DATE_EDT5               7010
+#define DLG_DATE_EDT6               7011
+#define DLG_DATE_EDT7               7012
+#define DLG_DATE_EDT8               7013
+#define DLG_DATE_EDT9               7014
+#define DLG_DATE_EDT10              7015
+#define DLG_DATE_EDT11              7016
+#define DLG_DATE_EDT12              7017
+#define DLG_DATE_EDT13              7018
+/*#define DLG_DATE_EDT14              7019
+#define DLG_DATE_EDT15              7020*/
+DWORD last_bt;
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -206,6 +262,7 @@ unsigned int nb_column_process_view;
 #define IDM_TOOLS_PROCESS       10104
 #define IDM_TOOLS_REG_EXPLORER  10105
 #define IDM_TOOLS_SNIFF         10106
+#define IDM_TOOLS_DATE          10107
 #define IDM_TOOLS_ANALYSER      10109
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
@@ -239,6 +296,7 @@ unsigned int nb_column_process_view;
 #define POPUP_A_SEARCH                        13004
 #define POPUP_COPY_TO_CLIPBORD                    8
 #define POPUP_CP_LINE                         13005
+#define POPUP_TV_CP_COMPLET_PATH              13006
 
 #define POPUP_I_00                            13010
 #define POPUP_I_01                            13011
@@ -444,7 +502,7 @@ typedef struct
 }LINE_ITEM;
 //------------------------------------------------------------------------------
 //for sort in lstv
-BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW;
+BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
 int column_tri;
 
 typedef struct SORT_ST
@@ -728,7 +786,7 @@ int current_item_selected;
 unsigned long int current_session_id;
 unsigned long int nb_session, session[NB_MAX_SESSION];
 
-DWORD pos_search;
+DWORD pos_search,pos_search_reg;
 //------------------------------------------------------------------------------
 //MD5
 #include "crypt/md5.h"
@@ -777,6 +835,8 @@ void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
 void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
 
 //usuals functions
+unsigned int ExtractTextFromPathNb(char *path);
+char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 void ReviewWOW64Redirect(PVOID OldValue_W64b);
 unsigned long int Contient(char*data,char*chaine);
 char *ReplaceEnv(char *var, char *path, unsigned int size_max);
@@ -825,15 +885,17 @@ void check_childs_treeview(HANDLE htrv, BOOL check);
 void check_treeview(HANDLE htrv, HTREEITEM hitem, int state);
 BOOL Ischeck_treeview(HANDLE htrv, HTREEITEM hitem);
 HTREEITEM AddItemTreeView(HANDLE Htreeview, char *txt, HTREEITEM hparent);
+HTREEITEM AddItemTreeViewImg(HANDLE Htreeview, char *txt, HTREEITEM hparent, unsigned int index_img);
 void GetItemTreeView(HTREEITEM hitem, HANDLE htrv,char *txt, unsigned int size);
 char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max);
 int GetTrvItemIndex(HTREEITEM hitem, HANDLE htrv);
 
 void AddtoToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
 void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
-void IDM_STAY_ON_TOP_fct(HANDLE hm);
+void IDM_STAY_ON_TOP_fct();
 
 //file function
+void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size);
 void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size);
@@ -851,10 +913,9 @@ long int ReadDwordValue(HKEY hk,char *path,char *value);
 void ReadFILETIMEValue(HKEY hk,char *path,char *value, FILETIME *ft);
 
 //registry function for raw files
+void AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 BOOL registry_syskey_local(char*sk, unsigned int sk_size);
 BOOL registry_users_extract(sqlite3 *db, unsigned int session_id);
-unsigned int ExtractTextFromPathNb(char *path);
-char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file);
 void CloseRegFiletoMem(HK_F_OPEN *hks);
 HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path);
@@ -878,6 +939,7 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
 DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD *data_size);
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                          unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);
+void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE hlv, HANDLE htv);
 
 //process
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size);
@@ -890,10 +952,16 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id);
 
+//reg file explorer
+void InitDlgRegfile();
+
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_reg_file(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 //subclass
 LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
