@@ -84,17 +84,84 @@ BEGIN
   CONTROL "Start"                   ,DLG_NS_BT_START              ,"Button",0x50010000| WS_TABSTOP,454,276,94,22
 END
 //------------------------------------------------------------------------------
-/*INFO_TRAME DIALOGEX 6,6,372,214
-CAPTION "Infos Trame"
-FONT 8,"Lucida Console",0,0 //font pour que chacun des caractère prène al même place
-STYLE 0x00CF0000
-EXSTYLE 0x00000088
+DLG_REGISTRY_EXPLORER_FILE DIALOGEX 6,6,230,115
+FONT 8,"Ms Shell Dlg 2",400,0,1
+STYLE 0x00CA0800
 BEGIN
-  CONTROL "",TREE_DONNEES,"SysTreeView32",0x50310003,0,0,372,214,0x00000200
-  CONTROL "",RE,"RichEdit20A",WS_CHILD | ES_LEFT | ES_MULTILINE | ES_WANTRETURN | WS_HSCROLL | WS_VSCROLL,106,1,442,258,0x00000200
+  CONTROL "",DLG_REG_ED_NTUSER    ,"Edit",0x50810080,2,1,148,13,0x00000200
+  CONTROL "",DLG_REG_ED_SAM       ,"Edit",0x50810080,2,16,148,13,0x00000200
+  CONTROL "",DLG_REG_ED_SECURITY  ,"Edit",0x50810080,2,31,148,13,0x00000200
+  CONTROL "",DLG_REG_ED_SOFTWARE  ,"Edit",0x50810080,2,46,148,13,0x00000200
+  CONTROL "",DLG_REG_ED_SYSTEM    ,"Edit",0x50810080,2,61,148,13,0x00000200
+  CONTROL "",DLG_REG_ED_OTHER     ,"Edit",0x50810080,2,79,148,13,0x00000200
 
+  CONTROL "Add NTUSER.DAT"  ,DLG_REG_BT_NTUSER    ,"Button",0x50010000,152,1,76,13,0x00000200
+  CONTROL "Add SAM"         ,DLG_REG_BT_SAM       ,"Button",0x50010000,152,16,76,13,0x00000200
+  CONTROL "Add SECURITY"    ,DLG_REG_BT_SECURITY  ,"Button",0x50010000,152,31,76,13,0x00000200
+  CONTROL "Add SOFTWARE"    ,DLG_REG_BT_SOFTWARE  ,"Button",0x50010000,152,46,76,13,0x00000200
+  CONTROL "Add SYSTEM"      ,DLG_REG_BT_SYSTEM    ,"Button",0x50010000,152,61,76,13,0x00000200
+  CONTROL "Add Other file"  ,DLG_REG_BT_OTHER     ,"Button",0x50010000,152,79,76,13,0x00000200
+
+  //check recovery mode !
+  CONTROL "Recovery mode"   ,BT_REG_RECOVERY_MODE_CHK,"Button",0x50010003,2,94,120,13
+
+  //start
+  CONTROL "Start"           ,BT_REG_START,"Button",0x50010000,130,94,80,13
 END
-*/
+//------------------------------------------------------------------------------
+DLG_REGISTRY_EXPLORER_VIEW DIALOGEX 6,6,230,115
+FONT 8,"Ms Shell Dlg 2",400,0,1
+STYLE 0x00CF0800
+BEGIN
+  CONTROL ""                ,ED_SEARCH            ,"Edit",0x50010080,4,216,112,13,0x00000200
+  CONTROL "Search"          ,BT_SEARCH            ,"Button",0x50010000,208,216,74,13
+  CONTROL "Tree view"       ,BT_TREE_VIEW         ,"Button",0x50010000,208,216,74,13
+  CONTROL ""                ,TV_VIEW              ,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER,4,3,226,233,0x00000200
+  CONTROL ""                ,LV_VIEW              ,"SysListView32",0x40810089,4,3,374,204,0x00000200
+  CONTROL ""                ,STB                  ,"msctls_statusbar32",0x50000000,0,219,378,12
+END
+//------------------------------------------------------------------------------
+DLG_DATE DIALOGEX 6,5,268,200//230
+CAPTION "IDD_DLG"
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CA0000
+BEGIN
+  CONTROL ""                                        ,DLG_DATE_EDT_HEX ,"Edit",0x50010000,2,1,96,13,0x00000200
+  CONTROL ""                                        ,DLG_DATE_EDT_DEC ,"Edit",0x50010000,2,16,96,13,0x00000200
+  CONTROL "Hex -> Date"                             ,DLG_DATE_BT_HEX  ,"Button",0x50010000,102,1,48,13
+  CONTROL "Dec -> Date"                             ,DLG_DATE_BT_DEC ,"Button",0x50010000,102,16,48,13
+  CONTROL ""                                        ,DLG_DATE_CB_UTC,"ComboBox",0x50210203,156,1,108,78
+
+  CONTROL "HEX :"                                   ,0,"Static",0x50000000,2,35,20,9
+  CONTROL ""                                        ,DLG_DATE_EDT2,"Edit",0x50010800,22,33,108,13,0x00000200
+  CONTROL "DEC :"                                   ,0,"Static",0x50000000,134,35,20,9
+  CONTROL ""                                        ,DLG_DATE_EDT3,"Edit",0x50010800,158,33,108,13,0x00000200
+
+  CONTROL "FileTime/Windows 64 bit (Little Endian) :",0,"Static",0x50000002,4,51,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT4,"Edit",0x50010800,142,49,124,13,0x00000200
+  CONTROL "FileTime/Windows 64 bit  (Big Endian) :" ,0,"Static",0x50000002,4,66,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT5,"Edit",0x50010800,142,64,124,13,0x00000200
+  CONTROL "time_t Unix 32 bit (Little Endian) :"    ,0,"Static",0x50000002,4,81,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT6,"Edit",0x50010800,142,79,124,13,0x00000200
+  CONTROL "time_t Unix 32 bit (Big Endian) :"       ,0,"Static",0x50000002,4,96,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT7,"Edit",0x50010800,142,94,124,13,0x00000200
+  CONTROL "Windows NT Time :"                       ,0,"Static",0x50000002,4,111,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT8,"Edit",0x50010800,142,109,124,13,0x00000200
+  CONTROL "Firefox :"                               ,0,"Static",0x50000002,4,126,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT9,"Edit",0x50010800,142,124,124,13,0x00000200
+  CONTROL "Unix Milisecond/Android :"               ,0,"Static",0x50000002,4,141,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT10,"Edit",0x50010800,142,139,124,13,0x00000200
+  CONTROL "MAC Absolute Time :"                     ,0,"Static",0x50000002,4,156,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT11,"Edit",0x50010800,142,154,124,13,0x00000200
+  CONTROL "HFS/HFS+ 32 bit (Big Endian) :"          ,0,"Static",0x50000002,4,171,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT12,"Edit",0x50010800,142,169,124,13,0x00000200
+  CONTROL "HFS/HFS+ 32 bit (Little Endian) :"       ,0,"Static",0x50000002,4,186,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT13,"Edit",0x50010800,142,184,124,13,0x00000200
+  /*CONTROL "MS-DOS 32 bit (Big Endian) :"            ,0,"Static",0x50000002,4,201,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT14,"Edit",0x50010800,142,199,124,13,0x00000200
+  CONTROL "MS-DOS 32 bit (Little Endian) :"         ,0,"Static",0x50000002,4,216,134,9
+  CONTROL ""                                        ,DLG_DATE_EDT14,"Edit",0x50010800,142,214,124,13,0x00000200*/
+END
 //------------------------------------------------------------------------------
 //main dialogue menu
 //------------------------------------------------------------------------------
@@ -141,8 +208,9 @@ BEGIN
     MENUITEM "Copy specific file"         ,IDM_TOOLS_CP_FILE
     MENUITEM SEPARATOR
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
-    MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
+    MENUITEM "Registry explHFS 32bit hex value big endianorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
+    MENUITEM "Decode date"                ,IDM_TOOLS_DATE
     MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
   END
@@ -315,4 +383,39 @@ BEGIN
       MENUITEM "Save view"                        ,POPUP_S_VIEW
       MENUITEM "Save Selection"                   ,POPUP_S_SELECTION
   END
+END
+//------------------------------------------------------------------------------
+POPUP_TV_REGISTRY MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_tv"
+    BEGIN
+      MENUITEM "Copy complet path"                 ,POPUP_TV_CP_COMPLET_PATH
+    END
+END
+//------------------------------------------------------------------------------
+//popup lstv
+//------------------------------------------------------------------------------
+POPUP_LSTV_REGISTRY MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_lv"
+    BEGIN
+      MENUITEM "Save view"                 ,POPUP_S_VIEW
+      MENUITEM "Save Selection"            ,POPUP_S_SELECTION
+      MENUITEM SEPARATOR
+      MENUITEM "Select all line in search" ,POPUP_A_SEARCH
+      MENUITEM SEPARATOR
+      MENUITEM "Open path"                 ,POPUP_O_PATH
+      MENUITEM SEPARATOR
+      MENUITEM "Copy the line to clipboard",POPUP_CP_LINE
+      POPUP "Copy to clipboard"
+      BEGIN
+        MENUITEM "File",POPUP_I_00
+        MENUITEM "Key",POPUP_I_01
+        MENUITEM "Value",POPUP_I_02
+        MENUITEM "Data",POPUP_I_03
+        MENUITEM "Type",POPUP_I_04
+        MENUITEM "Parent key update (UTC)",POPUP_I_05
+        MENUITEM "Owner SID",POPUP_I_06
+      END
+    END
 END

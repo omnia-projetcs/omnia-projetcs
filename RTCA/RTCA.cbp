@@ -214,7 +214,13 @@
 		<Unit filename="tools\tools_copy.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools\tools_date.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tools\tools_memory.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools\tools_network.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools\tools_network\_entetes.h" />
@@ -224,7 +230,7 @@
 		<Unit filename="tools\tools_registry.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_sniff.c">
+		<Unit filename="tools\tools_registry_recovery.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools\tools_state.c">

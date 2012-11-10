@@ -84,6 +84,17 @@ typedef struct hbin_cell_li_header{
   DWORD nk_of;                //emplacement de la clé nk
 }HBIN_CELL_LI_HEADER;
 //------------------------------------------------------------------------------
+#define HBIN_CELL_DB_SIZE  16 // 12 + 4 de taille
+typedef struct hbin_cell_db_header{
+  DWORD size;
+
+  short type;                 //0x6264 : debut standard de la zone de DATA
+  short nb_segments;
+  DWORD db_segment_list_offset;
+  long padding;
+
+}HBIN_CELL_DB_HEADER;
+//------------------------------------------------------------------------------
 #define HBIN_CELL_RI_SIZE  12 // 8 + 4 de taille
 typedef struct hbin_cell_ri_header{
   DWORD size;

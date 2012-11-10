@@ -45,8 +45,10 @@ void InitGlobalLangueString(unsigned int langue_id)
       SendMessage(hlstbox, LB_SETCURSEL, current_item_selected, 0);
       TRI_RESULT_VIEW       = FALSE;
       TRI_PROCESS_VIEW      = FALSE;
+      TRI_REG_VIEW          = FALSE;
       column_tri            = -1;
       pos_search            = 0;
+      pos_search_reg        = 0;
 
       FORMAT_CALBAK_READ_INFO fcri;
 
@@ -173,15 +175,18 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   ExportStart       = FALSE;
   TRI_RESULT_VIEW   = FALSE;
   TRI_PROCESS_VIEW  = FALSE;
+  TRI_REG_VIEW      = FALSE;
   column_tri        = -1;
   NB_TESTS          = 0;
   pos_search        = 0;
+  pos_search_reg    = 0;
   current_OS[0]     = 0;
   current_OS_BE_64b = FALSE;
   nb_current_columns= 0;
   current_lang_id   = 1;
   read_trame_sniff  = FALSE;
   follow_sniff      = FALSE;
+  reg_file_start_process = FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);

@@ -96,11 +96,17 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
       HBIN_CELL_VK_HEADER *vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
 
       //get value
-      if (value!=NULL && value_size!=0)
+      if (value!=NULL && value_size!=0 && vk_h->name_size > 0)
       {
-        memcpy(value,vk_h->value,value_size);
-        if (vk_h->name_size>=value_size)value[value_size-1]=0;
-        else value[vk_h->name_size]=0;
+        if (vk_h->name_size < value_size)
+        {
+          memcpy(value,vk_h->value,vk_h->name_size);
+          value[vk_h->name_size]=0;
+        }else
+        {
+          memcpy(value,vk_h->value,value_size-1);
+          value[value_size-2]=0;
+        }
       }
 
       //get data
@@ -422,7 +428,7 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
     if (last_update != NULL)filetimeToString_GMT(nk_h->last_write,last_update,last_update_size);
 
     //get rid and sid
-    if (rid != NULL && sid != NULL)
+    if (rid != NULL || sid != NULL)
     {
       if (nk_h->sk_offset != 0xFFFFFFFF && nk_h->sk_offset >0 && (pos_fhbin+nk_h->sk_offset-HBIN_HEADER_SIZE)<taille_fic)
       {
@@ -444,15 +450,22 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
           if(sk_owner_sid->nb == 0)return TRUE;
 
           //rid
-          if (sk_owner_sid->nb > 4)
-            if (sk_owner_sid->id[4]<65535)snprintf(rid,rid_size,"%lu",sk_owner_sid->id[4]);
+          if (rid != NULL)
+          {
+            if (sk_owner_sid->nb > 4)
+              if (sk_owner_sid->id[4]<65535)snprintf(rid,rid_size,"%lu",sk_owner_sid->id[4]& 0xFFFFFFFF);
+          }
 
           //sid
-          unsigned int i, nb = (sk_owner_sid->nb)-1;
-          if (nb>5)nb = 5;
+          if (sid != NULL)
+          {
+            unsigned int i, nb = (sk_owner_sid->nb)-1;
+            if (nb < 1) return FALSE;
+            else if (nb>5)nb = 5;
 
-          snprintf(sid,sid_size,"S-1-%d",(sk_owner_sid->head[7]) & 0xFF);
-          for (i=0;i<nb;i++)snprintf(sid+strlen(sid),sid_size-strlen(sid),"-%lu",sk_owner_sid->id[i]);
+            snprintf(sid,sid_size,"S-1-%d",(sk_owner_sid->head[7]) & 0xFF);
+            for (i=0;i<nb;i++)snprintf(sid+strlen(sid),sid_size-strlen(sid),"-%lu",sk_owner_sid->id[i]);
+          }
           return TRUE;
         }
       }

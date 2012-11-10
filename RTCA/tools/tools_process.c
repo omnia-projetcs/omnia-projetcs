@@ -631,7 +631,7 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       //binary infos
       char tmp1[MAX_PATH], tmp2[MAX_PATH], tmp3[MAX_PATH];
       GetFileInfos(path, tmp, MAX_PATH, tmp1, tmp2, MAX_PATH);
-      strncat(buffer,"Size:^",DIXM);
+      strncat(buffer,"Size: ",DIXM);
       strncat(buffer,tmp,DIXM);
       strncat(buffer,"\r\nFile create time: ",DIXM);
       strncat(buffer,tmp1,DIXM);
