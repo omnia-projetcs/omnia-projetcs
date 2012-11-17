@@ -262,7 +262,8 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
               //select lstv
               SetFocus(GetDlgItem(hwnd,LV_VIEW));
               SendDlgItemMessage(hwnd,ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
-              pos_search_reg = LVSearch(GetDlgItem(hwnd,LV_VIEW), DLG_REG_LV_NB_COLUMN, tmp, pos_search_reg);
+              if (!SendDlgItemMessage(hwnd,BT_SEARCH_MATCH_CASE, BM_GETCHECK,(WPARAM) 0, (LPARAM)0)) pos_search_reg = LVSearchNoCass(GetDlgItem(hwnd,LV_VIEW), DLG_REG_LV_NB_COLUMN, tmp, pos_search_reg);
+              else pos_search_reg = LVSearch(GetDlgItem(hwnd,LV_VIEW), DLG_REG_LV_NB_COLUMN, tmp, pos_search_reg);
             }
             break;
             //------------------------------------------
@@ -405,8 +406,10 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         MoveWindow(GetDlgItem(hwnd,ED_SEARCH),5,0,mWidth-122,22,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_SEARCH),mWidth-113,0,55,22,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_TREE_VIEW),mWidth-57,0,55,22,TRUE);
-        MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,27,mWidth-10,mHeight-53,TRUE);
-        MoveWindow(GetDlgItem(hwnd,TV_VIEW),5,27,mWidth-10,mHeight-53,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_SEARCH_MATCH_CASE),mWidth-113,24,120,18,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,LV_VIEW),5,47,mWidth-10,mHeight-73,TRUE);
+        MoveWindow(GetDlgItem(hwnd,TV_VIEW),5,47,mWidth-10,mHeight-73,TRUE);
         MoveWindow(GetDlgItem(hwnd,STB),0,mHeight-22,mWidth,22,TRUE);
 
         //column resise

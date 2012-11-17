@@ -130,10 +130,19 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 //select lstv
                 SetFocus(hlstv);
                 SendMessage(he_search,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
-                pos_search = LVSearch(hlstv, nb_current_columns, tmp, pos_search);
+
+                if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) != MF_CHECKED) pos_search = LVSearchNoCass(hlstv, nb_current_columns, tmp, pos_search);
+                else pos_search = LVSearch(hlstv, nb_current_columns, tmp, pos_search);
               }
               break;
               case IDM_STAY_ON_TOP:IDM_STAY_ON_TOP_fct();break;
+              case BT_SEARCH_MATCH_CASE:
+                if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
+                  CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_UNCHECKED);
+                else
+                  CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_CHECKED);
+                break;
+
               case IDM_ABOUT:MessageBox(0,"to Read to Catch All :\n"
                                             "Licensed under the terms of the GNU\n"
                                             "General Public License version 3.\n\n"
@@ -320,6 +329,35 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               /*
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
               */
+
+              case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
+              case POPUP_FILE_REMOVE_ITEM:LVDelete(hlstv);break;
+              case POPUP_FILE_VIRUSTOTAL:
+                if (VIRUSTTAL)
+                {
+                  DWORD IDThread;
+                  GetExitCodeThread(h_VIRUSTTAL,&IDThread);
+                  TerminateThread(h_VIRUSTTAL,IDThread);
+                  VIRUSTTAL = FALSE;
+                }else
+                {
+                  VIRUSTTAL = TRUE;
+                  h_VIRUSTTAL = CreateThread(NULL,0,CheckSelectedItemToVirusTotal,0,0,0);
+                }
+              break;
+              case POPUP_FILE_VIRUSTOTAL_ALL:
+                if (AVIRUSTTAL)
+                {
+                  DWORD IDThread;
+                  GetExitCodeThread(h_AVIRUSTTAL,&IDThread);
+                  TerminateThread(h_AVIRUSTTAL,IDThread);
+                  AVIRUSTTAL = FALSE;
+                }else
+                {
+                  AVIRUSTTAL = TRUE;
+                  h_AVIRUSTTAL = CreateThread(NULL,0,CheckAllFileToVirusTotal,0,0,0);
+                }
+              break;
             }
           break;
           case CBN_SELCHANGE:
@@ -493,15 +531,44 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       break;
       case WM_CONTEXTMENU://popup menu
       //if item
-      if (ListView_GetItemCount(hlstv) > 0 && (HWND)wParam == hlstv)
+      if ((HWND)wParam == hlstv)
       {
+        HMENU hmenu;
+        if (ListView_GetItemCount(hlstv) < 1)
+        {
+          if (SendMessage(hlstbox, LB_GETCURSEL, 0, 0) == INDEX_FILE)
+          {
+            if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_EMPTY_FILE)))!= NULL)
+            {
+              ModifyMenu(hmenu,POPUP_FILE_IMPORT_FILE,MF_BYCOMMAND|MF_STRING,POPUP_FILE_IMPORT_FILE,cps[TXT_LOAD_FILE].c);
+              ModifyMenu(hmenu,POPUP_FILE_REMOVE_ITEM,MF_BYCOMMAND|MF_STRING,POPUP_FILE_REMOVE_ITEM,cps[TXT_REMOVE_FILE].c);
+
+              ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
+              ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
+
+              if (AVIRUSTTAL)
+              {
+                ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
+                RemoveMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_GRAYED);
+              }else if (VIRUSTTAL)
+              {
+                ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
+                RemoveMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_GRAYED);
+              }
+
+              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+              DestroyMenu(hmenu);
+            }
+          }
+          break;
+        }
+
         if (disable_m_context)
         {
           disable_m_context = FALSE;
           break;
         }
 
-        HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV)))!= NULL)
         {
           //set text !!!
@@ -538,6 +605,21 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
           {
             case INDEX_FILE:
+              //add menu
+              InsertMenu(GetSubMenu(hmenu,0),2,MF_BYPOSITION|MF_SEPARATOR,NULL,"");
+              InsertMenu(GetSubMenu(hmenu,0),3,MF_BYPOSITION|MF_STRING,POPUP_FILE_IMPORT_FILE,cps[TXT_LOAD_FILE].c);
+              InsertMenu(GetSubMenu(hmenu,0),3,MF_BYPOSITION|MF_STRING,POPUP_FILE_REMOVE_ITEM,cps[TXT_REMOVE_FILE].c);
+
+              if (AVIRUSTTAL)
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
+              }else if (VIRUSTTAL) InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
+              else
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
+              }
+
             case INDEX_ANTIVIRUS:
               //openpath
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH,cps[TXT_OPEN_PATH].c);

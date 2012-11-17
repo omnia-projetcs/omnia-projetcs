@@ -70,6 +70,3 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
-
-
-

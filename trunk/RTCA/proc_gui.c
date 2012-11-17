@@ -25,6 +25,40 @@ unsigned long int Contient(char*data,char*chaine)
   return FALSE;
 }
 //------------------------------------------------------------------------------
+unsigned long int ContientNoCass(char*data,char*chaine)
+{
+  unsigned long int i=0;
+  char *d = charToLowChar(data);
+  char *c = charToLowChar(chaine);
+  if (!*c || !*d) return 0;
+
+  while (*d)
+  {
+    c = chaine;
+    while (*d == *c && *c && *d){d++;c++;i++;}
+
+    if (*c == 0) return i;
+    d++;i++;
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+void LVDelete(HANDLE hlv)
+{
+  //test si des enregistrements
+  DWORD NBLigne=SendMessage(hlv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+  if (NBLigne>0)
+  {
+    int j;
+    for (j=NBLigne-1;j>-1;j--)//ligne par ligne
+    {
+      //on vérifie que la ligne est bien sélectionnée
+      if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) == LVIS_SELECTED)
+        SendMessage(hlv,LVM_DELETEITEM,(WPARAM)j,(LPARAM)NULL);
+    }
+  }
+}
+//------------------------------------------------------------------------------
 DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
 {
   DWORD i, j, nb_item = ListView_GetItemCount(hlv);
@@ -39,6 +73,34 @@ DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
 
       //test si la recherche est présente dedans
       if (Contient(tmp,search))
+      {
+        //sélection
+        SendMessage(hlv, LVM_ENSUREVISIBLE, i, 0);
+        ListView_SetItemState(hlv, -1, 0, LVIS_SELECTED); // deselect all
+        ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
+
+        //on quitte
+        return i;
+      }
+    }
+  }
+  return -1;
+}
+//------------------------------------------------------------------------------
+DWORD LVSearchNoCass(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
+{
+  DWORD i, j, nb_item = ListView_GetItemCount(hlv);
+  char tmp[MAX_LINE_SIZE];
+  for (i=start_id+1;i<nb_item;i++)
+  {
+    for (j=0;j<nb_col;j++)
+    {
+      //récupération du text
+      tmp[0]=0;
+      ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
+
+      //test si la recherche est présente dedans
+      if (ContientNoCass(tmp,search))
       {
         //sélection
         SendMessage(hlv, LVM_ENSUREVISIBLE, i, 0);

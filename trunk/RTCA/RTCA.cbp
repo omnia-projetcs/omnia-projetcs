@@ -25,6 +25,7 @@
 					<Add library="dnsapi" />
 					<Add library="crypt32" />
 					<Add library="iphlpapi" />
+					<Add library="wininet" />
 				</Linker>
 			</Target>
 		</Build>
@@ -74,6 +75,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="files\proc_registry_files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="import.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="main.c">

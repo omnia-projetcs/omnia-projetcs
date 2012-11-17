@@ -187,6 +187,8 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   read_trame_sniff  = FALSE;
   follow_sniff      = FALSE;
   reg_file_start_process = FALSE;
+  AVIRUSTTAL = FALSE;
+  VIRUSTTAL = FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
