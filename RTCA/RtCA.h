@@ -70,6 +70,7 @@
 #include <Wincrypt.h>           //FOR DECODE CHROME/CHROMIUM password
 #include "crypt/d3des.h"        //Crypto
 #include <lmaccess.h>           //group account list
+#include <wininet.h>            //for VirusTotal
 //---------------------------------------------------------------------------
 PVOID OldValue_W64b;            //64bits OS
 
@@ -122,7 +123,7 @@ char _SYSKEY[MAX_PATH];
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, hlstbox,hlstv, htooltip,
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip,
      hdbclk_info;
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
@@ -156,6 +157,7 @@ BOOL disable_m_context, disable_p_context;
 #define ED_SEARCH                3004
 #define BT_SEARCH                3005
 #define LV_VIEW_INFO             3006
+#define BT_SEARCH_MATCH_CASE     3007
 
 #define DLG_PROCESS              4000
 unsigned int nb_column_process_view;
@@ -289,6 +291,17 @@ DWORD last_bt;
 #define POPUP_E_HTML                          12002
 #define POPUP_E_XML                           12003
 
+#define POPUP_LSTV_EMPTY_FILE                 12999
+BOOL AVIRUSTTAL,VIRUSTTAL;
+HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
+#define NB_VIRUTOTAL_THREADS                      8
+#define COLUMN_SHA256                            17
+#define COLUMN_PATH                               0
+#define COLUMN_FILE                               1
+#define COLUMN_EXT                                2
+#define COLUMN_VIRUSTOTAL           COLUMN_SHA256+1
+
+
 #define POPUP_LSTV                            13000
 #define POPUP_S_VIEW                          13001
 #define POPUP_S_SELECTION                     13002
@@ -318,6 +331,12 @@ DWORD last_bt;
 #define POPUP_I_17                            13027
 #define POPUP_I_18                            13028
 #define POPUP_I_19                            13029
+
+#define POPUP_FILE_IMPORT_FILE                13036
+#define POPUP_FILE_REMOVE_ITEM                13037
+#define POPUP_FILE_VIRUSTOTAL                 13038
+#define POPUP_FILE_VIRUSTOTAL_ALL             13039
+
 
 #define NB_POPUP_I                            20
 
@@ -513,7 +532,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         84
+#define NB_COMPONENT_STRING         90
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -589,6 +608,13 @@ typedef struct SORT_ST
 #define TXT_POPUP_LINK                  82
 
 #define TXT_SNIFF_FILTRE                83
+
+#define TXT_STOP_CHK_ALL_SHA256         84
+#define TXT_LOAD_FILE                   85
+#define TXT_REMOVE_FILE                 86
+#define TXT_CHK_SHA256                  87
+#define TXT_STOP_CHK_SHA256             88
+#define TXT_CHK_ALL_SHA256              89
 
 typedef struct
 {
@@ -834,11 +860,15 @@ DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
 void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
 
+//import function
+DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam);
+
 //usuals functions
 unsigned int ExtractTextFromPathNb(char *path);
 char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 void ReviewWOW64Redirect(PVOID OldValue_W64b);
 unsigned long int Contient(char*data,char*chaine);
+unsigned long int ContientNoCass(char*data,char*chaine);
 char *ReplaceEnv(char *var, char *path, unsigned int size_max);
 void SetDebugPrivilege(BOOL enable);
 BOOL startWith(char* txt, char *search);
@@ -877,7 +907,9 @@ void FileToTreeView(char *c_path);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 void c_Tri(HANDLE hlv, unsigned short colonne_ref, BOOL sort);
 void AddtoLV(HANDLE hlv, unsigned int nb_column, LINE_ITEM *item, BOOL select);
+void LVDelete(HANDLE hlv);
 DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start);
+DWORD LVSearchNoCass(HANDLE hlv, unsigned short nb_col, char *search, DWORD start);
 void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search);
 
 void SupDoublon(HANDLE htrv,HTREEITEM htreeParent);
@@ -954,6 +986,10 @@ void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_
 
 //reg file explorer
 void InitDlgRegfile();
+
+//virustotal
+DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
+DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
 
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

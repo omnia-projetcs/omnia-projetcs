@@ -230,7 +230,7 @@ char *extractFileFromPath(char *path, char *file, unsigned int file_size_max)
   file[0] = 0;
 
   while(*c++);
-  while(*c!='\\' && c>path)c--;
+  while(*c!='\\' && *c!='/' && c>path)c--;
   c++;
   strncpy(file,c,file_size_max);
   return file;
@@ -242,7 +242,7 @@ char *extractExtFromFile(char *file, char *ext, unsigned int ext_size_max)
   ext[0]  = 0;
 
   while(*c++);
-  while(*c!='.' && c>file)c--;
+  while(*c!='\\' && *c!='/' && *c!='.' && c>file)c--;
   if (*c == '.')
   {
     c++;

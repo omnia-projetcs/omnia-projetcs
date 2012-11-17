@@ -115,6 +115,7 @@ STYLE 0x00CF0800
 BEGIN
   CONTROL ""                ,ED_SEARCH            ,"Edit",0x50010080,4,216,112,13,0x00000200
   CONTROL "Search"          ,BT_SEARCH            ,"Button",0x50010000,208,216,74,13
+  CONTROL "Match case"      ,BT_SEARCH_MATCH_CASE ,"Button",0x50010003,2,94,120,13
   CONTROL "Tree view"       ,BT_TREE_VIEW         ,"Button",0x50010000,208,216,74,13
   CONTROL ""                ,TV_VIEW              ,"SysTreeView32",TVS_HASBUTTONS | TVS_HASLINES | TVS_LINESATROOT | WS_BORDER,4,3,226,233,0x00000200
   CONTROL ""                ,LV_VIEW              ,"SysListView32",0x40810089,4,3,374,204,0x00000200
@@ -199,6 +200,7 @@ BEGIN
   POPUP "Settings"  //1
   BEGIN
     MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
+    MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
   END
   POPUP "Tools"     //2
   BEGIN
@@ -292,6 +294,18 @@ BEGIN
         MENUITEM "",POPUP_I_18
         MENUITEM "",POPUP_I_19
       END
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_LSTV_EMPTY_FILE MENU DISCARDABLE
+BEGIN
+  POPUP "LSTV"
+    BEGIN
+      MENUITEM "Load file"                      ,POPUP_FILE_IMPORT_FILE
+      MENUITEM "Remove item"                    ,POPUP_FILE_REMOVE_ITEM
+      MENUITEM SEPARATOR
+      MENUITEM "Check SHA256 to Virustotal"     ,POPUP_FILE_VIRUSTOTAL
+      MENUITEM "Check all SHA256 to Virustotal" ,POPUP_FILE_VIRUSTOTAL_ALL
     END
 END
 //------------------------------------------------------------------------------
