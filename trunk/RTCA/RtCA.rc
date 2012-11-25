@@ -123,7 +123,6 @@ BEGIN
 END
 //------------------------------------------------------------------------------
 DLG_DATE DIALOGEX 6,5,268,200//230
-CAPTION "IDD_DLG"
 FONT 8,"MS Sans Serif",0,0
 STYLE 0x00CA0000
 BEGIN
@@ -163,6 +162,33 @@ BEGIN
   CONTROL "MS-DOS 32 bit (Little Endian) :"         ,0,"Static",0x50000002,4,216,134,9
   CONTROL ""                                        ,DLG_DATE_EDT14,"Edit",0x50010800,142,214,124,13,0x00000200*/
 END
+//------------------------------------------------------------------------------
+DLG_STATE DIALOGEX 6,6,553,276
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CF0800
+BEGIN
+  CONTROL ""                                        ,DLG_STATE_LB_SESSION,"ListBox",0x50310149,2,1,122,96,0x00000200
+  CONTROL ""                                        ,DLG_STATE_LB_TEST,"ListBox",0x50310149,2,101,122,140,0x00000200
+  CONTROL "Load"                                    ,DLG_STATE_BT_LOAD,"Button",0x50010000,2,245,122,19
+
+  CONTROL "All"                                     ,DLG_STATE_BT_ALL,"Button",0x50010000,132,1,74,19
+  CONTROL "Critical"                                ,DLG_STATE_BT_CRITICAL,"Button",0x50010000,209,1,74,19
+  CONTROL "Time Zone"                               ,DLG_STATE_BT_TIME_ZONE,"Button",0x50010000,285,1,74,19
+  CONTROL "2012/11/18 11:11:11"                     ,DLG_STATE_ED_TIME_1,"Edit",0x50810080,362,3,80,13,0x00000200
+  CONTROL "->"                                      ,0,"Static",0x50000000,442,5,6,9
+  CONTROL "2012/11/18 11:11:12"                     ,DLG_STATE_ED_TIME_2,"Edit",0x50010000,449,3,80,13,0x00000200
+  CONTROL "Filter"                                  ,DLG_STATE_BT_FILTER,"Button",0x50010000,532,3,20,14
+
+  CONTROL ""                                        ,DLG_STATE_LV_ALL,"SysListView32",0x50810089,128,22,422,241,0x00000200
+  CONTROL ""                                        ,DLG_STATE_LV_CRITICAL,"SysListView32",0x40810089,128,22,422,241,0x00000200
+  CONTROL ""                                        ,DLG_STATE_LV_TIME_ZONE,"SysListView32",0x40810089,128,22,422,241,0x00000200
+  CONTROL ""                                        ,DLG_STATE_LV_FILTER,"SysListView32",0x40810089,128,22,422,241,0x00000200
+  CONTROL ""                                        ,DLG_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
+
+//manque le bouton loading ! ou une fenêtre de chargement ^^
+//manque un module de recherche global : avec une popup
+END
+
 //------------------------------------------------------------------------------
 //main dialogue menu
 //------------------------------------------------------------------------------
@@ -302,10 +328,21 @@ BEGIN
   POPUP "LSTV"
     BEGIN
       MENUITEM "Load file"                      ,POPUP_FILE_IMPORT_FILE
-      MENUITEM "Remove item"                    ,POPUP_FILE_REMOVE_ITEM
-      MENUITEM SEPARATOR
-      MENUITEM "Check SHA256 to Virustotal"     ,POPUP_FILE_VIRUSTOTAL
-      MENUITEM "Check all SHA256 to Virustotal" ,POPUP_FILE_VIRUSTOTAL_ALL
+    END
+END
+//------------------------------------------------------------------------------
+POPUP_SELECT_ALL_SESSION MENU DISCARDABLE
+BEGIN
+  POPUP "LSTV"
+    BEGIN
+      MENUITEM "Select/Unselect  all"           ,SELECT_ALL_SESSION
+    END
+END
+POPUP_SELECT_ALL_TEST MENU DISCARDABLE
+BEGIN
+  POPUP "LSTV"
+    BEGIN
+      MENUITEM "Select/Unselect all"            ,SELECT_ALL_TEST
     END
 END
 //------------------------------------------------------------------------------

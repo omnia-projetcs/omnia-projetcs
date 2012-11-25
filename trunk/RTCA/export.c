@@ -91,7 +91,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
           WriteFile(MyhFile_export,datas,strlen(datas),&copiee,0);
           line++;
         break;
-        case SAVE_TYPE_PWDUMP:
+        case SAVE_TYPE_PWDUMP_:
           if (argv[0]!=0)
           {
             snprintf(datas,MAX_LINE_SIZE,"%s\r\n",argv[0]);
@@ -230,8 +230,8 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   if (MyhFile_export != INVALID_HANDLE_VALUE)
   {
     FORMAT_CALBAK_READ_INFO fcri2;
-    export_type = SAVE_TYPE_PWDUMP;
-    fcri2.type   = TYPE_SQL_EXPORT_DATAS;
+    export_type = SAVE_TYPE_PWDUMP_;
+    fcri2.type  = TYPE_SQL_EXPORT_DATAS;
 
     snprintf(request, MAX_LINE_SIZE,"SELECT raw_password FROM extract_registry_account_password WHERE session_id = %lu;",cur_session_id);
     sqlite3_exec(db, request, callback_sqlite_export, &fcri2, NULL);
@@ -344,7 +344,7 @@ BOOL SaveTRV(HANDLE htv, char *file, unsigned int type)
 BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 {
   //get item count
-  unsigned int nb_items = ListView_GetItemCount(hlv);
+  unsigned long int nb_items = ListView_GetItemCount(hlv);
   if (nb_items > 0 && nb_column > 0)
   {
     //open file
@@ -356,7 +356,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 
     char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
     DWORD copiee;
-    unsigned int i=0,j=0;
+    unsigned long int i=0,j=0;
 
     LVCOLUMN lvc;
     lvc.mask        = LVCF_TEXT;
@@ -484,6 +484,17 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
       }
       break;
+      case SAVE_TYPE_PWDUMP:
+        //save all line
+        for (j=0;j<nb_items;j++)
+        {
+          lines[0]=0;
+          ListView_GetItemText(hlv,j,3,lines,MAX_LINE_SIZE);
+          strncat(lines,"\n",MAX_LINE_SIZE);
+          copiee = 0;
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        }
+      break;
     }
     CloseHandle(hfile);
     return TRUE;
@@ -493,7 +504,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 {
   //get item count
-  unsigned int nb_items = ListView_GetItemCount(hlv);
+  unsigned long int nb_items = ListView_GetItemCount(hlv);
   if (nb_items > 0 && nb_column > 0)
   {
     //open file
@@ -505,7 +516,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
 
     char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
     DWORD copiee;
-    unsigned int i=0,j=0;
+    unsigned long int i=0,j=0;
 
     LVCOLUMN lvc;
     lvc.mask        = LVCF_TEXT;
@@ -637,6 +648,18 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
         }
         WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
       }
+      break;
+      case SAVE_TYPE_PWDUMP:
+        //save all line
+        for (j=0;j<nb_items;j++)
+        {
+          if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
+          lines[0]=0;
+          ListView_GetItemText(hlv,j,3,lines,MAX_LINE_SIZE);
+          strncat(lines,"\n",MAX_LINE_SIZE);
+          copiee = 0;
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        }
       break;
     }
     CloseHandle(hfile);

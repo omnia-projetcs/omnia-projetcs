@@ -50,7 +50,7 @@ BOOL CreateFileCopyFilefromPath(char *path_src, char *path_dst)
   return FALSE;
 }
 //------------------------------------------------------------------------------
-void CopyFileInVSSMode(char *path_src, char *path_dst)
+/*void CopyFileInVSSMode(char *path_src, char *path_dst)
 {
   //ok on lance la création d'un snap shoot + copy
   char path_src_VSS[MAX_PATH]="";
@@ -71,9 +71,9 @@ void CopyFileInVSSMode(char *path_src, char *path_dst)
 
   //copy
   CopyFile(path_src_VSS,path_dst,FALSE);
-}
+}*/
 //------------------------------------------------------------------------------
-void VSSFileCopyFilefromPath(char *path_src, char *path_dst)
+/*void VSSFileCopyFilefromPath(char *path_src, char *path_dst)
 {
   if (path_src[0] == '\\' || path_src[0] == 0)return;
 
@@ -117,6 +117,99 @@ void VSSFileCopyFilefromPath(char *path_src, char *path_dst)
     }
     CloseServiceHandle(h_SCM);
   }
+}*/
+
+//------------------------------------------------------------------------------
+BOOL VSSCopyFile(char *path_src, char *path_dst)
+{
+  //load ddl to verify if cuntion is enable
+  HMODULE hDLL;
+  if ((hDLL = LoadLibrary( "VssApi.dll"))!=NULL)
+  {
+    //verify if enable
+    typedef HRESULT (WINAPI *ISVVOLUMESNAPSHOTTED)(char* pwszVolumeName, BOOL *pbSnapshotsPresent, LONG *plSnapshotCapability);
+    ISVVOLUMESNAPSHOTTED IsVolumeSnapshotted = (ISVVOLUMESNAPSHOTTED) GetProcAddress(hDLL,"IsVolumeSnapshotted");
+    if (IsVolumeSnapshotted != NULL)
+    {
+      //windows 2008 and after solution !
+      //help from : http://www.petri.co.il/working-active-directory-snapshots-windows-server-2008.htm
+
+      //--------------------------
+      //create snapshot
+      char cmd[MAX_PATH] ="\"%WINDIR%\\System32\\ntdsutil.exe\" snapshot \"Activate Instance NTDS\" create quit quit";
+      ReplaceEnv("WINDIR",cmd,MAX_PATH);
+      system(cmd);
+
+
+
+
+
+      /*char cmd[MAX_PATH] ="\"%WINDIR%\\System32\\ntdsutil.exe\" snapshot \"activate instance ntds\" create quit quit";
+      ReplaceEnv("WINDIR",cmd,MAX_PATH);
+
+      STARTUPINFO si;
+      PROCESS_INFORMATION pi;
+      ZeroMemory(&si, sizeof(si));
+      ZeroMemory(&pi, sizeof(pi));
+      si.cb = sizeof(si);
+
+      if(!CreateProcess(0, cmd, 0, 0, 0, 0, 0, 0, &si, &pi))return FALSE;
+
+      // Wait until child process exits.
+      WaitForSingleObject(pi.hProcess, INFINITE);
+      if (pi.hProcess!=INVALID_HANDLE_VALUE)CloseHandle(pi.hProcess);
+      if (pi.hThread!=INVALID_HANDLE_VALUE)CloseHandle(pi.hThread);*/
+
+      //load resultats
+      /*
+      Snapshot set {3a861a35-2f33-4d7a-8861-a10e47afdaba}
+      */
+
+      //--------------------------
+      //Get file access
+      //char GUID[MAX_PATH];
+
+
+
+
+
+
+
+
+      //check if use of ntdisutil or vss
+
+
+
+
+      //check if service exist start it if is not
+
+
+      //check if snapshott enable
+      /*BOOL SnapshotsPresent   = FALSE;
+      LONG SnapshotCapability = 0;
+      char path[MAX_PATH]     = "c:\\";
+      path[0]                 = path_src[0];
+      if (IsVolumeSnapshotted(path,&SnapshotsPresent,&SnapshotCapability) != S_OK)
+      {
+        if (!SnapshotsPresent) //no shadowcopy
+        {
+          //do a snapshot
+
+
+        }
+      }*/
+
+      //get last snapshot
+
+      //cp file
+
+      //if service vsshave been started stop it !
+
+
+    }
+    FreeLibrary(hDLL);
+  }
+  return FALSE;
 }
 //------------------------------------------------------------------------------
 BOOL CopyFilefromPath(char *path_src, char *path_dst, BOOL direct_shadow_copy)
@@ -362,8 +455,7 @@ DWORD WINAPI BackupNTDIS(LPVOID lParam)
   BROWSEINFO browser;
   LPITEMIDLIST lip;
   char tmp[MAX_PATH+1]    = "";
-  char path[MAX_PATH]     = "",
-       path2[MAX_PATH]    = "";
+  char path[MAX_PATH]     = "";
   browser.hwndOwner       = h_main;
   browser.pidlRoot        = 0;
   browser.lpfn            = 0;
@@ -378,28 +470,14 @@ DWORD WINAPI BackupNTDIS(LPVOID lParam)
     SHGetPathFromIDList(lip,tmp);
     if (strlen(tmp)>0)
     {
-      strncat(tmp,"\\\0",MAX_PATH);
+      strncat(tmp,"\\ntds.dit\0",MAX_PATH);
       //récupération du chemin du système
       if(ReadValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters", "DSA Database File", path, MAX_PATH))
       {
         if (path[0]!=0)
         {
           ReplaceEnv("WINDIR",path,MAX_PATH);
-          unsigned int sz = strlen(path);
-          if (path[sz-1]!='\\' && sz+1 < MAX_PATH)
-          {
-            path[sz]='\\';
-            path[sz+1]=0;
-          }
-
-          //on copie les fichier evt
-          snprintf(path2,MAX_PATH,"%s*.evt",path);
-          CopyFileFromTo(path2, tmp, 5);
-
-          //le fichiers evtx
-          snprintf(path2,MAX_PATH,"%s*.evtx",path);
-          CopyFileFromTo(path2, tmp, 6);
-
+          CopyFilefromPath(path, tmp, FALSE);
         }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
       }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
     }

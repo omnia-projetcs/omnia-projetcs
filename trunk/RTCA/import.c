@@ -8,7 +8,7 @@
 //------------------------------------------------------------------------------
 BOOL isValideANSIChar(char *s, DWORD size)
 {
-  if (*s == NULL) return FALSE;
+  if (*s == 0) return FALSE;
   DWORD i;
   BOOL last = FALSE;
   for (i=0;i<size;i++)
@@ -79,7 +79,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
 
       char line[MAX_LINE_SIZE],line_t[MAX_LINE_SIZE], *l, *p, *b = buffer;
       char *e = line+(MAX_LINE_SIZE-3);
-      char file[MAX_PATH], ext[MAX_PATH], *c;
+      char file[MAX_PATH], ext[15], *c;
 
       LVITEM lvi;
       lvi.mask = LVIF_TEXT|LVIF_PARAM;
@@ -102,6 +102,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           */
 
           //get line
+          memset(line,0,MAX_LINE_SIZE);
           l = line;
           while (*b && *b != '\r' && *b!='\n' && e>l) *l++=*b++;
           if (*b == '\r')b++;
@@ -150,6 +151,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
         do
         {
           //get line
+          memset(line,0,MAX_LINE_SIZE);
           l = line;
           while (*b && *b != '\r' && *b!='\n' && e>l) *l++=*b++;
           if (*b == '\r')b++;
@@ -175,12 +177,12 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
 
             c = &line[66];
             //file
-            file[0] = 0;
+            memset(file,0,MAX_PATH);
             ListView_SetItemText(hlstv,pos,COLUMN_FILE,extractFileFromPath(c, file, MAX_PATH));
 
             //ext
-            ext[0] = 0;
-            ListView_SetItemText(hlstv,pos,COLUMN_EXT,extractExtFromFile(file, ext, MAX_PATH));
+            memset(ext,0,15);
+            ListView_SetItemText(hlstv,pos,COLUMN_EXT,extractExtFromFile(file, ext, 15));
 
             //path
             c = &line[66];

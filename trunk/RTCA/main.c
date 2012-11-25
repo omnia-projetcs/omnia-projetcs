@@ -167,7 +167,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ofn.hwndOwner = h_main;
                 ofn.lpstrFile = file;
                 ofn.nMaxFile = MAX_PATH;
-                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+                if(SendMessage(hlstbox, LB_GETCURSEL, 0, 0) == INDEX_REG_PASSWORD)
+                  ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.pwdump \0*.pwdump\0";
+                else
+                  ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
                 ofn.lpstrDefExt =".csv\0";
@@ -191,7 +195,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ofn.hwndOwner = h_main;
                 ofn.lpstrFile = file;
                 ofn.nMaxFile = MAX_PATH;
-                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+                if(SendMessage(hlstbox, LB_GETCURSEL, 0, 0) == INDEX_REG_PASSWORD)
+                  ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.pwdump \0*.pwdump\0";
+                else
+                  ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
                 ofn.lpstrDefExt =".csv\0";
@@ -325,11 +332,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_DATE:
                 ShowWindow(h_date, SW_SHOW);
               break;
-
-              /*
-    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
-              */
-
+              case IDM_TOOLS_ANALYSER:
+                InitGuiState();
+                ShowWindow(h_state, SW_SHOW);
+              break;
               case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
               case POPUP_FILE_REMOVE_ITEM:LVDelete(hlstv);break;
               case POPUP_FILE_VIRUSTOTAL:
@@ -541,20 +547,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_EMPTY_FILE)))!= NULL)
             {
               ModifyMenu(hmenu,POPUP_FILE_IMPORT_FILE,MF_BYCOMMAND|MF_STRING,POPUP_FILE_IMPORT_FILE,cps[TXT_LOAD_FILE].c);
-              ModifyMenu(hmenu,POPUP_FILE_REMOVE_ITEM,MF_BYCOMMAND|MF_STRING,POPUP_FILE_REMOVE_ITEM,cps[TXT_REMOVE_FILE].c);
-
-              ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
-              ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
-
-              if (AVIRUSTTAL)
-              {
-                ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
-                RemoveMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_GRAYED);
-              }else if (VIRUSTTAL)
-              {
-                ModifyMenu(hmenu,POPUP_FILE_VIRUSTOTAL,MF_BYCOMMAND|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
-                RemoveMenu(hmenu,POPUP_FILE_VIRUSTOTAL_ALL,MF_BYCOMMAND|MF_GRAYED);
-              }
 
               TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
               DestroyMenu(hmenu);
@@ -606,7 +598,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           {
             case INDEX_FILE:
               //add menu
-              InsertMenu(GetSubMenu(hmenu,0),2,MF_BYPOSITION|MF_SEPARATOR,NULL,"");
+              InsertMenu(GetSubMenu(hmenu,0),2,MF_BYPOSITION|MF_SEPARATOR,0,"");
               InsertMenu(GetSubMenu(hmenu,0),3,MF_BYPOSITION|MF_STRING,POPUP_FILE_IMPORT_FILE,cps[TXT_LOAD_FILE].c);
               InsertMenu(GetSubMenu(hmenu,0),3,MF_BYPOSITION|MF_STRING,POPUP_FILE_REMOVE_ITEM,cps[TXT_REMOVE_FILE].c);
 
@@ -1016,7 +1008,6 @@ int main(int argc, char* argv[])
     ListView_InsertColumn(GetDlgItem(h_reg,LV_VIEW), 6, &lvc);
     lvc.pszText = "Deleted";
     ListView_InsertColumn(GetDlgItem(h_reg,LV_VIEW), 7, &lvc);
-    CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
 
     //trv
     HIMAGELIST hImageList=ImageList_Create(16,16,ILC_COLORDDB | ILC_MASK,6,0);
@@ -1053,52 +1044,100 @@ int main(int argc, char* argv[])
 
     //init combobox
     //http://fr.wikipedia.org/wiki/Liste_des_fuseaux_horaires
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-12:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-11:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-10:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-09:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-09:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-08:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-07:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-06:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-05:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-04:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-04:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-03:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-03:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-02:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC-01:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+00:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+01:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+02:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+03:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+03:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+04:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+04:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+05:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+05:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+05:45");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+06:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+06:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+07:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+08:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+08:45");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+09:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+09:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+10:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+10:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+11:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+11:30");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+12:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+12:45");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+13:00");
-    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,"UTC+14:00");
-
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-12:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-11:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-10:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-09:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-09:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-08:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-07:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-06:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-05:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-04:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-04:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-03:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-03:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-02:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC-01:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+00:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+01:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+02:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+03:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+03:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+04:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+04:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+05:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+05:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+05:45");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+06:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+06:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+07:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+08:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+08:45");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+09:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+09:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+10:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+10:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+11:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+11:30");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+12:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+12:45");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+13:00");
+    SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_ADDSTRING,0,(LPARAM)"UTC+14:00");
     SendDlgItemMessage(h_date,DLG_DATE_CB_UTC,CB_SETCURSEL,12+3,0);
 
+    h_state = CreateDialog(0, MAKEINTRESOURCE(DLG_STATE), NULL,DialogProc_state);
+    SendMessage(h_state, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SetWindowText(h_state,NOM_FULL_APPLI);
+
+    lvc.cx      = 110;
+    lvc.pszText = "Date";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 0, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 0, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 0, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 0, &lvc);
+    lvc.pszText = "Origine";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 1, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 1, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 1, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 1, &lvc);
+    lvc.pszText = "Source";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 2, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 2, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 2, &lvc);
+    lvc.pszText = "State";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 2, &lvc);
+    lvc.pszText = "Info";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 3, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 3, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 3, &lvc);
+    lvc.pszText = "Description";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 4, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 4, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 4, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 3, &lvc);
+    lvc.pszText = "Owner/User";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 5, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 5, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 5, &lvc);
+    lvc.pszText = "SID";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 6, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 6, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 6, &lvc);
+    lvc.pszText = "Session";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 7, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 7, &lvc);
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 7, &lvc);
+
+    SendDlgItemMessage(h_state,DLG_STATE_LV_ALL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_state,DLG_STATE_LV_CRITICAL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_state,DLG_STATE_LV_TIME_ZONE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_state,DLG_STATE_LV_FILTER,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
+    CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);
     ShowWindow(hCombo_session, SW_SHOW);
-    ShowWindow (h_main, SW_SHOW);
+    ShowWindow(h_main, SW_SHOW);
 
     while (GetMessage (&msg, NULL, 0, 0))
     {

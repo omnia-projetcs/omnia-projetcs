@@ -288,7 +288,7 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
 //------------------------------------------------------------------------------
 void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,unsigned int session_id,sqlite3 *db)
 {
-  HANDLE hProcess, parent_hProcess;
+  HANDLE hProcess;
   DWORD d_pid, i, j, k, cbNeeded;
   BOOL ok;
   LINE_PROC_ITEM port_line[MAX_PATH];
@@ -301,9 +301,9 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
        owner[DEFAULT_TMP_SIZE],
        rid[DEFAULT_TMP_SIZE],
        sid[DEFAULT_TMP_SIZE],
-       start_date[DATE_SIZE_MAX],
+       start_date[DATE_SIZE_MAX]/*,
        parent_pid[DEFAULT_TMP_SIZE],
-       parent_path[MAX_PATH];
+       parent_path[MAX_PATH]*/;
 
   //force enumerate all process by id !
   for (d_pid=FIRST_PROCESS_ID;d_pid<LAST_PROCESS_ID && start_scan;d_pid++)

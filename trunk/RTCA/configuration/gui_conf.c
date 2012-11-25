@@ -22,8 +22,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               //init
               start_scan = TRUE;
               //local or not ?
-              if(TreeView_GetCount(htrv_files) == NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = TRUE;
-              else LOCAL_SCAN = FALSE;
+              if(TreeView_GetCount(htrv_files) > NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = FALSE;
+              else LOCAL_SCAN = TRUE;
               //read state !
               if (IsDlgButtonChecked(h_conf,BT_ACL_FILE_CHK)==BST_CHECKED)FILE_ACL=TRUE;
               else FILE_ACL=FALSE;
