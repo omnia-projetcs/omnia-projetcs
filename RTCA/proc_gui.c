@@ -184,8 +184,8 @@ int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
   ListView_GetItemText(st->hlv, lParam1, st->col, buf1, MAX_LINE_SIZE);
   ListView_GetItemText(st->hlv, lParam2, st->col, buf2, MAX_LINE_SIZE);
 
-  if (st->sort) return (strcmp(buf1, buf2));
-  else return (strcmp(buf1, buf2)*-1);
+  if (st->sort) return (strcmp(charToLowChar(buf1), charToLowChar(buf2)));
+  else return (strcmp(charToLowChar(buf1), charToLowChar(buf2))*-1);
 }
 //------------------------------------------------------------------------------
 void c_Tri(HANDLE hlv, unsigned short colonne_ref, BOOL sort)
@@ -365,6 +365,7 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_reg_file ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_reg      ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_date     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_state    ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_CHECKED);
   }else
@@ -375,6 +376,7 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_reg_file ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_reg      ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_date     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_state     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
   }

@@ -213,7 +213,7 @@ DWORD WINAPI AddIp(LPVOID lParam)
 
   //check if ip is ok
   HANDLE hlstv = GetDlgItem(h_sniff,DLG_NS_LSTV);
-  unsigned int i,nb_ip = ListView_GetItemCount(hlstv);
+  unsigned long int i,nb_ip = ListView_GetItemCount(hlstv);
 
   char buffer[DEFAULT_TMP_SIZE];
   BOOL ip_src_exist = FALSE;
@@ -290,8 +290,7 @@ DWORD WINAPI AddIp(LPVOID lParam)
           break;
         }
       }
-    }
-    if (!strcmp(buffer,Trame_buffer[id].ip_dst))
+    }else if (!strcmp(buffer,Trame_buffer[id].ip_dst))
     {
       //exist, check if protocols are complets
       ip_dst_exist = TRUE;
@@ -512,7 +511,6 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
       ListView_SetItemText(hlstv_paquets,intemPosTrame,4,TXT_UDP_IPV4);
 
       //datas :
-      //datas :
       if (taille > IPV4_HDR_SIZE+UDP_HDR_SIZE)
       {
         snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+IPV4_HDR_SIZE+UDP_HDR_SIZE));
@@ -661,7 +659,7 @@ DWORD GetCurrentLstvNbColumn()
 DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
 {
   //index
-  int index = SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_GETCURSEL,(WPARAM) 0, (LPARAM)0);
+  long int index = SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_GETCURSEL,(WPARAM) 0, (LPARAM)0);
 
   HANDLE hlstv    = GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);
   HANDLE hlstv_f  = GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE);
@@ -669,7 +667,7 @@ DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
   //clean
   ListView_DeleteAllItems(hlstv_f);
 
-  if (index == 0) //no filter
+  if (index == LB_ERR) //no filter
   {
     //if ip is visible
     HANDLE hlstv_ip = GetDlgItem(h_sniff,DLG_NS_LSTV);
@@ -683,13 +681,14 @@ DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
     char buffer[DEFAULT_TMP_SIZE]="";
     if (SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_GETTEXT,(WPARAM) index, (LPARAM)buffer)!=LB_ERR)
     {
-      unsigned int i, j, count = 0;
+      long int i, j, pos;
       char tmp[DEFAULT_TMP_SIZE];
       LVITEM lvi;
       lvi.mask = LVIF_TEXT|LVIF_PARAM;
       lvi.iSubItem = 0;
       lvi.lParam = LVM_SORTITEMS;
       lvi.pszText="";
+      lvi.iItem = 0;
 
       for (i=0;i<NB_trame_buffer-1;i++)
       {
@@ -698,17 +697,16 @@ DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
         if (tmp[0] != 0 && !strcmp(tmp,buffer))
         {
           //ajout de l'item
-          lvi.iItem = count;
-          ListView_InsertItem(hlstv_f, &lvi);
+          lvi.iItem = lvi.iItem+1;
+          pos = ListView_InsertItem(hlstv_f, &lvi);
 
           //copie des colonnes de la listeview d'origine dans celle du filtre
           for(j=0;j<DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;j++)
           {
             tmp[0] = 0;
             ListView_GetItemText(hlstv,i,j,tmp,DEFAULT_TMP_SIZE);
-            ListView_SetItemText(hlstv_f,count,j,tmp);
+            ListView_SetItemText(hlstv_f,pos,j,tmp);
           }
-          count++;
         }else
         {
           tmp[0] = 0;
@@ -716,17 +714,16 @@ DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
           if (tmp[0] != 0 && !strcmp(tmp,buffer))
           {
             //ajout de l'item
-            lvi.iItem = count;
-            ListView_InsertItem(hlstv_f, &lvi);
+            lvi.iItem = lvi.iItem+1;
+            pos = ListView_InsertItem(hlstv_f, &lvi);
 
             //copie des colonnes de la listeview d'origine dans celle du filtre
             for(j=0;j<DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;j++)
             {
               tmp[0] = 0;
               ListView_GetItemText(hlstv,i,j,tmp,DEFAULT_TMP_SIZE);
-              ListView_SetItemText(hlstv_f,count,j,tmp);
+              ListView_SetItemText(hlstv_f,pos,j,tmp);
             }
-            count++;
           }
         }
       }
@@ -749,7 +746,7 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
   unsigned int type_filter = (unsigned int)lParam;
 
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
-  int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+  long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
 
   //clean
   ListView_DeleteAllItems(hlstv_f);
@@ -782,13 +779,14 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
   }
 
   //search
-  unsigned int i, j, count = 0;
+  long int i, j, pos;
   char tmp[DEFAULT_TMP_SIZE];
   LVITEM lvi;
-  lvi.mask = LVIF_TEXT|LVIF_PARAM;
-  lvi.iSubItem = 0;
-  lvi.lParam = LVM_SORTITEMS;
-  lvi.pszText="";
+  lvi.mask      = LVIF_TEXT|LVIF_PARAM;
+  lvi.iSubItem  = 0;
+  lvi.lParam    = LVM_SORTITEMS;
+  lvi.pszText   = "";
+  lvi.iItem     = 0;
 
   for (i=0;i<NB_trame_buffer-1;i++)
   {
@@ -797,17 +795,16 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
     if (tmp[0] != 0 && !strcmp(tmp,search_string))
     {
       //ajout de l'item
-      lvi.iItem = count;
-      ListView_InsertItem(hlstv_f, &lvi);
+      lvi.iItem = lvi.iItem+1;
+      pos = ListView_InsertItem(hlstv_f, &lvi);
 
       //copie des colonnes de la listeview d'origine dans celle du filtre
       for(j=0;j<DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;j++)
       {
         tmp[0] = 0;
         ListView_GetItemText(hlstv,i,j,tmp,DEFAULT_TMP_SIZE);
-        ListView_SetItemText(hlstv_f,count,j,tmp);
+        ListView_SetItemText(hlstv_f,pos,j,tmp);
       }
-      count++;
     }else
     {
       tmp[0] = 0;
@@ -815,17 +812,16 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
       if (tmp[0] != 0 && !strcmp(tmp,search_string))
       {
         //ajout de l'item
-        lvi.iItem = count;
-        ListView_InsertItem(hlstv_f, &lvi);
+        lvi.iItem = lvi.iItem+1;
+        pos = ListView_InsertItem(hlstv_f, &lvi);
 
         //copie des colonnes de la listeview d'origine dans celle du filtre
         for(j=0;j<DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;j++)
         {
           tmp[0] = 0;
           ListView_GetItemText(hlstv,i,j,tmp,DEFAULT_TMP_SIZE);
-          ListView_SetItemText(hlstv_f,count,j,tmp);
+          ListView_SetItemText(hlstv_f,pos,j,tmp);
         }
-        count++;
       }
     }
   }
@@ -894,7 +890,7 @@ void chartohexstring(char *src, unsigned int src_size, char *result, unsigned in
 DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
 {
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
-  int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+  long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
   if (index == -1 || index > NB_trame_buffer) return 0;
 
   read_trame_sniff = TRUE;
@@ -905,7 +901,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   //ipv4
   IPV4_HDR *ipv4_hdr = (IPV4_HDR *)Trame_buffer[index].buffer;
   snprintf(buffer_ipv4,REQUEST_MAX_SIZE,
-               "[%s:%d->%s:%d]%05d\r\n"
+               "[%s:%d->%s:%d]%08d\r\n"
                "[IPV4 HEADER]\r\n"
                "ip_header_len:\t%d\r\n"
                "ip_version:\t%d\r\n"
@@ -1054,7 +1050,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
 DWORD WINAPI follow_stream(LPVOID lParam)
 {
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
-  int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+  long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
   if (index == -1 || index > NB_trame_buffer) return 0;
   //only for tcp and udp
   if (Trame_buffer[index].ProtoType != IPPROTO_TCP && Trame_buffer[index].ProtoType != IPPROTO_UDP)return 0;
@@ -1080,7 +1076,7 @@ DWORD WINAPI follow_stream(LPVOID lParam)
       {
         data_buffer[0]=0;
         snprintf(data_buffer,MAX_LINE_DBSIZE,"%s",(Trame_buffer[i].buffer+IPV4_HDR_SIZE+TCP_HDR_SIZE));
-        if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
+        //if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
         {
           snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]%08d\r\n%s\r\n\r\n",
                    Trame_buffer[i].ip_src,Trame_buffer[i].src_port,
@@ -1090,7 +1086,7 @@ DWORD WINAPI follow_stream(LPVOID lParam)
       {
         data_buffer[0]=0;
         snprintf(data_buffer,MAX_LINE_DBSIZE,"%s",(Trame_buffer[i].buffer+IPV4_HDR_SIZE+UDP_HDR_SIZE));
-        if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
+        //if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
         {
           snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]%08d\r\n%s\r\n\r\n",
                    Trame_buffer[i].ip_src,Trame_buffer[i].src_port,
@@ -1103,8 +1099,8 @@ DWORD WINAPI follow_stream(LPVOID lParam)
       if (b == NULL) break;
       buffer = b;
 
-      strcat(buffer,frame_buffer);
-      strcat(buffer,"\0");
+      strncat(buffer,frame_buffer,(i+1)*MAX_LINE_DBSIZE);
+      strncat(buffer,"\0",(i+1)*MAX_LINE_DBSIZE);
     }
   }
 

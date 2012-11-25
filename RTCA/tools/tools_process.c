@@ -795,7 +795,38 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             {
               char path[MAX_PATH]="";
               ListView_GetItemText(hlstv_process,SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,path,MAX_PATH);
-              if (path[0]!=0)ShellExecute(h_process, "explore", path, NULL,NULL,SW_SHOW);
+              if (path[0]!=0)
+              {
+                //get path of file
+                char *c = path;
+                while (*c++);
+                while (*c != '\\' && *c != '/')c--;
+                c++;
+                *c=0;
+
+                if (path[1]=='?')
+                {
+                  c = path;
+                  c = c+4;
+                  ShellExecute(h_process, "explore", c, NULL,NULL,SW_SHOW);
+                }else if (path[0]=='\\' || path[0]=='/')
+                {
+                  path[0]='%';
+                  char *c = path;
+                  unsigned int i=0;
+                  while (*c != '\\' && *c != '/' && *c){c++;i++;}
+                  if (*c == '\\' || *c == '/')
+                  {
+                    char tmp_path[MAX_PATH]="";
+                    strncpy(tmp_path,path,MAX_PATH);
+                    tmp_path[i]= '%';
+                    tmp_path[i+1]= 0;
+                    strncat(tmp_path,c,MAX_PATH);
+                    strncat(tmp_path,"\0",MAX_PATH);
+                    ShellExecute(h_process, "explore", ReplaceEnv("systemroot", tmp_path, MAX_PATH), NULL,NULL,SW_SHOW);
+                  }
+                }else ShellExecute(h_process, "explore", path, NULL,NULL,SW_SHOW);
+              }
             }
             break;
             //-----------------------------------------------------

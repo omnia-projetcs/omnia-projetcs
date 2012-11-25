@@ -130,8 +130,7 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date;
-
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state;
 BOOL disable_m_context, disable_p_context;
 
 #define DLG_CONF                 2000
@@ -237,6 +236,22 @@ BOOL reg_file_start_process;
 /*#define DLG_DATE_EDT14              7019
 #define DLG_DATE_EDT15              7020*/
 DWORD last_bt;
+
+#define DLG_STATE                   8000
+#define DLG_STATE_LB_SESSION        8001
+#define DLG_STATE_LB_TEST           8002
+#define DLG_STATE_BT_ALL            8003
+#define DLG_STATE_BT_CRITICAL       8004
+#define DLG_STATE_BT_TIME_ZONE      8005
+#define DLG_STATE_ED_TIME_1         8006
+#define DLG_STATE_ED_TIME_2         8007
+#define DLG_STATE_BT_FILTER         8008
+#define DLG_STATE_LV_ALL            8009
+#define DLG_STATE_LV_CRITICAL       8010
+#define DLG_STATE_LV_TIME_ZONE      8011
+#define DLG_STATE_LV_FILTER         8012
+#define DLG_STATE_SB                8013
+#define DLG_STATE_BT_LOAD           8014
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -290,6 +305,12 @@ DWORD last_bt;
 #define POPUP_E_CSV                           12001
 #define POPUP_E_HTML                          12002
 #define POPUP_E_XML                           12003
+
+#define POPUP_SELECT_ALL_SESSION              12100
+#define POPUP_SELECT_ALL_TEST                 12101
+#define SELECT_ALL_SESSION                    12102
+#define SELECT_ALL_TEST                       12103
+BOOL SELECT_SESSION, SELECT_TEST;
 
 #define POPUP_LSTV_EMPTY_FILE                 12999
 BOOL AVIRUSTTAL,VIRUSTTAL;
@@ -385,11 +406,12 @@ char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 #define SAVE_TYPE_CSV                             1
 #define SAVE_TYPE_XML                             2
 #define SAVE_TYPE_HTML                            3
+#define SAVE_TYPE_PWDUMP                          4
 #define SAVE_TYPE_PCAP                            4
 
 //sqlite only
 #define SAVE_TYPE_TXT                             4
-#define SAVE_TYPE_PWDUMP                          5
+#define SAVE_TYPE_PWDUMP_                         5
 
 unsigned int stat_export_column;
 HANDLE MyhFile_export,h_Export;
@@ -522,6 +544,7 @@ typedef struct
 //------------------------------------------------------------------------------
 //for sort in lstv
 BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
+BOOL TRI_STATE_ALL, TRI_STATE_DATE, TRI_STATE_CRITICAL, TRI_STATE_FILTER;
 int column_tri;
 
 typedef struct SORT_ST
@@ -991,6 +1014,9 @@ void InitDlgRegfile();
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
 
+//state
+void InitGuiState();
+
 //GUI functions
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -998,6 +1024,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 BOOL CALLBACK DialogProc_reg_file(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 //subclass
 LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

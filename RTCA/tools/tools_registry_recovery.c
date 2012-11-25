@@ -200,7 +200,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
       lv_line[5].c[0]=0;
       filetimeToString_GMT(nk_h->last_write, lv_line[5].c, MAX_LINE_SIZE);
 
-      HTREEITEM htparent = 0;
+     // HTREEITEM htparent = 0;
       for (i=0;i<nk_h->nb_values;i++)
       {
         item_ls = (S_ITEM_LS *)&buffer[nk_h->val_ls_offset+0x1000+i*HBIN_CELL_ITEM_LS+4];
