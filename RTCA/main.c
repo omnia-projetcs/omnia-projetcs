@@ -1152,8 +1152,7 @@ int main(int argc, char* argv[])
   }else
   {
     printf("CONSOLE OPTION IN DEV : DISABLE !!!!\n");
-
-    /*
+/*
     if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
     {
       //if tmp sqlite file exist free !!
@@ -1217,7 +1216,7 @@ int main(int argc, char* argv[])
                    "\t-2  Enable SHA in files test.\n\n"
                    "\t-T  Export in UTC time.\n\n"
                    "\n"
-                   "\t-f  Import file to check.\n\t    Exemple: -f \"c:\\file.reg\"\n\n"
+                   "\t-f  Import file to check.\n\t    Exemple: -f \"c:\\NTUSER.DAT\"\n\n"
                    "\t-p  Import path to check in file test.\n\t    Exemple: -p \"c:\\directory\\\"\n\n"
                    "\n"
                    "\t-a  Start all tests.\n\n"
@@ -1290,7 +1289,7 @@ int main(int argc, char* argv[])
                    "\n"
                    "List of tests :\n",NOM_FULL_APPLI);
             fcri.type = CMD_TYPE_LIST_TESTS;
-            snprintf(request,MAX_LINE_SIZE,"SELECT id_item,string FROM language_strings WHERE id_language=1 ORDER BY id_item;");
+            snprintf(request,MAX_LINE_SIZE,"SELECT id_item, string FROM language_strings WHERE id_language=1 ORDER BY id_item;");
             sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
             system("PAUSE");
           break;

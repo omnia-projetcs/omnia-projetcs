@@ -876,6 +876,55 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             }
             break;
             case POPUP_PROCESS_REFRESH:LoadPRocessList(hlstv_process);break;
+            case POPUP_VIRUSTOTAL_CHECK:
+            {
+              //get path !
+              DWORD current_item = SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+              char path[MAX_PATH]="",ok_path[MAX_PATH]="";
+              ListView_GetItemText(hlstv_process,current_item,2,path,MAX_PATH);
+              if (path[0]!=0)
+              {
+                //get path of file
+                char *c = path;
+                if (path[1]=='?')
+                {
+                  c = path;
+                  c = c+4;
+                  strncpy(ok_path,c,MAX_PATH);
+                }else if (path[0]=='\\' || path[0]=='/')
+                {
+                  path[0]='%';
+                  char *c = path;
+                  unsigned int i=0;
+                  while (*c != '\\' && *c != '/' && *c){c++;i++;}
+                  if (*c == '\\' || *c == '/')
+                  {
+                    char tmp_path[MAX_PATH]="";
+                    strncpy(tmp_path,path,MAX_PATH);
+                    tmp_path[i]= '%';
+                    tmp_path[i+1]= 0;
+                    strncat(tmp_path,c,MAX_PATH);
+                    strncat(tmp_path,"\0",MAX_PATH);
+                    strncpy(ok_path,ReplaceEnv("systemroot", tmp_path, MAX_PATH),MAX_PATH);
+                  }
+                }else strncpy(ok_path,path,MAX_PATH);
+
+                //get sha256
+                char s_sha[65]="";
+                FileToSHA256(ok_path, s_sha);
+                if (s_sha[0] != 0)
+                {
+                  ListView_SetItemText(hlstv_process,current_item,18,s_sha);
+
+                  MessageBox(0,s_sha,ok_path,MB_OK|MB_TOPMOST);
+
+                  //get VirusTotal Datas
+                  CheckItemToVirusTotal(hlstv_process, current_item, 18, 18, NULL, FALSE);
+                }
+              }
+            }
+            break;
+            case POPUP_VIRUSTOTAL_CHECK_ALL:CreateThread(NULL,0,CheckAllFileToVirusTotalProcess,0,0,0);break;
           }
         break;
       }
@@ -927,6 +976,14 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             lvc.cchTextMax = DEFAULT_TMP_SIZE;
             lvc.pszText = buffer;
             i++;
+          }
+
+          //verify if path is empty
+          char tmp[MAX_PATH]="";
+          ListView_GetItemText(hlstv_process,SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED),2,tmp,MAX_PATH);
+          if (tmp[0]==0)
+          {
+            RemoveMenu(hmenu,POPUP_VIRUSTOTAL_CHECK,MF_BYCOMMAND);
           }
 
           //affichage du popup menu

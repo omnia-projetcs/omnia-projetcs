@@ -75,7 +75,6 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                               "*.pf\0*.pf\0"
                               "*.job\0*.job\0"
                               "ntds.dit\0ntds.dit\0"
-                              "*.reg\0*.reg\0"
                               "sam\0sam\0"
                               "system\0system\0"
                               "software\0software\0"

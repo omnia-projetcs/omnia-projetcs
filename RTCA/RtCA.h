@@ -393,9 +393,11 @@ HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
 #define POPUP_ADD_DLL_INJECT_REMOTE_THREAD    13203
 #define POPUP_REM_DLL_INJECT_REMOTE_THREAD    13204
 #define POPUP_PROCESS_REFRESH                 13205
+#define POPUP_VIRUSTOTAL_CHECK                13206
+#define POPUP_VIRUSTOTAL_CHECK_ALL            13207
 
-#define POPUP_DLL_INJECT                          7
-#define POPUP_PROCESS_COPY_TO_CLIPBORD           11
+#define POPUP_DLL_INJECT                         10
+#define POPUP_PROCESS_COPY_TO_CLIPBORD           14
 
 #define NB_PROCESS_COLUMN                        19
 
@@ -1012,6 +1014,7 @@ void InitDlgRegfile();
 
 //virustotal
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
+DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
 
 //state

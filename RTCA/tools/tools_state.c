@@ -798,7 +798,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 31: //prefetc
+    case 31: //prefetch
     {
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
@@ -811,13 +811,13 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
 
       //set text
       char exec[MAX_LINE_SIZE];
-      snprintf(exec,MAX_LINE_SIZE,"%s:%s",azColName[4],argv[4]);
+      snprintf(exec,MAX_LINE_SIZE,"%s:%s, %s",azColName[5],argv[5],argv[0]);
 
-      ListView_SetItemText(hlv,ref_item,0,argv[5]);     //date
-      ListView_SetItemText(hlv,ref_item,1,azColName[5]);//Origine
+      ListView_SetItemText(hlv,ref_item,0,argv[6]);     //date
+      ListView_SetItemText(hlv,ref_item,1,azColName[6]);//Origine
       ListView_SetItemText(hlv,ref_item,2,src_name);    //Source
       ListView_SetItemText(hlv,ref_item,3,exec);        //desc
-      ListView_SetItemText(hlv,ref_item,4,argv[0]);     //description
+      ListView_SetItemText(hlv,ref_item,4,argv[1]);     //description
       //ListView_SetItemText(hlv,ref_item,5,argv[5]);     //Owner
       //ListView_SetItemText(hlv,ref_item,6,argv[7]);     //SID
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
