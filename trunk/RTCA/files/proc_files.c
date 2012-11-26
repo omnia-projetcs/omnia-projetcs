@@ -24,8 +24,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
       }
       check_treeview(htrv_test, H_tests[TEST_LOGS], TRV_STATE_CHECK);
-    }else if (strcmp(ext,"reg")==0 ||
-              strcmp(lowcase_file,"security.dat")==0 ||
+    }else if (strcmp(lowcase_file,"security.dat")==0 ||
               strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser_") && strcmp(ext,"dat")==0)   ||
               strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings_") && strcmp(ext,"dat")==0)   || //win8
               strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass_") && strcmp(ext,"dat")==0) ||

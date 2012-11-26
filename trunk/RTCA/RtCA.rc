@@ -386,6 +386,9 @@ BEGIN
     MENUITEM "Kill process"              ,POPUP_KILL_PROCESS
     MENUITEM "Dump process memory"       ,POPUP_DUMP_MEMORY
     MENUITEM SEPARATOR
+    MENUITEM "VirusTotal check file"     ,POPUP_VIRUSTOTAL_CHECK
+    MENUITEM "VirusTotal check all files",POPUP_VIRUSTOTAL_CHECK_ALL
+    MENUITEM SEPARATOR
     POPUP "Dll injection"
     BEGIN
       MENUITEM "Add remote thread injection"        ,POPUP_ADD_DLL_INJECT_REMOTE_THREAD
