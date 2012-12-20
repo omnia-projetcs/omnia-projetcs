@@ -6120,6 +6120,74 @@ FTP, SSH, TELNET, HTTP(S), POP3(S)
 {\sl \color{blue} ncrack -m ssh://192.168.0.1:5000}\vskip+0.1cm
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Net commandes}{services.jpg}{\O}
+{
+  \\Commandes sous console DOS sur les environnements Microsoft Windows.
+}
+{
+\textbf{Utilisateurs :}\\
+\textit{Ajouter un utilisateur :}\\{\sl \color{blue}
+net user MonUser MonMDP /add\vskip-0.05cm
+net user MonUser MonMDP /add /domain\vskip-0.05cm
+net user MonUser MonMDP /add /domain MonDomaine}\vskip+0.1cm
+\textit{Supprimer un utilisateur :}\\{\sl \color{blue}
+net user MonUser /delete\vskip-0.05cm
+net user MonUser /delete /domain}\vskip+0.1cm
+\textit{Modifier le mot de passe d'un utilisateur : }{\sl \color{blue}
+net user MonUser MonNouveauMdp}\\
+\textit{Ajouter un utilisateur \`a un groupe local/du domaine actuel/un autre domaine :}\\{\sl \color{blue}
+net localgroup MonGroupe MonUser /add\vskip-0.05cm
+net group MonGroupe MonUser /add}\vskip+0.1cm
+\textit{Liste des utilisateurs locaux/du domaine actuel/un autre domaine :}\\{\sl \color{blue}
+net user\\
+net user /domain}\\
+\textit{Information d'un utilisateur local/du domaine actuel/un autre domaine :}\\{\sl \color{blue}
+net user MonUser\vskip-0.05cm
+net user MonUser /domain}\vskip+0.1cm
+\textit{Liste des groupes locaux/du domaine actuel/un autre domaine :}\\{\sl \color{blue}
+net localgroup\vskip-0.05cm
+net group\vskip-0.05cm
+net group /domain}\vskip+0.1cm
+\textit{Information sur un groupe (membres) :}\\{\sl \color{blue}
+net localgroup MonGroupe\vskip-0.05cm
+net group MonGroup\vskip-0.05cm
+net group MonGroupe /domain}\vskip+0.1cm
+\textit{Liste des sessions ouverte sur la machine : }{\sl \color{blue}
+net session}\\
+\textit{Fermer la session d'un utilisateur : }{\sl \color{blue}
+net session $\backslash\backslash$MonComputer /delete}\vskip+0.2cm
+
+\textbf{R\'eseau :}\\
+\textit{Liste des machines du r\'eseau r\'epondant : }{\sl \color{blue}
+net view}\\
+\textit{Liste des partages d'une machine : }{\sl \color{blue}
+net view $\backslash\backslash$IP\_ou\_nom\_de\_machine}\\
+\textit{Liste des partages locaux : }{\sl \color{blue}
+net share}\\
+\textit{Monter un partage r\'eseau : }{\sl \color{blue}
+net use * $\backslash\backslash$IP$\backslash$partage /user:"login":"mdp"}\\
+\textit{D\'emonter un partage r\'eseau (ici le lecteur f) : }{\sl \color{blue}
+net use f: /delete}\\
+\textit{V\'erifier une nulle session sur une machine du r\'eseau : }{\sl \color{blue}
+net use $\backslash\backslash$IP$\backslash$ipc\$ /user:"" ""}\\
+\textit{Ajouter/supprimer un ordinateur au domaine : }{\sl \color{blue}
+net computer $\backslash\backslash$MonComputer /add} ou {\sl \color{blue}/delete}\\
+\textit{Afficher la liste des fichiers ouverts sur le r\'eseau : }{\sl \color{blue}
+net file}\\
+\textit{Afficher l'heure d'une machine : }{\sl \color{blue}
+net time $\backslash\backslash$IP}\vskip+0.2cm
+
+\textbf{Syst\`eme :}\\
+\textit{Politique de sécurité local/de l'AD :}\\{\sl \color{blue}
+net accounts\vskip-0.05cm
+net accounts /domain}\vskip+0.1cm
+\textit{Informations du serveur (liste des r\^oles) : }{\sl \color{blue}
+net config}\\
+\textit{Information du serveur (sur un r\^ole, ici Serveur) : }{\sl \color{blue}
+net config Serveur}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{NetBIOS/SMB/RPC}{services.jpg}{\url{http://msdn.microsoft.com/en-us/library/bb870886(VS.85).aspx}\\ \url{http://support.microsoft.com/kb/163409}}
 {
   \\Network Basic Input/Output System, est une API Microsoft utilis\'ee par des applications sur un r\'eseau local (ports TCP/UDP : 135, 137, 138, 139, 445).
