@@ -3595,7 +3595,8 @@ On peut aussi casser d'autres types de mots de passe (.htpasswd\dots{}).\\
 \textbf{Brute force : }\\{\sl \color{blue}./john-386 -i:all shadow}\vskip +0.5cm
 
 \textbf{Par dictionnaire : }\\{\sl \color{blue}./john-386  -wordfile:fichier\_dictionnaire shadow}\\ ou suivant les distributions : \\
-{\sl \color{blue}./john-386 -wordlist:fichier\_dictionnaire shadow}\vskip +0.5cm
+{\sl \color{blue}./john-386 -wordlist:fichier\_dictionnaire shadow}\\en v\'erifiant la casse :\\{\sl \color{blue}./john-386 {-}{-}format=NT {-}{-}rules=NT -wordfile:fichier\_dictionnaire shadow}
+\vskip +0.5cm
 
 \textbf{Afficher les mots de passes trouv\'es : }\\{\sl \color{blue}./john-386   {-}{-}show shadow}\vskip +0.5cm
 
