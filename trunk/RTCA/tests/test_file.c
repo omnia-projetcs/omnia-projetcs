@@ -366,91 +366,6 @@ void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned 
     HeapFree(GetProcessHeap(), 0, psd);
   }
 }
-/*
-//new version : bug
-//-----------------------------------------------------------------------------
-void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max)
-{
-  //droits sur le fichier
-  SECURITY_DESCRIPTOR *sd;
-  unsigned long size_sd = 0;
-  char buffer_tmp[MAX_PATH];
-
-  char s_user[MAX_PATH],s_rid[MAX_PATH],s_sid[MAX_PATH];
-
-  acls[0]=0;
-  //récupération du descripteur sécurité
-  GetFileSecurity(file, DACL_SECURITY_INFORMATION, 0, 0, &size_sd);
-  if (acls && size_sd>0)
-  {
-    sd = (SECURITY_DESCRIPTOR *) HeapAlloc(GetProcessHeap(), 0, size_sd);
-    if (sd != NULL)
-    {
-      if (GetFileSecurity(file, DACL_SECURITY_INFORMATION, sd, size_sd, &size_sd))
-      {
-        ACL *acl;
-        int defaulted, present;
-        //récupération des ACLS du descripteur
-        if (GetSecurityDescriptorDacl(sd, &present, &acl, &defaulted))
-        {
-          //Information sur l'ACL
-          ACL_SIZE_INFORMATION acl_size_info;
-          if (acl != NULL)
-          {
-            if (GetAclInformation(acl, (void *) &acl_size_info, sizeof(acl_size_info), AclSizeInformation))
-            {
-              //traitement de l'affichage des ACLS
-              unsigned int i;
-              void *ace;
-              SID *psid = NULL;
-              int mask;
-
-              for (i=0;i<acl_size_info.AceCount; i++)
-              {
-                //affichage d'une ACE :
-                if (GetAce(acl, i, &ace))
-                {
-                  if (ace != NULL)
-                  {
-                    mask = 0;
-
-                    //récupération des droits authorisés
-                    if (((ACCESS_ALLOWED_ACE *)ace)->Header.AceType == ACCESS_ALLOWED_ACE_TYPE){
-                        mask = ((ACCESS_ALLOWED_ACE *)ace)->Mask;
-                        psid  = (SID *) &((ACCESS_ALLOWED_ACE *)ace)->SidStart;
-                    //récupération des droits refusés
-                    }else if(((ACCESS_DENIED_ACE *)ace)->Header.AceType == ACCESS_DENIED_ACE_TYPE){
-                        mask = ((ACCESS_DENIED_ACE *)ace)->Mask;
-                        psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
-                    }
-
-                    //owner
-                    s_user[0]=0;
-                    s_rid[0]=0;
-                    s_sid[0]=0;
-                    SidtoUser(psid, s_user, s_rid, s_sid, MAX_PATH);
-
-                    //traitement pour affichage des droits
-                    snprintf(buffer_tmp,MAX_PATH,"%s%c%c%c%s%s\r\n",
-                             acls,
-                             mask & FILE_GENERIC_READ?'r':'-',
-                             mask & FILE_GENERIC_WRITE?'w':'-',
-                             mask & FILE_GENERIC_EXECUTE?'x':'-',
-                             s_user,s_sid);
-                  }
-                }
-              }
-            }
-          }
-          HeapFree(GetProcessHeap(), 0, acl);
-        }
-      }
-      HeapFree(GetProcessHeap(), 0, sd);
-    }
-  }
-
-  GetOwner(file, owner, rid, sid, size_max);
-}*/
 //------------------------------------------------------------------------------
 void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
 {
@@ -731,9 +646,9 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   //get local path !
   //get child
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
   if (!LOCAL_SCAN)
   {
+    HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
     if (hitem == NULL)//get all files infos !!!
     {
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
@@ -795,7 +710,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
   }
 
   sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  if (!CONSOL_ONLY)check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

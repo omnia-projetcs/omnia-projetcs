@@ -133,6 +133,47 @@ void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqli
   HeapFree(GetProcessHeap(), 0, buffer);
 }
 //------------------------------------------------------------------------------
+void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session_id, sqlite3 *db, BOOL recursif, BOOL IEexclusions)
+{
+  WIN32_FIND_DATA wfd;
+  char path_tmp[MAX_PATH],path_tmp_next[MAX_PATH];
+  snprintf(path_tmp,MAX_PATH,"%s\\*.*",path);
+  HANDLE hfic = FindFirstFile(path_tmp, &wfd);
+  if (hfic != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        if(wfd.cFileName[0] == '.' && (wfd.cFileName[1] == 0 || wfd.cFileName[1] == '.'))continue;
+        if (recursif)
+        {
+          if (IEexclusions) //only not exludes !!!
+          {
+            //remove format index.dat for IE (no user datas)
+            if(!strcmp(wfd.cFileName,"IECompatCache") ||
+               !strcmp(wfd.cFileName,"IETldCache"))continue;
+          }
+
+          snprintf(path_tmp_next,MAX_PATH,"%s\\%s",path,wfd.cFileName);
+          //if Cookies different ID
+          if (!strcmp(wfd.cFileName,"Cookies"))SearchAndWorkIEFiles(path_tmp_next, file, 3, session_id, db, recursif, IEexclusions);
+          else SearchAndWorkIEFiles(path_tmp_next, file, id, session_id, db, recursif, IEexclusions);
+        }
+      }else //file
+      {
+        if (!strcmp(wfd.cFileName,file))
+        {
+          //add
+          snprintf(path_tmp_next,MAX_PATH,"%s\\%s",path,wfd.cFileName);
+          ReadDATFile(path_tmp_next, id, session_id, db);
+        }
+      }
+    }while(FindNextFile (hfic,&wfd));
+  }
+}
+
+//------------------------------------------------------------------------------
 DWORD WINAPI Scan_ie_history(LPVOID lParam)
 {
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -141,8 +182,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
   unsigned int session_id = current_session_id;
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
-  if (hitem == NULL && LOCAL_SCAN) //local
+  HTREEITEM hitem = NULL;
+  if (!CONSOL_ONLY)hitem =(HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  if ((hitem == NULL && LOCAL_SCAN) || CONSOL_ONLY) //local
   {
     //get path of all profils users
     //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
@@ -167,47 +209,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
             {
               //verify the path if %systemdrive%
               ReplaceEnv("SYSTEMDRIVE",tmp_key,MAX_PATH);
-
-              //cookies
-              snprintf(tmp_key_path,MAX_PATH,"%s\\Cookies\\index.dat",tmp_key);
-              ReadDATFile(tmp_key_path, 3, session_id, db);
-
-              //search other files cache
-              WIN32_FIND_DATA wfd0;
-              snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
-              HANDLE hfic = FindFirstFile(tmp_key_path, &wfd0);
-              if (hfic != INVALID_HANDLE_VALUE)
-              {
-                char tmp_path[MAX_PATH],tmp_path2[MAX_PATH];
-                do
-                {
-                  if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                  {
-                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
-
-                    sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-                    snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
-                    ReadDATFile(tmp_path, 15, session_id, db);
-                    sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-                    //get file and tests it
-                    WIN32_FIND_DATA wfd1;
-                    HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
-                    if (hfic2 == INVALID_HANDLE_VALUE)continue;
-                    do
-                    {
-                      if (wfd1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
-                      {
-                        if(wfd1.cFileName[0] == '.' && (wfd1.cFileName[1] == 0 || wfd1.cFileName[1] == '.'))continue;
-
-                        sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-                        snprintf(tmp_path2,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\%s\\index.dat",tmp_key,wfd0.cFileName,wfd1.cFileName);
-                        ReadDATFile(tmp_path2, 15, session_id, db);
-                        sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-                      }
-                    }while(FindNextFile (hfic,&wfd1) && start_scan);
-                  }
-                }while(FindNextFile (hfic,&wfd0));
-              }
+              sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+              SearchAndWorkIEFiles(tmp_key, "index.dat", 15, session_id, db, TRUE, TRUE);
+              sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
             }
           }
         }
@@ -227,7 +231,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
   }
-  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
+  if (!CONSOL_ONLY)check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

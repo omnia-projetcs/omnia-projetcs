@@ -533,7 +533,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
             char RID[MAX_PATH]="", sid[MAX_PATH]="";
-            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                          argv[1], NULL, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
             //save
             convertStringToSQL(tmp, MAX_LINE_SIZE);
@@ -548,7 +548,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
             char RID[MAX_PATH]="", sid[MAX_PATH]="";
-            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
@@ -579,7 +579,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
             char RID[MAX_PATH]="", sid[MAX_PATH]="";
-            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
@@ -609,7 +609,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
             char RID[MAX_PATH]="", sid[MAX_PATH]="";
-            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
@@ -639,7 +639,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
             //key update
             char parent_key_update[DATE_SIZE_MAX]="";
             char RID[MAX_PATH]="", sid[MAX_PATH]="";
-            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+            Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
             //get values
@@ -684,7 +684,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                 if (nk_ht!=NULL)
                 {
                   //key update
-                  Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+                  Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                                NULL, nk_ht, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
                   //save
                   convertStringToSQL(tmp_key, MAX_PATH);
@@ -727,7 +727,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                                   data, MAX_PATH))
                   {
                     //key update
-                    Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+                    Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                                  NULL, nk_ht2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
                     //save
@@ -771,7 +771,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   if (nk_h_tmp2 == NULL)continue;
 
                   //key update
-                  Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+                  Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                                NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
                   //get values
@@ -817,7 +817,7 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
               if (nk_h_tmp2 == NULL)continue;
 
               //key update
-              Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru.position,
+              Readnk_Infos(hks_mru.buffer,hks_mru.taille_fic, (hks_mru.pos_fhbin), hks_mru.position,
                            NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
 
               //get values

@@ -56,27 +56,31 @@ DWORD WINAPI Scan_android_history(LPVOID lParam)
 
   //get child
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
-  sqlite3 *db_tmp;
-
-  while(hitem!=NULL)
+  if (!CONSOL_ONLY)
   {
-    //get item txt
-    GetTextFromTrv(hitem, tmp_file_android, MAX_PATH);
-    //test to open file
-    if (sqlite3_open(tmp_file_android, &db_tmp) == SQLITE_OK)
+    HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+    sqlite3 *db_tmp;
+
+    while(hitem!=NULL)
     {
-      for (data.type =0;data.type <nb_sql_ANDROID && start_scan;data.type = data.type+1)
+      //get item txt
+      GetTextFromTrv(hitem, tmp_file_android, MAX_PATH);
+      //test to open file
+      if (sqlite3_open(tmp_file_android, &db_tmp) == SQLITE_OK)
       {
-        sqlite3_exec(db_tmp, sql_ANDROID[data.type].sql, callback_sqlite_android, &data, NULL);
+        for (data.type =0;data.type <nb_sql_ANDROID && start_scan;data.type = data.type+1)
+        {
+          sqlite3_exec(db_tmp, sql_ANDROID[data.type].sql, callback_sqlite_android, &data, NULL);
+        }
+        sqlite3_close(db_tmp);
       }
-      sqlite3_close(db_tmp);
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
-    hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+
+    sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+    check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

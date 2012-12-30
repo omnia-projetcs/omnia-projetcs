@@ -111,18 +111,42 @@ HTREEITEM AddFirstValueToTreeView(HANDLE htv, HTREEITEM hparent, char *path, cha
   return 0;
 }*/
 //------------------------------------------------------------------------------
-BOOL ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max)
+void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max)
 {
   path[0]=0;
   char tmp[MAX_LINE_SIZE];
   DWORD pos =position;
-  BOOL deleteted = FALSE;
   HBIN_CELL_NK_HEADER *nk_h = (HBIN_CELL_NK_HEADER *)(buffer+pos);
 
   //Get SID
   sid[0] = 0;
-  /*Readnk_Infos(buffer,taille_fic, 0x1000+HBIN_HEADER_SIZE, position,
-               NULL, nk_h, NULL, NULL, NULL, 0,sid, sid_size_max);*/
+  if (nk_h != NULL)
+  {
+    if (nk_h->key_name_size >0 && nk_h->key_name_size<taille_fic && nk_h->size>0 && nk_h->type == 0x6B6E)
+    {
+      if (nk_h->sk_offset != 0xFFFFFFFF && nk_h->sk_offset >0 && (HBIN_FIRST_DEFAULT+nk_h->sk_offset)<taille_fic)
+      {
+        //read owner and this rid + sid
+        HBIN_CELL_SK_HEADER *sk = (HBIN_CELL_SK_HEADER *)&buffer[HBIN_FIRST_DEFAULT+nk_h->sk_offset];
+        if (HBIN_FIRST_DEFAULT+nk_h->sk_offset+sk->owner_offset+SK_OWNER_SIZE_MAX<taille_fic)
+        {
+          SK_SID *sk_owner = (SK_SID *)&buffer[HBIN_FIRST_DEFAULT+nk_h->sk_offset+sk->owner_offset+SK_HEADER_DATA_SIZE];
+          if (sk_owner->nb_ID > 0 && sk_owner->nb_ID < 0xff)
+          {
+            unsigned int i, nb = sk_owner->nb_ID;
+            if (nb > 5)nb = 5;
+
+            //SID
+            if (sid != NULL)
+            {
+              snprintf(sid,sid_size_max,"S-1-%u",sk_owner->ID0);
+              for (i=0;i<nb;i++)snprintf(sid+strlen(sid),sid_size_max-strlen(sid),"-%lu",sk_owner->ID[i]);
+            }
+          }
+        }
+      }
+    }
+  }
 
   //Get path
   while (0x1000+nk_h->parent_key < taille_fic && nk_h->parent_key > 0)
@@ -164,16 +188,13 @@ BOOL ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsign
     if (*c == '\\')
     {
       c++;
-      //if(GetRegistryNK(buffer, taille_fic, position, 0x1000, c) == NULL) deleteted = TRUE;
       snprintf(path,path_size_max,"%s%s",parent,c);
     }
   }
-
-  return deleteted;
 }
 //------------------------------------------------------------------------------
 //nk keys ( == directory)
-DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD position, DWORD taille_fic, char *buffer, HANDLE hlv,HANDLE htv)
+DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD position, DWORD taille_fic, char *buffer, HANDLE hlv,HANDLE htv, BOOL deleted)
 {
   HBIN_CELL_NK_HEADER *nk_h = (HBIN_CELL_NK_HEADER *)(buffer+position);
   //valide ?
@@ -182,11 +203,14 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
     if (nk_h->nb_values > 0)
     {
       LINE_ITEM lv_line[DLG_REG_LV_NB_COLUMN];
+      char parent_key_update[DATE_SIZE_MAX];
+      char Owner_SID[MAX_PATH];
+
       strcpy(lv_line[0].c,fic);
 
       //lecture du path complet + SID ^^
-      if(ReadPath(buffer, taille_fic, position, lv_line[1].c,MAX_LINE_SIZE,parent,lv_line[6].c,MAX_LINE_SIZE))
-        strcpy(lv_line[7].c,"X");
+      ReadPath(buffer, taille_fic, position, lv_line[1].c,MAX_LINE_SIZE,parent,Owner_SID,MAX_PATH);
+      if (deleted)strcpy(lv_line[7].c,"X");
       else lv_line[7].c[0]=0;
 
       //lecture des valeures ^^
@@ -197,8 +221,8 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
       char *c;
 
       //last update
-      lv_line[5].c[0]=0;
-      filetimeToString_GMT(nk_h->last_write, lv_line[5].c, MAX_LINE_SIZE);
+      parent_key_update[0]=0;
+      filetimeToString_GMT(nk_h->last_write, parent_key_update, DATE_SIZE_MAX);
 
      // HTREEITEM htparent = 0;
       for (i=0;i<nk_h->nb_values;i++)
@@ -428,7 +452,8 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
           //ajout de l'item
           //if (i == 0 || htparent == 0) htparent = AddFirstValueToTreeView(htv, hparent, lv_line[1].c, tmp, vk_h->data_type);
           //else AddNextValueToTreeView(htv, htparent, tmp, vk_h->data_type);
-
+          strcpy(lv_line[5].c,parent_key_update);
+          strcpy(lv_line[6].c,Owner_SID);
           AddToLVRegBin(hlv, lv_line, DLG_REG_LV_NB_COLUMN);
         }
       }
@@ -522,7 +547,21 @@ void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE 
         {
           switch(hb_ph->type)
           {
-            case 0x6B6E:  position = position + Traiter_RegBin_nk(reg_file,hparent, parent, position, taille_fic, buffer,hlv,htv);break; //nk
+            case 0x6B6E:  position = position + Traiter_RegBin_nk(reg_file,hparent, parent, position, taille_fic, buffer,hlv,htv,FALSE);break; //nk
+            case 0x6B73 : position = position + HBIN_CELL_SK_SIZE;break;//sk
+            case 0x6B76 : position = position + HBIN_CELL_VK_SIZE;break;//vk
+            case 0x666C : position = position + HBIN_CELL_LF_SIZE;break;//lf
+            case 0x686C : position = position + HBIN_CELL_LH_SIZE;break;//lh
+            case 0x696C : position = position + HBIN_CELL_LI_SIZE;break;//li
+            case 0x6972 : position = position + HBIN_CELL_RI_SIZE;break;//ri
+            case 0x6264 : position = position + HBIN_CELL_DB_SIZE;break;//db
+            default : position++; break;
+          }
+        }else if (((hb_ph->size[0]&0xFF) != 0x00) &&((hb_ph->size[1]&0xFF) == 0x00) && ((hb_ph->size[2]&0xFF) == 0x00) && ((hb_ph->size[3]&0xFF) == 0x00))
+        {
+          switch(hb_ph->type)
+          {
+            case 0x6B6E:  position = position + Traiter_RegBin_nk(reg_file,hparent, parent, position, taille_fic, buffer,hlv,htv,TRUE);break; //nk
             case 0x6B73 : position = position + HBIN_CELL_SK_SIZE;break;//sk
             case 0x6B76 : position = position + HBIN_CELL_VK_SIZE;break;//vk
             case 0x666C : position = position + HBIN_CELL_LF_SIZE;break;//lf

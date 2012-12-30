@@ -101,6 +101,7 @@ char _SYSKEY[MAX_PATH];
 #define MAC_SIZE                   18   //AA:BB:CC:DD:EE:FF = 18
 #define NB_MAX_PORTS            65536
 #define SZ_PART_SYSKEY           0x21
+#define NB_TESTS_GLOBALS           32
 
 #define DIXM             10*1024*1024    //10mo
 //------------------------------------------------------------------------------
@@ -271,6 +272,7 @@ DWORD last_bt;
 #define IDM_TOOLS_CP_HIBERNATE  10021
 #define IDM_UNCHECK_ALL_TESTS   10022
 #define IDM_QUIT                10023
+#define IDM_REFRESH_SESSION     10024
 
 #define IDM_TOOLS_CP_REGISTRY   10100
 #define IDM_TOOLS_CP_AUDIT      10101
@@ -959,6 +961,7 @@ void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size);
 void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
+void FileToSHA256(char *path, char *csha256);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);
@@ -1016,6 +1019,7 @@ void InitDlgRegfile();
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
+void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check);
 
 //state
 void InitGuiState();

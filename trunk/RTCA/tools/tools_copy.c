@@ -50,172 +50,41 @@ BOOL CreateFileCopyFilefromPath(char *path_src, char *path_dst)
   return FALSE;
 }
 //------------------------------------------------------------------------------
-/*void CopyFileInVSSMode(char *path_src, char *path_dst)
+BOOL VSSFileCopyFilefromPath(char *path_src, char *path_dst)
 {
-  //ok on lance la création d'un snap shoot + copy
-  char path_src_VSS[MAX_PATH]="";
-  char cmd_VSS[MAX_PATH]="create shadow /for=C:";
-  cmd_VSS[19] = path_src[0];
-
-  //create snapshot
-  //vssadmin create shadow /for=C:
-  ShellExecute(h_main, "vssadmin",cmd_VSS,"",NULL,SW_HIDE);
-
-  //read last snapshot VolumeShadowCopy
-  //\\?\GLOBALROOT\Device\HarddiskVolumeShadowCopyX
-  unsigned int test = 400; //not good code but compatible with much systems
-  do
-  {
-    snprintf(path_src_VSS,MAX_PATH,"\\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy%d%s",test,&path_src[2]);
-  }while (CopyFile(path_src_VSS,path_dst,FALSE) == 0 && test-->0);
-
-  //copy
-  CopyFile(path_src_VSS,path_dst,FALSE);
-}*/
-//------------------------------------------------------------------------------
-/*void VSSFileCopyFilefromPath(char *path_src, char *path_dst)
-{
-  if (path_src[0] == '\\' || path_src[0] == 0)return;
-
-  //get access of all services
-  SC_HANDLE h_SCM = OpenSCManager(NULL,NULL,SC_MANAGER_CONNECT|SC_MANAGER_ENUMERATE_SERVICE|SERVICE_START|SERVICE_STOP);//SC_MANAGER_ALL_ACCESS
-  if (h_SCM != ERROR_ACCESS_DENIED && h_SCM != ERROR_DATABASE_DOES_NOT_EXIST && h_SCM != NULL)
-  {
-    //get access to vss service
-    SC_HANDLE h_SC_service = OpenService(h_SCM,"VSS",SERVICE_START|SERVICE_STOP);//SERVICE_ALL_ACCESS
-    if (h_SC_service != NULL)
-    {
-      //get state
-      SERVICE_STATUS_PROCESS ssStatus;
-      DWORD dwBytesNeeded;
-      if (QueryServiceStatusEx(h_SC_service,SC_STATUS_PROCESS_INFO,(LPBYTE)&ssStatus,sizeof(SERVICE_STATUS_PROCESS),&dwBytesNeeded))
-      {
-        //start VSS service if not
-        if(ssStatus.dwCurrentState != SERVICE_STOPPED && ssStatus.dwCurrentState != SERVICE_STOP_PENDING)
-        {
-          CopyFileInVSSMode(path_src, path_dst);
-        }else //start service
-        {
-          if(StartService(h_SC_service, 0, NULL))
-          {
-            //wait until ok
-            SERVICE_STATUS_PROCESS ssStatus2;
-            do
-            {
-              Sleep(100);
-              if (!QueryServiceStatusEx(h_SC_service,SC_STATUS_PROCESS_INFO,(LPBYTE)&ssStatus2,sizeof(SERVICE_STATUS_PROCESS),&dwBytesNeeded))break;
-            }while (ssStatus2.dwCurrentState == SERVICE_START_PENDING);
-
-            CopyFileInVSSMode(path_src, path_dst);
-
-            //end !
-            ControlService(h_SC_service, SERVICE_CONTROL_STOP, (LPSERVICE_STATUS) &ssStatus);
-          }
-        }
-      }
-      CloseServiceHandle(h_SC_service);
-    }
-    CloseServiceHandle(h_SCM);
-  }
-}*/
-
-//------------------------------------------------------------------------------
-BOOL VSSCopyFile(char *path_src, char *path_dst)
-{
-  //load ddl to verify if cuntion is enable
+  BOOL Ok=FALSE;
+  //load dll to verify if funtion exist
   HMODULE hDLL;
   if ((hDLL = LoadLibrary( "VssApi.dll"))!=NULL)
   {
-    //verify if enable
-    typedef HRESULT (WINAPI *ISVVOLUMESNAPSHOTTED)(char* pwszVolumeName, BOOL *pbSnapshotsPresent, LONG *plSnapshotCapability);
-    ISVVOLUMESNAPSHOTTED IsVolumeSnapshotted = (ISVVOLUMESNAPSHOTTED) GetProcAddress(hDLL,"IsVolumeSnapshotted");
-    if (IsVolumeSnapshotted != NULL)
+    char cmd_vssadmin[MAX_PATH]="", path_src_VSS[MAX_PATH]="";
+    //create a snapshot of lecteur 2003r2/2008/2012 only
+    snprintf(cmd_vssadmin,MAX_PATH,"vssadmin create shadow /for=%c:",path_src[0]);
+    system(cmd_vssadmin);
+
+    //copy file
+    unsigned int test = 400; //not good code but compatible with much systems
+    do
     {
-      //windows 2008 and after solution !
-      //help from : http://www.petri.co.il/working-active-directory-snapshots-windows-server-2008.htm
+      snprintf(path_src_VSS,MAX_PATH,"\\\\?\\GLOBALROOT\\Device\\HarddiskVolumeShadowCopy%d%s",test,&path_src[2]);
 
-      //--------------------------
-      //create snapshot
-      char cmd[MAX_PATH] ="\"%WINDIR%\\System32\\ntdsutil.exe\" snapshot \"Activate Instance NTDS\" create quit quit";
-      ReplaceEnv("WINDIR",cmd,MAX_PATH);
-      system(cmd);
+    }while (CopyFile(path_src_VSS,path_dst,FALSE) == 0 && test-->0);
+    if (test > 0 )Ok = TRUE;
 
-
-
-
-
-      /*char cmd[MAX_PATH] ="\"%WINDIR%\\System32\\ntdsutil.exe\" snapshot \"activate instance ntds\" create quit quit";
-      ReplaceEnv("WINDIR",cmd,MAX_PATH);
-
-      STARTUPINFO si;
-      PROCESS_INFORMATION pi;
-      ZeroMemory(&si, sizeof(si));
-      ZeroMemory(&pi, sizeof(pi));
-      si.cb = sizeof(si);
-
-      if(!CreateProcess(0, cmd, 0, 0, 0, 0, 0, 0, &si, &pi))return FALSE;
-
-      // Wait until child process exits.
-      WaitForSingleObject(pi.hProcess, INFINITE);
-      if (pi.hProcess!=INVALID_HANDLE_VALUE)CloseHandle(pi.hProcess);
-      if (pi.hThread!=INVALID_HANDLE_VALUE)CloseHandle(pi.hThread);*/
-
-      //load resultats
-      /*
-      Snapshot set {3a861a35-2f33-4d7a-8861-a10e47afdaba}
-      */
-
-      //--------------------------
-      //Get file access
-      //char GUID[MAX_PATH];
-
-
-
-
-
-
-
-
-      //check if use of ntdisutil or vss
-
-
-
-
-      //check if service exist start it if is not
-
-
-      //check if snapshott enable
-      /*BOOL SnapshotsPresent   = FALSE;
-      LONG SnapshotCapability = 0;
-      char path[MAX_PATH]     = "c:\\";
-      path[0]                 = path_src[0];
-      if (IsVolumeSnapshotted(path,&SnapshotsPresent,&SnapshotCapability) != S_OK)
-      {
-        if (!SnapshotsPresent) //no shadowcopy
-        {
-          //do a snapshot
-
-
-        }
-      }*/
-
-      //get last snapshot
-
-      //cp file
-
-      //if service vsshave been started stop it !
-
-
-    }
+    //no delete snapshot
+    //delete snapshot
+    //snprintf(cmd_vssadmin,MAX_PATH,"vssadmin delete shadows /for=%c: /shadow=%s",path_src[0],snapshoot_id);
+    //system(cmd_vssadmin);
     FreeLibrary(hDLL);
   }
-  return FALSE;
+  return Ok;
 }
+
 //------------------------------------------------------------------------------
 BOOL CopyFilefromPath(char *path_src, char *path_dst, BOOL direct_shadow_copy)
 {
-  //if (direct_shadow_copy)VSSFileCopyFilefromPath(path_src, path_dst);//by (VSS) Shadow copy
-  //else
+  if (direct_shadow_copy)VSSFileCopyFilefromPath(path_src, path_dst);//by (VSS) Shadow copy
+  else
   {
     if (!CreateFileCopyFilefromPath(path_src, path_dst))//by share read
     {
@@ -223,7 +92,7 @@ BOOL CopyFilefromPath(char *path_src, char *path_dst, BOOL direct_shadow_copy)
       else
       {
         //or by (VSS) Shadow copy
-        //VSSFileCopyFilefromPath(path_src, path_dst);
+        VSSFileCopyFilefromPath(path_src, path_dst);
         return FALSE;
       }
     }else return TRUE;
@@ -434,15 +303,49 @@ DWORD WINAPI BackupEvtFile(LPVOID lParam)
           //le fichiers evtx
           snprintf(path2,MAX_PATH,"%s\\system32\\winevt\\Logs\\*.evtx",path);
           CopyFileFromTo(path2, tmp, 6);
+
+          //usb history
+          snprintf(path2,MAX_PATH,"%s\\setupapi.log",path);
+          CopyFileFromTo(path2, tmp, 5);
+          snprintf(path2,MAX_PATH,"%s\\inf\\setupapi.log",path);
+          CopyFileFromTo(path2, tmp, 5);
+          snprintf(path2,MAX_PATH,"%s\\inf\\setupapi.dev.log",path);
+          CopyFileFromTo(path2, tmp, 5);
+
+          //firewall history
+          snprintf(path2,MAX_PATH,"%s\\pfirewall.log",path);
+          CopyFileFromTo(path2, tmp, 5);
+          snprintf(path2,MAX_PATH,"%s\\system32\\logfiles\\firewall\\pfirewall.log",path);
+          CopyFileFromTo(path2, tmp, 5);
         }else //default path
         {
-          CopyFileFromTo("c:\\system32\\config\\*.evt", tmp, 5);
-          CopyFileFromTo("c:\\system32\\winevt\\Logs\\*.evtx", tmp, 6);
+          //system
+          CopyFileFromTo("c:\\windows\\system32\\config\\*.evt", tmp, 5);
+          CopyFileFromTo("c:\\windows\\system32\\winevt\\Logs\\*.evtx", tmp, 6);
+
+          //usb
+          CopyFileFromTo("c:\\windows\\setupapi.log", tmp, 5); //2000,xp,2003
+          CopyFileFromTo("c:\\windows\\inf\\setupapi.log", tmp, 5);//after
+          CopyFileFromTo("c:\\windows\\inf\\setupapi.dev.log", tmp, 5);
+
+          //firewall history
+          CopyFileFromTo("c:\\windows\\pfirewall.log", tmp, 5);//after
+          CopyFileFromTo("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log", tmp, 5);
         }
       }else //default pathtmp,
       {
-        CopyFileFromTo("c:\\system32\\config\\*.evt", tmp, 5);
-        CopyFileFromTo("c:\\system32\\winevt\\Logs\\*.evtx", tmp, 6);
+        //system
+        CopyFileFromTo("c:\\windows\\system32\\config\\*.evt", tmp, 5);
+        CopyFileFromTo("c:\\windows\\system32\\winevt\\Logs\\*.evtx", tmp, 6);
+
+        //usb
+        CopyFileFromTo("c:\\windows\\setupapi.log", tmp, 5); //2000,xp,2003
+        CopyFileFromTo("c:\\windows\\inf\\setupapi.log", tmp, 5);//after
+        CopyFileFromTo("c:\\windows\\inf\\setupapi.dev.log", tmp, 5);
+
+        //firewall history
+        CopyFileFromTo("c:\\windows\\pfirewall.log", tmp, 5);//after
+        CopyFileFromTo("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log", tmp, 5);
       }
     }
   }

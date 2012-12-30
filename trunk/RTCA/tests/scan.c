@@ -81,7 +81,11 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   unsigned int j = 0;
 
   //generate new session !!!
+  start_scan = TRUE;
+  nb_current_test = 0;
   AddNewSession(LOCAL_SCAN,db_scan);
+
+  //test all test on by on
   for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
   j=0;
 
@@ -143,45 +147,44 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
 
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
 
+  nb_current_test = 0;
+  start_scan = TRUE;
+
   switch(test)
   {
-    case 0:h_thread_test[0]   = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0);break;
-    case 1:h_thread_test[0]   = CreateThread(NULL,0,Scan_log,(void*)nb_current_test,0,0);break;
-    case 2:h_thread_test[0]   = CreateThread(NULL,0,Scan_disk,(void*)nb_current_test,0,0);break;
-    case 3:h_thread_test[0]   = CreateThread(NULL,0,Scan_clipboard,(void*)nb_current_test,0,0);break;
-    case 4:h_thread_test[0]   = CreateThread(NULL,0,Scan_env,(void*)nb_current_test,0,0);break;
-    case 5:h_thread_test[0]   = CreateThread(NULL,0,Scan_task,(void*)nb_current_test,0,0);break;
-    case 6:h_thread_test[0]   = CreateThread(NULL,0,Scan_process,(void*)nb_current_test,0,0);break;
-    case 7:h_thread_test[0]   = CreateThread(NULL,0,Scan_pipe,(void*)nb_current_test,0,0);break;
-    case 8:h_thread_test[0]   = CreateThread(NULL,0,Scan_network,(void*)nb_current_test,0,0);break;
-    case 9:h_thread_test[0]   = CreateThread(NULL,0,Scan_route,(void*)nb_current_test,0,0);break;
-    case 10:h_thread_test[0]  = CreateThread(NULL,0,Scan_dns,(void*)nb_current_test,0,0);break;
-    case 11:h_thread_test[0]  = CreateThread(NULL,0,Scan_arp,(void*)nb_current_test,0,0);break;
-    case 12:h_thread_test[0]  = CreateThread(NULL,0,Scan_share,(void*)nb_current_test,0,0);break;
-    case 13:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_setting,(void*)nb_current_test,0,0);break;
-    case 14:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_service,(void*)nb_current_test,0,0);break;
-    case 15:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_usb,(void*)nb_current_test,0,0);break;
-    case 16:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_software,(void*)nb_current_test,0,0);break;
-    case 17:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_update,(void*)nb_current_test,0,0);break;
-    case 18:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_start,(void*)nb_current_test,0,0);break;
-    case 19:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_user,(void*)nb_current_test,0,0);break;
-    case 20:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_userassist,(void*)nb_current_test,0,0);break;
-    case 21:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_mru,(void*)nb_current_test,0,0);break;
-    case 22:TEST_REG_PASSWORD_ENABLE = TRUE;h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_password,(void*)nb_current_test,0,0);break;
-    case 23:h_thread_test[0]  = CreateThread(NULL,0,Scan_registry_path,(void*)nb_current_test,0,0);break;
-    case 24:h_thread_test[0]  = CreateThread(NULL,0,Scan_guide,(void*)nb_current_test,0,0);break;
-    case 25:h_thread_test[0]  = CreateThread(NULL,0,Scan_antivirus,(void*)nb_current_test,0,0);break;
-    case 26:h_thread_test[0]  = CreateThread(NULL,0,Scan_firewall,(void*)nb_current_test,0,0);break;
-    case 27:h_thread_test[0]  = CreateThread(NULL,0,Scan_firefox_history,(void*)nb_current_test,0,0);break;
-    case 28:h_thread_test[0]  = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);break;
-    case 29:h_thread_test[0]  = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);break;
-    case 30:h_thread_test[0]  = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);break;
-    case 31:h_thread_test[0]  = CreateThread(NULL,0,Scan_prefetch,(void*)nb_current_test,0,0);break;
+    case 0:Scan_files(0);break;
+    case 1:Scan_log(0);break;
+    case 2:Scan_disk(0);break;
+    case 3:Scan_clipboard(0);break;
+    case 4:Scan_env(0);break;
+    case 5:Scan_task(0);break;
+    case 6:Scan_process(0);break;
+    case 7:Scan_pipe(0);break;
+    case 8:Scan_network(0);break;
+    case 9:Scan_route(0);break;
+    case 10:Scan_dns(0);break;
+    case 11:Scan_arp(0);break;
+    case 12:Scan_share(0);break;
+    case 13:Scan_registry_setting(0);break;
+    case 14:Scan_registry_service(0);break;
+    case 15:Scan_registry_usb(0);break;
+    case 16:Scan_registry_software(0);break;
+    case 17:Scan_registry_update(0);break;
+    case 18:Scan_registry_start(0);break;
+    case 19:Scan_registry_user(0);break;
+    case 20:Scan_registry_userassist(0);break;
+    case 21:Scan_registry_mru(0);break;
+    case 22:TEST_REG_PASSWORD_ENABLE = TRUE;Scan_registry_password(0);break;
+    case 23:Scan_registry_path(0);break;
+    case 24:Scan_guide(0);break;
+    case 25:Scan_antivirus(0);break;
+    case 26:Scan_firewall(0);break;
+    case 27:Scan_firefox_history(0);break;
+    case 28:Scan_chrome_history(0);break;
+    case 29:Scan_ie_history(0);break;
+    case 30:Scan_android_history(0);break;
+    case 31:Scan_prefetch(0);break;
   }
-  nb_current_test++;
-
-  //wait !
-  WaitForSingleObject(h_thread_test[0],INFINITE);
 
   sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
 

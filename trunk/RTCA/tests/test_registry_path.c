@@ -132,7 +132,7 @@ void EnumPath_file(HK_F_OPEN *hks, char*key_before,char *key_after,unsigned int 
     if (nk_h_tmp == NULL)return;
 
     //key update
-    Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
+    Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin), hks->position,
                  NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
     //get values
     nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
@@ -162,7 +162,7 @@ void EnumPath_file(HK_F_OPEN *hks, char*key_before,char *key_after,unsigned int 
         if (nk_h_tmp == NULL)continue;
 
         //key update
-        Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
+        Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin), hks->position,
                      NULL, nk_h_tmp, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
         //get values
         nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);

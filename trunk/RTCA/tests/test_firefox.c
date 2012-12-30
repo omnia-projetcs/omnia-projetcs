@@ -88,8 +88,9 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO data;
 
   //get child
-  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
-  if (hitem == NULL && LOCAL_SCAN) //local
+  HTREEITEM hitem = NULL;
+  if (!CONSOL_ONLY)hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  if ((hitem == NULL && LOCAL_SCAN) || CONSOL_ONLY) //local
   {
     //get path of all profils users
     //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
@@ -188,7 +189,7 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
     }
   }
 
-  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+  if (!CONSOL_ONLY)check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }

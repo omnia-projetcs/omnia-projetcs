@@ -559,7 +559,7 @@ DWORD WINAPI Sniff(LPVOID lParam)
     memset(&sock_addr, 0, sizeof(sock_addr));
 
     char buffer[TAILLE_MAX_BUFFER_TRAME]="";
-    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,0),buffer);
+    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)0),buffer);
 
     sock_addr.sin_addr.s_addr = inet_addr(buffer);
     sock_addr.sin_family      = AF_INET;

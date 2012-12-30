@@ -185,7 +185,7 @@ void EnumUpdate_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite
         {
           Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"InstalledBy", InstalledBy, MAX_PATH);
 
-          Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
+          Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp,
                        lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
           convertStringToSQL(description_package_name, MAX_PATH);
@@ -220,7 +220,7 @@ void EnumUpdate_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite
                 Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp3,"Description", description_package_name, MAX_PATH);
                 Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp3,"InstalledBy", InstalledBy, MAX_PATH);
 
-                Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp3,
+                Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp3,
                              lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
                 convertStringToSQL(description_package_name, MAX_PATH);
@@ -251,7 +251,7 @@ void EnumUpdate_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite
         Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"InstallName", name, MAX_PATH);
 
 
-        Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
+        Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp,
                      lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
         convertStringToSQL(description_package_name, MAX_PATH);

@@ -171,10 +171,12 @@ BEGIN
   CONTROL ""                                        ,DLG_STATE_LB_TEST,"ListBox",0x50310149,2,101,122,140,0x00000200
   CONTROL "Load"                                    ,DLG_STATE_BT_LOAD,"Button",0x50010000,2,245,122,19
 
-  CONTROL "All"                                     ,DLG_STATE_BT_ALL,"Button",0x50010000,132,1,74,19
-  CONTROL "Critical"                                ,DLG_STATE_BT_CRITICAL,"Button",0x50010000,209,1,74,19
-  CONTROL "Time Zone"                               ,DLG_STATE_BT_TIME_ZONE,"Button",0x50010000,285,1,74,19
-  CONTROL "2012/11/18 11:11:11"                     ,DLG_STATE_ED_TIME_1,"Edit",0x50810080,362,3,80,13,0x00000200
+  CONTROL "All"                                     ,DLG_STATE_BT_ALL,"Button",0x50010000,132,1,70,19
+  CONTROL "Critical"                                ,DLG_STATE_BT_CRITICAL,"Button",0x50010000,204,1,70,19
+  //CONTROL "Time Zone"                               ,DLG_STATE_BT_TIME_ZONE,"Button",0x50010000,276,1,70,19
+  CONTROL "2012/11/18 11:11:11"                     ,DLG_STATE_ED_TIME_1,"ComboBox",0x50210042,348,3,90,150
+
+
   CONTROL "->"                                      ,0,"Static",0x50000000,442,5,6,9
   CONTROL "2012/11/18 11:11:12"                     ,DLG_STATE_ED_TIME_2,"Edit",0x50010000,449,3,80,13,0x00000200
   CONTROL "Filter"                                  ,DLG_STATE_BT_FILTER,"Button",0x50010000,532,3,20,14
@@ -185,6 +187,11 @@ BEGIN
   CONTROL ""                                        ,DLG_STATE_LV_FILTER,"SysListView32",0x40810089,128,22,422,241,0x00000200
   CONTROL ""                                        ,DLG_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 
+
+/*
+    hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
+                                     htoolbar,(HMENU)CB_SESSION, hinst, NULL);
+*/
 //manque le bouton loading ! ou une fenêtre de chargement ^^
 //manque un module de recherche global : avec une popup
 END
@@ -207,6 +214,7 @@ BEGIN
   POPUP "File"    //0
   BEGIN
     MENUITEM "New session"                ,IDM_NEW_SESSION
+    MENUITEM "Refresh session list"       ,IDM_REFRESH_SESSION
     MENUITEM SEPARATOR
     MENUITEM "Delete current session"     ,IDM_DEL_SESSION
     MENUITEM "Delete all sessions"        ,IDM_DEL_ALL_SESSION

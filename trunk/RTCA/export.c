@@ -135,27 +135,36 @@ DWORD WINAPI SaveAll(LPVOID lParam)
 
   char CSV_end_header_column[]="\r\n";
 
-  unsigned long int cur_session_id = current_session_id;
+  DWORD cur_session_id = current_session_id;
 
-  //export_type = 0;
-  unsigned int nb_test = SendMessage(hlstbox, LB_GETCOUNT, 0, 0);
   char test_name[DEFAULT_TMP_SIZE];
-  for (i=0;i<nb_test;i++)
+  for (i=0;i<NB_TESTS_GLOBALS;i++)
   {
-    //get test name :
-    if (SendMessage(hlstbox, LB_GETTEXTLEN, i, 0)>=DEFAULT_TMP_SIZE)continue;
-    if (SendMessage(hlstbox, LB_GETTEXT, i, (LPARAM)test_name) == LB_ERR)test_name[0] = 0;
+    if (lParam)//CMD OR NOT ?
+    {
+      //set file name :
+      switch(export_type)
+      {
+        case SAVE_TYPE_CSV:snprintf(file,MAX_PATH,"%s_[%02d].csv",path,i);break;
+        case SAVE_TYPE_XML:snprintf(file,MAX_PATH,"%s_[%02d].xml",path,i);break;
+        case SAVE_TYPE_HTML:snprintf(file,MAX_PATH,"%s_[%02d].html",path,i);break;
+      }
+    }else
+    {
+      //get test name :
+      if (SendMessage(hlstbox, LB_GETTEXTLEN, i, 0)>=DEFAULT_TMP_SIZE)continue;
+      if (SendMessage(hlstbox, LB_GETTEXT, i, (LPARAM)test_name) == LB_ERR)test_name[0] = 0;
+      //set file name :
+      switch(export_type)
+      {
+        case SAVE_TYPE_CSV:snprintf(file,MAX_PATH,"%s_%s.csv",path,test_name);break;
+        case SAVE_TYPE_XML:snprintf(file,MAX_PATH,"%s_%s.xml",path,test_name);break;
+        case SAVE_TYPE_HTML:snprintf(file,MAX_PATH,"%s_%s.html",path,test_name);break;
+      }
+    }
 
     //get infos
     GetColumnInfo(i);
-
-    //set file name :
-    switch(export_type)
-    {
-      case SAVE_TYPE_CSV:snprintf(file,MAX_PATH,"%s_%s.csv",path,test_name);break;
-      case SAVE_TYPE_XML:snprintf(file,MAX_PATH,"%s_%s.xml",path,test_name);break;
-      case SAVE_TYPE_HTML:snprintf(file,MAX_PATH,"%s_%s.html",path,test_name);break;
-    }
 
     //open file
     MyhFile_export = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);

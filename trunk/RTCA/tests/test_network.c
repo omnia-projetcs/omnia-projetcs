@@ -416,7 +416,7 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
         SearchNetworkGUID_registry_file(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position ,tmp_key, card, DEFAULT_TMP_SIZE, description, DEFAULT_TMP_SIZE, _ckey_2);
 
         //last update
-        Readnk_Infos(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,
+        Readnk_Infos(hks.buffer, hks.taille_fic, (hks.pos_fhbin), hks.position, NULL, nk_h_tmp,
                      lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
         //read datas

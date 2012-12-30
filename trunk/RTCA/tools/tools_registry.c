@@ -33,6 +33,8 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
 
   //init
   LINE_ITEM lv_line[DLG_REG_LV_NB_COLUMN];
+  char parent_key_update[DATE_SIZE_MAX];
+  char Owner_SID[MAX_PATH];
   char tmp_value_trv[MAX_PATH];
   strncpy(lv_line[0].c,reg_file,MAX_LINE_SIZE);
   strncpy(lv_line[1].c,parent,MAX_LINE_SIZE);
@@ -40,8 +42,8 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
   lv_line[7].c[0] = 0;  //deleted = no view in this state
 
   //read nk infos :)
-  Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
-               NULL, nk_h, lv_line[5].c, DATE_SIZE_MAX, NULL, 0,lv_line[6].c, MAX_PATH);
+  Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin), hks->position,
+               NULL, nk_h, parent_key_update, DATE_SIZE_MAX, NULL, 0,Owner_SID, MAX_PATH);
 
   //read all vk
   DWORD nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
@@ -102,6 +104,8 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
     }
 
     //add to lstv
+    strcpy(lv_line[5].c,parent_key_update);
+    strcpy(lv_line[6].c,Owner_SID);
     AddToLVRegBin(hlv, lv_line, DLG_REG_LV_NB_COLUMN);
   }
 
@@ -178,7 +182,7 @@ DWORD WINAPI LoadRegFiles(LPVOID lParam)
 
   //state
   char tmp[MAX_PATH];
-  snprintf(tmp,MAX_PATH,"Load : %lu keys",ListView_GetItemCount(hlv));
+  snprintf(tmp,MAX_PATH,"Load : %lu keys",(DWORD)ListView_GetItemCount(hlv));
   SendMessage(GetDlgItem(h_reg,STB),SB_SETTEXT,0, (LPARAM)tmp);
 
   EnableWindow(hlv,TRUE);

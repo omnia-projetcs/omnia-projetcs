@@ -157,7 +157,7 @@ void Scan_registry_service_file(HK_F_OPEN *hks, char *ckey, unsigned int session
       else if (strcmp(state,"0x00000100") == 0)type_id = 204;//Interactive
       else type_id = 215;
 
-      Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
+      Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp,
                    lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
       convertStringToSQL(path, MAX_PATH);
