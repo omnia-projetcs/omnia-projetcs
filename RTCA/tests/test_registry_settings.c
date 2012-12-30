@@ -352,7 +352,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX];
-            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                          argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
             //save
@@ -378,7 +378,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
 
               //key update
               char parent_key_update[DATE_SIZE_MAX];
-              Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+              Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                            argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
               //save
@@ -397,7 +397,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX];
-            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                          argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
             //convert date
@@ -417,7 +417,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX];
-            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
 
@@ -472,7 +472,7 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
           {
             //key update
             char parent_key_update[DATE_SIZE_MAX];
-            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+            Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                          NULL, nk_h, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
             //get values

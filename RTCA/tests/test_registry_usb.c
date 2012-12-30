@@ -338,7 +338,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
             //read datas ^^
             snprintf(key_path,MAX_PATH,"%s\\%s\\%s",ckey,tmp_key,tmp_key2);
 
-            Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,
+            Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp2,
                          lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
             Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"Mfg", description2, MAX_PATH);

@@ -156,7 +156,7 @@ void Scan_registry_softwareKey_file(HK_F_OPEN *hks, char *ckey, sqlite3 *db, uns
         if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Inno Setup: App Path", installlocation, MAX_PATH)==FALSE)
           Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"RegistryLocation", installlocation, MAX_PATH);
 
-      Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,
+      Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp,
                    lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
       Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Inno Setup: User", install_user, MAX_PATH);

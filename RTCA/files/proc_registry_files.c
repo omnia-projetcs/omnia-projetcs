@@ -430,43 +430,30 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
     //get rid and sid
     if (rid != NULL || sid != NULL)
     {
-      if (nk_h->sk_offset != 0xFFFFFFFF && nk_h->sk_offset >0 && (pos_fhbin+nk_h->sk_offset-HBIN_HEADER_SIZE)<taille_fic)
+      if (nk_h->sk_offset != 0xFFFFFFFF && nk_h->sk_offset >0 && (pos_fhbin+nk_h->sk_offset)<taille_fic)
       {
         //read owner and this rid + sid
         HBIN_CELL_SK_HEADER *sk = (HBIN_CELL_SK_HEADER *)&buffer[pos_fhbin-HBIN_HEADER_SIZE+nk_h->sk_offset];
-
-        DWORD sz_owner = sk->group_offset-sk->owner_offset;
-        if (sz_owner > 0 && (pos_fhbin+sz_owner+sk->owner_offset-HBIN_HEADER_SIZE)<taille_fic)
+        if (pos_fhbin-HBIN_HEADER_SIZE+nk_h->sk_offset+sk->owner_offset+SK_OWNER_SIZE_MAX<taille_fic)
         {
-          typedef struct
+          SK_SID *sk_owner = (SK_SID *)&buffer[pos_fhbin-HBIN_HEADER_SIZE+nk_h->sk_offset+sk->owner_offset+SK_HEADER_DATA_SIZE];
+          if (sk_owner->nb_ID > 0 && sk_owner->nb_ID < 0xff)
           {
-            unsigned short type;  //0x001F
-            unsigned short nb;    //2(0) to 5(3 parts)
-            char head[8];
-            DWORD id[5];
-          }SK_SID_DATA;
+            unsigned int i, nb = sk_owner->nb_ID;
+            if (nb > 5)nb = 5;
 
-          SK_SID_DATA *sk_owner_sid = (SK_SID_DATA *)&buffer[pos_fhbin+sk->owner_offset-HBIN_HEADER_SIZE];
-          if(sk_owner_sid->nb == 0)return TRUE;
+            //rid
+            if (rid != NULL && nb == 5)snprintf(rid,rid_size,"%lu",sk_owner->ID[nb-1]);
 
-          //rid
-          if (rid != NULL)
-          {
-            if (sk_owner_sid->nb > 4)
-              if (sk_owner_sid->id[4]<65535)snprintf(rid,rid_size,"%lu",sk_owner_sid->id[4]& 0xFFFFFFFF);
+            //SID
+            if (sid != NULL)
+            {
+              snprintf(sid,sid_size,"S-1-%u",sk_owner->ID0);
+              for (i=0;i<nb;i++)snprintf(sid+strlen(sid),sid_size-strlen(sid),"-%lu",sk_owner->ID[i]);
+            }
+
+            return TRUE;
           }
-
-          //sid
-          if (sid != NULL)
-          {
-            unsigned int i, nb = (sk_owner_sid->nb)-1;
-            if (nb < 1) return FALSE;
-            else if (nb>5)nb = 5;
-
-            snprintf(sid,sid_size,"S-1-%d",(sk_owner_sid->head[7]) & 0xFF);
-            for (i=0;i<nb;i++)snprintf(sid+strlen(sid),sid_size-strlen(sid),"-%lu",sk_owner_sid->id[i]);
-          }
-          return TRUE;
         }
       }
     }

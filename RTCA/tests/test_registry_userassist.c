@@ -566,7 +566,7 @@ void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_
 
           //get all values !!!!
           snprintf(key_path,MAX_PATH,"%s\\%s\\%s",ckey,tmp_key,tmp_key2);
-          Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,
+          Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp2,
                        NULL, 0, RID, MAX_PATH, SID, MAX_PATH);
 
           nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h_tmp2, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);

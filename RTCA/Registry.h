@@ -7,6 +7,7 @@
 #ifndef _REGISTRY_RTCA_DEFINE_
 #define _REGISTRY_RTCA_DEFINE_
 //------------------------------------------------------------------------------
+#define HBIN_FIRST_DEFAULT    0x1000
 //header du fichier
 typedef struct regf_header{
   long int id;            // "regf" = 0x66676572
@@ -148,13 +149,33 @@ typedef struct hbin_cell_sk_header{
   char  unknow_1;
   short control;
 
-  DWORD owner_offset;
+  DWORD owner_offset;         //not sur ... ???
   DWORD group_offset;
   DWORD SACL_offset;
   DWORD DACL_offset;
-                              //data
-
 }HBIN_CELL_SK_HEADER;
+
+#define SK_OWNER_SIZE_MAX   52
+#define SK_HEADER_DATA_SIZE 24
+typedef struct sk_header_data
+{
+  DWORD unknow_0;
+  DWORD unknow_1;
+  DWORD unknow_2;
+  DWORD unknow_3;
+  DWORD unknow_4;
+  DWORD unknow_5;
+  DWORD unknow_6;
+}SK_HEADER_DATA;
+typedef struct sk_sid
+{
+  char header0;           //0x01
+  unsigned char nb_ID;    //0x05 ou 0x02
+  char unknow[5];         // 0x0000000000
+  unsigned char ID0;      // 0x05
+  DWORD ID[5];            // SID
+}SK_SID;
+
 //------------------------------------------------------------------------------
 #define HBIN_CELL_VK_SIZE  24 // 20 + 4 de taille
 #define HBIN_CELL_VK_DATA_PADDING_SIZE  4

@@ -197,7 +197,7 @@ void Scan_registry_user_local(sqlite3 *db, unsigned int session_id)
                   case 0:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_GUEST].c);break;
                   case 1:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_USER].c);break;
                   case 2:snprintf(type,MAX_PATH,"%lu : %s",pBuf_info->usri2_priv,cps[TXT_MSG_ADMIN].c);break;
-                  default:snprintf(type,MAX_PATH,"0x%02X : %s",(pBuf_info->usri2_priv & 0xff),cps[TXT_MSG_UNK].c);break;
+                  default:snprintf(type,MAX_PATH,"0x%02X : %s",(unsigned int)(pBuf_info->usri2_priv & 0xff),cps[TXT_MSG_UNK].c);break;
                 }
 
                 addRegistryUsertoDB("NETAPI32",name, RID, SID, group, description,
