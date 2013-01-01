@@ -2,19 +2,19 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
 	<File name="Registry.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="529" topLine="0" />
+		<Cursor1 position="1513" topLine="24" />
 	</File>
 	<File name="RtCA.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor1 position="38918" topLine="980" />
+		<Cursor1 position="35673" topLine="937" />
 	</File>
 	<File name="RtCA.rc" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="13885" topLine="204" />
+		<Cursor1 position="13284" topLine="192" />
 	</File>
 	<File name="configuration\gui_conf.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="676" topLine="257" />
+		<Cursor1 position="22598" topLine="462" />
 	</File>
 	<File name="configuration\init.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="7303" topLine="217" />
+		<Cursor1 position="7753" topLine="224" />
 	</File>
 	<File name="crypt\d3des.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="635" topLine="17" />
@@ -41,7 +41,7 @@
 		<Cursor1 position="15930" topLine="464" />
 	</File>
 	<File name="export.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="5665" topLine="136" />
+		<Cursor1 position="7142" topLine="176" />
 	</File>
 	<File name="files\proc_files.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="412" topLine="0" />
@@ -50,25 +50,25 @@
 		<Cursor1 position="17362" topLine="401" />
 	</File>
 	<File name="import.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor1 position="505" topLine="3" />
+		<Cursor1 position="1382" topLine="26" />
 	</File>
 	<File name="main.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor1 position="2988" topLine="62" />
+		<Cursor1 position="48957" topLine="1010" />
 	</File>
 	<File name="proc.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="4544" topLine="123" />
+		<Cursor1 position="8204" topLine="264" />
 	</File>
 	<File name="proc_cmd.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="1496" topLine="28" />
 	</File>
 	<File name="proc_gui.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="6873" topLine="199" />
+		<Cursor1 position="6709" topLine="205" />
 	</File>
 	<File name="proc_registry.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="2943" topLine="79" />
+		<Cursor1 position="3641" topLine="101" />
 	</File>
 	<File name="sqlite\interface.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="19498" topLine="348" />
+		<Cursor1 position="9178" topLine="203" />
 	</File>
 	<File name="sqlite\interface.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="1035" topLine="10" />
@@ -82,8 +82,8 @@
 	<File name="sqlite\sqlite3.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="300" topLine="0" />
 	</File>
-	<File name="suivie.txt" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="2" zoom_2="0">
-		<Cursor1 position="254" topLine="0" />
+	<File name="suivie.txt" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
+		<Cursor1 position="88" topLine="0" />
 	</File>
 	<File name="tests\scan.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor1 position="13387" topLine="159" />
@@ -107,10 +107,10 @@
 		<Cursor1 position="2598" topLine="37" />
 	</File>
 	<File name="tests\test_dns.c" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="913" topLine="0" />
+		<Cursor1 position="1648" topLine="14" />
 	</File>
 	<File name="tests\test_env.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="1971" topLine="26" />
+		<Cursor1 position="1971" topLine="69" />
 	</File>
 	<File name="tests\test_file.c" open="0" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="29757" topLine="689" />
@@ -122,7 +122,7 @@
 		<Cursor1 position="593" topLine="0" />
 	</File>
 	<File name="tests\test_guide.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="11381" topLine="208" />
+		<Cursor1 position="718" topLine="246" />
 	</File>
 	<File name="tests\test_ie.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor1 position="8125" topLine="199" />
@@ -149,7 +149,7 @@
 		<Cursor1 position="11661" topLine="332" />
 	</File>
 	<File name="tests\test_registry_mru.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="18524" topLine="507" />
+		<Cursor1 position="18803" topLine="859" />
 	</File>
 	<File name="tests\test_registry_password.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="4696" topLine="105" />
@@ -185,7 +185,7 @@
 		<Cursor1 position="1756" topLine="18" />
 	</File>
 	<File name="tests\test_share.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="4829" topLine="90" />
+		<Cursor1 position="2463" topLine="24" />
 	</File>
 	<File name="tests\test_task.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor1 position="8078" topLine="194" />
@@ -200,7 +200,7 @@
 		<Cursor1 position="6449" topLine="158" />
 	</File>
 	<File name="tools\tools_memory.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="2638" topLine="43" />
+		<Cursor1 position="1864" topLine="46" />
 	</File>
 	<File name="tools\tools_network.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor1 position="24014" topLine="553" />
@@ -217,11 +217,14 @@
 	<File name="tools\tools_registry_recovery.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor1 position="23096" topLine="550" />
 	</File>
+	<File name="tools\tools_sqlite_ed.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor1 position="3952" topLine="93" />
+	</File>
 	<File name="tools\tools_state.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor1 position="1775" topLine="36" />
+		<Cursor1 position="1410" topLine="12" />
 	</File>
 	<File name="tools\tools_virustotal.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="6111" topLine="151" />
+		<Cursor1 position="4362" topLine="103" />
 	</File>
 	<File name="version.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="135" topLine="0" />

@@ -4,8 +4,13 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
+//******************************************************************************
 //#define _WIN64_VERSION_        1       //64 OS Compilation
-
+//debug mode dev test
+//#define DEV_DEBUG_MODE              1
+//enable log file of sqlite
+//#define LOG_SQLITE_OFF              1
+//******************************************************************************
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
 
@@ -42,11 +47,6 @@
 #define ICON_FILE_TXT_REG         0x04
 #define ICON_FILE_UNKNOW_REG      0x05
 //******************************************************************************
-//debug mode dev test
-//#define DEV_DEBUG_MODE              1
-//enable log file of sqlite
-//#define LOG_SQLITE_OFF              1
-//******************************************************************************
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -70,7 +70,7 @@
 #include <Wincrypt.h>           //FOR DECODE CHROME/CHROMIUM password
 #include "crypt/d3des.h"        //Crypto
 #include <lmaccess.h>           //group account list
-#include <wininet.h>            //for VirusTotal
+#include <wininet.h>            //for VirusTotal + update
 //---------------------------------------------------------------------------
 PVOID OldValue_W64b;            //64bits OS
 
@@ -131,7 +131,7 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state;
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed;
 BOOL disable_m_context, disable_p_context;
 
 #define DLG_CONF                 2000
@@ -253,6 +253,15 @@ DWORD last_bt;
 #define DLG_STATE_LV_FILTER         8012
 #define DLG_STATE_SB                8013
 #define DLG_STATE_BT_LOAD           8014
+
+#define DLG_SQLITE_EDITOR           9000
+#define DLG_SQL_ED_LB_TABLE         9001
+#define DLG_SQL_ED_BT_LOAD          9002
+#define DLG_SQL_ED_BT_CLOSE         9003
+#define DLG_SQL_ED_ED_REQUEST       9004
+#define DLG_SQL_ED_BT_SEND          9005
+#define DLG_SQL_ED_LV_RESPONSE      9006
+#define DLG_SQL_ED_STATE_SB         9007
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -273,6 +282,7 @@ DWORD last_bt;
 #define IDM_UNCHECK_ALL_TESTS   10022
 #define IDM_QUIT                10023
 #define IDM_REFRESH_SESSION     10024
+#define IDM_RTCA_UPDATE         10025
 
 #define IDM_TOOLS_CP_REGISTRY   10100
 #define IDM_TOOLS_CP_AUDIT      10101
@@ -283,6 +293,7 @@ DWORD last_bt;
 #define IDM_TOOLS_SNIFF         10106
 #define IDM_TOOLS_DATE          10107
 #define IDM_TOOLS_ANALYSER      10109
+#define IDM_TOOLS_SQLITE_ED     10110
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
 #define POPUP_TRV_FILES_REF_NB_ITEMS_STRINGS      7
@@ -548,7 +559,7 @@ typedef struct
 //------------------------------------------------------------------------------
 //for sort in lstv
 BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
-BOOL TRI_STATE_ALL, TRI_STATE_DATE, TRI_STATE_CRITICAL, TRI_STATE_FILTER;
+BOOL TRI_STATE_ALL, TRI_STATE_DATE, TRI_STATE_CRITICAL, TRI_STATE_FILTER, TRI_SQLITE_ED;
 int column_tri;
 
 typedef struct SORT_ST
@@ -708,6 +719,7 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 
 char current_OS[DEFAULT_TMP_SIZE];
 BOOL current_OS_BE_64b;
+BOOL current_OS_unknow;
 
 //------------------------------------------------------------------------------
 #define SIO_RCVALL _WSAIOW(IOC_VENDOR,1)
@@ -912,6 +924,7 @@ char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
 BOOL isDirectory(char *path);
 
 //init functions
+void UpdateRtCA();
 void InitSQLStrings();
 void InitString();
 void InitGlobalLangueString(unsigned int langue_id);
@@ -1032,6 +1045,7 @@ BOOL CALLBACK DialogProc_reg_file(HWND hwnd, UINT message, WPARAM wParam, LPARAM
 BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 //subclass
 LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

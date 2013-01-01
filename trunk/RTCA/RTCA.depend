@@ -1144,7 +1144,7 @@
 1353863135 source:z:\svn_omnia\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1356276860 z:\svn_omnia\rtca\rtca.h
+1357077181 z:\svn_omnia\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -1170,7 +1170,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1356875845 z:\svn_omnia\rtca\version.h
+1357083810 z:\svn_omnia\rtca\version.h
 
 1353703058 z:\svn_omnia\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -1270,10 +1270,10 @@
 1356736481 source:z:\svn_omnia\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1356200524 source:z:\svn_omnia\rtca\main.c
+1357081901 source:z:\svn_omnia\rtca\main.c
 	"RtCA.h"
 
-1353703055 source:z:\svn_omnia\rtca\proc.c
+1357060158 source:z:\svn_omnia\rtca\proc.c
 	"RtCA.h"
 
 1354465816 source:z:\svn_omnia\rtca\proc_cmd.c
@@ -1285,7 +1285,7 @@
 1353703055 source:z:\svn_omnia\rtca\proc_registry.c
 	"RtCA.h"
 
-1354453302 source:z:\svn_omnia\rtca\sqlite\interface.c
+1356877207 source:z:\svn_omnia\rtca\sqlite\interface.c
 	"../RtCA.h"
 
 1353703058 source:z:\svn_omnia\rtca\sqlite\load_save.c
@@ -1359,7 +1359,7 @@
 1353703057 source:z:\svn_omnia\rtca\tests\test_disk.c
 	"../RtCA.h"
 
-1353703057 source:z:\svn_omnia\rtca\tests\test_dns.c
+1357060597 source:z:\svn_omnia\rtca\tests\test_dns.c
 	"../RtCA.h"
 
 1353703057 source:z:\svn_omnia\rtca\tests\test_env.c
@@ -1375,7 +1375,7 @@
 1353703057 source:z:\svn_omnia\rtca\tests\test_firewall.c
 	"../RtCA.h"
 
-1353703057 source:z:\svn_omnia\rtca\tests\test_guide.c
+1357049533 source:z:\svn_omnia\rtca\tests\test_guide.c
 	"../RtCA.h"
 
 1356871838 source:z:\svn_omnia\rtca\tests\test_ie.c
@@ -1463,10 +1463,10 @@
 1356269957 source:z:\svn_omnia\rtca\tools\tools_state.c
 	"../RtCA.h"
 
-1353862280 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
+1357059131 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1356200633 source:z:\svn_omnia\rtca\rtca.rc
+1357078904 source:z:\svn_omnia\rtca\rtca.rc
 	"RtCA.h"
 
 1353860386 source:z:\svn_omnia\rtca\tools\tools_process.c
@@ -1474,7 +1474,7 @@
 
 1353703057 z:\svn_omnia\rtca\tools\tools_network\_entetes.h
 
-1356736359 source:z:\svn_omnia\rtca\tools\tools_registry_recovery.c
+1356875840 source:z:\svn_omnia\rtca\tools\tools_registry_recovery.c
 	"../RtCA.h"
 
 1356270079 source:z:\svn_omnia\rtca\tools\tools_network.c
@@ -1486,4 +1486,7 @@
 
 1353703055 source:z:\svn_omnia\rtca\import.c
 	"RtCA.h"
+
+1357082401 source:z:\svn_omnia\rtca\tools\tools_sqlite_ed.c
+	"../RtCA.h"
 

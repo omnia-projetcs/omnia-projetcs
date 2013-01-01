@@ -108,9 +108,9 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
       ib.dwOffsetHigh       = 0;
 
       char resultat[16000];
-      ib.lpvBuffer = resultat;
-      ib.dwBufferLength = 16000-1;
-      ib.dwBufferTotal = 16000-1;
+      ib.lpvBuffer          = resultat;
+      ib.dwBufferLength     = 16000-1;
+      ib.dwBufferTotal      = 16000-1;
 
       if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
       {

@@ -163,6 +163,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               //-----------------------------------------------------
               case IDM_RTCA_HOME:ShellExecute(NULL, "open", URL_APPLI, NULL, NULL, SW_SHOWNORMAL); break;
               //-----------------------------------------------------
+              case IDM_RTCA_UPDATE: UpdateRtCA();break;
+              //-----------------------------------------------------
               //popup menu
               //-----------------------------------------------------
               case POPUP_S_VIEW:
@@ -346,6 +348,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_ANALYSER:
                 InitGuiState();
                 ShowWindow(h_state, SW_SHOW);
+              break;
+              case IDM_TOOLS_SQLITE_ED:
+                ShowWindow(h_sqlite_ed, SW_SHOW);
               break;
               case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
               case POPUP_FILE_REMOVE_ITEM:LVDelete(hlstv);break;
@@ -1362,6 +1367,11 @@ int main(int argc, char* argv[])
     /*SendDlgItemMessage(h_state,DLG_STATE_ED_TIME_1,CB_ADDSTRING,0,(LPARAM)"Mail format *@*.*");
     SendDlgItemMessage(h_state,DLG_STATE_ED_TIME_1,CB_ADDSTRING,0,(LPARAM)"Credit card number ????????????????");
     SendDlgItemMessage(h_state,DLG_STATE_ED_TIME_1,CB_ADDSTRING,0,(LPARAM)"REGEX: ?*");*/
+
+    h_sqlite_ed = CreateDialog(0, MAKEINTRESOURCE(DLG_SQLITE_EDITOR), NULL,DialogProc_sqlite_ed);
+    SendMessage(h_sqlite_ed, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SetWindowText(h_sqlite_ed,NOM_FULL_APPLI);
+    SendDlgItemMessage(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);
