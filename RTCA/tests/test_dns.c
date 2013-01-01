@@ -6,14 +6,47 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
+char malware_check[MAX_PATH];
+//------------------------------------------------------------------------------
 void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned int session_id, sqlite3 *db)
 {
+  //chek name if malware or not
+  MalwareCheck(name, malware_check, MAX_PATH);
+
   char request[MAX_LINE_SIZE+DEFAULT_TMP_SIZE];
   snprintf(request,MAX_LINE_SIZE+DEFAULT_TMP_SIZE,
-           "INSERT INTO extract_host (file,ip,name,last_file_update,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           file,ip,name,last_file_update,session_id);
+           "INSERT INTO extract_host (file,ip,name,last_file_update,malware_check,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           file,ip,name,last_file_update,malware_check,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+}
+//------------------------------------------------------------------------------
+int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName)
+{
+  if (strlen(malware_check) > 0)strncat(malware_check,"\r\n",MAX_PATH);
+  strncat(malware_check,argv[0],MAX_PATH);
+  strncat(malware_check,"\0",MAX_PATH);
+}
+//------------------------------------------------------------------------------
+void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size)
+{
+  malware_check[0] = 0;
+  char request[MAX_LINE_SIZE];
+  char *c = name;
+
+  //get only last 2 parts xxx.xxx
+  while (*c++);
+  while (*c != name && *c != '.')c--; //fisrt
+  if (*c != name)c--;
+  while (*c != name && *c != '.')c--; //second
+  if (*c == '.')
+  {
+    c++;
+    snprintf(request, MAX_LINE_SIZE,"SELECT description FROM malware_list WHERE domain LIKE \"%%%s\";",c);
+  }else snprintf(request, MAX_LINE_SIZE,"SELECT description FROM malware_list WHERE domain LIKE \"%%%s\";",name);
+
+  FORMAT_CALBAK_READ_INFO fcri;
+  sqlite3_exec(db_scan, request, callback_sqlite_malware, &fcri, NULL);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_dns(LPVOID lParam)
@@ -124,6 +157,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
     {
       while (cache != NULL)
       {
+        memset(name,0,MAX_PATH);
         snprintf(name,MAX_PATH,"%S",cache->pszName);
 
         //get IP + TTL

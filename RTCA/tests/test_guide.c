@@ -19,6 +19,9 @@ void addGuidetoDB(char *file, char *hk,char *key,char *value,char*data,char *dat
 //test if the os match with os of the test
 BOOL OsTypeValide(char *Os)
 {
+  //default if unknow
+  if (current_OS_unknow) return TRUE;
+
   //all tests
   if (strcmp(Os,GUIDE_REG_OS_ALL) == 0)return TRUE;
   if (strcmp(Os,GUIDE_REG_OS_ALL_ONLY_32b) == 0 && current_OS_BE_64b == FALSE)return TRUE;
@@ -66,6 +69,7 @@ BOOL ReadCurrentOs(char *data)
     if (Contient(data,"64"))
     {
       current_OS_BE_64b = TRUE;
+      current_OS_unknow = FALSE;
            if (Contient(data,GUIDE_REG_OS_2003_64b)) strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
       else if (Contient(data,GUIDE_REG_OS_2008_64b)) strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
       else if (Contient(data,GUIDE_REG_OS_VISTA_64b))strncpy(current_OS,GUIDE_REG_OS_VISTA_32b ,DEFAULT_TMP_SIZE);
@@ -76,6 +80,7 @@ BOOL ReadCurrentOs(char *data)
     }else
     {
       current_OS_BE_64b = FALSE;
+      current_OS_unknow = FALSE;
            if (Contient(data,GUIDE_REG_OS_2000))     strncpy(current_OS,GUIDE_REG_OS_2000      ,DEFAULT_TMP_SIZE);
       else if (Contient(data,GUIDE_REG_OS_2003_32b)) strncpy(current_OS,GUIDE_REG_OS_2003_32b  ,DEFAULT_TMP_SIZE);
       else if (Contient(data,GUIDE_REG_OS_2008_32b)) strncpy(current_OS,GUIDE_REG_OS_2008_32b  ,DEFAULT_TMP_SIZE);
@@ -100,7 +105,7 @@ int callback_sqlite_guide_local(void *datas, int argc, char **argv, char **azCol
     case SQLITE_GUIDE:
     {
       //read record and test it !!!!
-      if (OsTypeValide(argv[5]))
+      if (OsTypeValide(argv[7]))
       {
         HKEY hk = hkStringtohkey(argv[0]);
         char data_read[REQUEST_MAX_SIZE]="";
@@ -183,7 +188,7 @@ int callback_sqlite_guide_file(void *datas, int argc, char **argv, char **azColN
     case SQLITE_GUIDE:
     {
       //read record and test it !!!!
-      if (OsTypeValide(argv[5]))
+      if (OsTypeValide(argv[7]))
       {
         switch(atoi(argv[4])) //data type
         {
@@ -244,6 +249,7 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
           //get OS
           if(Readnk_Value(guide_hks.buffer, guide_hks.taille_fic, (guide_hks.pos_fhbin)+HBIN_HEADER_SIZE, guide_hks.position, "microsoft\\windows nt\\currentversion", NULL,"ProductName", data, MAX_PATH))
             ReadCurrentOs(data);
+          else current_OS_unknow = TRUE;
 
           sqlite3_exec(db_scan, "SELECT hk,key,search_key,value,value_type,data,test,OS,title_id,description_id FROM extract_guide_request;", callback_sqlite_guide_file, &fcri, NULL);
 
@@ -254,7 +260,6 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
     }
   }else
   {
-
     //read actual OS
     if (ReadValue(HKEY_LOCAL_MACHINE,"software\\microsoft\\windows nt\\currentversion","ProductName",data, MAX_PATH))
       ReadCurrentOs(data);

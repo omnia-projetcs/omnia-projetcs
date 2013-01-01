@@ -195,7 +195,19 @@ BEGIN
 //manque le bouton loading ! ou une fenêtre de chargement ^^
 //manque un module de recherche global : avec une popup
 END
-
+//------------------------------------------------------------------------------
+DLG_SQLITE_EDITOR DIALOGEX 6,6,553,276
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CF0800
+BEGIN
+  CONTROL ""                                          ,DLG_SQL_ED_LB_TABLE,"ListBox",0x50310141,2,1,122,240,0x00000200
+  CONTROL "Load"                                      ,DLG_SQL_ED_BT_LOAD,"Button",0x50010000,2,245,60,19
+  CONTROL "Close"                                     ,DLG_SQL_ED_BT_CLOSE,"Button",0x50010000,64,245,60,19
+  CONTROL "SELECT * FROM table;"                      ,DLG_SQL_ED_ED_REQUEST,"Edit",0x50010004,128,1,402,91,0x00000200
+  CONTROL "Send"                                      ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,532,1,20,91
+  CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
+  CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
+END
 //------------------------------------------------------------------------------
 //main dialogue menu
 //------------------------------------------------------------------------------
@@ -247,11 +259,14 @@ BEGIN
     MENUITEM "Registry explHFS 32bit hex value big endianorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
     MENUITEM "Decode date"                ,IDM_TOOLS_DATE
+    MENUITEM "SQLITE ED"                  ,IDM_TOOLS_SQLITE_ED
     MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
   END
   POPUP "Help"      //3
   BEGIN
+    MENUITEM "Update database"           ,IDM_RTCA_UPDATE
+    MENUITEM SEPARATOR
     MENUITEM "Open RtCA home\tAlt+h"     ,IDM_RTCA_HOME
     MENUITEM SEPARATOR
     MENUITEM "About\tF1"                 ,IDM_ABOUT

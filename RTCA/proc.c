@@ -6,6 +6,81 @@
 //------------------------------------------------------------------------------
 #include "RtCA.h"
 //------------------------------------------------------------------------------
+void UpdateRtCA()
+{
+//---------------------------
+//update malware database
+  //init database ?
+  //sqlite3_exec(db_scan,"DELETE from malware_list;", NULL, NULL, NULL);
+
+  //ddl malware file https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
+  //init SSL connexion
+  HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+  if (M_connexion==NULL)return;
+
+  HINTERNET M_session = InternetConnect(M_connexion, "easylist-downloads.adblockplus.org",443,"","",INTERNET_SERVICE_HTTP,0,0);
+  if (M_session==NULL)
+  {
+    InternetCloseHandle(M_connexion);
+    return;
+  }
+
+  //connexion
+  HINTERNET M_requete = HttpOpenRequest(M_session,"GET","/malwaredomains_full.txt",NULL,"https://www.virustotal.com/",NULL,
+                                        INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE
+                                        |INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,0);
+  if (HttpSendRequest(M_requete, NULL, 0, NULL, 0))
+  {
+    char *res = malloc(DIXM); //10MO
+    memset(res,0,DIXM);
+    if (res != NULL)
+    {
+      INTERNET_BUFFERS ib;
+      ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
+      ib.lpcszHeader        = NULL;
+      ib.dwHeadersLength    = 0;
+      ib.dwHeadersTotal     = 0;
+      ib.dwOffsetLow        = 0;
+      ib.dwOffsetHigh       = 0;
+      ib.lpvBuffer          = res;
+      ib.dwBufferLength     = DIXM-1;
+      ib.dwBufferTotal      = DIXM-1;
+
+      if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
+      {
+        if (strlen(res)>0)
+        {
+          //working with file and update
+          char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res, *d;
+          do
+          {
+            //get data by line
+            if (*c++ == '|')
+            {
+              if (*c++ == '|')
+              {
+                d = domain;
+                while (d+1 < domain+MAX_PATH-1 && *c && *c!='^') *d++ = *c++;
+                *d = 0;
+
+                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
+                                               "VALUES(\"%s\",\"src:https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
+                sqlite3_exec(db_scan,request, NULL, NULL, NULL);
+
+         //next
+                while (*c && *c != '\n')c++;
+              }else while (*c && *c != '\n')c++;
+            }else while (*c && *c != '\n')c++;
+            if (*c == '\n')c++;
+          }while (*c);
+        }
+      }
+      free(res);
+    }
+  }
+//---------------------------
+}
+//------------------------------------------------------------------------------
 void ReviewWOW64Redirect(PVOID OldValue_W64b)
 {
   typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);
