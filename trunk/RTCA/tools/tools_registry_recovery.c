@@ -196,11 +196,12 @@ void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsign
 //nk keys ( == directory)
 DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD position, DWORD taille_fic, char *buffer, HANDLE hlv,HANDLE htv, BOOL deleted)
 {
+  if ((taille_fic - position) < HBIN_CELL_NK_SIZE) return 1;
   HBIN_CELL_NK_HEADER *nk_h = (HBIN_CELL_NK_HEADER *)(buffer+position);
   //valide ?
   if (nk_h->key_name_size >0 && nk_h->key_name_size<taille_fic && nk_h->size>0 && (position-HBIN_CELL_NK_SIZE)&& nk_h->type == 0x6B6E)
   {
-    if (nk_h->nb_values > 0)
+    if (nk_h->nb_values > 0 && nk_h->nb_values < 0xFFFFFFFF && nk_h->val_ls_offset < 0xFFFFFFFF && nk_h->val_ls_offset > 0)
     {
       LINE_ITEM lv_line[DLG_REG_LV_NB_COLUMN];
       char parent_key_update[DATE_SIZE_MAX];
@@ -225,14 +226,14 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
       filetimeToString_GMT(nk_h->last_write, parent_key_update, DATE_SIZE_MAX);
 
      // HTREEITEM htparent = 0;
-      for (i=0;i<nk_h->nb_values;i++)
+      for (i=0;i< (nk_h->nb_values);i++)
       {
         item_ls = (S_ITEM_LS *)&buffer[nk_h->val_ls_offset+0x1000+i*HBIN_CELL_ITEM_LS+4];
         //lecture de l'offset de la valeure :
         if (item_ls->val_of>0 && (item_ls->val_of+0x1000)<taille_fic)
         {
           //traitement des valeures !!!
-          vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+0x1000];
+         vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+0x1000];
 
           //récupération du nom de la valeur :
           strncpy(lv_line[2].c,vk_h->value,MAX_LINE_SIZE);
@@ -378,6 +379,40 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                 }
                 strcpy(lv_line[4].c,"REG_BINARY");
               break;
+              case 0x0000000A : //REG_RESSOURCE_REQUIREMENT_LIST, données binaires
+                lv_line[3].c[0] = 0;
+                if (vk_h->data_size < 0xFFFFFFFF && vk_h->data_offset > 0 && vk_h->data_offset < taille_fic)
+                {
+                  if (vk_h->data_size < 5)
+                  {
+                    for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
+                    {
+                      snprintf(tmp,10,"%02X",vk_h->cdata_offset[k]&0xff);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                    }
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                  }else
+                  {
+                    for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
+                    {
+                      snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                    }
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                  }
+                  snprintf(tmp,MAX_LINE_SIZE,"%s=%s",lv_line[2].c,lv_line[3].c);
+                }else
+                {
+                  if(vk_h->data_offset == 0 && vk_h->data_size ==0)
+                  {
+                    snprintf(tmp,MAX_LINE_SIZE,"%s=",lv_line[2].c);
+                  }else
+                  {
+                    snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
+                  }
+                }
+                strcpy(lv_line[4].c,"REG_RESSOURCE_REQUIREMENT_LIST");
+              break;
               case 0x00000004 : //REG_DWORD, données numériques 32bitschar
               case 0x00000005 : //REG_DWORD, données numériques 32bits signées
                 lv_line[3].c[0] = 0;
@@ -459,7 +494,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
       }
 
       //no value : only directory
-      if (nk_h->nb_values < 1 && nk_h->nb_subkeys < 1)
+      if ((nk_h->nb_values < 1 || nk_h->nb_values == 0xFFFFFFFF) && (nk_h->nb_subkeys < 1 || nk_h->nb_subkeys == 0xFFFFFFFF))
       {
         lv_line[2].c[0] = 0;
         lv_line[3].c[0] = 0;
@@ -539,7 +574,7 @@ void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE 
       }
 
       HBIN_CELL_PRE_HEADER *hb_ph;
-      while(position<taille_fic-4)
+      while(position<taille_fic-6)
       {
         //on ne traite que les clés nk (name key = directory)
         hb_ph = (HBIN_CELL_PRE_HEADER *)&buffer[position];

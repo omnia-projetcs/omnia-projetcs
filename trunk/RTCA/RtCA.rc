@@ -289,6 +289,7 @@ BEGIN
     MENUITEM SEPARATOR
     MENUITEM "Open Path"                  ,POPUP_TRV_FILES_OPEN_PATH
     MENUITEM "Auto search"                ,POPUP_TRV_FILES_AUTO_SEARCH
+    MENUITEM "Auto search (Path)"         ,POPUP_TRV_FILES_AUTO_SEARCH_PATH
     MENUITEM "Export list"                ,POPUP_TRV_FILES_SAVE_LIST
   END
 END
@@ -302,7 +303,7 @@ BEGIN
     MENUITEM "Check all"                  ,POPUP_TRV_CHECK_ALL
     MENUITEM "Uncheck all"                ,POPUP_TRV_UNCHECK_ALL
     MENUITEM SEPARATOR
-    MENUITEM "Stop the test"               ,POPUP_TRV_STOP_TEST
+    MENUITEM "Stop the test"              ,POPUP_TRV_STOP_TEST
   END
 END
 //------------------------------------------------------------------------------

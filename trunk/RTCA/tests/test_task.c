@@ -112,9 +112,9 @@ void JobCheck(unsigned int session_id, sqlite3 *db, char *file)
             }
 
             //size + datas
-            unsigned short *s   = buffer+(hb->App_Name_Len_Offset);
+            unsigned short *s   = (char*)(buffer+(hb->App_Name_Len_Offset));
             unsigned short size = (*s)*2;
-            unsigned char *c    = buffer+(hb->App_Name_Len_Offset+2);
+            unsigned char *c    = (char*)(buffer+(hb->App_Name_Len_Offset+2));
             snprintf(cmd,MAX_PATH,"%S",c);
 
             //init

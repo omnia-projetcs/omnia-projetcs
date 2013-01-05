@@ -84,6 +84,11 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_TXT_REG);
       break;
+      case 0x0000000A:
+        strcpy(lv_line[4].c,"REG_RESOURCE_REQUIREMENTS_LIST");
+        snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
+        AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_BIN_REG);
+      break;
       case 0x0000000b:
         strcpy(lv_line[4].c,"REG_QWORD");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
@@ -298,13 +303,14 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 ofn.hwndOwner = hwnd;
                 ofn.lpstrFile = file;
                 ofn.nMaxFile = MAX_PATH;
-                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.reg \0*.reg\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
                 ofn.lpstrDefExt =".csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
-                  SaveLSTV(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
+                  if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, FALSE);
+                  else SaveLSTV(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
                 }
               }
               break;
@@ -318,13 +324,14 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 ofn.hwndOwner = hwnd;
                 ofn.lpstrFile = file;
                 ofn.nMaxFile = MAX_PATH;
-                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+                ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.reg \0*.reg\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
                 ofn.lpstrDefExt =".csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
-                  SaveLSTVSelectedItems(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
+                  if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, TRUE);
+                  else SaveLSTVSelectedItems(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
                 }
               }
               break;

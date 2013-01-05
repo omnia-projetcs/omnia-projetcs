@@ -37,7 +37,6 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
           sqlite3_exec(db_scan, request, callback_sqlite, &fcri, NULL);
         break;
         /* disable : for future testing
-      /*
       SELECT event,indx,send_date,write_date,source,extract_log.log_id,log_string_description_id.description,state,user,rid,sid,extract_log.description,critical
 FROM extract_log, log_string_description_id
 WHERE (extract_log.log_id=log_string_description_id.log_id OR log_string_description_id.log_id Is Null) AND language_id=1 AND session_id=1;

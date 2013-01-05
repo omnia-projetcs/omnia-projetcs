@@ -174,23 +174,33 @@ void scan_file(char *path, HANDLE htv)
 //------------------------------------------------------------------------------
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
 {
-  //list all
-  char tmp[MAX_PATH];
-  int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
-
-  //search
-  for (i=0;i<nblecteurs;i+=4)
+  if (lParam == NULL)
   {
-    switch(GetDriveType(&tmp[i]))
+    //list all
+    char tmp[MAX_PATH];
+    int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
+
+    //search
+    for (i=0;i<nblecteurs;i+=4)
     {
-      case DRIVE_FIXED:
-      case DRIVE_REMOTE:
-      case DRIVE_RAMDISK:
-      case DRIVE_REMOVABLE:
-        AddItemTreeView(htrv_files,&tmp[i], TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
-        scan_file(&tmp[i], htrv_files);
-      break;
+      switch(GetDriveType(&tmp[i]))
+      {
+        case DRIVE_FIXED:
+        case DRIVE_REMOTE:
+        case DRIVE_RAMDISK:
+        case DRIVE_REMOVABLE:
+          AddItemTreeView(htrv_files,&tmp[i], TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+          scan_file(&tmp[i], htrv_files);
+        break;
+      }
     }
+  }else
+  {
+    char tmp_path[MAX_PATH];
+    strncpy(tmp_path,(char*)lParam,MAX_PATH);
+
+    AddItemTreeView(htrv_files,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+    scan_file(tmp_path, htrv_files);
   }
 
   //tri and clean

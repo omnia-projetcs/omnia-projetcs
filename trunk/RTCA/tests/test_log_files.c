@@ -6,201 +6,6 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id)
-{
-  HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-  if (Hlog != INVALID_HANDLE_VALUE)
-  {
-    char indx[DEFAULT_TMP_SIZE], log_id[DEFAULT_TMP_SIZE],
-    send_date[DATE_SIZE_MAX], write_date[DATE_SIZE_MAX],
-    source[MAX_PATH], description[MAX_LINE_SIZE],
-    user[DEFAULT_TMP_SIZE], rid[DEFAULT_TMP_SIZE], sid[DEFAULT_TMP_SIZE],
-    state[DEFAULT_TMP_SIZE], critical[DEFAULT_TMP_SIZE];
-
-    DWORD taille_fic = GetFileSize(Hlog,NULL);
-    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
-    {
-      unsigned char *b, *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
-      if (buffer == NULL)
-      {
-        CloseHandle(Hlog);
-        return;
-      }
-
-      //read file datas
-      DWORD copiee, position = 0, increm = 0,pos=0;
-      if (taille_fic > DIXM)increm = DIXM;
-      else increm = taille_fic;
-
-      while (position<taille_fic && increm!=0)
-      {
-        copiee = 0;
-        ReadFile(Hlog, buffer+position, increm,&copiee,0);
-        position +=copiee;
-        if (taille_fic-position < increm)increm = taille_fic-position ;
-      }
-
-      //header infos
-      typedef struct _EVENTLOGHEADER {
-        ULONG HeaderSize;
-        ULONG Signature;
-        ULONG MajorVersion;
-        ULONG MinorVersion;
-        ULONG StartOffset;
-        ULONG EndOffset;
-        ULONG CurrentRecordNumber;
-        ULONG OldestRecordNumber;
-        ULONG MaxSize;
-        ULONG Flags;
-        ULONG Retention;
-        ULONG EndHeaderSize;
-      } EVENTLOGHEADER, *PEVENTLOGHEADER;
-      b = buffer;
-
-      //validité du fichier
-      if (((PEVENTLOGHEADER)b)->HeaderSize == 0x30 && ((PEVENTLOGHEADER)b)->MajorVersion == 1&& ((PEVENTLOGHEADER)b)->MinorVersion == 1)
-      {
-        unsigned long int i=0,c=0,nb_events = ((PEVENTLOGHEADER)b)->CurrentRecordNumber;
-
-        //first record
-        EVENTLOGRECORD *pevlr = (EVENTLOGRECORD *) b;
-        unsigned long int size_max, uSize, x, uStringOffset, uStepOfString;
-        char* szExpandedString;
-
-        pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr+48); //48 = 0x30
-        c+=48;
-
-        //good header or not ?
-        if (pevlr->Reserved != 1699505740)
-        {
-          //next header
-          i = 0x30;
-          do
-          {
-            pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr+1);
-            i++;c++;
-          }while (i<taille_fic && pevlr->Reserved != 1699505740);
-
-          if (pevlr->Reserved == 1699505740)i=0;
-          else i = nb_events;
-        }
-
-        //datas
-        char * pStrings;
-
-        for (;i<nb_events && c<taille_fic  && start_scan;i++)
-        {
-          //init
-          snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber);
-
-          //Type
-          switch(pevlr->EventType)
-          {
-            case 0x01 : strcpy(state,"ERROR"); break;
-            case 0x02 : strcpy(state,"WARNING"); break;
-            case 0x04 : strcpy(state,"INFORMATION"); break;
-            case 0x08 : strcpy(state,"AUDIT_SUCCESS"); break;
-            case 0x10 : strcpy(state,"AUDIT_FAILURE"); break;
-            default :state[0]=0;break;
-          }
-
-          if (state[0]!=0)
-          {
-            //date : send_date
-            timeToString(pevlr->TimeGenerated, send_date, DATE_SIZE_MAX);
-
-            //date : write_date
-            timeToString(pevlr->TimeWritten, write_date, DATE_SIZE_MAX);
-
-            //source
-            source[0]=0;
-            if (sizeof(EVENTLOGRECORD) < pevlr->Length)
-              snprintf(source,DEFAULT_TMP_SIZE,"%S",(char *)pevlr+sizeof(EVENTLOGRECORD));
-
-            //ID
-            snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",pevlr->EventID& 0xFFFF);
-
-            //user+rid+sid
-            user[0] = 0;
-            rid[0]  = 0;
-            sid[0]  = 0;
-            SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
-
-            //descriptions strings !!!
-            //init
-            pos = 0;
-            memset(description, 0, MAX_LINE_SIZE);
-
-            //first wave
-            uSize         = pevlr->DataOffset - pevlr->StringOffset;
-            uStringOffset = pevlr->StringOffset;
-            if (uSize>0 && uStringOffset>0 && pos<MAX_LINE_SIZE)
-            {
-              pStrings = (char*)GlobalAlloc(GPTR, uSize * sizeof(BYTE));
-              if (pStrings != 0)
-              {
-                 memset(pStrings, 0, uSize * sizeof(BYTE));
-                 memcpy(pStrings, (char*)pevlr + uStringOffset, uSize);
-                 uStepOfString   = 0;
-
-                 szExpandedString = (char*)GlobalAlloc(GPTR, (uSize + MAX_LINE_SIZE+1) * sizeof(BYTE));
-                 size_max = uSize + MAX_LINE_SIZE;
-                 if (szExpandedString > 0)
-                 {
-                   for(x = 0; x < pevlr->NumStrings-1 && MAX_LINE_SIZE>pos && uStepOfString < uSize; x++)
-                   {
-                      snprintf((char*)szExpandedString,size_max,"%S,",pStrings + uStepOfString);
-                      if (strlen(szExpandedString)>1)
-                      {
-                        strncpy(description+pos,(char*)szExpandedString,MAX_LINE_SIZE-pos);
-                        pos = pos + strlen(description);
-                      }
-                      uStepOfString = strlen((char*)szExpandedString)*2+1;
-                   }
-                   GlobalFree(szExpandedString);
-                 }
-                GlobalFree(pStrings);
-              }
-            }
-
-            //next wave
-            uSize         = pevlr->DataLength * sizeof(char);
-            if (pevlr->DataLength > 0 && pevlr->DataOffset >0 && pos<MAX_LINE_SIZE)
-            {
-              pStrings = (char*)GlobalAlloc(GPTR, uSize * sizeof(BYTE)+1);
-              if (pStrings != 0)
-              {
-                memset(pStrings, 0, uSize * sizeof(BYTE));
-                memcpy(pStrings, (LPBYTE)pevlr+pevlr->DataOffset, (pevlr->DataLength));
-                pStrings[pevlr->DataLength] = 0;
-                if (strlen(pStrings)>0)
-                {
-                  snprintf(description+pos,MAX_LINE_SIZE-pos,"%s",(char*)pStrings);
-                  pos = pos + strlen(description);
-                }
-                GlobalFree(pStrings);
-              }
-            }
-
-            if (strcmp(send_date,write_date) != 0)strncpy(critical,"X",DEFAULT_TMP_SIZE);
-            else critical[0]=0;
-
-            convertStringToSQL(source, MAX_PATH);
-            convertStringToSQL(description, MAX_LINE_SIZE);
-            addLogtoDB(eventfile, indx, log_id,
-                   send_date, write_date, source, description,
-                   user, rid, sid, state, critical, session_id, db);
-          }
-          c+= pevlr->Length;
-          pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
-        }
-      }
-      HeapFree(GetProcessHeap(), 0, buffer);
-    }
-  }
-  CloseHandle(Hlog);
-}
-//------------------------------------------------------------------------------
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id)
 {
   //ouverture du fichier
@@ -208,7 +13,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
   if (Hlog != INVALID_HANDLE_VALUE)
   {
     //lecture du contenu
-    long i,j=0,k,taille_fic = GetFileSize(Hlog,NULL);
+    long /*i,j=0,k,*/taille_fic = GetFileSize(Hlog,NULL);
     if (taille_fic > 17 && taille_fic!=INVALID_FILE_SIZE) // 17 = taile d'une ligne minimum
     {
       unsigned char *b, *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
@@ -227,93 +32,439 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
           position +=copiee;
           if (taille_fic-position < increm)increm = taille_fic-position ;
         }
+        #define DATE_BAD_FORMAT             0x0000
+        #define DATE_FORMAT_SIMPLE          0x0010    //2012/12/31?10:10:10?Description
+        #define DATE_FORMAT_SIMPLE_INVERT   0x0020    //31/12/2012?10:10:10?Description
+        #define DATE_FORMAT_FULL            0x0030    //2011-08-08?19:37:52+0200?*?*?Description (if \t : source\tdescription)
+        #define DATE_FORMAT_FULL_GUID       0x0031    //{*}?2011-08-08?19:37:052+0200?*{*}?*?*?source?state?Description
+        #define DATE_FORMAT_UNIX            0x0040    //Dec?31?10:10:10?PC_NAME?source:?Description
+        #define DATE_FORMAT_ENCR            0x0050    //[2012-12-31?10:10:10]?Description
+        unsigned int DATE_FORMAT = DATE_BAD_FORMAT;
 
-        char indx[DEFAULT_TMP_SIZE], send_date[DATE_SIZE_MAX],source[MAX_PATH], description[MAX_LINE_SIZE];
+        //unicode file format ?
+        BOOL unicode_file = FALSE;
+        if (buffer[0] == 0xFF && buffer[1] == 0xFE)unicode_file = TRUE;
 
-        //traitement des données
-        char ligne[MAX_LINE_SIZE];
-        char *l, *lv;
+        //working line by line
+        char line[MAX_LINE_SIZE], line_unicode[MAX_LINE_DBSIZE], *l, *c;
+        char indx[DEFAULT_TMP_SIZE], send_date[DATE_SIZE_MAX], source[MAX_PATH],
+             user[MAX_PATH], state[MAX_PATH], description[MAX_LINE_SIZE];
+        DWORD j=0;
+        b = buffer;
 
-        //gestion suivant le type de format de fichier ^^
-        BOOL date_normal_format;
-        if (buffer[9] == buffer[12] && buffer[12] == ':')date_normal_format = FALSE;
-        else if(buffer[13] == buffer[16] && buffer[16] == ':')date_normal_format = TRUE;
-        else
+        //read first line
+        if (unicode_file)
         {
-          //bad file format
-          HeapFree(GetProcessHeap(), 0, buffer);
-          CloseHandle(Hlog);
-          return;
+          memset(line_unicode,0,MAX_LINE_DBSIZE);
+          l = line_unicode;
+          while ((*b!=0 || *(b+1)!=0) && (l-line_unicode) < MAX_LINE_DBSIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+          if (*b == '\r')b+=4;
+          else if (*b == '\n')b+=2;
+          *l++=0;
+          *l=0;
+          snprintf(line,MAX_LINE_SIZE,"%S",line_unicode+2);
+        }else
+        {
+          memset(line,0,MAX_LINE_SIZE);
+          l = line;
+          while (*b && (l-line) < MAX_LINE_SIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+
+          if (*b == '\r')b+=2;
+          else if (*b == '\n')b++;
+          *l=0;
         }
 
-        while(*b)
+        //determine file format !
+        if (strlen(line) > 17)
         {
-          //copie des données ligne par ligne
-          i=0;
-          l = ligne;
-          while(*b && i++<MAX_LINE_SIZE && *b !='\n')*l++ = *b++;
-          *l=0;
-          b++;
-
-          //traitement de la ligne !
-          if (strlen(ligne)>17)
+          if (line[0] == '[')
           {
-            //Date
-            send_date[0] = 0;
-            if (date_normal_format)
+            if (line[5] == '-' && line[8] == '-' && line[14] == ':' && line[17] == ':' && line[20] == ']')
+              DATE_FORMAT = DATE_FORMAT_ENCR;
+          }else if (line[0] == '{')
+          {
+            l = line;
+            while (*l && *l != '}')l++;
+            if (*l == '}')
             {
-              //2011-08-05 18:44:23 - > 2011/08/15-10:34:57
-              send_date[0] =ligne[0]; //Année
-              send_date[1] =ligne[1];
-              send_date[2] =ligne[2];
-              send_date[3] =ligne[3];
-              send_date[4] ='/';
-              send_date[5] =ligne[5]; //Mois
-              send_date[6] =ligne[6];
-              send_date[7] ='/';
-              send_date[8] =ligne[8]; //Jours
-              send_date[9] =ligne[9];
-              send_date[10]='-';
-              send_date[11]=ligne[11]; //Heures
-              send_date[12]=ligne[12];
-              send_date[13]=':';
-              send_date[14]=ligne[14]; //Minutes
-              send_date[15]=ligne[15];
-              send_date[16]=':';
-              send_date[17]=ligne[17]; //Secondes
-              send_date[18]=ligne[18];
-              send_date[19]=0;
+              if (*(l+6) == '-' && *(l+9) == '-' && *(l+15) == ':' && *(l+18) == ':' && *(l+21) == ':' && *(l+25) == '+')
+                DATE_FORMAT = DATE_FORMAT_FULL_GUID;
+            }
+          }else
+          {
+            if (line[4] == '/' && line[7] == '/' && line[13] == ':' && line[16] == ':')
+              DATE_FORMAT = DATE_FORMAT_SIMPLE;
+            else if (line[2] == '/' && line[5] == '/' && line[13] == ':' && line[16] == ':')
+              DATE_FORMAT = DATE_FORMAT_SIMPLE_INVERT;
+            else if (line[4] == '-' && line[7] == '-' && line[13] == ':' && line[16] == ':' && line[19] == '+')
+              DATE_FORMAT = DATE_FORMAT_FULL;
+            else if (line[9] == ':' && line[12] == ':')
+              DATE_FORMAT = DATE_FORMAT_UNIX;
+          }
+        }
 
-              k=20;
-              l = ligne+ 20;//on passe la dat
+        //add first line
+        //init
+        indx[0]         = 0;
+        send_date[0]    = 0;
+        source[0]       = 0;
+        user[0]         = 0;
+        state[0]        = 0;
+        description[0]  = 0;
+
+        //working
+        switch(DATE_FORMAT)
+        {
+          case DATE_FORMAT_SIMPLE:
+            //date
+            strncpy(send_date,line,DATE_SIZE_MAX);
+            send_date[DATE_SIZE_MAX-1]  = 0;
+            send_date[10]               = '-';
+
+            //description (datas)
+            strncpy(description,(line+DATE_SIZE_MAX+1),MAX_LINE_SIZE);
+          break;
+          case DATE_FORMAT_SIMPLE_INVERT:
+            //date
+            send_date[0] =line[6]; //Année
+            send_date[1] =line[7];
+            send_date[2] =line[8];
+            send_date[3] =line[9];
+            send_date[4] ='/';
+            send_date[5] =line[3]; //Mois
+            send_date[6] =line[4];
+            send_date[7] ='/';
+            send_date[8] =line[0]; //Jour
+            send_date[9] =line[1];
+            send_date[10]='-';
+            send_date[11]=line[11]; //Heures
+            send_date[12]=line[12];
+            send_date[13]=':';
+            send_date[14]=line[14]; //Minutes
+            send_date[15]=line[15];
+            send_date[16]=':';
+            send_date[17]=line[17]; //Secondes
+            send_date[18]=line[18];
+            send_date[19]=0;
+
+            //description (datas)
+            strncpy(description,(line+DATE_SIZE_MAX),MAX_LINE_SIZE);
+          break;
+          case DATE_FORMAT_FULL:
+            //date
+            strncpy(send_date,line,DATE_SIZE_MAX);
+            send_date[DATE_SIZE_MAX-1]  = 0;
+            send_date[4]                = '/';
+            send_date[7]                = '/';
+            send_date[10]               = '-';
+
+            l = line+DATE_SIZE_MAX+5;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+
+            //description (datas+source)
+            strncpy(source,l,MAX_PATH);
+            c = source;
+            while(c-source <MAX_PATH && *c && *c!='\t')c++;
+            if (*c == '\t')
+            {
+              strncpy(description,c+1,MAX_PATH);
+              *c =0;
             }else
             {
-              //Aug 14 14:09:37 - > 2011/08/15-10:34:57
+              strncpy(description,source,MAX_PATH);
+              source[0] = 0;
+            }
+          break;
+          case DATE_FORMAT_FULL_GUID:
+            //date
+            l = line;
+            while (*l && *l!=' ' && *l!='\t')l++;
+            l++;
+            strncpy(send_date,l,DATE_SIZE_MAX);
+            send_date[DATE_SIZE_MAX-1]  = 0;
+            send_date[4]                = '/';
+            send_date[7]                = '/';
+            send_date[10]               = '-';
+
+            //pass 7 \t
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+            while (*l && *l!='\t')l++;l++;
+
+            //source
+            strncpy(source,l,MAX_PATH);
+            c = source;
+            while (*c && *c!=' ' && *c!='\t')c++;
+            *c=0;
+
+            //state
+            while (*l && *l!=' ' && *l!='\t')l++;l++;
+            strncpy(state,l,MAX_PATH);
+            c = state;
+            while (*c && *c!=' ' && *c!='\t')c++;
+            *c=0;
+
+            //description
+            while (*l && *l!=' ' && *l!='\t')l++;l++;
+            //description (datas)
+            strncpy(description,l,MAX_LINE_SIZE);
+          break;
+          case DATE_FORMAT_UNIX:
+            //date
+            send_date[0] ='?'; //Année
+            send_date[1] ='?';
+            send_date[2] ='?';
+            send_date[3] ='?';
+            send_date[4] ='/';
+            switch(line[0])      //mois
+            {
+              case 'J':
+                if (line[1] == 'a'){send_date[5] = '0';send_date[6] = '1';}        //January
+                else if (line[1] == 'u')
+                {
+                  if (line[2] == 'n'){send_date[5] = '0';send_date[6] = '6';}      //June
+                  else if (line[2] == 'l'){send_date[5] = '0';send_date[6] = '7';} //July
+                  else {send_date[5] = '_';send_date[6] = '_';}
+                }else {send_date[5] = '_';send_date[6] = '_';}
+              break;
+              case 'F': send_date[5] = '0';send_date[6] = '2';break;                //February
+              case 'M':
+                if (line[2] == 'r'){send_date[5] = '0';send_date[6] = '3';}        //March
+                else if (line[2] == 'y'){send_date[5] = '0';send_date[6] = '5';}   //May
+                else {send_date[5] = '_';send_date[6] = '_';}
+              break;
+              case 'A':
+                if (line[1] == 'p'){send_date[5] = '0';send_date[6] = '4';}        //April
+                else if (line[1] == 'u'){send_date[5] = '0';send_date[6] = '8';}   //August
+                else {send_date[5] = '_';send_date[6] = '_';}
+              break;
+              case 'S': send_date[5] = '0';send_date[6] = '9';break;                //September
+              case 'O': send_date[5] = '1';send_date[6] = '0';break;                //October
+              case 'N': send_date[5] = '1';send_date[6] = '1';break;                //November
+              case 'D': send_date[5] = '1';send_date[6] = '2';break;                //December
+              default : send_date[5] = '_';send_date[6] = '_';break;
+            }
+            send_date[7] ='/';
+            if (line[4] == ' ')send_date[8] ='0';
+            else send_date[8] =line[4]; //Jour
+            send_date[9] =line[5];
+            send_date[10]='-';
+            send_date[11]=line[7]; //Heures
+            send_date[12]=line[8];
+            send_date[13]=line[9];
+            send_date[14]=line[10]; //Minutes
+            send_date[15]=line[11];
+            send_date[16]=line[12];
+            send_date[17]=line[13]; //Secondes
+            send_date[18]=line[14];
+            send_date[19]=0;
+
+            //user/computer
+            l = line+16;
+            c = user;
+            while(c-user < MAX_PATH && *l && *l!=' ' && *l!='\t')*c++=*l++;
+            *c = 0;
+
+            //source
+            l++;
+            c = source;
+            while(c-source < MAX_PATH && *l && *l!=':')*c++=*l++;
+            *c = 0;
+
+            //description (datas)
+            description[0] = 0;
+            strncpy(description,(l+2),MAX_LINE_SIZE);
+          break;
+          case DATE_FORMAT_ENCR:
+            //date
+            strncpy(send_date,line+1,DATE_SIZE_MAX);
+            send_date[DATE_SIZE_MAX-1]  = 0;
+            send_date[4]                = '/';
+            send_date[7]                = '/';
+            send_date[10]               = '-';
+
+            //description (datas)
+            strncpy(description,(line+DATE_SIZE_MAX+2),MAX_LINE_SIZE);
+          break;
+          //--------------------------------------
+          default:
+            //bad file format
+            HeapFree(GetProcessHeap(), 0, buffer);
+            CloseHandle(Hlog);
+            return;
+          break;
+        }
+
+        //add item
+        snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",j++);
+        addLogtoDB(eventfile, indx, "", send_date, send_date, source, description, user, "", "", state, "", session_id, db);
+
+        //next lines
+        do
+        {
+          if (unicode_file)
+          {
+            memset(line_unicode,0,MAX_LINE_DBSIZE);
+            l = line_unicode;
+            while ((*b!=0 || *(b+1)!=0) && (l-line_unicode) < MAX_LINE_DBSIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+            if (*b == '\r')b+=4;
+            else if (*b == '\n')b+=2;
+            *l++=0;
+            *l=0;
+            snprintf(line,MAX_LINE_SIZE,"%S",line_unicode);
+          }else
+          {
+            memset(line,0,MAX_LINE_SIZE);
+            l = line;
+            while (*b && (l-line) < MAX_LINE_SIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+
+            if (*b == '\r')b+=2;
+            else if (*b == '\n')b++;
+            *l=0;
+          }
+
+          //init
+          indx[0]         = 0;
+          send_date[0]    = 0;
+          source[0]       = 0;
+          user[0]         = 0;
+          state[0]        = 0;
+          description[0]  = 0;
+
+          //working
+          switch(DATE_FORMAT)
+          {
+            case DATE_FORMAT_SIMPLE:
+              //date
+              strncpy(send_date,line,DATE_SIZE_MAX);
+              send_date[DATE_SIZE_MAX-1]  = 0;
+              send_date[10]               = '-';
+
+              //description (datas)
+              strncpy(description,(line+DATE_SIZE_MAX+1),MAX_LINE_SIZE);
+            break;
+            case DATE_FORMAT_SIMPLE_INVERT:
+              //date
+              send_date[0] =line[6]; //Année
+              send_date[1] =line[7];
+              send_date[2] =line[8];
+              send_date[3] =line[9];
+              send_date[4] ='/';
+              send_date[5] =line[3]; //Mois
+              send_date[6] =line[4];
+              send_date[7] ='/';
+              send_date[8] =line[0]; //Jour
+              send_date[9] =line[1];
+              send_date[10]='-';
+              send_date[11]=line[11]; //Heures
+              send_date[12]=line[12];
+              send_date[13]=':';
+              send_date[14]=line[14]; //Minutes
+              send_date[15]=line[15];
+              send_date[16]=':';
+              send_date[17]=line[17]; //Secondes
+              send_date[18]=line[18];
+              send_date[19]=0;
+
+              //description (datas)
+              strncpy(description,(line+DATE_SIZE_MAX),MAX_LINE_SIZE);
+            break;
+            case DATE_FORMAT_FULL:
+              //date
+              strncpy(send_date,line,DATE_SIZE_MAX);
+              send_date[DATE_SIZE_MAX-1]  = 0;
+              send_date[4]                = '/';
+              send_date[7]                = '/';
+              send_date[10]               = '-';
+
+              l = line+DATE_SIZE_MAX+5;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+
+              //description (datas+source)
+              strncpy(source,l,MAX_PATH);
+              c = source;
+              while(c-source <MAX_PATH && *c && *c!='\t')c++;
+              if (*c == '\t')
+              {
+                strncpy(description,c+1,MAX_PATH);
+                *c =0;
+              }else
+              {
+                strncpy(description,source,MAX_PATH);
+                source[0] = 0;
+              }
+            break;
+            case DATE_FORMAT_FULL_GUID:
+              //date
+              l = line;
+              while (*l && *l!=' ' && *l!='\t')l++;
+              l++;
+              strncpy(send_date,l,DATE_SIZE_MAX);
+              send_date[DATE_SIZE_MAX-1]  = 0;
+              send_date[4]                = '/';
+              send_date[7]                = '/';
+              send_date[10]               = '-';
+
+              //pass 7 \t
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+              while (*l && *l!='\t')l++;l++;
+
+              //source
+              strncpy(source,l,MAX_PATH);
+              c = source;
+              while (*c && *c!=' ' && *c!='\t')c++;
+              *c=0;
+
+              //state
+              while (*l && *l!=' ' && *l!='\t')l++;l++;
+              strncpy(state,l,MAX_PATH);
+              c = state;
+              while (*c && *c!=' ' && *c!='\t')c++;
+              *c=0;
+
+              //description
+              while (*l && *l!=' ' && *l!='\t')l++;l++;
+              //description (datas)
+              strncpy(description,l,MAX_LINE_SIZE);
+            break;
+            case DATE_FORMAT_UNIX:
+              //date
               send_date[0] ='?'; //Année
               send_date[1] ='?';
               send_date[2] ='?';
               send_date[3] ='?';
               send_date[4] ='/';
-              switch(ligne[0])      //mois
+              switch(line[0])      //mois
               {
                 case 'J':
-                  if (ligne[1] == 'a'){send_date[5] = '0';send_date[6] = '1';}        //January
-                  else if (ligne[1] == 'u')
+                  if (line[1] == 'a'){send_date[5] = '0';send_date[6] = '1';}        //January
+                  else if (line[1] == 'u')
                   {
-                    if (ligne[2] == 'n'){send_date[5] = '0';send_date[6] = '6';}      //June
-                    else if (ligne[2] == 'l'){send_date[5] = '0';send_date[6] = '7';} //July
+                    if (line[2] == 'n'){send_date[5] = '0';send_date[6] = '6';}      //June
+                    else if (line[2] == 'l'){send_date[5] = '0';send_date[6] = '7';} //July
                     else {send_date[5] = '_';send_date[6] = '_';}
                   }else {send_date[5] = '_';send_date[6] = '_';}
                 break;
                 case 'F': send_date[5] = '0';send_date[6] = '2';break;                //February
                 case 'M':
-                  if (ligne[2] == 'r'){send_date[5] = '0';send_date[6] = '3';}        //March
-                  else if (ligne[2] == 'y'){send_date[5] = '0';send_date[6] = '5';}   //May
+                  if (line[2] == 'r'){send_date[5] = '0';send_date[6] = '3';}        //March
+                  else if (line[2] == 'y'){send_date[5] = '0';send_date[6] = '5';}   //May
                   else {send_date[5] = '_';send_date[6] = '_';}
                 break;
                 case 'A':
-                  if (ligne[1] == 'p'){send_date[5] = '0';send_date[6] = '4';}        //April
-                  else if (ligne[1] == 'u'){send_date[5] = '0';send_date[6] = '8';}   //August
+                  if (line[1] == 'p'){send_date[5] = '0';send_date[6] = '4';}        //April
+                  else if (line[1] == 'u'){send_date[5] = '0';send_date[6] = '8';}   //August
                   else {send_date[5] = '_';send_date[6] = '_';}
                 break;
                 case 'S': send_date[5] = '0';send_date[6] = '9';break;                //September
@@ -323,48 +474,60 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
                 default : send_date[5] = '_';send_date[6] = '_';break;
               }
               send_date[7] ='/';
-              send_date[8] =ligne[4]; // jour
-              send_date[9] =ligne[5];
+              if (line[4] == ' ')send_date[8] ='0';
+              else send_date[8] =line[4]; //Jour
+              send_date[9] =line[5];
               send_date[10]='-';
-              send_date[11]=ligne[7]; //Heures
-              send_date[12]=ligne[8];
-              send_date[13]=ligne[9];
-              send_date[14]=ligne[10]; //Minutes
-              send_date[15]=ligne[11];
-              send_date[16]=ligne[12];
-              send_date[17]=ligne[13]; //Secondes
-              send_date[18]=ligne[14];
+              send_date[11]=line[7]; //Heures
+              send_date[12]=line[8];
+              send_date[13]=line[9];
+              send_date[14]=line[10]; //Minutes
+              send_date[15]=line[11];
+              send_date[16]=line[12];
+              send_date[17]=line[13]; //Secondes
+              send_date[18]=line[14];
               send_date[19]=0;
-              k=16;
-              l = ligne+ 16;//on passe la date
-            }
 
-            //Source
-            source[0] = 0;
-            lv = source;
-            while (k<MAX_PATH && k<strlen(ligne) && *l && *l !=' ')
-            {
-              *lv++ = *l++;
-              k++;
-            }
-            *lv = 0;
+              //user/computer
+              l = line+16;
+              c = user;
+              while(c-user < MAX_PATH && *l && *l!=' ' && *l!='\t')*c++=*l++;
+              *c = 0;
 
-            //Description
-            l++; // on passe l'espace
-            description[0] = 0;
-            lv = description;
-            while (k<MAX_LINE_SIZE && k<strlen(ligne) && *l)
-            {
-              *lv++ = *l++;
-              k++;
-            }
-            *lv = 0;
-            snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",j++);
+              //source
+              l++;
+              c = source;
+              while(c-source < MAX_PATH && *l && *l!=':')*c++=*l++;
+              *c = 0;
 
-            //add
-            addLogtoDB(eventfile, indx, "", send_date, send_date, source, description, "", "", "", "", "", session_id, db);
+              //description (datas)
+              description[0] = 0;
+              strncpy(description,(l+2),MAX_LINE_SIZE);
+            break;
+            case DATE_FORMAT_ENCR:
+              //date
+              strncpy(send_date,line+1,DATE_SIZE_MAX);
+              send_date[DATE_SIZE_MAX-1]  = 0;
+              send_date[4]                = '/';
+              send_date[7]                = '/';
+              send_date[10]               = '-';
+
+              //description (datas)
+              strncpy(description,(line+DATE_SIZE_MAX+2),MAX_LINE_SIZE);
+            break;
+            //--------------------------------------
+            default:
+              //bad file format
+              HeapFree(GetProcessHeap(), 0, buffer);
+              CloseHandle(Hlog);
+              return;
+            break;
           }
-        }
+
+          //add item
+          snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",j++);
+          addLogtoDB(eventfile, indx, "", send_date, send_date, source, description, user, "", "", state, "", session_id, db);
+        }while(*b);
         HeapFree(GetProcessHeap(), 0, buffer);
       }
     }

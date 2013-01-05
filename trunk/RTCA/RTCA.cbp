@@ -155,6 +155,9 @@
 		<Unit filename="tests\test_log_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tests\test_log_files_evt.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tests\test_log_files_evtx.c">
 			<Option compilerVar="CC" />
 		</Unit>
