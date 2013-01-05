@@ -6,13 +6,13 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addEnvtoDB(char *str, char *user, unsigned int session_id, sqlite3 *db)
+void addEnvtoDB(char *source, char *env, char *user, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_env (string,user,session_id) "
-           "VALUES(\"%s\",\"%s\",%d);",
-           str,user,session_id);
+           "INSERT INTO extract_env (source,string,user,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",%d);",
+           source,env,user,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
@@ -29,7 +29,7 @@ void EnumEnv(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db, char *path)
     {
       snprintf(tmp,MAX_LINE_SIZE,"%s=%s",tmp_key,tmp_value);
       convertStringToSQL(tmp, MAX_LINE_SIZE);
-      addEnvtoDB(tmp, hks->file, session_id, db);
+      addEnvtoDB(path,tmp, hks->file, session_id, db);
     }
   }
 }
@@ -82,7 +82,7 @@ DWORD WINAPI Scan_env(LPVOID lParam)
       if (str[0]!=0)
       {
         convertStringToSQL(str, MAX_LINE_SIZE);
-        addEnvtoDB(str, user, session_id, db);
+        addEnvtoDB("",str, user, session_id, db);
       }
       c += strlen(c)+1;
     }

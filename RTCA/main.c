@@ -864,7 +864,7 @@ int CmdLine(int argc, char* argv[])
 
           strncpy(current_test_export_path,argv[i],MAX_PATH);
           ExportStart = TRUE;
-          SaveAll(TRUE);
+          SaveAll((LPVOID)TRUE);
         }
       break;
       case 'F'://save alls data format

@@ -675,6 +675,359 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
     return TRUE;
   }else return FALSE;
 }
+
+//------------------------------------------------------------------------------
+BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
+{
+  //get item count
+  unsigned long int nb_items = ListView_GetItemCount(hlv);
+  if (nb_items > 0)
+  {
+    //open file
+    HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+    if (hfile == INVALID_HANDLE_VALUE)
+    {
+      return FALSE;
+    }
+
+    char lines[MAX_LINE_SIZE]="",last_lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+    DWORD copiee;
+    unsigned long int j=0;
+
+    LVCOLUMN lvc;
+    lvc.mask        = LVCF_TEXT;
+    lvc.cchTextMax  = MAX_LINE_SIZE;
+    lvc.pszText     = buffer;
+
+    //header
+    copiee = 0;
+    snprintf(lines,MAX_LINE_SIZE,"Windows Registry Editor Version 5.00\r\n");
+    WriteFile(hfile,lines,strlen(lines),&copiee,0);
+    char tmp[MAX_LINE_SIZE], name[MAX_LINE_SIZE], value[MAX_LINE_SIZE];
+
+    for (j=0;j<nb_items;j++)
+    {
+      if (selected && SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
+      //HK+NK
+      tmp[0] = 0;
+      copiee = 0;
+      ListView_GetItemText(hlv,j,1,tmp,MAX_LINE_SIZE);
+      snprintf(lines,MAX_LINE_SIZE,"\r\n[%s]\r\n",tmp);
+      if (strcmp(last_lines,lines))
+      {
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        strcpy(last_lines,lines);
+      }
+
+      //name
+      name[0]  = 0;
+      value[0] = 0;
+      ListView_GetItemText(hlv,j,2,name,MAX_LINE_SIZE);
+      ListView_GetItemText(hlv,j,3,value,MAX_LINE_SIZE);
+
+      //type
+      tmp[0] = 0;
+      ListView_GetItemText(hlv,j,4,tmp,MAX_LINE_SIZE);
+      switch(tmp[4])
+      {
+        //------------------
+        case 'S'://REG_SZ
+        case 'L'://REG_LINK
+          copiee = 0;
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=\"%s\"\r\n",name,value);
+          else snprintf(lines,MAX_LINE_SIZE,"@=\"%s\"\r\n",value);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        break;
+        //------------------
+        case 'D'://REG_DWORD
+          copiee = 0;
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=dword:%s\r\n",name,value+2);
+          else snprintf(lines,MAX_LINE_SIZE,"@=dword:%s\r\n",value+2);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        break;
+        case 'Q'://REG_QWORD
+          copiee = 0;
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=qword:%s\r\n",name,value+2);
+          else snprintf(lines,MAX_LINE_SIZE,"@=qword:%s\r\n",value+2);
+          WriteFile(hfile,lines,strlen(lines),&copiee,0);
+        break;
+        //------------------
+        case 'B'://REG_BINARY
+        case 'N'://REG_NONE
+        case 'O'://UNKNOW
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=hex:",name);
+          else snprintf(lines,MAX_LINE_SIZE,"@=hex:");
+          if (value[0] == 0)
+          {
+            strncat(lines,"\r\n\0",MAX_LINE_SIZE);
+            copiee = 0;
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
+          }else
+          {
+            //first line
+            char *c = value;
+            char *d = &lines[strlen(lines)];
+            while (*c && strlen(lines) < 77)
+            {
+              *d++ = *c++;
+              *d++ = *c++;
+              *d++ = ',';
+              *d = 0;
+            }
+            if (*c == 0)
+            {
+              d--;
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+            }else
+            {
+              *d++ = '\\';
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+              //all next line
+              while (*c)
+              {
+                strcpy(lines,"  \0");
+                char *d = lines+2;
+                while (*c && strlen(lines) < 77)
+                {
+                  *d++ = *c++;
+                  *d++ = *c++;
+                  *d++ = ',';
+                  *d = 0;
+                }
+                if (*c == 0)
+                {
+                  d--;
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }else
+                {
+                  *d++ = '\\';
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }
+              }
+            }
+          }
+        break;
+        case 'E'://REG_EXPAND_SZ
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=hex(2):",name);
+          else snprintf(lines,MAX_LINE_SIZE,"@=hex(2):");
+          if (value[0] == 0)
+          {
+            strncat(lines,"\r\n\0",MAX_LINE_SIZE);
+            copiee = 0;
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
+          }else
+          {
+            //first line
+            char *c = value;
+            char *d = &lines[strlen(lines)];
+            while (*c && strlen(lines) < 77)
+            {
+              snprintf(d,4,"%02X,", (*c) & 0xFF);c++;
+            }
+            if (*c == 0)
+            {
+              d--;
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+            }else
+            {
+              *d++ = '\\';
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+              //all next line
+              while (*c)
+              {
+                strcpy(lines,"  \0");
+                char *d = lines+2;
+                while (*c && strlen(lines) < 77)
+                {
+                  snprintf(d,4,"%02X,", (*c) & 0xFF);c++;
+                }
+                if (*c == 0)
+                {
+                  d--;
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }else
+                {
+                  *d++ = '\\';
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }
+              }
+            }
+          }
+        break;
+        case 'M'://REG_MULTI_SZ
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=hex(7):",name);
+          else snprintf(lines,MAX_LINE_SIZE,"@=hex(7):");
+          if (value[0] == 0)
+          {
+            strncat(lines,"\r\n\0",MAX_LINE_SIZE);
+            copiee = 0;
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
+          }else
+          {
+            //first line
+            char *c = value;
+            char *d = &lines[strlen(lines)];
+            while (*c && strlen(lines) < 77)
+            {
+              snprintf(d,"%02X,", *c++& 0xFF);
+            }
+            if (*c == 0)
+            {
+              d--;
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+            }else
+            {
+              *d++ = '\\';
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+              //all next line
+              while (*c)
+              {
+                strcpy(lines,"  \0");
+                char *d = lines+2;
+                while (*c && strlen(lines) < 77)
+                {
+                  snprintf(d,"%02X,", *c++& 0xFF);
+                }
+                if (*c == 0)
+                {
+                  d--;
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }else
+                {
+                  *d++ = '\\';
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }
+              }
+            }
+          }
+        break;
+        case 'R'://REG_RESOURCE_REQUIREMENTS_LIST
+          if (strlen(name))snprintf(lines,MAX_LINE_SIZE,"\"%s\"=hex(a):",name);
+          else snprintf(lines,MAX_LINE_SIZE,"@=hex(a):");
+          if (value[0] == 0)
+          {
+            strncat(lines,"\r\n\0",MAX_LINE_SIZE);
+            copiee = 0;
+            WriteFile(hfile,lines,strlen(lines),&copiee,0);
+          }else
+          {
+            //first line
+            char *c = value;
+            char *d = &lines[strlen(lines)];
+            while (*c && strlen(lines) < 77)
+            {
+              *d++ = *c++;
+              *d++ = *c++;
+              *d++ = ',';
+              *d = 0;
+            }
+            if (*c == 0)
+            {
+              d--;
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+            }else
+            {
+              *d++ = '\\';
+              *d++ = '\r';
+              *d++ = '\n';
+              *d = 0;
+              copiee = 0;
+              WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+              //all next line
+              while (*c)
+              {
+                strcpy(lines,"  \0");
+                char *d = lines+2;
+                while (*c && strlen(lines) < 77)
+                {
+                  *d++ = *c++;
+                  *d++ = *c++;
+                  *d++ = ',';
+                  *d = 0;
+                }
+                if (*c == 0)
+                {
+                  d--;
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }else
+                {
+                  *d++ = '\\';
+                  *d++ = '\r';
+                  *d++ = '\n';
+                  *d = 0;
+                  copiee = 0;
+                  WriteFile(hfile,lines,strlen(lines),&copiee,0);
+                }
+              }
+            }
+          }
+        break;
+      }
+    }
+    CloseHandle(hfile);
+    return TRUE;
+  }else return FALSE;
+}
 //------------------------------------------------------------------------------
 void CopyStringToClipboard(char *s)
 {

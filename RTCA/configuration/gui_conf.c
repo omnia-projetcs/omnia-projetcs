@@ -249,6 +249,47 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               h_AUTOSEARCH = CreateThread(NULL,0,AutoSearchFiles,0,0,0);
             }
           break;
+          case POPUP_TRV_FILES_AUTO_SEARCH_PATH:
+            if (B_AUTOSEARCH)
+            {
+              B_AUTOSEARCH = FALSE;
+              DWORD IDThread;
+              GetExitCodeThread(h_AUTOSEARCH,&IDThread);
+              TerminateThread(h_AUTOSEARCH,IDThread);
+
+              //clean results
+              unsigned int i;
+              for (i=0;i<NB_MX_TYPE_FILES_TITLE;i++)
+              {
+                //tri
+                SendMessage(htrv_files,TVM_SORTCHILDREN, TRUE,(LPARAM)TRV_HTREEITEM_CONF[i]);
+                SupDoublon(htrv_files,TRV_HTREEITEM_CONF[i]);
+                SendMessage(htrv_files,TVM_EXPAND, TVE_EXPAND,(LPARAM)TRV_HTREEITEM_CONF[i]);
+              }
+            }else
+            {
+              BROWSEINFO browser;
+              LPITEMIDLIST lip;
+              char path[MAX_PATH]     = "";
+              browser.hwndOwner       = h_conf;
+              browser.pidlRoot        = 0;
+              browser.lpfn            = 0;
+              browser.iImage          = 0;
+              browser.lParam          = 0;
+              browser.ulFlags         = BIF_NEWDIALOGSTYLE;
+              browser.pszDisplayName  = path;
+              browser.lpszTitle       = "";
+              lip = SHBrowseForFolder(&browser);
+              if (lip != NULL)
+              {
+                if (SHGetPathFromIDList(lip,path))
+                {
+                  B_AUTOSEARCH = TRUE;
+                  h_AUTOSEARCH = CreateThread(NULL,0,AutoSearchFiles,path,0,0);
+                }
+              }
+            }
+          break;
           case POPUP_TRV_FILES_SAVE_LIST:
           {
             char file[MAX_PATH]="";
@@ -367,8 +408,15 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           ModifyMenu(hmenu,POPUP_TRV_FILES_ADD_FILE     ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_ADD_FILE     ,cps[TXT_POPUP_ADD_FILE].c);
           ModifyMenu(hmenu,POPUP_TRV_FILES_ADD_PATH     ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_ADD_PATH     ,cps[TXT_POPUP_ADD_PATH].c);
 
-          if (B_AUTOSEARCH)ModifyMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_AUTO_SEARCH  ,cps[TXT_POPUP_AUTO_SEARCH_STOP].c);
-          else ModifyMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_AUTO_SEARCH  ,cps[TXT_POPUP_AUTO_SEARCH].c);
+          if (B_AUTOSEARCH)
+          {
+            RemoveMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH_PATH ,MF_BYCOMMAND);
+            ModifyMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_AUTO_SEARCH  ,cps[TXT_POPUP_AUTO_SEARCH_STOP].c);
+          }else
+          {
+            ModifyMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_AUTO_SEARCH  ,cps[TXT_POPUP_AUTO_SEARCH].c);
+            ModifyMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH_PATH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_AUTO_SEARCH_PATH  ,cps[TXT_POPUP_AUTO_SEARCH_PATH].c);
+          }
 
           if (SendMessage(htrv_files,TVM_GETCOUNT,(WPARAM)0,(LPARAM)0) > 4)
           {

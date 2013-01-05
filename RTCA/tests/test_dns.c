@@ -26,6 +26,7 @@ int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName
   if (strlen(malware_check) > 0)strncat(malware_check,"\r\n",MAX_PATH);
   strncat(malware_check,argv[0],MAX_PATH);
   strncat(malware_check,"\0",MAX_PATH);
+  return 0;
 }
 //------------------------------------------------------------------------------
 void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size)
@@ -36,9 +37,9 @@ void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_
 
   //get only last 2 parts xxx.xxx
   while (*c++);
-  while (*c != name && *c != '.')c--; //fisrt
-  if (*c != name)c--;
-  while (*c != name && *c != '.')c--; //second
+  while (*c != name[0] && *c != '.')c--; //fisrt
+  if (*c != name[0])c--;
+  while (*c != name[0] && *c != '.')c--; //second
   if (*c == '.')
   {
     c++;

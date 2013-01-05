@@ -308,6 +308,7 @@ DWORD last_bt;
 #define POPUP_TRV_FILES_SAVE_LIST             11007
 #define POPUP_TRV_FILES_UP                    11008
 #define POPUP_TRV_FILES_DOWN                  11009
+#define POPUP_TRV_FILES_AUTO_SEARCH_PATH      11010
 
 #define POPUP_TRV_TEST                        11100
 #define POPUP_TRV_CHECK_ALL                   11101
@@ -423,6 +424,7 @@ char NOM_FULL_APPLI[DEFAULT_TMP_SIZE];
 #define SAVE_TYPE_HTML                            3
 #define SAVE_TYPE_PWDUMP                          4
 #define SAVE_TYPE_PCAP                            4
+#define SAVE_TYPE_REG5                            4
 
 //sqlite only
 #define SAVE_TYPE_TXT                             4
@@ -570,7 +572,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         90
+#define NB_COMPONENT_STRING         91
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -653,6 +655,8 @@ typedef struct SORT_ST
 #define TXT_CHK_SHA256                  87
 #define TXT_STOP_CHK_SHA256             88
 #define TXT_CHK_ALL_SHA256              89
+#define TXT_CHK_ALL_SHA256              89
+#define TXT_POPUP_AUTO_SEARCH_PATH      90
 
 typedef struct
 {
@@ -894,6 +898,7 @@ void GetColumnInfo(unsigned int id);
 BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
 BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
 BOOL SaveTRV(HANDLE htv, char *file, unsigned int type);
+BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected);
 DWORD WINAPI SaveAll(LPVOID lParam);
 DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
@@ -1033,6 +1038,9 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
 void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check);
+
+//DNS malware
+void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size);
 
 //state
 void InitGuiState();
