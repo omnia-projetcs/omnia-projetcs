@@ -38,6 +38,7 @@ typedef struct hbin_header{
 }HBIN_HEADER;
 //------------------------------------------------------------------------------
 //pre header de data
+#define HBIN_CELL_PRE_HEADER_SIZE 6
 typedef struct hbin_cell_pre_header{
   char size[4];   //normalement 0x??FFFFFF
   short type; /*

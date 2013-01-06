@@ -36,6 +36,7 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
   char parent_key_update[DATE_SIZE_MAX];
   char Owner_SID[MAX_PATH];
   char tmp_value_trv[MAX_PATH];
+  DWORD nbSubValue, type;
   strncpy(lv_line[0].c,reg_file,MAX_LINE_SIZE);
   strncpy(lv_line[1].c,parent,MAX_LINE_SIZE);
 
@@ -46,8 +47,7 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
                NULL, nk_h, parent_key_update, DATE_SIZE_MAX, NULL, 0,Owner_SID, MAX_PATH);
 
   //read all vk
-  DWORD nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
-  DWORD type;
+  nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
   for (i=0;i<nbSubValue;i++)
   {
     type = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, i,lv_line[2].c,MAX_LINE_SIZE,lv_line[3].c,MAX_LINE_SIZE);
@@ -120,6 +120,8 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
     lv_line[2].c[0] = 0;
     lv_line[3].c[0] = 0;
     lv_line[4].c[0] = 0;
+    strcpy(lv_line[5].c,parent_key_update);
+    strcpy(lv_line[6].c,Owner_SID);
     AddToLVRegBin(hlv, lv_line, DLG_REG_LV_NB_COLUMN);
   }
 

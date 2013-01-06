@@ -2,13 +2,13 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
 	<File name="Registry.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="5763" topLine="105" />
+		<Cursor1 position="2595" topLine="49" />
 	</File>
 	<File name="RtCA.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor1 position="526" topLine="0" />
 	</File>
 	<File name="RtCA.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="17487" topLine="268" />
+		<Cursor1 position="3386" topLine="66" />
 	</File>
 	<File name="configuration\gui_conf.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="19220" topLine="396" />
@@ -47,7 +47,7 @@
 		<Cursor1 position="8569" topLine="181" />
 	</File>
 	<File name="files\proc_registry_files.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="3311" topLine="79" />
+		<Cursor1 position="6083" topLine="128" />
 	</File>
 	<File name="import.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor1 position="1382" topLine="26" />
@@ -83,7 +83,7 @@
 		<Cursor1 position="300" topLine="0" />
 	</File>
 	<File name="suivie.txt" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="3" zoom_2="0">
-		<Cursor1 position="388" topLine="0" />
+		<Cursor1 position="425" topLine="0" />
 	</File>
 	<File name="tests\scan.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor1 position="13387" topLine="159" />
@@ -109,7 +109,7 @@
 	<File name="tests\test_dns.c" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="1486" topLine="20" />
 	</File>
-	<File name="tests\test_env.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="tests\test_env.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor1 position="3463" topLine="37" />
 	</File>
 	<File name="tests\test_file.c" open="0" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -214,11 +214,11 @@
 	<File name="tools\tools_process.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="720" topLine="6" />
 	</File>
-	<File name="tools\tools_registry.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor1 position="1741" topLine="19" />
+	<File name="tools\tools_registry.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor1 position="5023" topLine="123" />
 	</File>
-	<File name="tools\tools_registry_recovery.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor1 position="5641" topLine="134" />
+	<File name="tools\tools_registry_recovery.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor1 position="8894" topLine="342" />
 	</File>
 	<File name="tools\tools_sqlite_ed.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor1 position="6761" topLine="146" />

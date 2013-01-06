@@ -61,20 +61,22 @@ DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk
       if ((item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE) < taille_fic)
       {
         HBIN_CELL_VK_HEADER *vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
-
-        //get value
-        if (value!=NULL && value_size > 0 && vk_h->value != 0)
+        if (vk_h->type == 0x6B76)
         {
-          strncpy(value,vk_h->value,value_size);
-          if (vk_h->name_size >= value_size)value[value_size-1]=0;
-          else value[vk_h->name_size]=0;
-        }
+          //get value
+          if (value!=NULL && value_size > 0 && vk_h->value != 0)
+          {
+            strncpy(value,vk_h->value,value_size);
+            if (vk_h->name_size >= value_size)value[value_size-1]=0;
+            else value[vk_h->name_size]=0;
+          }
 
-        //get data
-        if (data!=NULL && data_size > 0)
-        {
-          DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-          if (data[0] != 0)return type;
+          //get data
+          if (data!=NULL && data_size > 0)
+          {
+            DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
+            if (data[0] != 0)return type;
+          }
         }
       }
     }
@@ -100,26 +102,28 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
       if (item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE < taille_fic)
       {
         HBIN_CELL_VK_HEADER *vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
-
-        //get value
-        if (value!=NULL && value_size > 0)
+        if (vk_h->type == 0x6B76)
         {
-          if (vk_h->name_size < value_size)
+          //get value
+          if (value!=NULL && value_size > 0)
           {
-            memcpy(value,vk_h->value,vk_h->name_size);
-            value[vk_h->name_size]=0;
-          }else
-          {
-            memcpy(value,vk_h->value,value_size);
-            value[value_size-1]=0;
+            if (vk_h->name_size < value_size)
+            {
+              memcpy(value,vk_h->value,vk_h->name_size);
+              value[vk_h->name_size]=0;
+            }else
+            {
+              memcpy(value,vk_h->value,value_size);
+              value[value_size-1]=0;
+            }
           }
-        }
 
-        //get data
-        if (data!=NULL && data_size > 0)
-        {
-          DWORD type = GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-          if (data[0] != 0)return type;
+          //get data
+          if (data!=NULL && data_size > 0)
+          {
+            DWORD type = GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
+            if (data[0] != 0)return type;
+          }
         }
       }
     }
@@ -139,7 +143,7 @@ DWORD GetSubNK(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD 
     //get list of nk child
     HBIN_CELL_LF_HEADER *lf_h = (HBIN_CELL_LF_HEADER *)&buffer[pos_fhbin+nk_h->lf_offset-HBIN_HEADER_SIZE];
     if (index == 0 && subkey == 0 && subkey_size == 0)return nk_h->nb_subkeys;
-    if (index < nk_h->nb_subkeys)
+    if (index < nk_h->nb_subkeys && nk_h->nb_subkeys > 0 && (lf_h->type == 0x686C || lf_h->type == 0x666C))
     {
       //get index subkey
       DWORD new_position = lf_h->hb_c[index].nk_of+pos_fhbin-HBIN_HEADER_SIZE;
@@ -167,11 +171,11 @@ HBIN_CELL_NK_HEADER * GetSubNKtonk(char *buffer, DWORD taille_fic, HBIN_CELL_NK_
   if (nk_h == NULL)return NULL;
 
   //get subkey
-  if (nk_h->key_name_size >0 && nk_h->key_name_size < 0xFFFF && nk_h->size > 0 && nk_h->type == 0x6B6E && ((pos_fhbin+nk_h->lf_offset-HBIN_HEADER_SIZE) < taille_fic))
+  if (nk_h->key_name_size >0 && nk_h->size > 0 && nk_h->type == 0x6B6E && ((pos_fhbin+nk_h->lf_offset-HBIN_HEADER_SIZE) < taille_fic))
   {
     //get list of nk child
     HBIN_CELL_LF_HEADER *lf_h = (HBIN_CELL_LF_HEADER *)&buffer[pos_fhbin+nk_h->lf_offset-HBIN_HEADER_SIZE];
-    if (index < nk_h->nb_subkeys)
+    if (index < nk_h->nb_subkeys && nk_h->nb_subkeys > 0 && (lf_h->type == 0x686C || lf_h->type == 0x666C ))
     {
       //get index subkey
       DWORD new_position = lf_h->hb_c[index].nk_of+pos_fhbin-HBIN_HEADER_SIZE;
@@ -223,38 +227,41 @@ HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD positio
       }else break;
 
       //get current and child string
-      if (nk_h->key_name_size >0 && nk_h->key_name_size < 0xFFFF && nk_h_tmp->size > 0 && nk_h_tmp->type == 0x6B6E)
+      if (nk_h->key_name_size >0 && nk_h_tmp->size > 0 && nk_h_tmp->type == 0x6B6E)
       {
         //get nk child
         if (nk_h_tmp->nb_subkeys > 0 && nk_h_tmp->nb_subkeys < 0xFFFFFFFF && ((pos_fhbin+nk_h_tmp->lf_offset-HBIN_HEADER_SIZE) < taille_fic))
         {
           //get list of nk child
           lf_h = (HBIN_CELL_LF_HEADER *)&buffer[pos_fhbin+nk_h_tmp->lf_offset-HBIN_HEADER_SIZE];
-          for (j=0;j<nk_h_tmp->nb_subkeys;j++)
+		  if(lf_h->type == 0x686C || lf_h->type == 0x666C )
           {
-            //get name
-            if ((lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE) < taille_fic && (lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE) > pos_fhbin)
+            for (j=0;j<nk_h_tmp->nb_subkeys;j++)
             {
-              new_position = lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE;
-			  if (new_position > 0 && new_position < taille_fic)
-			  {
-				nk_h_tmp2 = (HBIN_CELL_NK_HEADER *)(buffer+new_position);
-				if (nk_h_tmp2->key_name_size >0 && nk_h_tmp2->key_name_size < 0xFFFF && nk_h_tmp2->size > 0 && nk_h_tmp2->type == 0x6B6E)
-				{
-					//get name
-					strncpy(tmpkey,(char *)(buffer+new_position+HBIN_CELL_NK_SIZE),MAX_PATH);
-					if (nk_h_tmp2->key_name_size > MAX_PATH)tmpkey[MAX_PATH-1]=0;
-					else tmpkey[nk_h_tmp2->key_name_size]=0;
+              //get name
+              if ((lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE) < taille_fic && (lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE) > pos_fhbin)
+              {
+                new_position = lf_h->hb_c[j].nk_of+pos_fhbin-HBIN_HEADER_SIZE;
+                if (new_position > 0 && new_position < taille_fic)
+                {
+                  nk_h_tmp2 = (HBIN_CELL_NK_HEADER *)(buffer+new_position);
+                  if (nk_h_tmp2->key_name_size >0 && nk_h_tmp2->key_name_size < 0xFFFF && nk_h_tmp2->size > 0 && nk_h_tmp2->type == 0x6B6E)
+                  {
+                    //get name
+                    strncpy(tmpkey,(char *)(buffer+new_position+HBIN_CELL_NK_SIZE),MAX_PATH);
+                    if (nk_h_tmp2->key_name_size > MAX_PATH)tmpkey[MAX_PATH-1]=0;
+                    else tmpkey[nk_h_tmp2->key_name_size]=0;
 
-					//equal or not ?
-					if (strcmp(tmp,charToLowChar(tmpkey)) == 0)
-					{
-					nk_h_tmp = nk_h_tmp2;
-					if (++nb_ok == istring)ok = TRUE;
-					break;
-					}
-				}
-			  }
+                    //equal or not ?
+                    if (strcmp(tmp,charToLowChar(tmpkey)) == 0)
+                    {
+                    nk_h_tmp = nk_h_tmp2;
+                    if (++nb_ok == istring)ok = TRUE;
+                    break;
+                    }
+                  }
+                }
+              }
             }
           }
         }else break;
@@ -271,6 +278,7 @@ DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *b
 {
   if (data!=NULL)data[0] = 0;
   if (*data_size<5)return FALSE;
+  if (vk_h->type != 0x6B76)return FALSE;
 
   if (vk_h->data_size < 0xFFFFFFFF && vk_h->data_size > 0 && vk_h->data_offset > 0 && vk_h->data_offset < 0xFFFFFFFF && (pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE < taille_fic || vk_h->data_size < 5))
   {
@@ -305,6 +313,7 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
 {
   if (data!=NULL)data[0] = 0;
   if (data_size<5)return FALSE;
+  if (vk_h->type != 0x6B76)return FALSE;
   if (vk_h->data_size > 0 && (vk_h->data_offset > 0 && pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE < taille_fic || vk_h->data_size < 5))
     switch(vk_h->data_type)
     {
@@ -516,21 +525,23 @@ BOOL Readnk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
         if (item_ls->val_of>0 && (item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE)<taille_fic)
         {
           vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
-
-          //get value
-          if (vk_h->value!=NULL)
+          if (vk_h->type == 0x6B76)
           {
-            strncpy(tmpvalue,vk_h->value,MAX_PATH);
-            if (vk_h->name_size>=MAX_PATH)tmpvalue[MAX_PATH-1]=0;
-            else tmpvalue[vk_h->name_size]=0;
-          }else tmpvalue[0]=0;
+            //get value
+            if (vk_h->value!=NULL)
+            {
+              strncpy(tmpvalue,vk_h->value,MAX_PATH);
+              if (vk_h->name_size>=MAX_PATH)tmpvalue[MAX_PATH-1]=0;
+              else tmpvalue[vk_h->name_size]=0;
+            }else tmpvalue[0]=0;
 
-          //ok thread it
-          if (strcmp(tmp_read_value,charToLowChar(tmpvalue)) == 0)
-          {
-            GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-            if (data[0] != 0)return TRUE;
-            break;
+            //ok thread it
+            if (strcmp(tmp_read_value,charToLowChar(tmpvalue)) == 0)
+            {
+              GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
+              if (data[0] != 0)return TRUE;
+              break;
+            }
           }
         }
       }
@@ -575,22 +586,24 @@ DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD p
         if (item_ls->val_of>0 && item_ls->val_of < 0xFFFFFFFF && (item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE)<taille_fic)
         {
           vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
-
-          //get value
-          if (vk_h->value!=NULL)
+          if (vk_h->type == 0x6B76)
           {
-            strncpy(tmpvalue,vk_h->value,MAX_PATH);
-            if (vk_h->name_size>=MAX_PATH)tmpvalue[MAX_PATH-1]=0;
-            else tmpvalue[vk_h->name_size]=0;
-          }else tmpvalue[0]=0;
+            //get value
+            if (vk_h->value!=NULL)
+            {
+              strncpy(tmpvalue,vk_h->value,MAX_PATH);
+              if (vk_h->name_size>=MAX_PATH)tmpvalue[MAX_PATH-1]=0;
+              else tmpvalue[vk_h->name_size]=0;
+            }else tmpvalue[0]=0;
 
-          //ok thread it
-          if (strcmp(tmp_read_value,charToLowChar(tmpvalue)) == 0)
-          {
-            //GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-            DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
-            if (data_size != 0)return type;
-            break;
+            //ok thread it
+            if (strcmp(tmp_read_value,charToLowChar(tmpvalue)) == 0)
+            {
+              //GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
+              DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
+              if (data_size != 0)return type;
+              break;
+            }
           }
         }
       }
