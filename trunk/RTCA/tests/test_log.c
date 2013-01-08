@@ -20,6 +20,47 @@ void addLogtoDB(  char *eventname, char *indx, char *log_id,
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
+void GetPointToArray(EVENTLOGRECORD *pevlr, DWORD_PTR Array[], DWORD nb_array_max)
+{
+  LPBYTE c = ((LPBYTE) pevlr + pevlr->StringOffset);
+  int i;
+  for (i = 0; i < pevlr->NumStrings && i < nb_array_max; i++)
+  {
+      Array[i] = (int) c;
+      c += strlen((char *) c) + 1;
+  }
+}
+//------------------------------------------------------------------------------
+//thanks to http://code.google.com/p/evtail/
+BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *resultat, unsigned int resultat_max_size)
+{
+  resultat[0] = 0;
+  DWORD ret = FALSE;
+
+  //get library path
+  char key[MAX_PATH], ddlpath[MAX_PATH]="", ddlpath_ok[MAX_PATH]="";
+  snprintf(key,MAX_PATH,"SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s",eventname,source);
+  if (ReadValue(HKEY_LOCAL_MACHINE,key,"EventMessageFile",ddlpath, MAX_PATH))
+  {
+    //replace system string type of %string%
+    ExpandEnvironmentStrings(ddlpath, ddlpath_ok, MAX_PATH);
+    //load DATAFILE
+    HANDLE mhandle = LoadLibraryEx(ddlpath_ok, 0, LOAD_LIBRARY_AS_DATAFILE);
+    if (mhandle != NULL)
+    {
+      DWORD_PTR dwpRepStrings[0xFF];
+      GetPointToArray(pevlr, dwpRepStrings, 0xFF);
+
+      ret = FormatMessage(FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                          mhandle,pevlr->EventID,0,resultat,resultat_max_size,dwpRepStrings);
+
+      FreeLibrary(mhandle);
+    }
+  }
+  return (BOOL)ret;
+}
+
+//------------------------------------------------------------------------------
 void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int session_id, DWORD cRecords)
 {
   char indx[DEFAULT_TMP_SIZE], log_id[DEFAULT_TMP_SIZE],
@@ -29,14 +70,13 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
   state[DEFAULT_TMP_SIZE], critical[DEFAULT_TMP_SIZE];
 
   EVENTLOGRECORD *pevlr;
-  DWORD cbBuffer = 1024*64;
-  BYTE bBuffer[(1024*64)+1];
+  DWORD cbBuffer = 0x10000;  //64k
+  BYTE bBuffer[0x10000+1];
   pevlr = (EVENTLOGRECORD *) &bBuffer;
   DWORD dwRead, dwNeeded;
 
-  unsigned long int i=1, size_real, size_max, uSize, x, uStringOffset, uStepOfString;
-  LPBYTE szExpandedString, pStrings;
-
+  unsigned long int i=1, z;
+  memset(bBuffer,0,cbBuffer);
   while (ReadEventLog(Heventlog,EVENTLOG_BACKWARDS_READ |EVENTLOG_SEQUENTIAL_READ,0,&bBuffer,cbBuffer,&dwRead,&dwNeeded) && i < cRecords && start_scan)
   {
     pevlr = (EVENTLOGRECORD *) &bBuffer;
@@ -45,16 +85,16 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
       while (dwRead > 0 && i < cRecords && start_scan)
       {
         //record number
-        snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber);
+        snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber & 0xFFFF);
 
         //Type
         switch(pevlr->EventType)
         {
-          case 0x01 : strcpy(state,"ERROR"); break;
-          case 0x02 : strcpy(state,"WARNING"); break;
-          case 0x04 : strcpy(state,"INFORMATION"); break;
-          case 0x08 : strcpy(state,"AUDIT_SUCCESS"); break;
-          case 0x10 : strcpy(state,"AUDIT_FAILURE"); break;
+          case EVENTLOG_ERROR_TYPE      /*0x01*/ : strcpy(state,"ERROR"); break;
+          case EVENTLOG_WARNING_TYPE    /*0x02*/ : strcpy(state,"WARNING"); break;
+          case EVENTLOG_INFORMATION_TYPE/*0x04*/ : strcpy(state,"INFORMATION"); break;
+          case EVENTLOG_AUDIT_SUCCESS   /*0x08*/ : strcpy(state,"AUDIT_SUCCESS"); break;
+          case EVENTLOG_AUDIT_FAILURE   /*0x10*/ : strcpy(state,"AUDIT_FAILURE"); break;
           default :state[0]=0;break;
         }
 
@@ -68,43 +108,31 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
 
           //source
           source[0]=0;
-          if (sizeof(EVENTLOGRECORD) < pevlr->Length)
+          if (sizeof(EVENTLOGRECORD) < pevlr->Length && sizeof(EVENTLOGRECORD)+1 < cbBuffer)
             strncpy(source,(char *)pevlr+sizeof(EVENTLOGRECORD),DEFAULT_TMP_SIZE);
 
           //ID
-          snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",pevlr->EventID& 0xFFFF);
+          snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",pevlr->EventID & 0xFFFF);
 
           //user+rid+sid
           user[0] = 0;
           rid[0]  = 0;
           sid[0]  = 0;
-          SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
+          if (pevlr->UserSidOffset < cbBuffer && pevlr->UserSidLength > 0)
+            SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
 
-          //descriptions strings !!!
-          uSize         = pevlr->DataOffset - pevlr->StringOffset;
-          uStringOffset = pevlr->StringOffset;
-          if (uSize>0 && uStringOffset>0)
+          if ((pevlr->StringOffset+ pevlr->DataLength) < cbBuffer)
           {
-            pStrings = (LPBYTE)GlobalAlloc(GPTR, uSize * sizeof(BYTE));
-            if (pStrings > 0)
+            if (readMessageDatas(pevlr, eventname, source, description, MAX_LINE_SIZE) == FALSE)
             {
-               memcpy(pStrings, (LPBYTE)pevlr + uStringOffset, uSize);
-               uStepOfString   = 0;
-
-               szExpandedString = (LPBYTE)GlobalAlloc(GPTR, (uSize + MAX_LINE_SIZE) * sizeof(BYTE));
-               size_max = uSize + MAX_LINE_SIZE;
-               if (szExpandedString > 0)
-               {
-                 for(x = 0,size_real=0; x < pevlr->NumStrings && size_max>size_real && uStepOfString < uSize; x++)
-                 {
-                    snprintf((char*)(szExpandedString+size_real),size_max-size_real,"%s,",pStrings + uStepOfString);
-                    size_real = size_real + strlen((char*)szExpandedString);
-                    uStepOfString = strlen((char*)(pStrings + uStepOfString))+1;
-                 }
-                 strncpy(description,(char*)szExpandedString,MAX_LINE_SIZE);
-                 GlobalFree(szExpandedString);
-               }
-              GlobalFree(pStrings);
+              //get string in raw mode !
+              description[0] = 0;
+              char*c = ((LPBYTE) pevlr + pevlr->StringOffset);
+              for (z = 0; z < pevlr->NumStrings; z++)
+              {
+                snprintf(description+strlen(description),MAX_LINE_SIZE-strlen(description),"%s,",c);
+                c += strlen((char *) c) + 1;
+              }
             }
           }
 
@@ -123,6 +151,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
         dwRead = dwRead-pevlr->Length;
         i++;
       }
+      memset(bBuffer,0,cbBuffer);
     }
     break;
   }

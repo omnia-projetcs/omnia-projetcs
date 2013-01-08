@@ -17,6 +17,14 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
     user[DEFAULT_TMP_SIZE], rid[DEFAULT_TMP_SIZE], sid[DEFAULT_TMP_SIZE],
     state[DEFAULT_TMP_SIZE], critical[DEFAULT_TMP_SIZE];
 
+    char eventname[MAX_PATH];
+    extractFileFromPath(eventfile, eventname, MAX_PATH);
+    if (strlen(eventname)-4 > 0)
+    {
+      //remove .evt
+      eventname[strlen(eventname)-4] = 0;
+    }else eventname[0] = 0;
+
     DWORD taille_fic = GetFileSize(Hlog,NULL);
     if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
     {
@@ -28,7 +36,7 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
       }
 
       //read file datas
-      DWORD copiee, position = 0, increm = 0,pos=0;
+      DWORD copiee, position = 0, increm = 0;
       if (taille_fic > DIXM)increm = DIXM;
       else increm = taille_fic;
 
@@ -64,7 +72,6 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
 
         //first record
         EVENTLOGRECORD *pevlr = (EVENTLOGRECORD *) b;
-        unsigned long int size_max, uSize, x, uStringOffset, uStepOfString;
         char* szExpandedString;
 
         pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr+48); //48 = 0x30
@@ -86,21 +93,19 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
         }
 
         //datas
-        char * pStrings;
-
         for (;i<nb_events && c<taille_fic  && start_scan;i++)
         {
           //init
-          snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber);
+          snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber & 0xFFFF);
 
           //Type
           switch(pevlr->EventType)
           {
-            case 0x01 : strcpy(state,"ERROR"); break;
-            case 0x02 : strcpy(state,"WARNING"); break;
-            case 0x04 : strcpy(state,"INFORMATION"); break;
-            case 0x08 : strcpy(state,"AUDIT_SUCCESS"); break;
-            case 0x10 : strcpy(state,"AUDIT_FAILURE"); break;
+            case EVENTLOG_ERROR_TYPE      /*0x01*/ : strcpy(state,"ERROR"); break;
+            case EVENTLOG_WARNING_TYPE    /*0x02*/ : strcpy(state,"WARNING"); break;
+            case EVENTLOG_INFORMATION_TYPE/*0x04*/ : strcpy(state,"INFORMATION"); break;
+            case EVENTLOG_AUDIT_SUCCESS   /*0x08*/ : strcpy(state,"AUDIT_SUCCESS"); break;
+            case EVENTLOG_AUDIT_FAILURE   /*0x10*/ : strcpy(state,"AUDIT_FAILURE"); break;
             default :state[0]=0;break;
           }
 
@@ -128,10 +133,27 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
 
             //descriptions strings !!!
             //init
-            pos = 0;
             memset(description, 0, MAX_LINE_SIZE);
 
+            if ((pevlr->StringOffset+ pevlr->DataLength) < taille_fic)
+            {
+              if (readMessageDatas(pevlr, eventname, source, description, MAX_LINE_SIZE) == FALSE)
+              {
+                //get string in raw mode !
+                description[0] = 0;
+                int z;
+                char*c = ((LPBYTE) pevlr + pevlr->StringOffset);
+                for (z = 0; z < pevlr->NumStrings; z++)
+                {
+                  snprintf(description+strlen(description),MAX_LINE_SIZE-strlen(description),"%S,",c);
+                  c += strlen((char *) c) + 2;
+                }
+              }
+            }
+
             //first wave
+            /*
+            DWORD pos=0;
             uSize         = pevlr->DataOffset - pevlr->StringOffset;
             uStringOffset = pevlr->StringOffset;
             if (uSize>0 && uStringOffset>0 && pos<MAX_LINE_SIZE)
@@ -180,7 +202,7 @@ void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_
                 }
                 GlobalFree(pStrings);
               }
-            }
+            }*/
 
             if (strcmp(send_date,write_date) != 0)strncpy(critical,"X",DEFAULT_TMP_SIZE);
             else critical[0]=0;

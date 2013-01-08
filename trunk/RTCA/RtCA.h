@@ -1026,6 +1026,7 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
 void LoadPRocessList(HWND hlv);
 
 //log functions
+BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *resultat, unsigned int resultat_max_size);
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id);
