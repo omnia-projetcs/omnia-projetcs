@@ -314,7 +314,7 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
   if (data!=NULL)data[0] = 0;
   if (data_size<5)return FALSE;
   if (vk_h->type != 0x6B76)return FALSE;
-  if (vk_h->data_size > 0 && (vk_h->data_offset > 0 && pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE < taille_fic || vk_h->data_size < 5))
+  if (vk_h->data_size > 0 && ((vk_h->data_offset > 0 && pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE < taille_fic) || vk_h->data_size < 5))
     switch(vk_h->data_type)
     {
       //Chaines

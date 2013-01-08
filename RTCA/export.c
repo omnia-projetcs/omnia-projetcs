@@ -690,14 +690,9 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
       return FALSE;
     }
 
-    char lines[MAX_LINE_SIZE]="",last_lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+    char lines[MAX_LINE_SIZE]="",last_lines[MAX_LINE_SIZE]="";
     DWORD copiee;
     unsigned long int j=0;
-
-    LVCOLUMN lvc;
-    lvc.mask        = LVCF_TEXT;
-    lvc.cchTextMax  = MAX_LINE_SIZE;
-    lvc.pszText     = buffer;
 
     //header
     copiee = 0;
@@ -903,7 +898,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
             char *d = &lines[strlen(lines)];
             while (*c && strlen(lines) < 77)
             {
-              snprintf(d,"%02X,", *c++& 0xFF);
+              snprintf(d,4,"%02X,", *c++& 0xFF);
             }
             if (*c == 0)
             {
@@ -929,7 +924,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
                 char *d = lines+2;
                 while (*c && strlen(lines) < 77)
                 {
-                  snprintf(d,"%02X,", *c++& 0xFF);
+                  snprintf(d,4,"%02X,", *c++& 0xFF);
                 }
                 if (*c == 0)
                 {

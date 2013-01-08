@@ -131,13 +131,13 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
   }EVENTLOG_H_EVTX;
   EVENTLOG_H_EVTX *h_dheader = (EVENTLOG_H_EVTX *)buffer;
 
-  DWORD id = 0;
-
   char indx[DEFAULT_TMP_SIZE]="", log_id[DEFAULT_TMP_SIZE]="",
   send_date[DATE_SIZE_MAX]="", write_date[DATE_SIZE_MAX]="",
   source[MAX_PATH]="", description[MAX_LINE_SIZE]="",
   user[DEFAULT_TMP_SIZE]="", rid[DEFAULT_TMP_SIZE]="", sid[DEFAULT_TMP_SIZE]="",
   state[DEFAULT_TMP_SIZE]="", critical[DEFAULT_TMP_SIZE]="";
+
+  DWORD id=0;
 
   //test de validité
   if (h_dheader->RecordSize <= size
