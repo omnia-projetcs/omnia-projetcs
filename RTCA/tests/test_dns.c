@@ -67,7 +67,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
 
   //make file directory
   char file[MAX_PATH]="";
-  char ip[IP_SIZE_MAX],name[MAX_PATH];
+  char ip[IPV6_SIZE_MAX],name[MAX_PATH];
   snprintf(file,MAX_PATH,"%s\\WINDOWS\\system32\\drivers\\etc\\hosts",getenv("SYSTEMDRIVE"));
 
   //open host file and read all hosts
@@ -106,10 +106,10 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
             if (lines[0]!='#' && strlen(lines) > 8)
             {
               //get IP
-              strncpy(ip,lines,IP_SIZE_MAX);
+              strncpy(ip,lines,IPV6_SIZE_MAX);
               c = ip;
 
-              while (*c && *c != ' ' && *c!= '\t' && (*c == '.'|| (*c<='9' && *c>='0')))c++;
+              while (*c && *c != ' ' && *c!= '\t' && (*c == '.' || *c == ':' || (*c<='9' && *c>='0')))c++;
               if (*c)
               {
                 *c = 0;
@@ -148,37 +148,38 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
 
   if (DnsGetCacheDataTable != NULL)
   {
-    PDNSCACHEENTRY cache = NULL;
+    PDNSCACHEENTRY pcache = NULL;
     DNS_RECORD* dnsRecords = NULL, *dnsr;
     IN_ADDR ipAddress;
-
     char last_file_update[DATE_SIZE_MAX]="";
 
-    if (DnsGetCacheDataTable(&cache) == TRUE)
+    if (DnsGetCacheDataTable(&pcache) == TRUE)
     {
-      while (cache != NULL)
+      PDNSCACHEENTRY cache = pcache;
+      while (cache)
       {
         memset(name,0,MAX_PATH);
         snprintf(name,MAX_PATH,"%S",cache->pszName);
-
-        //get IP + TTL
-        if(DnsQuery(name,DNS_TYPE_A,0x10/*DNS_QUERY_CACHE_ONLY*/,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
+        if (name[0] != 0)
         {
-          dnsr = dnsRecords;
-          while (dnsRecords != NULL)
+          //get IP + TTL
+          if(DnsQuery(name,DNS_TYPE_A,0x10/*DNS_QUERY_CACHE_ONLY*/,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
           {
-            ipAddress.S_un.S_addr = dnsRecords->Data.A.IpAddress;
-            if (inet_ntoa(ipAddress) != NULL)
+            dnsr = dnsRecords;
+            while (dnsr != NULL)
             {
-              snprintf(ip,IP_SIZE_MAX,"%s",inet_ntoa(ipAddress));
-              snprintf(last_file_update,DATE_SIZE_MAX,"%lu (s)",dnsRecords->dwTtl);
-
-              addHosttoDB("", ip, name, last_file_update,session_id,db);
+              ipAddress.S_un.S_addr = dnsr->Data.A.IpAddress;
+              if (inet_ntoa(ipAddress) != NULL)
+              {
+                snprintf(ip,IP_SIZE_MAX,"%s",inet_ntoa(ipAddress));
+                snprintf(last_file_update,DATE_SIZE_MAX,"%lu (s)",dnsr->dwTtl);
+                addHosttoDB("", ip, name, last_file_update,session_id,db);
+              }
+              dnsr = dnsr->pNext;
             }
-            dnsRecords = dnsRecords->pNext;
+            //free
+            DnsRecordListFree(dnsRecords,DnsFreeRecordList);
           }
-          //free
-          DnsRecordListFree(dnsr,DnsFreeRecordList);
         }
         cache = cache->pNext;
       }

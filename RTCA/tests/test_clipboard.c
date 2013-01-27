@@ -133,7 +133,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
         break;
-        case CF_BITMAP:
+        /*case CF_BITMAP:
           //format
           strncpy(format,"CF_BITMAP",DEFAULT_TMP_SIZE);
           if (description[0]==0)strncpy(description,"Bitmap Picture",DEFAULT_TMP_SIZE);
@@ -160,7 +160,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
         break;
-
+*/
         case CF_OEMTEXT:
           //format
           strncpy(format,"CF_OEMTEXT",DEFAULT_TMP_SIZE);
@@ -170,7 +170,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           convertStringToSQL(data, MAX_LINE_SIZE);
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
-        break;
+        break;/*
         case CF_DIB:
           //format
           strncpy(format,"CF_DIB",DEFAULT_TMP_SIZE);
@@ -215,7 +215,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           DatatoHexa(GlobalLock(hMem), GlobalSize(hMem), data, MAX_LINE_SIZE);
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
-        break;
+        break;*/
         case CF_UNICODETEXT:
           //format
           strncpy(format,"CF_UNICODETEXT",DEFAULT_TMP_SIZE);
@@ -225,7 +225,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           convertStringToSQL(data, MAX_LINE_SIZE);h_thread_test[(unsigned int)lParam] = 0;
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
-        break;
+        break;/*
         case CF_RIFF:
           //format
           strncpy(format,"CF_RIFF",DEFAULT_TMP_SIZE);
@@ -290,7 +290,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           convertStringToSQL(data, MAX_LINE_SIZE);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
         }
-        break;
+        break;*/
         case CF_LOCALE:
           //format
           strncpy(format,"CF_LOCALE",DEFAULT_TMP_SIZE);
@@ -299,7 +299,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           snprintf(data,MAX_LINE_SIZE,"0x%X",GlobalLock(hMem));
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
-        break;
+        break;/*
         case 17: //CF_DIBV5
           //format
           strncpy(format,"CF_DIBV5",DEFAULT_TMP_SIZE);
@@ -364,7 +364,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
           DatatoHexa(GlobalLock(hMem), GlobalSize(hMem), data, MAX_LINE_SIZE);
           GlobalUnlock(hMem);
           addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
-        break;
+        break;*/
       }
       uFormat = EnumClipboardFormats(uFormat);
     }

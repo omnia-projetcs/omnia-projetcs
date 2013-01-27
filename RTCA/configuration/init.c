@@ -187,8 +187,9 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   read_trame_sniff  = FALSE;
   follow_sniff      = FALSE;
   reg_file_start_process = FALSE;
-  AVIRUSTTAL = FALSE;
-  VIRUSTTAL = FALSE;
+  AVIRUSTTAL        = FALSE;
+  VIRUSTTAL         = FALSE;
+  SQLITE_FULL_SPEED = FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
@@ -205,11 +206,6 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
 
     sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan);
   }
-
-  //for journal incase
-  #ifdef LOG_SQLITE_OFF
-  sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
-  #endif
 
   //Init language cb
   HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);

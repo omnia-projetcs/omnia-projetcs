@@ -143,20 +143,27 @@ char *convertStringToSQL(char *data, unsigned int size_max)
 //------------------------------------------------------------------------------
 char *ReplaceEnv(char *var, char *path, unsigned int size_max)
 {
-  //get var
-  if (getenv(var) && path[0]=='%')
+  char tmp[MAX_LINE_SIZE]="";
+  if (ExpandEnvironmentStrings(path,tmp,MAX_LINE_SIZE))
   {
-    char *c = path;
-    while (*c && *c!='\\')c++;
-    if (*c == '\\')
+    strncpy(path,tmp,size_max);
+    return path;
+  }else
+  {
+    //get var
+    if (getenv(var) && path[0]=='%')
     {
-      //c++;
-      char tmp[MAX_PATH];
-      snprintf(tmp,MAX_PATH,"%s%s",getenv(var),c);
-      strncpy(path,tmp,size_max);
+      char *c = path;
+      while (*c && *c!='\\')c++;
+      if (*c == '\\')
+      {
+        char tmp[MAX_PATH];
+        snprintf(tmp,MAX_PATH,"%s%s",getenv(var),c);
+        strncpy(path,tmp,size_max);
+      }
     }
+    return path;
   }
-  return path;
 }
 //------------------------------------------------------------------------------
 char *GetTextFromTrv(HTREEITEM hitem, char *txt, DWORD item_size_max)

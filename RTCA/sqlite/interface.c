@@ -36,31 +36,12 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
           snprintf(request, MAX_LINE_SIZE,"%s session_id=%lu;",argv[1],current_session_id);
           sqlite3_exec(db_scan, request, callback_sqlite, &fcri, NULL);
         break;
-        /* disable : for future testing
-      SELECT event,indx,send_date,write_date,source,extract_log.log_id,log_string_description_id.description,state,user,rid,sid,extract_log.description,critical
-FROM extract_log, log_string_description_id
-WHERE (extract_log.log_id=log_string_description_id.log_id OR log_string_description_id.log_id Is Null) AND language_id=1 AND session_id=1;
-
-LEFT JOIN log_string_description_id
-ON extract_log.log_id=log_string_description_id.log_id AND name=source AND language_id=1 AND session_id=1 WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;
-
-     EX : (bugs)
-     SELECT event,indx,send_date,write_date,source,extract_log.log_id,log_string_description_id.description,state,user,rid,sid,extract_log.description,critical
-FROM extract_log
-LEFT JOIN log_string_description_id
-ON extract_log.log_id=log_string_description_id.log_id AND name=source AND language_id=
-
-      */
-
-        /*case MODE_SQL_LOGS: //special stat for audit log
-          snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%lu WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;",argv[1],
+        case MODE_SQL_LOGS: //special stat for audit log
+          snprintf(request, MAX_LINE_SIZE,"%s%d WHERE session_id=%lu;",argv[1],
                    (int)current_lang_id,current_session_id);
           sqlite3_exec(db_scan, request, callback_sqlite, &fcri, NULL);
-        break;*/
+        break;
       }
-
-
-
     }
     break;
     //----------------------------------------
