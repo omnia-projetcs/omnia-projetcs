@@ -116,6 +116,7 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
               //verify the path if %systemdrive%
               ReplaceEnv("SYSTEMDRIVE",tmp_key,MAX_PATH);
 
+
               //search file in this path
               snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Application Data\\Google\\Chrome\\User Data\\Default\\*.*",tmp_key);
               WIN32_FIND_DATA wfd;

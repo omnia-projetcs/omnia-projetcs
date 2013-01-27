@@ -32,6 +32,7 @@ void GetPointToArray(EVENTLOGRECORD *pevlr, DWORD_PTR Array[], DWORD nb_array_ma
 }
 //------------------------------------------------------------------------------
 //thanks to http://code.google.com/p/evtail/
+//thanks to http://msdn.microsoft.com/en-us/library/windows/desktop/bb427356%28v=vs.85%29.aspx
 BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *resultat, unsigned int resultat_max_size)
 {
   resultat[0] = 0;
@@ -90,11 +91,11 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
         //Type
         switch(pevlr->EventType)
         {
-          case EVENTLOG_ERROR_TYPE      /*0x01*/ : strcpy(state,"ERROR"); break;
-          case EVENTLOG_WARNING_TYPE    /*0x02*/ : strcpy(state,"WARNING"); break;
-          case EVENTLOG_INFORMATION_TYPE/*0x04*/ : strcpy(state,"INFORMATION"); break;
-          case EVENTLOG_AUDIT_SUCCESS   /*0x08*/ : strcpy(state,"AUDIT_SUCCESS"); break;
-          case EVENTLOG_AUDIT_FAILURE   /*0x10*/ : strcpy(state,"AUDIT_FAILURE"); break;
+          case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR"); break;        //0x01
+          case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING"); break;      //0x02
+          case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION"); break;  //0x04
+          case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS"); break;//0x08
+          case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE"); break;//0x10
           default :state[0]=0;break;
         }
 
@@ -108,7 +109,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
 
           //source
           source[0]=0;
-          if (sizeof(EVENTLOGRECORD) < pevlr->Length && sizeof(EVENTLOGRECORD)+1 < cbBuffer)
+          if (sizeof(EVENTLOGRECORD) < pevlr->Length && sizeof(EVENTLOGRECORD)+1 < dwRead)
             strncpy(source,(char *)pevlr+sizeof(EVENTLOGRECORD),DEFAULT_TMP_SIZE);
 
           //ID
@@ -118,10 +119,10 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
           user[0] = 0;
           rid[0]  = 0;
           sid[0]  = 0;
-          if (pevlr->UserSidOffset < cbBuffer && pevlr->UserSidLength > 0)
+          if (pevlr->UserSidOffset < dwRead && pevlr->UserSidLength > 0)
             SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
 
-          if ((pevlr->StringOffset+ pevlr->DataLength) < cbBuffer)
+          if ((pevlr->StringOffset+ pevlr->DataLength) < dwRead)
           {
             if (readMessageDatas(pevlr, eventname, source, description, MAX_LINE_SIZE) == FALSE)
             {

@@ -243,7 +243,9 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       snprintf(source,MAX_LINE_SIZE,"%s\\%s:%s",src_name,argv[0],argv[4]);
 
       char description[MAX_LINE_SIZE];
-      snprintf(description,MAX_LINE_SIZE,"%s,%s",argv[11],argv[6]);
+      if (argv[11] != NULL && argv[6] != NULL)snprintf(description,MAX_LINE_SIZE,"%s - %s",argv[6],argv[11]);
+      else if (argv[6] != NULL) snprintf(description,MAX_LINE_SIZE,"%s",argv[6]);
+      else if (argv[11] != NULL) snprintf(description,MAX_LINE_SIZE,"%s",argv[11]);
 
       if (strlen(argv[2]) > 8)
       {
@@ -273,20 +275,23 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
         ListView_SetItemText(hlv,ref_item2,7,session_state);//Session
       }
 
-      if (strlen(argv[12]) && strlen(argv[2]) > 8) //critical
+      if (argv[12] != NULL) //critical
       {
-        hlv       = GetDlgItem(h_state,DLG_STATE_LV_CRITICAL);
-        lvi.iItem = ListView_GetItemCount(hlv);
-        DWORD ref_item  = ListView_InsertItem(hlv, &lvi);
+        if (argv[12][0] != 0)
+        {
+          hlv       = GetDlgItem(h_state,DLG_STATE_LV_CRITICAL);
+          lvi.iItem = ListView_GetItemCount(hlv);
+          DWORD ref_item  = ListView_InsertItem(hlv, &lvi);
 
-        ListView_SetItemText(hlv,ref_item,0,argv[2]);     //date
-        ListView_SetItemText(hlv,ref_item,1,azColName[2]);//Origine
-        ListView_SetItemText(hlv,ref_item,2,source);      //Source
-        ListView_SetItemText(hlv,ref_item,3,argv[7]);     //state
-        ListView_SetItemText(hlv,ref_item,4,description); //Description
-        ListView_SetItemText(hlv,ref_item,5,argv[8]);     //Owner
-        ListView_SetItemText(hlv,ref_item,6,argv[10]);    //SID
-        ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+          ListView_SetItemText(hlv,ref_item,0,argv[2]);     //date
+          ListView_SetItemText(hlv,ref_item,1,azColName[2]);//Origine
+          ListView_SetItemText(hlv,ref_item,2,source);      //Source
+          ListView_SetItemText(hlv,ref_item,3,argv[7]);     //state
+          ListView_SetItemText(hlv,ref_item,4,description); //Description
+          ListView_SetItemText(hlv,ref_item,5,argv[8]);     //Owner
+          ListView_SetItemText(hlv,ref_item,6,argv[10]);    //SID
+          ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+        }
       }
     }
     break;
@@ -921,6 +926,11 @@ DWORD WINAPI Load_state(LPVOID lParam)
             break;
             case MODE_SQL_LITE:
               snprintf(request, MAX_LINE_SIZE,"%s session_id=%lu;",current_global_request,session[s]);
+              sqlite3_exec(db_scan, request, callback_sqlite_state, &fcri, NULL);
+            break;
+            case MODE_SQL_LOGS: //special stat for audit log
+              snprintf(request, MAX_LINE_SIZE,"%s%d WHERE session_id=%lu;",current_global_request,
+                       (int)current_lang_id,session[s]);
               sqlite3_exec(db_scan, request, callback_sqlite_state, &fcri, NULL);
             break;
           }

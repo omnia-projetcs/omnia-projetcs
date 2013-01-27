@@ -5,11 +5,9 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 //******************************************************************************
-//#define _WIN64_VERSION_        1       //64 OS Compilation
+//#define _WIN64_VERSION_        1       //64bit OS Compilation
 //debug mode dev test
 //#define DEV_DEBUG_MODE              1
-//enable log file of sqlite
-//#define LOG_SQLITE_OFF              1
 //******************************************************************************
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -98,11 +96,13 @@ char _SYSKEY[MAX_PATH];
 #define DRIVE_SIZE                  4
 #define COMPUTER_NAME_SIZE_MAX     16
 #define IP_SIZE_MAX                16   //255.255.255.255   = 16
+#define IPV6_SIZE_MAX              56   //39 + 1 + 15 + 1 => 0000:0000:0000:0000:0000:0000:0000:0000:000.000.000.000
 #define MAC_SIZE                   18   //AA:BB:CC:DD:EE:FF = 18
 #define NB_MAX_PORTS            65536
 #define SZ_PART_SYSKEY           0x21
 #define NB_TESTS_GLOBALS           32
 
+#define OMB              10*1024*1024     //1mo 2ko
 #define DIXM             10*1024*1024    //10mo
 //------------------------------------------------------------------------------
 //debug message
@@ -158,6 +158,8 @@ BOOL disable_m_context, disable_p_context;
 #define BT_SEARCH                3005
 #define LV_VIEW_INFO             3006
 #define BT_SEARCH_MATCH_CASE     3007
+#define BT_SQLITE_FULL_SPEED     3008
+BOOL SQLITE_FULL_SPEED;
 
 #define DLG_PROCESS              4000
 unsigned int nb_column_process_view;
@@ -262,6 +264,7 @@ DWORD last_bt;
 #define DLG_SQL_ED_BT_SEND          9005
 #define DLG_SQL_ED_LV_RESPONSE      9006
 #define DLG_SQL_ED_STATE_SB         9007
+#define POPUP_LSTV_SQLITE           9008
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -1000,10 +1003,8 @@ HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD positio
 DWORD GetSubNK(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                unsigned int index, char *subkey, unsigned int subkey_size);
 HBIN_CELL_NK_HEADER * GetSubNKtonk(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin, unsigned int index);
-
 DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                    unsigned int index, char *value, unsigned int value_size, char *data, unsigned int data_size);
-
 BOOL Readnk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
                   char *read_value, char *data, unsigned int data_size);
 DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
@@ -1013,7 +1014,6 @@ BOOL Readnk_Class(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
 BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,
                   char *last_update, unsigned int last_update_size, char *rid, unsigned int rid_size,char *sid, unsigned int sid_size);
 DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD data_size);
-
 DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD *data_size);
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                          unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);

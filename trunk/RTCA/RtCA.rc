@@ -247,6 +247,8 @@ BEGIN
   BEGIN
     MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
+    MENUITEM SEPARATOR
+    MENUITEM "SQLite FULL SPEED"          ,BT_SQLITE_FULL_SPEED
   END
   POPUP "Tools"     //2
   BEGIN
@@ -495,5 +497,16 @@ BEGIN
         MENUITEM "Parent key update (UTC)",POPUP_I_05
         MENUITEM "Owner SID",POPUP_I_06
       END
+    END
+END
+//------------------------------------------------------------------------------
+//sqlite
+//------------------------------------------------------------------------------
+POPUP_LSTV_SQLITE MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_sqlite"
+    BEGIN
+      MENUITEM "Save view"                 ,POPUP_S_VIEW
+      MENUITEM "Save Selection"            ,POPUP_S_SELECTION
     END
 END

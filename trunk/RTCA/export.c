@@ -213,11 +213,11 @@ DWORD WINAPI SaveAll(LPVOID lParam)
           snprintf(request, MAX_LINE_SIZE,"%s session_id=%lu;",st_columns.request,cur_session_id);
           sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
         break;
-        /*case MODE_SQL_LOGS: //special stat for audit log
-          snprintf(request, MAX_LINE_SIZE,"%s%d AND session_id=%lu WHERE log_string_description_id.log_id Is Null AND name Is Null AND language_id Is Null;",st_columns.request,
-                   current_lang_id,cur_session_id);
+        case MODE_SQL_LOGS: //special stat for audit log
+          snprintf(request, MAX_LINE_SIZE,"%s%d WHERE session_id=%lu;",st_columns.request,
+                   (int)current_lang_id,cur_session_id);
           sqlite3_exec(db, request, callback_sqlite_export, &fcri, NULL);
-        break;*/
+        break;
     }
 
     //file foot

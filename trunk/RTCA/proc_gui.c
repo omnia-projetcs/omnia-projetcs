@@ -142,8 +142,8 @@ void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)
 //------------------------------------------------------------------------------
 void Modify_Style(HANDLE hcomp, long style, BOOL add)
 {
-if(add) SetWindowLong(hcomp, GWL_STYLE, GetWindowLong(hcomp, GWL_STYLE) | style);
-else SetWindowLong(hcomp, GWL_STYLE, GetWindowLong(hcomp, GWL_STYLE) & ~style);
+  if(add) SetWindowLong(hcomp, GWL_STYLE, GetWindowLong(hcomp, GWL_STYLE) | style);
+  else SetWindowLong(hcomp, GWL_STYLE, GetWindowLong(hcomp, GWL_STYLE) & ~style);
 }
 //------------------------------------------------------------------------------
 void FileToTreeView(char *c_path)
@@ -366,6 +366,7 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_reg      ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_date     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_state    ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_sqlite_ed,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_CHECKED);
   }else
@@ -376,7 +377,8 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_reg_file ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_reg      ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_date     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-    SetWindowPos(h_state     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_state    ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+    SetWindowPos(h_sqlite_ed,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
 
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
   }

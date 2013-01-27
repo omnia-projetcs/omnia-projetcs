@@ -265,113 +265,151 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
   return h_dheader->RecordSize;
 }
 //------------------------------------------------------------------------------
+//header
+typedef struct _EVENTLOGHEADER_EVTX {
+  char MagicString[8];                 //8 ElfFile + 0x00
+  unsigned long long int FirstChunk;            //8
+  unsigned long long int LastChunk;             //8
+  unsigned long long int NextRecord;            //8
+  unsigned int HeaderSize;                      //4 toujours 0x80 = 128
+  unsigned short MinorVersion;                  //2 toujours 1
+  unsigned short MajorVersion;                  //2 toujours 3
+  unsigned long long int CurrentSize;           //8
+  unsigned char Reserved[72];                   //72
+  unsigned int flag;                            //4
+  unsigned int checksum;                        //4 checksum
+}EVENTLOGHEADER_EVTX;
+
+//record
+typedef struct _EVENTLOGCHUNKHEADER_EVTX {
+  char MagicString[8];                 //8 ElfChnk + 0x00
+  unsigned long long int FirstRecord;           //8
+  unsigned long long int LastRecord;            //8
+  unsigned long long int FirstLogicRecord;      //8
+  unsigned long long int LastLogicRecord;       //8
+  unsigned int HeaderSize;                      //4 toujours 0x80 = 128
+  unsigned int LastRecord_Offset;               //4
+  unsigned int NextRecord_Offset;               //4
+  unsigned int checksum_object;                 //4
+  unsigned char Reserved[64];                   //64
+  unsigned int flag;                            //4
+  unsigned int checksum;                        //4 checksum
+}EVENTLOGCHUNKHEADER_EVTX;
+
+//------------------------------------------------------------------------------
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id)
 {
-  //ouverture du fichier en lecture partagé
   HANDLE Hlog = CreateFile(eventfile,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hlog != INVALID_HANDLE_VALUE)
   {
-    //test de la taille
     DWORD taille_fic = GetFileSize(Hlog,NULL);
-    if (taille_fic>0x1000 && taille_fic!=INVALID_FILE_SIZE)
+    if (taille_fic>0 && taille_fic>0x126C && taille_fic!=INVALID_FILE_SIZE)
     {
-      char *buffer = (char*)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      unsigned char *b, *buffer;
+      DWORD copiee =0, position = 0, increm = 0;
+      if (taille_fic > DIXM)
+      {
+        buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*DIXM+1);
+        increm = DIXM;
+      }else
+      {
+        buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+        increm = taille_fic;
+      }
+
       if (buffer == NULL)
       {
         CloseHandle(Hlog);
         return;
       }
+      //read file header
+      //SetFilePointer(Hlog,0x10000,NULL,FILE_BEGIN);
+      ReadFile(Hlog, buffer, increm,&copiee,0);
+      position +=copiee;
+      if (taille_fic-position < increm)increm = taille_fic-position ;
+      b = buffer + 0x1000;
 
-      //lecture du fichier
-      DWORD copiee, position = 0, increm = 0;
-      if (taille_fic > DIXM)increm = DIXM;
-      else increm = taille_fic;
-
-      while (position<taille_fic && increm!=0)//gestion pour éviter les bug de sync permet une ouverture de fichiers énormes ^^
-      {
-        copiee = 0;
-        ReadFile(Hlog, buffer+position, increm,&copiee,0);
-        position +=copiee;
-        if (taille_fic-position < increm)increm = taille_fic-position ;
-      }
-
-      //traitement de l'entête
-      typedef struct _EVENTLOGHEADER_EVTX {
-        char MagicString[8];                 //8 ElfFile + 0x00
-        unsigned long long int FirstChunk;            //8
-        unsigned long long int LastChunk;             //8
-        unsigned long long int NextRecord;            //8
-        unsigned int HeaderSize;                      //4 toujours 0x80 = 128
-        unsigned short MinorVersion;                  //2 toujours 1
-        unsigned short MajorVersion;                  //2 toujours 3
-        unsigned long long int CurrentSize;           //8
-        unsigned char Reserved[72];                   //72
-        unsigned int flag;                            //4
-        unsigned int checksum;                        //4 checksum
-      }EVENTLOGHEADER_EVTX;
-
-      //on test la validité du fichier ^^
+      //file ok ?
       EVENTLOGHEADER_EVTX* h_evtx = (EVENTLOGHEADER_EVTX*)buffer;
       if (strcmp("ElfFile",h_evtx->MagicString)==0 && h_evtx->HeaderSize == 0x80 && h_evtx->MinorVersion>0 && h_evtx->MajorVersion>0)
       {
-        //header d'une zone d'enregistrement
-        typedef struct _EVENTLOGCHUNKHEADER_EVTX {
-          char MagicString[8];                 //8 ElfChnk + 0x00
-          unsigned long long int FirstRecord;           //8
-          unsigned long long int LastRecord;            //8
-          unsigned long long int FirstLogicRecord;      //8
-          unsigned long long int LastLogicRecord;       //8
-          unsigned int HeaderSize;                      //4 toujours 0x80 = 128
-          unsigned int LastRecord_Offset;               //4
-          unsigned int NextRecord_Offset;               //4
-          unsigned int checksum_object;                 //4
-          unsigned char Reserved[64];                   //64
-          unsigned int flag;                            //4
-          unsigned int checksum;                        //4 checksum
-        }EVENTLOGCHUNKHEADER_EVTX;
         EVENTLOGCHUNKHEADER_EVTX *h_cheader;
-
-        unsigned int nb;
-
-        //traitement des enregistrement
-        //commence à 0x1000 et un nouveau tous les 0x10000pevlr->DataLength
         STRING_TABLE my_s_table;
-        char *pos_buffer = buffer + 0x1000;
         DWORD p,tp=0,pos = 0x1000;
         DWORD i,nb_enrg = 0;
+        DWORD last = 0, tmp_increm, tmp_cpy;
+        unsigned int nb;
 
-        do
+        while(position<=taille_fic && copiee>0 && start_scan)
         {
-          //vérification
-          h_cheader = (EVENTLOGCHUNKHEADER_EVTX *)pos_buffer;
-          if (strcmp(h_cheader->MagicString,"ElfChnk")!=0)break;
-
-          //lecture du nombre d'enregistrement de se chunk
-          nb_enrg = h_cheader->LastRecord - h_cheader->FirstRecord + 1;
-
-          //lecture de la string table
-          nb = ReadStringTable(pos_buffer+0x80, taille_fic-0x80-pos,pos, &my_s_table, NB_ST_ITEM);
-          if (nb>0)
+          do
           {
-            //traitement des enregistrements ^^
-            //le 1er record commence toujours à 0x1200
-            pos_buffer+=0x200;
-            i=0;
-            p=0;
-            do
+            h_cheader = (EVENTLOGCHUNKHEADER_EVTX *)b;
+            if (strcmp(h_cheader->MagicString,"ElfChnk")!=0)break;
+
+            //lecture du nombre d'enregistrement de se chunk
+            nb_enrg = h_cheader->LastRecord - h_cheader->FirstRecord + 1;
+
+            nb = ReadStringTable(b+0x80, copiee-0x80-pos,pos, &my_s_table, NB_ST_ITEM);
+            if (nb>0)
             {
-              pos_buffer+=p;
-              p = ReadRecord(pos_buffer, taille_fic-tp,&my_s_table,eventfile,db,session_id);
-              tp+=p;
-            }while ( p!= 0 && i<nb_enrg && tp < taille_fic && start_scan);
+              b+=0x200;
+              i=0;
+              p=0;
+              do
+              {
+                b+=p;
+                p = ReadRecord(b, copiee-tp,&my_s_table,eventfile,db,session_id);
+                i++;
+                tp+=p;
+              }while ( p!= 0 && i<nb_enrg && tp < copiee && start_scan);
+            }
+            //next session
+            if (pos + 0x10280 > copiee)break;
+
+            pos+=0x10000;
+            tp = pos;
+            b = buffer + pos;
+          }while (pos<(copiee) && start_scan  && (b+sizeof(EVENTLOGCHUNKHEADER_EVTX)) < (buffer+copiee));
+
+          if (increm == 0)break;
+
+          //next read
+          if (pos == copiee)
+          {
+            tp = 0;
+            pos = 0;
+            if (taille_fic-position < increm)increm = taille_fic-position;
+            if (increm <1 || increm > DIXM)break;
+            if(!ReadFile(Hlog, buffer, increm,&copiee,0))break;
+            position +=copiee;
+            b = buffer;
+          }else
+          {
+            //all buffer have not been read !!!
+            //copy in next buffer datas to read
+            tmp_cpy = increm-pos;
+            if (tmp_cpy > 0 && tmp_cpy < increm) memcpy(buffer,buffer+pos,tmp_cpy);
+
+            if (taille_fic-position < (increm-tmp_cpy))tmp_increm = taille_fic-position;
+            else tmp_increm = increm-tmp_cpy;
+            if (tmp_increm <1 || tmp_increm > increm)break;
+
+            tp = 0;
+            pos = 0;
+            if(!ReadFile(Hlog, buffer+tmp_cpy, tmp_increm,&copiee,0))break;
+            position +=copiee;
+            copiee +=tmp_cpy;
+            b = buffer;
           }
 
-          pos+=0x10000;
-          tp = pos;
-          pos_buffer= buffer + pos;
-        }while (pos<(taille_fic));
+          //anti looping
+          if (last != position)last = position;
+          else break;
+        }
       }
-      HeapFree(GetProcessHeap(), 0,buffer);
+      //free memory
+      HeapFree(GetProcessHeap(), 0, buffer);
     }
   }
   CloseHandle(Hlog);

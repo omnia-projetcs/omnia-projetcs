@@ -11,6 +11,7 @@
 #define TYPE_SQLITE_REQUEST             0x0003
 //------------------------------------------------------------------------------
 sqlite3 *db_sqlite_test;
+DWORD nb_current_col_sqlite;
 //------------------------------------------------------------------------------
 int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColName)
 {
@@ -40,6 +41,7 @@ int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColNa
         lvc.cx                  = 100;
 
         //add text header
+        nb_current_col_sqlite = argc;
         for (i=0;i<argc;i++)
         {
           lvc.pszText = azColName[i];
@@ -128,6 +130,46 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, NULL);
             }
             break;
+            //-----------------------------------------------------
+            case POPUP_S_VIEW:
+            {
+              char file[MAX_PATH]="sqlite_export";
+              OPENFILENAME ofn;
+              ZeroMemory(&ofn, sizeof(OPENFILENAME));
+              ofn.lStructSize = sizeof(OPENFILENAME);
+              ofn.hwndOwner = h_main;
+              ofn.lpstrFile = file;
+              ofn.nMaxFile = MAX_PATH;
+              ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+              ofn.nFilterIndex = 1;
+              ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+              ofn.lpstrDefExt =".csv\0";
+              if (GetSaveFileName(&ofn)==TRUE)
+              {
+                SaveLSTV(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);
+              }
+            }
+            break;
+            //-----------------------------------------------------
+            case POPUP_S_SELECTION:
+            {
+              char file[MAX_PATH]="sqlite_export";
+              OPENFILENAME ofn;
+              ZeroMemory(&ofn, sizeof(OPENFILENAME));
+              ofn.lStructSize = sizeof(OPENFILENAME);
+              ofn.hwndOwner = h_main;
+              ofn.lpstrFile = file;
+              ofn.nMaxFile = MAX_PATH;
+              ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
+              ofn.nFilterIndex = 1;
+              ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+              ofn.lpstrDefExt =".csv\0";
+              if (GetSaveFileName(&ofn)==TRUE)
+              {
+                SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);
+              }
+            }
+            break;
           }
         break;
         case CBN_SELCHANGE:
@@ -205,6 +247,61 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             break;
           }
         break;
+        case NM_DBLCLK:
+          if (LOWORD(wParam) == DLG_SQL_ED_LV_RESPONSE)
+          {
+            HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
+            long nitem = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            if (nitem > -1)
+            {
+              char tmp[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+
+              //for each column
+              unsigned int i;
+              LVCOLUMN lvc;
+              lvc.mask = LVCF_TEXT;
+              lvc.cchTextMax = MAX_LINE_SIZE;
+              lvc.pszText = tmp;
+
+              for(i=0;i<nb_current_col_sqlite;i++)
+              {
+                //column header
+                strncat(buffer,"\r\n\r\n[",MAX_LINE_SIZE);
+                SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc);
+                strncat(buffer,tmp,MAX_LINE_SIZE);
+                strncat(buffer,"]\r\n",MAX_LINE_SIZE);
+                tmp[0] = 0;
+                lvc.mask = LVCF_TEXT;
+                lvc.cchTextMax = MAX_LINE_SIZE;
+                lvc.pszText = tmp;
+
+                //datas
+                ListView_GetItemText(hlstv,nitem,i,tmp,MAX_LINE_SIZE);
+                strncat(buffer,tmp,MAX_LINE_SIZE);
+                tmp[0] = 0;
+              }
+              strncat(buffer,"\0",MAX_LINE_SIZE);
+
+              //set text
+              SetWindowText(hdbclk_info, buffer);
+              ShowWindow (hdbclk_info, SW_SHOW);
+            }
+          }
+        break;
+      }
+    break;
+    case WM_CONTEXTMENU:
+      if ((HWND)wParam == GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE))
+      {
+        HMENU hmenu;
+        if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_SQLITE)))!= NULL)
+        {
+          ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING ,POPUP_S_VIEW           ,cps[TXT_POPUP_S_VIEW].c);
+          ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING ,POPUP_S_SELECTION      ,cps[TXT_POPUP_S_SELECTION].c);
+
+          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+          DestroyMenu(hmenu);
+        }
       }
     break;
   }

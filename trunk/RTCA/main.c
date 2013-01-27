@@ -152,8 +152,20 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_UNCHECKED);
                 else
                   CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_CHECKED);
-                break;
-
+              break;
+              case BT_SQLITE_FULL_SPEED:
+                if (SQLITE_FULL_SPEED)
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_SQLITE_FULL_SPEED,MF_BYCOMMAND|MF_UNCHECKED);
+                  sqlite3_exec(db_scan,"PRAGMA journal_mode = ON;", NULL, NULL, NULL);
+                  SQLITE_FULL_SPEED = FALSE;
+                }else
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_SQLITE_FULL_SPEED,MF_BYCOMMAND|MF_CHECKED);
+                  sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
+                  SQLITE_FULL_SPEED = TRUE;
+                }
+              break;
               case IDM_ABOUT:MessageBox(0,"to Read to Catch All :\n"
                                             "Licensed under the terms of the GNU\n"
                                             "General Public License version 3.\n\n"
@@ -769,6 +781,7 @@ int CmdLine(int argc, char* argv[])
   FILE_ACL            = FALSE;
   FILE_ADS            = FALSE;
   FILE_SHA            = FALSE;
+  SQLITE_FULL_SPEED   = FALSE;
 
   //get text for test : firefox, chrome and android
   InitSQLStrings();
@@ -1080,6 +1093,7 @@ int main(int argc, char* argv[])
 
     SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
     SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
     #ifdef _WIN64_VERSION_
       wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
     #else

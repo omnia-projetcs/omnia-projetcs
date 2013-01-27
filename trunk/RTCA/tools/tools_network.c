@@ -1389,7 +1389,13 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         break;
       }
     break;
-    case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
+    case WM_CLOSE :
+      if (start_sniff)
+      {
+        start_sniff = FALSE;
+        EnableWindow(GetDlgItem(h_sniff,DLG_NS_BT_START),FALSE);
+      }
+      ShowWindow(hwnd, SW_HIDE);break;
   }
   return FALSE;
 }
