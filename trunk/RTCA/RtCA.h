@@ -734,8 +734,8 @@ BOOL current_OS_unknow;
 #define TAILLE_MAX_BUFFER_TRAME     2600
 typedef struct zone_trame
 {
-  BYTE           buffer_header[TAILLE_MAX_BUFFER_HEADER];
-  BYTE           buffer[TAILLE_MAX_BUFFER_TRAME];         // taille max d'un trame normalement  = 1500 + ...
+  unsigned char  buffer_header[TAILLE_MAX_BUFFER_HEADER];
+  unsigned char  buffer[TAILLE_MAX_BUFFER_TRAME];         // taille max d'un trame normalement  = 1500 + ...
 
   unsigned int   taille_buffer;
   unsigned int   ProtoType;                               // ethernet, .... (code exacte)

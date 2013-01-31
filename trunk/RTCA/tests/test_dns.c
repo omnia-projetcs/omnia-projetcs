@@ -135,31 +135,23 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   if (!hDLL) return 0;
 
   //function
-  typedef struct _DNS_CACHE_ENTRY {
-      struct _DNS_CACHE_ENTRY* pNext;     // Pointer to next entry
-      char* pszName;                      // DNS Record Name
-      unsigned short wType;               // DNS Record Type
-      unsigned short wDataLength;         // Not referenced
-      unsigned long dwFlags;              // DNS Record Flags
-  } DNSCACHEENTRY, *PDNSCACHEENTRY;
-
-  typedef int(*DNS_GET_CACHE_DATA_TABLE)(PDNSCACHEENTRY*);
+  typedef int(*DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD*);
   DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hDLL,"DnsGetCacheDataTable");
 
   if (DnsGetCacheDataTable != NULL)
   {
-    PDNSCACHEENTRY pcache = NULL;
+    PDNS_RECORD pcache = NULL;
     DNS_RECORD* dnsRecords = NULL, *dnsr;
     IN_ADDR ipAddress;
     char last_file_update[DATE_SIZE_MAX]="";
 
     if (DnsGetCacheDataTable(&pcache) == TRUE)
     {
-      PDNSCACHEENTRY cache = pcache;
+      PDNS_RECORD cache = pcache;
       while (cache)
       {
         memset(name,0,MAX_PATH);
-        snprintf(name,MAX_PATH,"%S",cache->pszName);
+        snprintf(name,MAX_PATH,"%S",cache->pName);
         if (name[0] != 0)
         {
           //get IP + TTL

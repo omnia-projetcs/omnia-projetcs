@@ -401,13 +401,15 @@ DWORD WINAPI AddIp(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
-BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
+BOOL TraitementTrame(unsigned char *buffer, unsigned int taille,unsigned long int id)
 {
   HANDLE hlstv_paquets  = GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);
 
   //write database
   IPV4_HDR *ipv4_hdr = (IPV4_HDR *)buffer;
   struct sockaddr_in sock_in;
+  unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) & 0x0F)*4;
+
 
   switch(ipv4_hdr->ip_protocol)
   {
@@ -419,7 +421,7 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
   }
 
   //ipv6 : disable
-  //if (ipv4_hdr->ip_header_len*4 > taille || ipv4_hdr->ip_header_len < IPV4_HDR_SIZE || ipv4_hdr->ip_version == 6)return;
+  if (iphdr_size > taille || iphdr_size < IPV4_HDR_SIZE || (ipv4_hdr->ip_header_len_version >> 4) == 6)return;
 
   char tmp[DEFAULT_TMP_SIZE];
   LVITEM lvi;
@@ -463,7 +465,7 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
   {
     case IPPROTO_TCP:
     {
-      TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(buffer+(ipv4_hdr->ip_header_len*4));
+      TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(buffer+(iphdr_size));
       Trame_buffer[id].src_port = ntohs(tcpheader->source_port);
       Trame_buffer[id].dst_port = ntohs(tcpheader->dest_port);
 
@@ -482,9 +484,9 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
       ListView_SetItemText(hlstv_paquets,intemPosTrame,4,TXT_TCP_IPV4);
 
       //datas :
-      if (taille > IPV4_HDR_SIZE+TCP_HDR_SIZE)
+      if (taille > iphdr_size+TCP_HDR_SIZE)
       {
-        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+IPV4_HDR_SIZE+TCP_HDR_SIZE));
+        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+iphdr_size+TCP_HDR_SIZE));
         if (ValideChDesc(tmp,strlen(tmp)))
           ListView_SetItemText(hlstv_paquets,intemPosTrame,5,tmp);
       }
@@ -492,7 +494,7 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
     break;
     case IPPROTO_UDP:
     {
-      UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(buffer+(ipv4_hdr->ip_header_len*4));
+      UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(buffer+(iphdr_size));
       Trame_buffer[id].src_port = ntohs(udpheader->source_port);
       Trame_buffer[id].dst_port = ntohs(udpheader->dest_port);
 
@@ -511,9 +513,9 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
       ListView_SetItemText(hlstv_paquets,intemPosTrame,4,TXT_UDP_IPV4);
 
       //datas :
-      if (taille > IPV4_HDR_SIZE+UDP_HDR_SIZE)
+      if (taille > iphdr_size+UDP_HDR_SIZE)
       {
-        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+IPV4_HDR_SIZE+UDP_HDR_SIZE));
+        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+iphdr_size+UDP_HDR_SIZE));
         if (ValideChDesc(tmp,strlen(tmp)))
           ListView_SetItemText(hlstv_paquets,intemPosTrame,5,tmp);
       }
@@ -523,9 +525,9 @@ BOOL TraitementTrame(char *buffer, unsigned int taille,unsigned long int id)
       ListView_SetItemText(hlstv_paquets,intemPosTrame,4,TXT_ICMPV4);
 
       //datas :
-      if (taille > IPV4_HDR_SIZE+ICMP_HDR_SIZE)
+      if (taille > iphdr_size+ICMP_HDR_SIZE)
       {
-        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+IPV4_HDR_SIZE+ICMP_HDR_SIZE));
+        snprintf(tmp,DEFAULT_TMP_SIZE,"%s",(buffer+iphdr_size+ICMP_HDR_SIZE));
         if (ValideChDesc(tmp,strlen(tmp)))
           ListView_SetItemText(hlstv_paquets,intemPosTrame,5,tmp);
       }
@@ -558,14 +560,12 @@ DWORD WINAPI Sniff(LPVOID lParam)
     struct sockaddr_in sock_addr;
     memset(&sock_addr, 0, sizeof(sock_addr));
 
-    char buffer[TAILLE_MAX_BUFFER_TRAME]="";
-    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)0),(LPARAM)buffer);
+    unsigned char buffer[TAILLE_MAX_BUFFER_TRAME]="";
+    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)0),buffer);
 
     sock_addr.sin_addr.s_addr = inet_addr(buffer);
     sock_addr.sin_family      = AF_INET;
     sock_addr.sin_port        = 0;
-
-    unsigned int ret = 0;
 
     //promiscious
     if (SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_CHK_PROMISCUOUS, BM_GETCHECK,(WPARAM) 0, (LPARAM)0))
@@ -623,8 +623,7 @@ DWORD WINAPI Sniff(LPVOID lParam)
             }
 
             //working
-            ret = TraitementTrame(buffer, taille,NB_trame_buffer);
-            if (ret)NB_trame_buffer++;
+            if (TraitementTrame(buffer, taille,NB_trame_buffer))NB_trame_buffer++;
           }else
           {
             ReleaseMutex(hMutex_TRAME_BUFFER);
@@ -900,6 +899,9 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
 
   //ipv4
   IPV4_HDR *ipv4_hdr = (IPV4_HDR *)Trame_buffer[index].buffer;
+  //unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) >> 4)*4;
+  unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) & 0x0F)*4;
+
   snprintf(buffer_ipv4,REQUEST_MAX_SIZE,
                "[%s:%d->%s:%d]%08d\r\n"
                "[IPV4 HEADER]\r\n"
@@ -919,15 +921,15 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                 Trame_buffer[index].ip_src,Trame_buffer[index].src_port,
                 Trame_buffer[index].ip_dst,Trame_buffer[index].dst_port,
                 index,
-                ipv4_hdr->ip_header_len,
-                ipv4_hdr->ip_version,
+                iphdr_size,
+                ipv4_hdr->ip_header_len_version >> 4,
                 ipv4_hdr->ip_tos,
                 ipv4_hdr->ip_total_length,
                 ipv4_hdr->ip_id,
-                ipv4_hdr->ip_reserved_zero,
-                ipv4_hdr->ip_dont_fragment,
-                ipv4_hdr->ip_more_fragment,
-                ipv4_hdr->ip_frag_offset,
+                ipv4_hdr->flags & 0x8000,
+                ipv4_hdr->flags & 0x4000,
+                ipv4_hdr->flags & 0x2000,
+                ipv4_hdr->flags & 0x1FFF,
                 ipv4_hdr->ip_ttl,
                 ipv4_hdr->ip_protocol,
                 Trame_buffer[index].ip_src,
@@ -938,7 +940,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   {
     case IPPROTO_TCP:
     {
-      TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(b+(ipv4_hdr->ip_header_len*4));
+      TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(b+(iphdr_size));
       snprintf(buffer_hdr,REQUEST_MAX_SIZE,
                "[TCP]\r\n"
                "source_port:\t%d\r\n"
@@ -953,17 +955,17 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                tcpheader->dest_port,
                tcpheader->sequence,
                tcpheader->acknowledge,
-               tcpheader->ns,
-               tcpheader->reserved_part1,
-               tcpheader->data_offset);
-      if (tcpheader->fin)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->syn)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->rst)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->psh)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->ack)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->urg)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->ecn)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->cwr)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE);
+               tcpheader->data_offset & 0x80,
+               tcpheader->data_offset & 0x70,
+               tcpheader->data_offset & 0x0F);
+      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE);
 
       char tmp[10]="";
       strncat(buffer_hdr,"\r\nwindow:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),REQUEST_MAX_SIZE);
@@ -974,14 +976,14 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
       strncat(buffer_hdr,"\r\n\r\n\0",REQUEST_MAX_SIZE);
 
       //datas in hexa
-      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+IPV4_HDR_SIZE+TCP_HDR_SIZE);
+      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+TCP_HDR_SIZE);
       if (!ValideChDesc(buffer_datas,strlen(buffer_datas)))strcpy(buffer_datas,"[DATAS-HEXA]\r\n\0");
-      chartohexstring(b+IPV4_HDR_SIZE+TCP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-IPV4_HDR_SIZE-TCP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+      chartohexstring(b+iphdr_size+TCP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-TCP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
     }
     break;
     case IPPROTO_UDP:
     {
-      UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(b+(ipv4_hdr->ip_header_len*4));
+      UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(b+(iphdr_size));
       snprintf(buffer_hdr,REQUEST_MAX_SIZE,
                "[UDP]\r\n"
                "source_port:\t%d\r\n"
@@ -994,14 +996,14 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                udpheader->udp_checksum);
 
       //datas in hexa
-      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+IPV4_HDR_SIZE+UDP_HDR_SIZE);
+      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+UDP_HDR_SIZE);
       if (!ValideChDesc(buffer_datas,strlen(buffer_datas)))strcpy(buffer_datas,"[DATAS-HEXA]\r\n\0");
-      chartohexstring(b+IPV4_HDR_SIZE+UDP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-IPV4_HDR_SIZE-UDP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+      chartohexstring(b+iphdr_size+UDP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-UDP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
     }
     break;
     case IPPROTO_ICMP:
     {
-      ICMP_HDR *icmp_hdr = (ICMP_HDR*)(unsigned char *)(b+(ipv4_hdr->ip_header_len*4));
+      ICMP_HDR *icmp_hdr = (ICMP_HDR*)(unsigned char *)(b+(iphdr_size));
       snprintf(buffer_hdr,REQUEST_MAX_SIZE,
                "[ICMP]\r\n"
                "type:\t%d\r\n"
@@ -1016,12 +1018,12 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                icmp_hdr->seq);
 
       //datas in hexa
-      chartohexstring(b+IPV4_HDR_SIZE+ICMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-IPV4_HDR_SIZE-ICMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+      chartohexstring(b+iphdr_size+ICMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-ICMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
     }
     break;
     case IPPROTO_IGMP:
     {
-      IGMP_HDR *igmp_hdr = (IGMP_HDR*)(unsigned char *)(b+(ipv4_hdr->ip_header_len*4));
+      IGMP_HDR *igmp_hdr = (IGMP_HDR*)(unsigned char *)(b+(iphdr_size));
       snprintf(buffer_hdr,REQUEST_MAX_SIZE,
                "[IGMP]\r\n"
                "type:\t%d\r\n"
@@ -1034,7 +1036,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                igmp_hdr->ip_groupe);
 
       //datas in hexa
-      chartohexstring(b+IPV4_HDR_SIZE+IGMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-IPV4_HDR_SIZE-IGMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+      chartohexstring(b+iphdr_size+IGMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-IGMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
     }
     break;
   }
