@@ -4,19 +4,26 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
+//Userd
 //------------------------------------------------------------------------------
 //entête IP
 typedef struct ip_hdr
 {
+  unsigned char  ip_header_len_version;
+  /*
   unsigned char  ip_header_len:4;  // 4-bit header length (in 32-bit words) normally=5 (Means 20 Bytes may be 24 also)
-  unsigned char  ip_version   :4;  // 4-bit IPv4 version
+  unsigned char  ip_version   :4;  // 4-bit IPv4 version*/
+
   unsigned char  ip_tos;           // IP type of service
   unsigned short ip_total_length;  // Total length
   unsigned short ip_id;            // Unique identifier
+  unsigned short flags;
+  /*
   unsigned char  ip_reserved_zero :1;
   unsigned char  ip_dont_fragment :1;
   unsigned char  ip_more_fragment :1;
-  unsigned int   ip_frag_offset :13;    //fragment offset
+  unsigned int   ip_frag_offset :13;    //fragment offset*/
+
   unsigned char  ip_ttl;           // Time to live
   unsigned char  ip_protocol;      // Protocol(TCP,UDP etc)
   unsigned short ip_checksum;      // IP checksum
@@ -33,9 +40,14 @@ typedef struct tcp_header
 	unsigned int   sequence;
 	unsigned int   acknowledge;
 
+	unsigned char data_offset;
+	/*
 	unsigned char  ns   :1;
 	unsigned char  reserved_part1:3;
-	unsigned char  data_offset:4;
+	unsigned char  data_offset:4;*/
+
+	unsigned char flags;
+	/*
 	unsigned char  fin  :1;      //Finish Flag
 	unsigned char  syn  :1;      //Synchronise Flag
 	unsigned char  rst  :1;      //Reset Flag
@@ -43,7 +55,7 @@ typedef struct tcp_header
 	unsigned char  ack  :1;      //Acknowledgement Flag
 	unsigned char  urg  :1;      //Urgent Flag
 	unsigned char  ecn  :1;      //ECN-Echo Flag
-  unsigned char  cwr  :1;      //Congestion Window Reduced Flag
+  unsigned char  cwr  :1;      //Congestion Window Reduced Flag*/
 
 	////////////////////////////////
 	unsigned short window;          // window
@@ -93,6 +105,18 @@ typedef struct icmp_hdr
 #define FLAG_ECN                                  64
 #define FLAG_CWR                                 128
 //------------------------------------------------------------------------------
+// entête IGMP
+typedef struct igmp_hdr
+{
+    char type;
+    char Temp_reponse;
+    unsigned short checksum;
+    unsigned int ip_groupe;
+}   IGMP_HDR;
+#define IGMP_HDR_SIZE 8
+//------------------------------------------------------------------------------
+//not used
+//------------------------------------------------------------------------------
 typedef struct ip_hdr6
 {
   unsigned char  ip_header_len:4;     // 4-bit header length (in 32-bit words) normally=5 (Means 20 Bytes may be 24 also)
@@ -105,16 +129,7 @@ typedef struct ip_hdr6
   unsigned int   ip_srcaddr;          // 32-bits adresse de source 0000:0000:0000:0000
   unsigned int   ip_destaddr;         // 32-bits adresse de destination 0000:0000:0000:0000
 }IPV6_HDR;
-//------------------------------------------------------------------------------
-// entête IGMP
-typedef struct igmp_hdr
-{
-    char type;
-    char Temp_reponse;
-    unsigned short checksum;
-    unsigned int ip_groupe;
-}   IGMP_HDR;
-#define IGMP_HDR_SIZE 8
+
 //------------------------------------------------------------------------------
 //ARP
 typedef struct arp_hdr
