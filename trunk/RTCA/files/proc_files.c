@@ -48,6 +48,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       {
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
+      check_treeview(htrv_test, H_tests[INDEX_REG_DELETED_KEY], TRV_STATE_CHECK);
 
     }else if (strcmp(ext,"db")==0     ||          //android
               strcmp(ext,"sqlite")==0 ||          //firefox
@@ -130,6 +131,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       {
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
+      check_treeview(htrv_test, H_tests[INDEX_REG_DELETED_KEY], TRV_STATE_CHECK);
     }else if (strcmp(lowcase_file,"archived history")==0 ||  //chrome
               strcmp(lowcase_file,"history")==0 ||
               strcmp(lowcase_file,"cookies")==0 ||

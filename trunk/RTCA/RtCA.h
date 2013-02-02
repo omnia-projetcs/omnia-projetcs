@@ -100,7 +100,7 @@ char _SYSKEY[MAX_PATH];
 #define MAC_SIZE                   18   //AA:BB:CC:DD:EE:FF = 18
 #define NB_MAX_PORTS            65536
 #define SZ_PART_SYSKEY           0x21
-#define NB_TESTS_GLOBALS           32
+#define NB_TESTS_GLOBALS           33
 
 #define OMB              10*1024*1024     //1mo 2ko
 #define DIXM             10*1024*1024    //10mo
@@ -514,6 +514,7 @@ HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 #define INDEX_NAV_IE               29
 #define INDEX_ANDROID              30
 #define INDEX_PREFETCH             31
+#define INDEX_REG_DELETED_KEY      32
 //------------------------------------------------------------------------------
 //parameters
 BOOL WINE_OS;     //if run in wine !!!
@@ -1085,6 +1086,7 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam);
 DWORD WINAPI Scan_registry_userassist(LPVOID lParam);
 DWORD WINAPI Scan_registry_mru(LPVOID lParam);
 DWORD WINAPI Scan_registry_path(LPVOID lParam);
+DWORD WINAPI Scan_registry_deletedKey(LPVOID lParam);
 DWORD WINAPI Scan_guide(LPVOID lParam);
 DWORD WINAPI Scan_dns(LPVOID lParam);
 DWORD WINAPI Scan_arp(LPVOID lParam);

@@ -8,6 +8,10 @@
 //------------------------------------------------------------------------------
 char malware_check[MAX_PATH];
 //------------------------------------------------------------------------------
+/*
+  - malware liste : https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
+                    http://mirror1.malwaredomains.com/files/domains.txt
+*/
 void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned int session_id, sqlite3 *db)
 {
   //chek name if malware or not

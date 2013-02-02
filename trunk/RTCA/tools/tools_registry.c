@@ -136,6 +136,8 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
 //------------------------------------------------------------------------------
 void GetRegFile(char *reg_file, HTREEITEM hparent, char *parent, BOOL recovery_mode, HANDLE hlv, HANDLE htv)
 {
+  if (reg_file[0] == 0) return;
+
   //load a binary file to TreeView and ListView
   if (recovery_mode)
   {
@@ -163,23 +165,31 @@ DWORD WINAPI LoadRegFiles(LPVOID lParam)
   EnableWindow(hlv,FALSE);
   SendMessage(GetDlgItem(h_reg,STB),SB_SETTEXT,0, (LPARAM)"");
 
-  char path[MAX_PATH];
+  char path[MAX_PATH]="";
   //HKEY_CURRENT_USER
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_NTUSER),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"HKEY_CURRENT_USER", TVI_ROOT,ICON_DIRECTORY_REG), "HKEY_CURRENT_USER\\", recovery_mode, hlv, htv);
 
   //HKEY_LOCAL_MACHINE
   HTREEITEM h_hklm = AddItemTreeViewImg(htv,"HKEY_LOCAL_MACHINE", TVI_ROOT,ICON_DIRECTORY_REG);
+  path[0] = 0;
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_SAM),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"SAM", h_hklm,ICON_DIRECTORY_REG), "HKEY_LOCAL_MACHINE\\SAM\\", recovery_mode, hlv, htv);
+
+  path[0] = 0;
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_SECURITY),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"SECURITY", h_hklm,ICON_DIRECTORY_REG), "HKEY_LOCAL_MACHINE\\SECURITY\\", recovery_mode, hlv, htv);
+
+  path[0] = 0;
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_SOFTWARE),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"SOFTWARE", h_hklm,ICON_DIRECTORY_REG), "HKEY_LOCAL_MACHINE\\SOFTWARE\\", recovery_mode, hlv, htv);
+
+  path[0] = 0;
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_SYSTEM),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"SYSTEM", h_hklm,ICON_DIRECTORY_REG), "HKEY_LOCAL_MACHINE\\SYSTEM\\", recovery_mode, hlv, htv);
 
   //other
+  path[0] = 0;
   if(GetWindowText(GetDlgItem(h_reg_file,DLG_REG_ED_OTHER),path,MAX_PATH))
     GetRegFile(path, AddItemTreeViewImg(htv,"HKEY_???", TVI_ROOT,ICON_DIRECTORY_REG), "HKEY_???\\", recovery_mode, hlv, htv);
 
