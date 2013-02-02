@@ -294,13 +294,14 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                                       "DELETE from extract_registry_user WHERE session_id=%lu;"
                                       "DELETE from extract_registry_userassist WHERE session_id=%lu;"
                                       "DELETE from extract_prefetch WHERE session_id=%lu;"
+                                      "DELETE from extract_registry_deleted_keys WHERE session_id=%lu;"
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
-                                      ,current_session_id,current_session_id,current_session_id,current_session_id);
+                                      ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id);
       sqlite3_exec(db,request, callback_sqlite, datas, NULL);
     }
     break;
@@ -339,7 +340,9 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                       "DELETE from extract_registry_usb;"
                       "DELETE from extract_registry_user;"
                       "DELETE from extract_registry_userassist;"
-                      "DELETE from extract_prefetch;", callback_sqlite, datas, NULL);
+                      "DELETE from extract_prefetch;"
+                      "DELETE from extract_registry_deleted_keys"
+                      , callback_sqlite, datas, NULL);
     break;
     //----------------------------------------
 

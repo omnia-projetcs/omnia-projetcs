@@ -170,6 +170,9 @@
 		<Unit filename="tests/test_process.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tests/test_registry_deleted_keys.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tests/test_registry_mru.c">
 			<Option compilerVar="CC" />
 		</Unit>

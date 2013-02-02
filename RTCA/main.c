@@ -678,6 +678,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case INDEX_REG_PATH:
             case INDEX_REG_GUIDE:
             case INDEX_REG_FIREWALL:
+            case INDEX_REG_DELETED_KEY:
             {
               //check if path in first or registry case !!!
               char _tmp[MAX_PATH]="";

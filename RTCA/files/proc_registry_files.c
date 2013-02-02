@@ -445,10 +445,10 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
           if (sk_owner->nb_ID > 0 && sk_owner->nb_ID < 0xff)
           {
             unsigned int i, nb = sk_owner->nb_ID;
-            if (nb > 5)nb = 5;
+            if (nb > 6)nb = 6;
 
             //rid
-            if (rid != NULL && nb == 5)snprintf(rid,rid_size,"%lu",sk_owner->ID[nb-1]);
+            if (rid != NULL && nb == 6)snprintf(rid,rid_size,"%lu",sk_owner->ID[nb-1]);
 
             //SID
             if (sid != NULL)
@@ -627,7 +627,7 @@ BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file)
   if (hfile == INVALID_HANDLE_VALUE)return FALSE;
 
   hks->taille_fic = GetFileSize(hfile,NULL);
-  if (hks->taille_fic<1 || hks->taille_fic == INVALID_FILE_SIZE)
+  if (hks->taille_fic<0x1000 || hks->taille_fic == INVALID_FILE_SIZE)
   {
     CloseHandle(hfile);
     return FALSE;
@@ -667,7 +667,7 @@ BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file)
       HBIN_HEADER *hb_h;
 
       //recherche du 1er hbin !! (en cas de bug)
-      while(hks->position<hks->taille_fic-4)
+      while(hks->position<(hks->taille_fic-4))
       {
         hb_h = (HBIN_HEADER *)&(hks->buffer[hks->position]);
         if (hb_h->id == 0x6E696268 )  //hbin
@@ -677,11 +677,12 @@ BOOL OpenRegFiletoMem(HK_F_OPEN *hks, char *file)
           break;
         }else hks->position++;
       }
-      strncpy(hks->file,file,MAX_PATH);
+      snprintf(hks->file,MAX_PATH,"%s",file);
       return TRUE;
     }
   }
   HeapFree(GetProcessHeap(), 0, hks->buffer);
+  hks->taille_fic = 0;
   return FALSE;
 }
 //------------------------------------------------------------------------------
