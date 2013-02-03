@@ -321,6 +321,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);break;
               case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);break;
               case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);break;
+              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);break;
               case IDM_TOOLS_PROCESS:
               {
                 LoadPRocessList(hlstv_process);
@@ -675,6 +676,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case INDEX_REG_START:
             case INDEX_REG_USERASSIST:
             case INDEX_REG_MRU:
+            case INDEX_REG_SHELLBAGS:
             case INDEX_REG_PATH:
             case INDEX_REG_GUIDE:
             case INDEX_REG_FIREWALL:
@@ -900,6 +902,21 @@ int CmdLine(int argc, char* argv[])
         }
       break;
       //------------------------------------------------------------------------------
+      case 'Z':
+         if (i+1<argc)
+         {
+          i++;
+          if (argv[i][0] == '-'){i--;break;}
+          else
+          {
+            DWORD taille = 256;
+            char computername[256]="";
+            GetComputerName(computername,&taille);
+            SaveALL(argv[i],computername);
+          }
+         }
+      break;
+      //------------------------------------------------------------------------------
       //scan with all tests
       case 'a': CMDScan((LPVOID)FALSE);break;
       //scan with all tests in safe mode with no log and no file test
@@ -960,6 +977,7 @@ int CmdLine(int argc, char* argv[])
                "\n"
                "\t-o  Export all data to path.\n\t    Exemple: -o \"c:\\\"\n"
                "\t-F  Format to export : CSV (default), XML or HTML\n"
+               "\t-Z  Extract local computer file's to investigate in ZIP file, ex : -Z <file to save.zip>\n"
                "\n"
                ,NOM_FULL_APPLI);
         system("PAUSE");

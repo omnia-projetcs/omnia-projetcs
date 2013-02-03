@@ -1144,7 +1144,7 @@
 1357130641 source:z:\svn_omnia\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1359767926 z:\svn_omnia\rtca\rtca.h
+1359915825 z:\svn_omnia\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -1166,11 +1166,12 @@
 	"crypt/d3des.h"
 	<lmaccess.h>
 	<wininet.h>
+	"files/LiteZip.h"
 	"crypt/md5.h"
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1359769417 z:\svn_omnia\rtca\version.h
+1359915827 z:\svn_omnia\rtca\version.h
 
 1353703058 z:\svn_omnia\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -1264,13 +1265,13 @@
 1359151569 source:z:\svn_omnia\rtca\export.c
 	"RtCA.h"
 
-1359766000 source:z:\svn_omnia\rtca\files\proc_files.c
+1359798046 source:z:\svn_omnia\rtca\files\proc_files.c
 	"../RtCA.h"
 
 1359758470 source:z:\svn_omnia\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1359764224 source:z:\svn_omnia\rtca\main.c
+1359886709 source:z:\svn_omnia\rtca\main.c
 	"RtCA.h"
 
 1359147538 source:z:\svn_omnia\rtca\proc.c
@@ -1279,13 +1280,13 @@
 1354465816 source:z:\svn_omnia\rtca\proc_cmd.c
 	"RtCA.h"
 
-1359294792 source:z:\svn_omnia\rtca\proc_gui.c
+1359797784 source:z:\svn_omnia\rtca\proc_gui.c
 	"RtCA.h"
 
 1353703055 source:z:\svn_omnia\rtca\proc_registry.c
 	"RtCA.h"
 
-1359769115 source:z:\svn_omnia\rtca\sqlite\interface.c
+1359800029 source:z:\svn_omnia\rtca\sqlite\interface.c
 	"../RtCA.h"
 
 1353703058 source:z:\svn_omnia\rtca\sqlite\load_save.c
@@ -1338,7 +1339,7 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1359763922 source:z:\svn_omnia\rtca\tests\scan.c
+1359798476 source:z:\svn_omnia\rtca\tests\scan.c
 	"../RtCA.h"
 
 1356194326 source:z:\svn_omnia\rtca\tests\test_android.c
@@ -1460,13 +1461,13 @@
 	"../RtCA.h"
 	"tools_network/_entetes.h"
 
-1359209193 source:z:\svn_omnia\rtca\tools\tools_state.c
+1359816612 source:z:\svn_omnia\rtca\tools\tools_state.c
 	"../RtCA.h"
 
 1357059131 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1359293915 source:z:\svn_omnia\rtca\rtca.rc
+1359816773 source:z:\svn_omnia\rtca\rtca.rc
 	"RtCA.h"
 
 1353860386 source:z:\svn_omnia\rtca\tools\tools_process.c
@@ -1474,7 +1475,7 @@
 
 1359662004 z:\svn_omnia\rtca\tools\tools_network\_entetes.h
 
-1359768922 source:z:\svn_omnia\rtca\tools\tools_registry_recovery.c
+1359809282 source:z:\svn_omnia\rtca\tools\tools_registry_recovery.c
 	"../RtCA.h"
 
 1359663404 source:z:\svn_omnia\rtca\tools\tools_network.c
@@ -1493,6 +1494,16 @@
 1359153719 source:z:\svn_omnia\rtca\tests\test_log_files_evt.c
 	"../RtCA.h"
 
-1359763830 source:z:\svn_omnia\rtca\tests\test_registry_deleted_keys.c
+1359809252 source:z:\svn_omnia\rtca\tests\test_registry_deleted_keys.c
 	"../RtCA.h"
+
+1359814834 source:z:\svn_omnia\rtca\tests\test_registry_shellbags.c
+	"../RtCA.h"
+
+1359817222 z:\svn_omnia\rtca\files\litezip.h
+	<windows.h>
+
+1359817173 source:z:\svn_omnia\rtca\files\litezip.c
+	<windows.h>
+	"LiteZip.h"
 

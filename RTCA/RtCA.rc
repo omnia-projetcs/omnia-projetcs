@@ -256,6 +256,7 @@ BEGIN
     MENUITEM "Copy all audit files"       ,IDM_TOOLS_CP_AUDIT
     MENUITEM "Copy NTDIS.DIT(AD) file"    ,IDM_TOOLS_CP_AD
     MENUITEM "Copy specific file"         ,IDM_TOOLS_CP_FILE
+    MENUITEM "Save all local datas to ZIP file"         ,IDM_TOOLS_GLOBAL_COPY
     MENUITEM SEPARATOR
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explHFS 32bit hex value big endianorer"          ,IDM_TOOLS_REG_EXPLORER

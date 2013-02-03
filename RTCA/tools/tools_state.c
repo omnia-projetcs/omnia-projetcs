@@ -169,7 +169,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     //----------------------------
     //tests
-    case 0://file
+    case INDEX_FILE://file
     {
 
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -229,7 +229,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       }
     }
     break;
-    case 1://log
+    case INDEX_LOG://log
     {
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
@@ -297,11 +297,11 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disables :
-    2:diques
-    3:clipboard
-    4:env
+    INDEX_DISK:diques
+    INDEX_CLIPBOARD:clipboard
+    INDEX_ENV:env
     */
-    case 5: //AT
+    case INDEX_TASK: //AT
     {
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
@@ -358,7 +358,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
 
     }
     break;
-    case 6: //Process
+    case INDEX_PROCESS: //Process
     {
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
@@ -406,9 +406,9 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disable:
-    7:pipe
+    INDEX_PIPE:pipe
     */
-    case 8://network
+    case INDEX_LAN://network
     {
       if (strlen(argv[12]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -439,12 +439,12 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disable:
-    9:route
-    10:DNS cache
-    11:ARP
-    12:share
+    INDEX_ROUTE:route
+    INDEX_DNS:DNS cache
+    INDEX_ARP:ARP
+    INDEX_SHARE:share
     */
-    case 13: //configuration registre
+    case INDEX_REG_CONF: //configuration registre
     {
       if (strlen(argv[7]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -475,9 +475,9 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disable:
-    14:services
+    INDEX_REG_SERVICES:services
     */
-    case 15: //USB
+    case INDEX_REG_USB: //USB
     {
       if (strlen(argv[9]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -506,7 +506,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 16: //software
+    case INDEX_REG_SOFTWARE: //software
     {
       if (strlen(argv[7]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -535,7 +535,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 17: //update
+    case INDEX_REG_UPDATE: //update
     {
       if (strlen(argv[7]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -564,7 +564,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 18: //runs
+    case INDEX_REG_START: //runs
     {
       if (strlen(argv[5]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -604,7 +604,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 19: //users
+    case INDEX_REG_USERS: //users
     {
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
@@ -679,7 +679,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
         }
     }
     break;
-    case 20: //userassist
+    case INDEX_REG_USERASSIST: //userassist
     {
       if (strlen(argv[9]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -721,7 +721,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       }
     }
     break;
-    case 21: //mru & mui & history
+    case INDEX_REG_MRU: //mru & mui & history
     {
       if (strlen(argv[6]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -748,11 +748,38 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
+    case INDEX_REG_SHELLBAGS: //Shell Bags
+    {
+      if (strlen(argv[2]) < 1 || strlen(argv[2]) < 1)break;
+      HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
+      LVITEM lvi;
+      lvi.mask       = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem   = 0;
+      lvi.lParam     = LVM_SORTITEMS;
+      lvi.pszText    = "";
+
+      lvi.iItem      = ListView_GetItemCount(hlv);
+      DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+      //set text
+      char src[MAX_LINE_SIZE];
+      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2]);
+
+      ListView_SetItemText(hlv,ref_item,0,argv[5]);     //date
+      ListView_SetItemText(hlv,ref_item,1,azColName[5]);//Origine
+      ListView_SetItemText(hlv,ref_item,2,src);         //Source
+      ListView_SetItemText(hlv,ref_item,3,"");     //desc
+      ListView_SetItemText(hlv,ref_item,4,argv[3]);     //description
+      ListView_SetItemText(hlv,ref_item,5,"");
+      ListView_SetItemText(hlv,ref_item,6,argv[4]);     //SID
+      ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+    }
+    break;
     /*
     Disable:
-    22:password
+    INDEX_REG_PASSWORD:password
     */
-    case 23: //path
+    case INDEX_REG_PATH: //path
     {
       if (strlen(argv[8]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -781,9 +808,47 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disable:
-    24:security guide
+    INDEX_REG_GUIDE:security guide
     */
-    case 25: //Antivirus
+    case INDEX_REG_DELETED_KEY: //userassist
+    {
+      if (strlen(argv[2]) < 1 || strlen(argv[2]) < 1 )break;
+      HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
+      LVITEM lvi;
+      lvi.mask       = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem   = 0;
+      lvi.lParam     = LVM_SORTITEMS;
+      lvi.pszText    = "";
+      lvi.iItem      = ListView_GetItemCount(hlv);
+      DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+      //set text
+      char src[MAX_LINE_SIZE];
+      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2]);
+
+      ListView_SetItemText(hlv,ref_item,0,argv[6]);     //date
+      ListView_SetItemText(hlv,ref_item,1,azColName[6]);//Origine
+      ListView_SetItemText(hlv,ref_item,2,src);         //Source
+      ListView_SetItemText(hlv,ref_item,3,argv[4]);     //desc
+      ListView_SetItemText(hlv,ref_item,4,argv[3]);     //description
+      ListView_SetItemText(hlv,ref_item,5,"");
+      ListView_SetItemText(hlv,ref_item,6,argv[5]);     //SID
+      ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+
+      hlv      = GetDlgItem(h_state,DLG_STATE_LV_CRITICAL);
+      lvi.iItem= ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,argv[6]);     //date
+      ListView_SetItemText(hlv,ref_item,1,azColName[6]);//Origine
+      ListView_SetItemText(hlv,ref_item,2,src);         //Source
+      ListView_SetItemText(hlv,ref_item,3,argv[4]);     //desc
+      ListView_SetItemText(hlv,ref_item,4,argv[3]);     //description
+      ListView_SetItemText(hlv,ref_item,5,"");
+      ListView_SetItemText(hlv,ref_item,6,argv[5]);    //SID
+      ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+    }
+    break;
+    case INDEX_ANTIVIRUS: //Antivirus
     {
       if (strlen(argv[7]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -815,12 +880,12 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     /*
     Disable:
-    26:firewall
+    INDEX_REG_FIREWALL:firewall
     */
-    case 27:
-    case 28:
-    case 29:
-    case 30: //navigators + Android
+    case INDEX_NAV_FIREFOX:
+    case INDEX_NAV_CHROME:
+    case INDEX_NAV_IE:
+    case INDEX_ANDROID: //navigators + Android
     {
       if (strlen(argv[4]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
@@ -846,7 +911,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    case 31: //prefetch
+    case INDEX_PREFETCH: //prefetch
     {
       if (strlen(argv[6]) < 9)break;
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);

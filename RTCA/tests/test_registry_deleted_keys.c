@@ -46,7 +46,7 @@ DWORD Traiter_RegBin_nk_deleted(char *fic, DWORD position, DWORD taille_fic, cha
 
       //last update
       parent_key_update[0]=0;
-      if (nk_h->last_write.dwHighDateTime != 0 && nk_h->last_write.dwLowDateTime != 0)
+      if (nk_h->last_write.dwHighDateTime != 0 || nk_h->last_write.dwLowDateTime != 0)
       {
         filetimeToString_GMT(nk_h->last_write, parent_key_update, DATE_SIZE_MAX);
         if (parent_key_update[0] != '2' && deleted) //bad date

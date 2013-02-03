@@ -284,6 +284,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                                       "DELETE from extract_tache WHERE session_id=%lu;"
                                       "DELETE from extract_registry_account_password WHERE session_id=%lu;"
                                       "DELETE from extract_registry_mru WHERE session_id=%lu;"
+                                      "DELETE from extract_registry_shell_bags WHERE session_id=%lu;"
                                       "DELETE from extract_registry_path WHERE session_id=%lu;"
                                       "DELETE from extract_registry_service_driver WHERE session_id=%lu;"
                                       "DELETE from extract_registry_settings WHERE session_id=%lu;"
@@ -301,7 +302,8 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
-                                      ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id);
+                                      ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
+                                      ,current_session_id);
       sqlite3_exec(db,request, callback_sqlite, datas, NULL);
     }
     break;
@@ -331,6 +333,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                       "DELETE from extract_tache;"
                       "DELETE from extract_registry_account_password;"
                       "DELETE from extract_registry_mru;"
+                      "DELETE from extract_registry_shell_bags;"
                       "DELETE from extract_registry_path;"
                       "DELETE from extract_registry_service_driver;"
                       "DELETE from extract_registry_settings;"
