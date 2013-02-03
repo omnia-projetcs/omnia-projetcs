@@ -4,6 +4,24 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
+/*
+For add test :
+ *sqlite
+  - create sqlite table
+  - create request entry
+  - create column name string entry
+  - update list order
+ *header
+  - update number of test : NB_TESTS_GLOBALS
+  - update scan function for 3 tests exec (scan.c)
+  - add entry for popup (main.c line 670)
+  - delete table content
+ *source
+  - create file test
+  - critique tool
+
+*/
+//------------------------------------------------------------------------------
 //******************************************************************************
 //#define _WIN64_VERSION_        1       //64bit OS Compilation
 //debug mode dev test
@@ -69,6 +87,8 @@
 #include "crypt/d3des.h"        //Crypto
 #include <lmaccess.h>           //group account list
 #include <wininet.h>            //for VirusTotal + update
+
+#include "files/LiteZip.h"      //zip file for save all locals datas
 //---------------------------------------------------------------------------
 PVOID OldValue_W64b;            //64bits OS
 
@@ -100,7 +120,7 @@ char _SYSKEY[MAX_PATH];
 #define MAC_SIZE                   18   //AA:BB:CC:DD:EE:FF = 18
 #define NB_MAX_PORTS            65536
 #define SZ_PART_SYSKEY           0x21
-#define NB_TESTS_GLOBALS           33
+#define NB_TESTS_GLOBALS           34
 
 #define OMB              10*1024*1024     //1mo 2ko
 #define DIXM             10*1024*1024    //10mo
@@ -297,6 +317,7 @@ DWORD last_bt;
 #define IDM_TOOLS_DATE          10107
 #define IDM_TOOLS_ANALYSER      10109
 #define IDM_TOOLS_SQLITE_ED     10110
+#define IDM_TOOLS_GLOBAL_COPY   10111
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
 #define POPUP_TRV_FILES_REF_NB_ITEMS_STRINGS      7
@@ -448,28 +469,6 @@ HWND h_main, h_conf;
 #define NB_MAX_TESTS                            256
 #define NB_MAX_ITEMS_HEADERS_XML                256
 
-#define TEST_FILES                                0
-#define TEST_LOGS                                 1
-#define TEST_ENV                                  4
-#define TEST_TASK                                 5
-#define TEST_REG_NETWORK                          8
-
-#define TEST_SHARE                               12
-#define TEST_REG_START                           13
-#define TEST_REG_PASSWORD                        22
-BOOL TEST_REG_PASSWORD_ENABLE;
-#define TEST_REG_END                             24
-
-#define TEST_REG_ANTIVIRUS                       25
-#define TEST_REG_FIREWALL                        26
-
-#define TEST_FIREFOX                             27
-#define TEST_CHROME                              28
-#define TEST_IE                                  29
-#define TEST_ANDROID                             30
-
-#define TEST_PREFETCH                            31
-
 unsigned int NB_TESTS, nb_current_test;
 HTREEITEM H_tests[NB_MAX_TESTS];          //list of tests
 HANDLE h_thread_test[NB_MAX_TESTS];       //threads for tests
@@ -486,35 +485,42 @@ FORMAT_TESTS_STRING S_tests_XML_header[NB_MAX_ITEMS_HEADERS_XML];
 #define FILES_TITLE_APPLI           3
 HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
-
-
+BOOL TEST_REG_PASSWORD_ENABLE;
 #define INDEX_FILE                  0
-
 #define INDEX_LOG                   1
+#define INDEX_DISK                  2
+#define INDEX_CLIPBOARD             3
 #define INDEX_ENV                   4
+#define INDEX_TASK                  5
+#define INDEX_PROCESS               6
+#define INDEX_PIPE                  7
 #define INDEX_LAN                   8
+#define INDEX_ROUTE                 9
+#define INDEX_DNS                  10
+#define INDEX_ARP                  11
 #define INDEX_SHARE                12
-#define INDEX_REG_USERS            19
-#define INDEX_REG_PASSWORD         22
-#define INDEX_ANTIVIRUS            25
-
 #define INDEX_REG_CONF             13
 #define INDEX_REG_SERVICES         14
 #define INDEX_REG_USB              15
 #define INDEX_REG_SOFTWARE         16
 #define INDEX_REG_UPDATE           17
 #define INDEX_REG_START            18
+#define INDEX_REG_USERS            19
 #define INDEX_REG_USERASSIST       20
 #define INDEX_REG_MRU              21
-#define INDEX_REG_PATH             23
-#define INDEX_REG_GUIDE            24
-#define INDEX_REG_FIREWALL         26
-#define INDEX_NAV_FIREFOX          27
-#define INDEX_NAV_CHROME           28
-#define INDEX_NAV_IE               29
-#define INDEX_ANDROID              30
-#define INDEX_PREFETCH             31
-#define INDEX_REG_DELETED_KEY      32
+#define INDEX_REG_SHELLBAGS        22
+#define INDEX_REG_PASSWORD         23
+#define INDEX_REG_PATH             24
+#define INDEX_REG_GUIDE            25
+#define INDEX_REG_DELETED_KEY      26
+#define INDEX_ANTIVIRUS            27
+#define INDEX_REG_FIREWALL         28
+#define INDEX_NAV_FIREFOX          29
+#define INDEX_NAV_CHROME           30
+#define INDEX_NAV_IE               31
+#define INDEX_ANDROID              32
+#define INDEX_PREFETCH             33
+
 //------------------------------------------------------------------------------
 //parameters
 BOOL WINE_OS;     //if run in wine !!!
@@ -907,6 +913,7 @@ DWORD WINAPI SaveAll(LPVOID lParam);
 DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
 void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
+void SaveALL(char*filetosave, char*computername);
 
 //import function
 DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam);
@@ -1085,6 +1092,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam);
 DWORD WINAPI Scan_registry_password(LPVOID lParam);
 DWORD WINAPI Scan_registry_userassist(LPVOID lParam);
 DWORD WINAPI Scan_registry_mru(LPVOID lParam);
+DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam);
 DWORD WINAPI Scan_registry_path(LPVOID lParam);
 DWORD WINAPI Scan_registry_deletedKey(LPVOID lParam);
 DWORD WINAPI Scan_guide(LPVOID lParam);
@@ -1104,5 +1112,6 @@ DWORD WINAPI BackupRegFile(LPVOID lParam);
 DWORD WINAPI BackupEvtFile(LPVOID lParam);
 DWORD WINAPI BackupNTDIS(LPVOID lParam);
 DWORD WINAPI BackupFile(LPVOID lParam);
+DWORD WINAPI BackupAllFiles(LPVOID lParam);
 
 DWORD WINAPI DumpProcessMemory(LPVOID lParam);

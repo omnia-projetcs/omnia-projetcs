@@ -68,6 +68,10 @@
 		<Unit filename="export.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="files/LiteZip.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="files/LiteZip.h" />
 		<Unit filename="files/proc_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -186,6 +190,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tests/test_registry_settings.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/test_registry_shellbags.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tests/test_registry_software.c">

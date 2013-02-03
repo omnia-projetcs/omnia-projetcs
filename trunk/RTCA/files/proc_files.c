@@ -23,7 +23,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
       }
-      check_treeview(htrv_test, H_tests[TEST_LOGS], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_LOG], TRV_STATE_CHECK);
     }else if (strcmp(lowcase_file,"security.dat")==0 ||
               strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser_") && strcmp(ext,"dat")==0)   ||
               strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings_") && strcmp(ext,"dat")==0)   || //win8
@@ -37,18 +37,15 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       }
 
-      check_treeview(htrv_test, H_tests[TEST_REG_NETWORK], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_REG_ANTIVIRUS], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_REG_FIREWALL], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_ENV], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_SHARE], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_LAN], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_ENV], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_SHARE], TRV_STATE_CHECK);
 
       unsigned int i;
-      for (i = TEST_REG_START;i<=TEST_REG_END;i++)
+      for (i = INDEX_REG_CONF;i<=INDEX_REG_FIREWALL;i++)
       {
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
-      check_treeview(htrv_test, H_tests[INDEX_REG_DELETED_KEY], TRV_STATE_CHECK);
 
     }else if (strcmp(ext,"db")==0     ||          //android
               strcmp(ext,"sqlite")==0 ||          //firefox
@@ -62,10 +59,10 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
       }
-      check_treeview(htrv_test, H_tests[TEST_ANDROID], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_CHROME], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_FIREFOX], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_IE], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_ANDROID], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_NAV_CHROME], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_NAV_FIREFOX], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_NAV_IE], TRV_STATE_CHECK);
     }else if (!strcmp(ext,"pf")) //prefetch
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
@@ -74,7 +71,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
       }
-      check_treeview(htrv_test, H_tests[TEST_PREFETCH], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_PREFETCH], TRV_STATE_CHECK);
     }else if (!strcmp(ext,"job")) //prefetch
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
@@ -83,7 +80,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
       }
-      check_treeview(htrv_test, H_tests[TEST_TASK], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_TASK], TRV_STATE_CHECK);
     }
   }else
   {
@@ -120,18 +117,15 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       }
 
-      check_treeview(htrv_test, H_tests[TEST_REG_NETWORK], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_REG_ANTIVIRUS], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_REG_FIREWALL], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_ENV], TRV_STATE_CHECK);
-      check_treeview(htrv_test, H_tests[TEST_SHARE], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_LAN], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_ENV], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_SHARE], TRV_STATE_CHECK);
 
       unsigned int i;
-      for (i = TEST_REG_START;i<=TEST_REG_END;i++)
+      for (i = INDEX_REG_CONF;i<=INDEX_REG_FIREWALL;i++)
       {
         check_treeview(htrv_test, H_tests[i], TRV_STATE_CHECK);
       }
-      check_treeview(htrv_test, H_tests[INDEX_REG_DELETED_KEY], TRV_STATE_CHECK);
     }else if (strcmp(lowcase_file,"archived history")==0 ||  //chrome
               strcmp(lowcase_file,"history")==0 ||
               strcmp(lowcase_file,"cookies")==0 ||
@@ -145,7 +139,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
         snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
         AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
       }
-      check_treeview(htrv_test, H_tests[TEST_CHROME], TRV_STATE_CHECK);
+      check_treeview(htrv_test, H_tests[INDEX_NAV_CHROME], TRV_STATE_CHECK);
     }
   }
 }
