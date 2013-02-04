@@ -329,6 +329,7 @@ char *extractExtFromFile(char *file, char *ext, unsigned int ext_size_max)
   {
     c++;
     strncpy(ext,c,ext_size_max);
+    charToLowChar(ext);
     return ext;
   }else return NULL;
 }

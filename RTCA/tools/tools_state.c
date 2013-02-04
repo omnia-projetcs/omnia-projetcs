@@ -1081,6 +1081,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), file, ofn.nFilterIndex, 4);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;
@@ -1104,6 +1105,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), file, ofn.nFilterIndex, 4);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;

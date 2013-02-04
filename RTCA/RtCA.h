@@ -4,23 +4,6 @@
 // Site                 : http://code.google.com/p/omnia-projetcs/
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
-/*
-For add test :
- *sqlite
-  - create sqlite table
-  - create request entry
-  - create column name string entry
-  - update list order
- *header
-  - update number of test : NB_TESTS_GLOBALS
-  - update scan function for 3 tests exec (scan.c)
-  - add entry for popup (main.c line 670)
-  - delete table content
- *source
-  - create file test
-  - critique tool
-
-*/
 //------------------------------------------------------------------------------
 //******************************************************************************
 //#define _WIN64_VERSION_        1       //64bit OS Compilation

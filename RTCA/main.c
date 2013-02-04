@@ -46,6 +46,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
                 SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
                 SendMessage(hCombo_session, CB_SETCURSEL,0,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"List of session Updated !!!");
               }
               break;
               //-------------------------------------------------
@@ -124,14 +125,17 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case POPUP_E_CSV:
                 export_type = SAVE_TYPE_CSV;
                 CreateThread(NULL,0,ChoiceSaveAll,NULL,0,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               break;
               case POPUP_E_HTML:
                 export_type = SAVE_TYPE_HTML;
                 CreateThread(NULL,0,ChoiceSaveAll,NULL,0,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               break;
               case POPUP_E_XML:
                 export_type = SAVE_TYPE_XML;
                 CreateThread(NULL,0,ChoiceSaveAll,NULL,0,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               break;
               //-------------------------------------------------
               case BT_SEARCH:
@@ -175,7 +179,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               //-----------------------------------------------------
               case IDM_RTCA_HOME:ShellExecute(NULL, "open", URL_APPLI, NULL, NULL, SW_SHOWNORMAL); break;
               //-----------------------------------------------------
-              case IDM_RTCA_UPDATE: UpdateRtCA();break;
+              case IDM_RTCA_UPDATE:
+                UpdateRtCA();
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database updated !!!");
+              break;
               //-----------------------------------------------------
               //popup menu
               //-----------------------------------------------------
@@ -203,6 +210,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   SaveLSTV(hlstv, file, ofn.nFilterIndex, nb_current_columns);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;
@@ -230,6 +238,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   SaveLSTVSelectedItems(hlstv, file, ofn.nFilterIndex, nb_current_columns);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;
@@ -317,11 +326,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (path[0]!=0 && chk[0]!=0)OpenRegeditKey(chk, path);
               }
               break;
-              case IDM_TOOLS_CP_REGISTRY: CreateThread(NULL,0,BackupRegFile,NULL,0,0);break;
-              case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);break;
-              case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);break;
-              case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);break;
-              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);break;
+              case IDM_TOOLS_CP_REGISTRY: CreateThread(NULL,0,BackupRegFile,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy registry file's done !!!");break;
+              case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy event file's done !!!");break;
+              case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);    SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy NTDIS.DIT file done !!!");break;
+              case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);     SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");break;
+              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Backup all file done !!!");break;
               case IDM_TOOLS_PROCESS:
               {
                 LoadPRocessList(hlstv_process);

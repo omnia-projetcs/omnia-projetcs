@@ -787,6 +787,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTV(hlstv_process, file, ofn.nFilterIndex, NB_PROCESS_COLUMN);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
             }
             break;
