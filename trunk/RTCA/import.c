@@ -202,5 +202,6 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
       HeapFree(GetProcessHeap(), 0, buffer);
     }
   }
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Load file done !!!");
   return 0;
 }

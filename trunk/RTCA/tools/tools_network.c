@@ -1361,6 +1361,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 {
                   //a coder
                 }else SaveLSTV(GetCurrentLstv(), file, ofn.nFilterIndex, GetCurrentLstvNbColumn());
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
             }
             break;
@@ -1384,6 +1385,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 {
                   //a coder
                 }else SaveLSTVSelectedItems(GetCurrentLstv(), file, ofn.nFilterIndex, GetCurrentLstvNbColumn());
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
             }
             break;

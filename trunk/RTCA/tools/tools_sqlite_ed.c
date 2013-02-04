@@ -147,6 +147,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTV(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
             }
             break;
@@ -167,6 +168,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
             }
             break;

@@ -323,6 +323,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 {
                   if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, FALSE);
                   else SaveLSTV(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;
@@ -344,6 +345,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 {
                   if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, TRUE);
                   else SaveLSTVSelectedItems(GetDlgItem(hwnd,LV_VIEW), file, ofn.nFilterIndex, DLG_REG_LV_NB_COLUMN);
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
               break;
