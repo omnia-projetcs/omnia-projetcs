@@ -248,6 +248,8 @@ BEGIN
     MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
     MENUITEM SEPARATOR
+    MENUITEM "Screenshot"                 ,BT_SREEENSHOT
+    MENUITEM SEPARATOR
     MENUITEM "SQLite FULL SPEED"          ,BT_SQLITE_FULL_SPEED
   END
   POPUP "Tools"     //2
@@ -510,4 +512,15 @@ BEGIN
       MENUITEM "Save view"                 ,POPUP_S_VIEW
       MENUITEM "Save Selection"            ,POPUP_S_SELECTION
     END
+END
+//------------------------------------------------------------------------------
+//popup screenshot
+//------------------------------------------------------------------------------
+MY_POPUP_SCREENSHOT MENU DISCARDABLE
+BEGIN
+     POPUP "MY_POPUP"
+     BEGIN
+       MENUITEM "Screenshot\tPrint screen", MSG_SCREENSHOT
+//       MENUITEM "Screenshot window\tPause", MSG_SCREENSHOT_WINDOW
+     END
 END

@@ -190,6 +190,8 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   AVIRUSTTAL        = FALSE;
   VIRUSTTAL         = FALSE;
   SQLITE_FULL_SPEED = FALSE;
+  B_SCREENSHOT      = FALSE;
+  B_SCREENSHOT_START= FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
@@ -302,6 +304,15 @@ void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, ch
 //------------------------------------------------------------------------------
 void EndGUIConfig(HANDLE hwnd)
 {
+  //quit tray icone
+  if (B_SCREENSHOT)
+  {
+    DestroyIcon(TrayIcon.hIcon);
+    Shell_NotifyIcon(NIM_DELETE,&TrayIcon);
+    UnhookWindowsHookEx(HHook);
+  }
+
+
   sqlite3_close(db_scan);
   #ifndef _WIN64_VERSION_
   ReviewWOW64Redirect(OldValue_W64b);

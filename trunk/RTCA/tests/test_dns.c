@@ -159,7 +159,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
         if (name[0] != 0)
         {
           //get IP + TTL
-          if(DnsQuery(name,DNS_TYPE_A,0x10/*DNS_QUERY_CACHE_ONLY*/,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
+          if(DnsQuery(name,DNS_TYPE_A,0/*0x10 : DNS_QUERY_CACHE_ONLY*/,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
           {
             dnsr = dnsRecords;
             while (dnsr != NULL)
@@ -175,6 +175,9 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
             }
             //free
             DnsRecordListFree(dnsRecords,DnsFreeRecordList);
+          }else
+          {
+            addHosttoDB("", "", name, "",session_id,db);
           }
         }
         cache = cache->pNext;

@@ -383,3 +383,4 @@ void IDM_STAY_ON_TOP_fct()
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
   }
 }
+//-----------------------------------------------------------------------------
