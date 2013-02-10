@@ -247,6 +247,9 @@
 		<Unit filename="tools/tools_registry_recovery.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools/tools_screenshot.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tools/tools_sqlite_ed.c">
 			<Option compilerVar="CC" />
 		</Unit>

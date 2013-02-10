@@ -13,6 +13,7 @@
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
 
+#define MY_WM_NOTIFYICON        WM_USER+1 //click on tray icone
 #define TTM_SETTITLE	         (WM_USER + 32)
 #define TTI_INFO	             1
 
@@ -268,6 +269,9 @@ DWORD last_bt;
 #define DLG_SQL_ED_LV_RESPONSE      9006
 #define DLG_SQL_ED_STATE_SB         9007
 #define POPUP_LSTV_SQLITE           9008
+#define MY_POPUP_SCREENSHOT         9009
+#define MSG_SCREENSHOT              9010
+//#define MSG_SCREENSHOT_WINDOW       9011
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -289,6 +293,11 @@ DWORD last_bt;
 #define IDM_QUIT                10023
 #define IDM_REFRESH_SESSION     10024
 #define IDM_RTCA_UPDATE         10025
+#define BT_SREEENSHOT           10026
+BOOL B_SCREENSHOT;
+BOOL B_SCREENSHOT_START;
+NOTIFYICONDATA TrayIcon;
+HHOOK HHook; // Handle du hook global
 
 #define IDM_TOOLS_CP_REGISTRY   10100
 #define IDM_TOOLS_CP_AUDIT      10101
@@ -964,6 +973,7 @@ int GetTrvItemIndex(HTREEITEM hitem, HANDLE htrv);
 void AddtoToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
 void ModifyToolTip(HWND hcompo, HWND hTTip, HINSTANCE hinst, unsigned int id, char *title, char *txt);
 void IDM_STAY_ON_TOP_fct();
+void SCREENSHOT_fct();
 
 //file function
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
@@ -974,6 +984,7 @@ void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
+void GetLocalPath(char *path, unsigned int SIZE_MAX);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);
@@ -1046,6 +1057,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+DWORD WINAPI ImpEcran(LPVOID lParam);
 
 //subclass
 LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
@@ -1096,5 +1108,4 @@ DWORD WINAPI BackupEvtFile(LPVOID lParam);
 DWORD WINAPI BackupNTDIS(LPVOID lParam);
 DWORD WINAPI BackupFile(LPVOID lParam);
 DWORD WINAPI BackupAllFiles(LPVOID lParam);
-
 DWORD WINAPI DumpProcessMemory(LPVOID lParam);

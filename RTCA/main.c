@@ -151,6 +151,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               }
               break;
               case IDM_STAY_ON_TOP:IDM_STAY_ON_TOP_fct();break;
+              case BT_SREEENSHOT:SCREENSHOT_fct();break;
               case BT_SEARCH_MATCH_CASE:
                 if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
                   CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_UNCHECKED);
@@ -402,6 +403,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   h_AVIRUSTTAL = CreateThread(NULL,0,CheckAllFileToVirusTotal,0,0,0);
                 }
               break;
+              //---screenshot
+              case MSG_SCREENSHOT:CreateThread(0,0,ImpEcran,0,0,0);break;
+              //case MSG_SCREENSHOT_WINDOW:CreateThread(0,0,ImpEcran,(LPVOID)1,0,0);break;
             }
           break;
           case CBN_SELCHANGE:
@@ -762,6 +766,32 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       }
       break;
       case WM_CLOSE:EndGUIConfig(hwnd);break;
+      //--------------------------------------
+      //tray icone popup
+      case MY_WM_NOTIFYICON:
+        if (lParam == WM_LBUTTONUP || lParam == WM_RBUTTONUP)
+        {
+         POINT pos;
+         HMENU hmenu,hmenu2;
+          //on affiche le popup
+          if (GetCursorPos(&pos)!=0)
+          {
+            if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(MY_POPUP_SCREENSHOT)))!= NULL)
+            {
+              if ((hmenu2 = GetSubMenu(hmenu, 0))!=0)
+              {
+                //EnableMenuItem(hmenu2,MSG_SCREENSHOT_WINDOW,MF_BYCOMMAND|MF_GRAYED);
+
+                SetForegroundWindow(hwnd);
+                TrackPopupMenuEx(hmenu2, 0, pos.x, pos.y,hwnd, NULL);
+                DestroyMenu(hmenu2);
+              }
+              DestroyMenu(hmenu);
+            }
+          }
+        }
+      break;
+      //--------------------------------------
       default:
           return DefWindowProc (hwnd, message, wParam, lParam);
     }
