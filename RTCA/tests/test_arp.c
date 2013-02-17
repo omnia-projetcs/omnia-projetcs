@@ -33,7 +33,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
   //load route table);
   DWORD dwSize = 0,i;
   //allocate momery
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   if (GetIpNetTable(NULL, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER)
   {
     if (dwSize > 0)
@@ -73,7 +73,7 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
       }
     }
   }
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;

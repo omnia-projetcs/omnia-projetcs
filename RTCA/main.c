@@ -327,11 +327,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 if (path[0]!=0 && chk[0]!=0)OpenRegeditKey(chk, path);
               }
               break;
-              case IDM_TOOLS_CP_REGISTRY: CreateThread(NULL,0,BackupRegFile,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy registry file's done !!!");break;
-              case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy event file's done !!!");break;
-              case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);    SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy NTDIS.DIT file done !!!");break;
-              case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);     SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");break;
-              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Backup all file done !!!");break;
+              case IDM_TOOLS_CP_REGISTRY: CreateThread(NULL,0,BackupRegFile,NULL,0,0);  break;
+              case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);  break;
+              case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);    break;
+              case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);     break;
+              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);  break;
               case IDM_TOOLS_PROCESS:
               {
                 LoadPRocessList(hlstv_process);

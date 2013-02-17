@@ -163,7 +163,7 @@ DWORD WINAPI Scan_task(LPVOID lParam)
 {
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
-  sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem!=NULL || !LOCAL_SCAN || WINE_OS)
@@ -280,7 +280,7 @@ DWORD WINAPI Scan_task(LPVOID lParam)
     }
   }
 
-  sqlite3_exec(db,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db,"END TRANSACTION;", NULL, NULL, NULL);
 
   h_thread_test[(unsigned int)lParam] = 0;
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

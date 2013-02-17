@@ -198,7 +198,7 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
   fcri.type = SQLITE_REGISTRY_TYPE_RUN;
 
   //files or local
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -233,7 +233,7 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
     Scan_registry_ShellBags_direct("Software\\Classes\\Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

@@ -241,6 +241,7 @@ DWORD WINAPI BackupRegFile(LPVOID lParam)
           RegCloseKey(CleTmp);
         }
       }
+      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy registry file's done !!!");
     }
   }
   return 0;
@@ -347,6 +348,7 @@ DWORD WINAPI BackupEvtFile(LPVOID lParam)
         CopyFileFromTo("c:\\windows\\pfirewall.log", tmp, 5);//after
         CopyFileFromTo("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log", tmp, 5);
       }
+      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy event file's done !!!");
     }
   }
   return 0;
@@ -383,6 +385,7 @@ DWORD WINAPI BackupNTDIS(LPVOID lParam)
           CopyFilefromPath(path, tmp, FALSE);
         }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
       }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
+      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy NTDIS.DIT file done !!!");
     }
   }
   return 0;
@@ -426,6 +429,7 @@ DWORD WINAPI BackupFile(LPVOID lParam)
         snprintf(path2,MAX_PATH,"%s\\%s",path,extractFileFromPath(file_p, file, MAX_PATH));
         //save
         CopyFilefromPath(file,path, FALSE);
+        SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");
       }
     }
   }
@@ -439,13 +443,14 @@ void GetLocalPath(char *path, unsigned int SIZE_MAX)
   *c = 0;
 }
 //------------------------------------------------------------------------------
-void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername)
+void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername,HANDLE MyhFile)
 {
   char tmp_path[MAX_PATH],path2[MAX_PATH],path3[MAX_PATH],file[MAX_PATH];
   if (path == NULL)snprintf(tmp_path,MAX_PATH,"%s\\system32\\config\\*.evt",path);
   else snprintf(tmp_path,MAX_PATH,"c:\\Windows\\system32\\config\\*.evt");
 
   WIN32_FIND_DATA data;
+  DWORD copiee;
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -454,8 +459,13 @@ void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername)
       if (path == NULL)snprintf(path2,MAX_PATH,"%s\\system32\\config\\%s",path,data.cFileName);
       else snprintf(path2,MAX_PATH,"c:\\Windows\\system32\\config\\%s",data.cFileName);
 
-      snprintf(path3,MAX_PATH,"%s\\%s",current_path,data.cFileName);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,path2,strlen(path2),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
 
+      snprintf(path3,MAX_PATH,"%s\\%s",current_path,data.cFileName);
       if(CopyFilefromPath(path2, path3, FALSE))
       {
         snprintf(file,MAX_PATH,"%s\\eventlog\\%s",computername,data.cFileName);
@@ -466,13 +476,14 @@ void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername)
   }
 }
 //------------------------------------------------------------------------------
-void CopyEvtxToZIP(void *hz,char *path,char*current_path, char*computername)
+void CopyEvtxToZIP(void *hz,char *path,char*current_path, char*computername,HANDLE MyhFile)
 {
   char tmp_path[MAX_PATH],path2[MAX_PATH],path3[MAX_PATH],file[MAX_PATH];
   if (path == NULL)snprintf(tmp_path,MAX_PATH,"%s\\system32\\winevt\\Logs\\*.evtx",path);
   else snprintf(tmp_path,MAX_PATH,"c:\\Windows\\system32\\winevt\\Logs\\*.evtx");
 
   WIN32_FIND_DATA data;
+  DWORD copiee;
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -481,6 +492,12 @@ void CopyEvtxToZIP(void *hz,char *path,char*current_path, char*computername)
       if (path == NULL)snprintf(path2,MAX_PATH,"%s\\system32\\winevt\\Logs\\%s",path,data.cFileName);
       else snprintf(path2,MAX_PATH,"c:\\Windows\\system32\\winevt\\Logs\\%s",data.cFileName);
 
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,path2,strlen(path2),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
+
       snprintf(path3,MAX_PATH,"%s\\%s",current_path,data.cFileName);
       if(CopyFilefromPath(path2, path3, FALSE))
       {
@@ -492,13 +509,14 @@ void CopyEvtxToZIP(void *hz,char *path,char*current_path, char*computername)
   }
 }
 //------------------------------------------------------------------------------
-void CopyPrefetchToZIP(void *hz,char *path, char*current_path, char*computername)
+void CopyPrefetchToZIP(void *hz,char *path, char*current_path, char*computername,HANDLE MyhFile)
 {
   char tmp_path[MAX_PATH],path2[MAX_PATH],path3[MAX_PATH],file[MAX_PATH];
   if (path == NULL)snprintf(tmp_path,MAX_PATH,"%s\\Prefetch\\*.pf",path);
   else snprintf(tmp_path,MAX_PATH,"c:\\Windows\\Prefetch\\*.pf");
 
   WIN32_FIND_DATA data;
+  DWORD copiee;
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -506,6 +524,12 @@ void CopyPrefetchToZIP(void *hz,char *path, char*current_path, char*computername
     {
       if (path == NULL)snprintf(path2,MAX_PATH,"%s\\Prefetch\\%s",path,data.cFileName);
       else snprintf(path2,MAX_PATH,"c:\\Windows\\Prefetch\\%s",data.cFileName);
+
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,path2,strlen(path2),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
 
       snprintf(path3,MAX_PATH,"%s\\%s",current_path,data.cFileName);
       if(CopyFilefromPath(path2, path3, FALSE))
@@ -518,62 +542,121 @@ void CopyPrefetchToZIP(void *hz,char *path, char*current_path, char*computername
   }
 }
 //------------------------------------------------------------------------------
-void CopySetupApiToZIP(void *hz,char *path,char*computername)
+void CopySetupApiToZIP(void *hz,char *path,char*computername,HANDLE MyhFile)
 {
   char file[MAX_PATH];
+  DWORD copiee;
   if (path == NULL)
   {
     snprintf(file,MAX_PATH,"%s\\logs\\setupapi.log",computername);
     addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\setupapi.log",0, 2);
     addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\inf\\setupapi.log",0, 2);
-
     snprintf(file,MAX_PATH,"%s\\logs\\setupapi.dev.log",computername);
     addSrc((TZIP *)hz,  (void *)"setupapi.dev.log", (void *)"c:\\windows\\inf\\setupapi.dev.log",0, 2);
+
+    if (MyhFile != INVALID_HANDLE_VALUE)
+    {
+      if(FileExist("c:\\windows\\setupapi.log"))WriteFile(MyhFile,"c:\\windows\\setupapi.log\r\n",strlen("c:\\windows\\setupapi.log\r\n"),&copiee,0);
+      if(FileExist("c:\\windows\\inf\\setupapi.log"))WriteFile(MyhFile,"c:\\windows\\inf\\setupapi.log\r\n",strlen("c:\\windows\\inf\\setupapi.log\r\n"),&copiee,0);
+      if(FileExist("c:\\windows\\inf\\setupapi.dev.log"))WriteFile(MyhFile,"c:\\windows\\inf\\setupapi.dev.log\r\n",strlen("c:\\windows\\inf\\setupapi.dev.log\r\n"),&copiee,0);
+    }
+
   }else
   {
     char tmp_path[MAX_PATH];
     snprintf(file,MAX_PATH,"%s\\logs\\setupapi.log",computername);
     snprintf(tmp_path,MAX_PATH,"%s\\setupapi.log",path);
-    addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+    if(FileExist(tmp_path))
+    {
+      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
+    }
 
     snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.log",path);
-    addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+    if(FileExist(tmp_path))
+    {
+      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
+    }
 
     snprintf(file,MAX_PATH,"%s\\logs\\setupapi.dev.log",computername);
     snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.dev.log",path);
-    addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+    if(FileExist(tmp_path))
+    {
+      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
+    }
   }
 }
 //------------------------------------------------------------------------------
-void CopyfirewallLogZIP(void *hz,char *path,char*computername)
+void CopyfirewallLogZIP(void *hz,char *path,char*computername,HANDLE MyhFile)
 {
   char file[MAX_PATH];
+  DWORD copiee;
   snprintf(file,MAX_PATH,"%s\\logs\\pfirewall.log",computername);
   if (path == NULL)
   {
     addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\pfirewall.log",0, 2);
     addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log",0, 2);
+
+    if (MyhFile != INVALID_HANDLE_VALUE)
+    {
+      if(FileExist("c:\\windows\\pfirewall.log"))WriteFile(MyhFile,"c:\\windows\\pfirewall.log\r\n",strlen("c:\\windows\\pfirewall.log\r\n"),&copiee,0);
+      if(FileExist("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log"))WriteFile(MyhFile,"c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log\r\n",strlen("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log\r\n"),&copiee,0);
+    }
   }else
   {
     char tmp_path[MAX_PATH];
     snprintf(tmp_path,MAX_PATH,"%s\\pfirewall.log",path);
     addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
 
+    if(FileExist(tmp_path))
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
+
     snprintf(tmp_path,MAX_PATH,"%s\\system32\\logfiles\\firewall\\pfirewall.log",path);
     addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
+
+    if(FileExist(tmp_path))
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
   }
 }
 //------------------------------------------------------------------------------
-void CopyNTDISToZIP(void *hz,char *path, char*current_path,char*computername)
+void CopyNTDISToZIP(void *hz,char *path, char*current_path,char*computername,HANDLE MyhFile)
 {
   char local_path[MAX_PATH];
   snprintf(local_path,MAX_PATH,"%s\\NTDIS.DIT",current_path);
   char file[MAX_PATH];
   snprintf(file,MAX_PATH,"%s\\AD\\NTDIS.DIT",computername);
+  DWORD copiee;
+
   if (path == NULL)
   {
     if(CopyFilefromPath("c:\\windows\\ntds\\ntds.dit", local_path, FALSE))
     {
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,"c:\\windows\\ntds\\ntds.dit\r\n",strlen("c:\\windows\\ntds\\ntds.dit\r\n"),&copiee,0);
+      }
       addSrc((TZIP *)hz, (void *)file,(void *)local_path, 0, 2);
       DeleteFile(local_path);
     }
@@ -581,18 +664,30 @@ void CopyNTDISToZIP(void *hz,char *path, char*current_path,char*computername)
   {
     if(CopyFilefromPath(path, local_path, FALSE))
     {
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        WriteFile(MyhFile,path,strlen(path),&copiee,0);
+        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+      }
       addSrc((TZIP *)hz, (void *)file,(void *)local_path, 0, 2);
       DeleteFile(local_path);
     }
   }
 }
 //------------------------------------------------------------------------------
-void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
+void CopyRegistryToZIP(void *hz, char*local_path,char*computername,HANDLE MyhFile)
 {
   char tmp_path[MAX_PATH];
   char file[MAX_PATH];
+  DWORD copiee;
+
   snprintf(file,MAX_PATH,"%s\\Registry\\HARDWARE_volatile_key",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKLM\\HARDWARE \"%s\\HARDWARE_volatile_key\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\HARDWARE_volatile_key",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -600,6 +695,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\SAM",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKLM\\SAM \"%s\\SAM\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\SAM",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -607,6 +707,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\SECURITY",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKLM\\SECURITY \"%s\\SECURITY\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\SECURITY",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -614,6 +719,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\SOFTWARE",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKLM\\SOFTWARE \"%s\\SOFTWARE\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\SOFTWARE",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -621,6 +731,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\SYSTEM",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKLM\\SYSTEM \"%s\\SYSTEM\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\SYSTEM",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -628,6 +743,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\CLASSES.dat",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKCR \"%s\\CLASSES.dat\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\CLASSES.dat",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -635,6 +755,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\DEFAULT",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKU\\.DEFAULT \"%s\\DEFAULT\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\DEFAULT",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -642,6 +767,11 @@ void CopyRegistryToZIP(void *hz, char*local_path,char*computername)
 
   snprintf(file,MAX_PATH,"%s\\Registry\\NTUSER.DAT",computername);
   snprintf(tmp_path,MAX_PATH,"REG SAVE HKCU \"%s\\NTUSER.DAT\"",local_path);
+  if (MyhFile != INVALID_HANDLE_VALUE)
+  {
+    WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
+    WriteFile(MyhFile,"\r\n",2,&copiee,0);
+  }
   system(tmp_path);
   snprintf(tmp_path,MAX_PATH,"%s\\NTUSER.DAT",local_path);
   addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
@@ -654,8 +784,12 @@ void SaveALL(char*filetosave, char *computername)
   if (createZip(&hz, (void *)filetosave,0,2,"")==0)
   {
     //get local directory
-    char local_path[MAX_PATH]="";
+    char local_path[MAX_PATH]="",file[MAX_PATH];
     GetLocalPath(local_path, MAX_PATH);
+
+    snprintf(file,MAX_PATH,"%s\\log.txt",local_path);
+    HANDLE MyhFile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+    DWORD copiee;
 
     char tmp_path[MAX_PATH]="";
     char *s = tmp_path;
@@ -666,15 +800,15 @@ void SaveALL(char*filetosave, char *computername)
     if (tmp_path[0] == 0)s = NULL;
 
     //evt + evtx
-    CopyEvtToZIP(hz,s,local_path,computername);
-    CopyEvtxToZIP(hz,s,local_path,computername);
+    CopyEvtToZIP(hz,s,local_path,computername,MyhFile);
+    CopyEvtxToZIP(hz,s,local_path,computername,MyhFile);
 
     //system logs
-    CopySetupApiToZIP(hz,s,computername);
-    CopyfirewallLogZIP(hz,s,computername);
+    CopySetupApiToZIP(hz,s,computername,MyhFile);
+    CopyfirewallLogZIP(hz,s,computername,MyhFile);
 
     //prefetch
-    CopyPrefetchToZIP(hz,s,local_path,computername);
+    CopyPrefetchToZIP(hz,s,local_path,computername,MyhFile);
 
     //NTDIS.DIT
     s = tmp_path;
@@ -685,10 +819,16 @@ void SaveALL(char*filetosave, char *computername)
 
     if (tmp_path[0] == 0)s = NULL;
 
-    CopyNTDISToZIP(hz,s,local_path,computername);
+    CopyNTDISToZIP(hz,s,local_path,computername,MyhFile);
 
     //registry
-    CopyRegistryToZIP(hz,local_path,computername);
+    CopyRegistryToZIP(hz,local_path,computername,MyhFile);
+
+    //list of files
+    CloseHandle(MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\log.txt",computername);
+    addSrc((TZIP *)hz,  (void *)tmp_path, (void *)file,0, 2);
+    DeleteFile(file);
 
     ZipClose(hz);
   }
@@ -714,6 +854,7 @@ DWORD WINAPI BackupAllFiles(LPVOID lParam)
     char computername[256]="";
     GetComputerName(computername,&taille);
     SaveALL(file,computername);
+    SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Backup all file done !!!");
   }
   return 0;
 }

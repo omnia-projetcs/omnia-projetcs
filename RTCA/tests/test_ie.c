@@ -209,9 +209,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
             {
               //verify the path if %systemdrive%
               ReplaceEnv("SYSTEMDRIVE",tmp_key,MAX_PATH);
-              sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+              if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
               SearchAndWorkIEFiles(tmp_key, "index.dat", 15, session_id, db, TRUE, TRUE);
-              sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+              if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
             }
           }
         }
@@ -223,10 +223,10 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
     while(hitem!=NULL && start_scan)
     {
       //get item txt
-      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       GetTextFromTrv(hitem, tmp_file, MAX_PATH);
       ReadDATFile(tmp_file, 15, session_id, db);
-      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }

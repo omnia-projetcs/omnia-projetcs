@@ -147,7 +147,7 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem!=NULL || !LOCAL_SCAN || WINE_OS)
   {
-    sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
     char tmp_file_pref[MAX_PATH],ext[MAX_PATH];
     while(hitem!=NULL)
     {
@@ -160,14 +160,14 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
 
-    sqlite3_exec(db,"END TRANSACTION;", NULL, NULL, NULL);
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db,"END TRANSACTION;", NULL, NULL, NULL);
     h_thread_test[(unsigned int)lParam] = 0;
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
     return 0;
   }
 
   //init
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   //get system path
   char path[MAX_PATH] ="%WINDIR%\\Prefetch\\*.pf";
@@ -289,7 +289,7 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
     }while(FindNextFile (hfic,&data) && start_scan);
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

@@ -113,10 +113,8 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   else//get langue_id from RtCA.ini
   {
     //get current path
-    char path[MAX_PATH];
-    char *c = path + GetModuleFileName(NULL, path, MAX_PATH);
-    while(*c != '\\') c--;
-    *c = 0;
+    char path[MAX_PATH]="";
+    GetLocalPath(path, MAX_PATH);
     strcat(path,DEFAULT_INI_FILE);
 
     //get value
@@ -329,10 +327,8 @@ void EndGUIConfig(HANDLE hwnd)
 
   //save current language if not 1
   //get current path
-  char path[MAX_PATH];
-  char *c = path + GetModuleFileName(NULL, path, MAX_PATH);
-  while(*c != '\\') c--;
-  *c = 0;
+  char path[MAX_PATH]="";
+  GetLocalPath(path, MAX_PATH);
   strcat(path,DEFAULT_INI_FILE);
 
   //set value

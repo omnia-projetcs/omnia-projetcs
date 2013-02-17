@@ -412,7 +412,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
 
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
 
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   while(Process32Next(hCT, &pe) && start_scan)
   {
     //open process info
@@ -497,7 +497,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   EnumProcessAndThread(nb_process, process_infos,session_id,db);
 
   CloseHandle(hCT);
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
