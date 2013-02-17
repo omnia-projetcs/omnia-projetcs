@@ -81,6 +81,12 @@ void UpdateRtCA()
 //---------------------------
 }
 //------------------------------------------------------------------------------
+BOOL FileExist(char *file)
+{
+  if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES)return TRUE;
+  else return FALSE;
+}
+//------------------------------------------------------------------------------
 void ReviewWOW64Redirect(PVOID OldValue_W64b)
 {
   typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);

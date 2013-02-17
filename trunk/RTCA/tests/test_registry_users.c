@@ -224,7 +224,10 @@ int GetRegistryOs(HK_F_OPEN *hks)
     if (Contient(currentOS,GUIDE_REG_OS_2000) ||
         Contient(currentOS,GUIDE_REG_OS_XP_32b) ||
         Contient(currentOS,GUIDE_REG_OS_2003_32b) ||
-        Contient(currentOS,GUIDE_REG_OS_VISTA_32b))return TRUE;
+        Contient(currentOS,GUIDE_REG_OS_VISTA_32b) ||
+        Contient(currentOS,GUIDE_REG_OS_7_32b) ||
+        Contient(currentOS,GUIDE_REG_OS_2008_32b) ||
+        Contient(currentOS,GUIDE_REG_OS_8_32b))return TRUE;
     else return FALSE;
   }
   return -1;
@@ -392,7 +395,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
   BOOL ok_computer = FALSE;
 
   //files or local
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -451,7 +454,7 @@ DWORD WINAPI Scan_registry_user(LPVOID lParam)
 
   }else Scan_registry_user_local(db, session_id);
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

@@ -65,7 +65,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   }
 
   //init
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
 
@@ -186,7 +186,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   }
   FreeLibrary(hDLL);
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

@@ -492,7 +492,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
 
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           //directory
           snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
@@ -514,7 +514,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
                       s_ads, "", "", "",session_id,db);
 
           scan_file_ex(path_ex, acl, ads, sha, session_id,db);
-          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
         }else
         {
           //file
@@ -645,7 +645,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
 
   //get local path !
   //get child
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   if (!LOCAL_SCAN)
   {
     HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
@@ -709,7 +709,7 @@ DWORD WINAPI Scan_files(LPVOID lParam)
     }
   }
 
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   if (!CONSOL_ONLY)check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

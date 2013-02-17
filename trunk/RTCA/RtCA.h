@@ -976,6 +976,8 @@ void IDM_STAY_ON_TOP_fct();
 void SCREENSHOT_fct();
 
 //file function
+BOOL FileExist(char *file);
+void GetLocalPath(char *path, unsigned int SIZE_MAX);
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size);
@@ -984,7 +986,6 @@ void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
-void GetLocalPath(char *path, unsigned int SIZE_MAX);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);

@@ -138,9 +138,9 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
                       {
                         for (data.type =0;data.type <nb_sql_CHROME && start_scan;data.type = data.type+1)
                         {
-                          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+                          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
-                          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+                          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                         }
                         sqlite3_close(db_tmp);
                       }
@@ -167,9 +167,9 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
       {
         for (data.type =0;data.type <nb_sql_CHROME && start_scan;data.type = data.type+1)
         {
-          sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           sqlite3_exec(db_tmp, sql_CHROME[data.type].sql, callback_sqlite_chrome, &data, NULL);
-          sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
         }
         sqlite3_close(db_tmp);
       }
