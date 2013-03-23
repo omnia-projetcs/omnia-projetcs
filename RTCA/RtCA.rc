@@ -39,7 +39,7 @@ END
 //------------------------------------------------------------------------------
 //configuration dialogue
 //------------------------------------------------------------------------------
-DLG_CONF DIALOGEX 0,24,458,297
+DLG_CONF DIALOGEX 0,24,458,307
 CAPTION NOM_APPLI
 FONT 8,"Arial",0,0
 STYLE   0x10C80800
@@ -54,6 +54,7 @@ BEGIN
   CONTROL "UTC/GMT",                    BT_UTC_CHK        ,"Button"         ,0x50010003|WS_TABSTOP,272,258,174,9
 
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
+  CONTROL "",                           DLG_CONF_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
 //------------------------------------------------------------------------------
 //process dialogue
@@ -157,10 +158,6 @@ BEGIN
   CONTROL ""                                        ,DLG_DATE_EDT12,"Edit",0x50010800,142,169,124,13,0x00000200
   CONTROL "HFS/HFS+ 32 bit (Little Endian) :"       ,0,"Static",0x50000002,4,186,134,9
   CONTROL ""                                        ,DLG_DATE_EDT13,"Edit",0x50010800,142,184,124,13,0x00000200
-  /*CONTROL "MS-DOS 32 bit (Big Endian) :"            ,0,"Static",0x50000002,4,201,134,9
-  CONTROL ""                                        ,DLG_DATE_EDT14,"Edit",0x50010800,142,199,124,13,0x00000200
-  CONTROL "MS-DOS 32 bit (Little Endian) :"         ,0,"Static",0x50000002,4,216,134,9
-  CONTROL ""                                        ,DLG_DATE_EDT14,"Edit",0x50010800,142,214,124,13,0x00000200*/
 END
 //------------------------------------------------------------------------------
 DLG_STATE DIALOGEX 6,6,553,276
@@ -173,9 +170,8 @@ BEGIN
 
   CONTROL "All"                                     ,DLG_STATE_BT_ALL,"Button",0x50010000,132,1,70,19
   CONTROL "Critical"                                ,DLG_STATE_BT_CRITICAL,"Button",0x50010000,204,1,70,19
-  //CONTROL "Time Zone"                               ,DLG_STATE_BT_TIME_ZONE,"Button",0x50010000,276,1,70,19
+  CONTROL "Log State"                               ,DLG_STATE_BT_LOG_STATE,"Button",0x50010000,276,1,70,19
   CONTROL "2012/11/18 11:11:11"                     ,DLG_STATE_ED_TIME_1,"ComboBox",0x50210042,348,3,90,150
-
 
   CONTROL "->"                                      ,0,"Static",0x50000000,442,5,6,9
   CONTROL "2012/11/18 11:11:12"                     ,DLG_STATE_ED_TIME_2,"Edit",0x50010000,449,3,80,13,0x00000200
@@ -183,17 +179,9 @@ BEGIN
 
   CONTROL ""                                        ,DLG_STATE_LV_ALL,"SysListView32",0x50810089,128,22,422,241,0x00000200
   CONTROL ""                                        ,DLG_STATE_LV_CRITICAL,"SysListView32",0x40810089,128,22,422,241,0x00000200
-  CONTROL ""                                        ,DLG_STATE_LV_TIME_ZONE,"SysListView32",0x40810089,128,22,422,241,0x00000200
+  CONTROL ""                                        ,DLG_STATE_LV_LOG_STATE,"SysListView32",0x40810089,128,22,422,241,0x00000200
   CONTROL ""                                        ,DLG_STATE_LV_FILTER,"SysListView32",0x40810089,128,22,422,241,0x00000200
   CONTROL ""                                        ,DLG_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
-
-
-/*
-    hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
-                                     htoolbar,(HMENU)CB_SESSION, hinst, NULL);
-*/
-//manque le bouton loading ! ou une fenêtre de chargement ^^
-//manque un module de recherche global : avec une popup
 END
 //------------------------------------------------------------------------------
 DLG_SQLITE_EDITOR DIALOGEX 6,6,553,276
@@ -261,7 +249,7 @@ BEGIN
     MENUITEM "Save all local datas to ZIP file"         ,IDM_TOOLS_GLOBAL_COPY
     MENUITEM SEPARATOR
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
-    MENUITEM "Registry explHFS 32bit hex value big endianorer"          ,IDM_TOOLS_REG_EXPLORER
+    MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
     MENUITEM "Decode date"                ,IDM_TOOLS_DATE
     MENUITEM "SQLITE ED"                  ,IDM_TOOLS_SQLITE_ED

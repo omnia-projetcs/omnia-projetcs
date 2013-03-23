@@ -147,6 +147,7 @@ BOOL disable_m_context, disable_p_context;
 #define BT_EXPORT                2006
 #define TRV_FILES                2007
 #define CB_SESSION               2009
+#define DLG_CONF_SB              2010
 
 #define BT_ACL_FILE_CHK          2012
 #define BT_SHA_FILE_CHK          2014
@@ -249,13 +250,13 @@ DWORD last_bt;
 #define DLG_STATE_LB_TEST           8002
 #define DLG_STATE_BT_ALL            8003
 #define DLG_STATE_BT_CRITICAL       8004
-#define DLG_STATE_BT_TIME_ZONE      8005
+#define DLG_STATE_BT_LOG_STATE      8005
 #define DLG_STATE_ED_TIME_1         8006
 #define DLG_STATE_ED_TIME_2         8007
 #define DLG_STATE_BT_FILTER         8008
 #define DLG_STATE_LV_ALL            8009
 #define DLG_STATE_LV_CRITICAL       8010
-#define DLG_STATE_LV_TIME_ZONE      8011
+#define DLG_STATE_LV_LOG_STATE      8011
 #define DLG_STATE_LV_FILTER         8012
 #define DLG_STATE_SB                8013
 #define DLG_STATE_BT_LOAD           8014
@@ -563,7 +564,7 @@ typedef struct
 //------------------------------------------------------------------------------
 //for sort in lstv
 BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
-BOOL TRI_STATE_ALL, TRI_STATE_DATE, TRI_STATE_CRITICAL, TRI_STATE_FILTER, TRI_SQLITE_ED;
+BOOL TRI_STATE_ALL, TRI_STATE_LOG, TRI_STATE_CRITICAL, TRI_STATE_FILTER, TRI_SQLITE_ED;
 int column_tri;
 
 typedef struct SORT_ST

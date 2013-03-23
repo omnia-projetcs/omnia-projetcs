@@ -402,6 +402,8 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           //directory
           snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
+          if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
+
           //ads
           if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
 
@@ -436,7 +438,11 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           if(ads)EnumADS(file, s_ads, MAX_PATH);
 
           //sha256
-          if(sha)FileToSHA256(file, s_sha);
+          if(sha)
+          {
+            if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
+            FileToSHA256(file, s_sha);
+          }
 
           //acl
           if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
@@ -496,6 +502,8 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
           //directory
           snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
+          if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
+
           //ads
           if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
 
@@ -531,7 +539,12 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
           if(ads)EnumADS(file, s_ads, MAX_PATH);
 
           //sha256
-          if(sha)FileToSHA256(file, s_sha);
+          if(sha)
+          {
+            if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
+            FileToSHA256(file, s_sha);
+          }
+
 
           //acl
           if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);

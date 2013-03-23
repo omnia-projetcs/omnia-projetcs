@@ -12,8 +12,8 @@ void ShowOnglet(DWORD id)
 {
   ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_ALL), SW_HIDE);
   ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), SW_HIDE);
-  ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), SW_HIDE);
   ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_FILTER), SW_HIDE);
+  ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), SW_HIDE);
 
   ShowWindow(GetDlgItem(h_state,id), SW_SHOW);
 }
@@ -22,7 +22,7 @@ void InitGuiState()
 {
   //tri
   TRI_STATE_ALL       = FALSE;
-  TRI_STATE_DATE      = FALSE;
+  TRI_STATE_LOG       = FALSE;
   TRI_STATE_CRITICAL  = FALSE;
   TRI_STATE_FILTER    = FALSE;
   h_filter_th         = 0;
@@ -937,6 +937,31 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
+    case TYPE_SQLITE_FLAG_GET_LOG_STATE_COUNT:
+    {
+      HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE);
+      LVITEM lvi;
+      lvi.mask       = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem   = 0;
+      lvi.lParam     = LVM_SORTITEMS;
+      lvi.pszText    = "";
+      lvi.iItem      = ListView_GetItemCount(hlv);
+      DWORD i, ref_item = ListView_InsertItem(hlv, &lvi);
+
+      for (i=0;i<argc;i++)
+      {
+        ListView_SetItemText(hlv,ref_item,i,argv[i]);
+      }
+
+      if (argc > 5)
+      {
+        //number convert
+        char tmp[MAX_PATH];
+        snprintf(tmp,MAX_PATH,"%05d",atoi(argv[5]));
+        ListView_SetItemText(hlv,ref_item,5,tmp);
+      }
+    }
+    break;
   }
 
   if (ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_ALL))%1000 == 0)
@@ -1043,7 +1068,38 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
             //tabl
             case DLG_STATE_BT_ALL:      ShowOnglet(DLG_STATE_LV_ALL);break;
             case DLG_STATE_BT_CRITICAL: ShowOnglet(DLG_STATE_LV_CRITICAL);break;
-            case DLG_STATE_BT_TIME_ZONE:ShowOnglet(DLG_STATE_LV_TIME_ZONE);break;
+            case DLG_STATE_BT_LOG_STATE:
+              //clean LSTV
+              ListView_DeleteAllItems(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE));
+
+              //get database state of all selected sessions !
+              long int s, nb_sessions  = SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETCOUNT,0,(LPARAM)0);
+              char request[MAX_LINE_SIZE] = "SELECT event, source, log_id, state, description, count(log_id) AS TOTAL FROM extract_log WHERE";
+              char tmp[MAX_LINE_SIZE]="";
+
+              BOOL first = TRUE;
+
+              for (s=0;s<nb_sessions;s++)
+              {
+                if (SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETSEL,s,(LPARAM)0)>0)
+                {
+                  if (first)
+                  {
+                    snprintf(tmp,MAX_LINE_SIZE,"%s session_id = %d",request,session[s]);
+                    first = FALSE;
+                  }else snprintf(tmp,MAX_LINE_SIZE,"%s OR session_id = %d",request,session[s]);
+                  strcpy(request,tmp);
+                }
+              }
+              FORMAT_CALBAK_READ_INFO fcri;
+              fcri.type = TYPE_SQLITE_FLAG_GET_LOG_STATE_COUNT;
+              snprintf(request,MAX_LINE_SIZE,"%s group by source,log_id ORDER BY TOTAL DESC;",tmp);
+              sqlite3_exec(db_scan, request, callback_sqlite_state, &fcri, NULL);
+
+              snprintf(request,MAX_LINE_SIZE,"Load %lu item(s)",(DWORD)ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_ALL)));
+              SendDlgItemMessage(h_state,DLG_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
+              ShowOnglet(DLG_STATE_LV_LOG_STATE);
+            break;
             //filter
             case DLG_STATE_BT_FILTER:
               if(h_filter_th == 0)
@@ -1080,7 +1136,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_ALL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), file, ofn.nFilterIndex, 7);
-                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), file, ofn.nFilterIndex, 4);
+                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE), file, ofn.nFilterIndex, 4);
                   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
@@ -1104,7 +1160,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_ALL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), file, ofn.nFilterIndex, 7);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), file, ofn.nFilterIndex, 7);
-                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), file, ofn.nFilterIndex, 4);
+                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE), file, ofn.nFilterIndex, 4);
                   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
                 }
               }
@@ -1120,13 +1176,13 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))CopyDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_ALL), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_ALL),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), LOWORD(wParam)-POPUP_I_00 );
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))CopyDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), LOWORD(wParam)-POPUP_I_00 );
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))CopyDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_FILTER),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), LOWORD(wParam)-POPUP_I_00 );
-                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))CopyDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), LOWORD(wParam)-POPUP_I_00 );
+                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE)))CopyDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), LOWORD(wParam)-POPUP_I_00 );
               break;
               case POPUP_CP_LINE:
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_ALL), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_ALL),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 8);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL)))CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 8);
                   else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)))CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_FILTER), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_FILTER),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 8);
-                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE)))CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 4);
+                  else if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE)))CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE), SendMessage(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 4);
               break;
               case SELECT_ALL_SESSION:SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_SETSEL,SELECT_SESSION,(LPARAM)-1);SELECT_SESSION=!SELECT_SESSION;break;
               case SELECT_ALL_TEST:SendDlgItemMessage(h_state,DLG_STATE_LB_TEST,LB_SETSEL,SELECT_TEST,(LPARAM)-1);SELECT_TEST=!SELECT_TEST;break;
@@ -1207,7 +1263,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
           if (hlv == GetDlgItem(hwnd,DLG_STATE_LV_ALL) ||
               hlv == GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL) ||
               hlv == GetDlgItem(hwnd,DLG_STATE_LV_FILTER))
-          {}else if (hlv == GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE))
+          {}else if (hlv == GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE))
           {
             RemoveMenu(hmenu,POPUP_I_04,MF_BYCOMMAND);
             RemoveMenu(hmenu,POPUP_I_05,MF_BYCOMMAND);
@@ -1238,7 +1294,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
       {
         MoveWindow(GetDlgItem(hwnd,DLG_STATE_LV_ALL)      ,200,42,mWidth-205,mHeight-64,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_STATE_LV_CRITICAL) ,200,42,mWidth-205,mHeight-64,TRUE);
-        MoveWindow(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE),200,42,mWidth-205,mHeight-64,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE),200,42,mWidth-205,mHeight-64,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_STATE_LV_FILTER)   ,200,42,mWidth-205,mHeight-64,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,DLG_STATE_LB_SESSION)  ,2,1,192,mHeight/2-5,TRUE);
@@ -1250,7 +1306,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 
         //column resise
         unsigned int i;
-        DWORD column_sz = (mWidth-220)/8;
+        DWORD column_sz = (mWidth-240)/8;
         for (i=0;i<8;i++)
         {
           redimColumnH(GetDlgItem(hwnd,DLG_STATE_LV_ALL),i,column_sz);
@@ -1258,10 +1314,10 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
           redimColumnH(GetDlgItem(hwnd,DLG_STATE_LV_FILTER),i,column_sz);
         }
 
-        column_sz = (mWidth-220)/4;
-        for (i=0;i<4;i++)
+        column_sz = (mWidth-240)/6;
+        for (i=0;i<6;i++)
         {
-          redimColumnH(GetDlgItem(hwnd,DLG_STATE_LV_TIME_ZONE),i,column_sz);
+          redimColumnH(GetDlgItem(hwnd,DLG_STATE_LV_LOG_STATE),i,column_sz);
         }
       }
       InvalidateRect(hwnd, NULL, TRUE);
@@ -1281,9 +1337,9 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               TRI_STATE_CRITICAL = !TRI_STATE_CRITICAL;
               c_Tri(GetDlgItem(hwnd,((LPNMHDR)lParam)->idFrom),((LPNMLISTVIEW)lParam)->iSubItem,TRI_STATE_CRITICAL);
             break;
-            case DLG_STATE_LV_TIME_ZONE:
-              TRI_STATE_DATE = !TRI_STATE_DATE;
-              c_Tri(GetDlgItem(hwnd,((LPNMHDR)lParam)->idFrom),((LPNMLISTVIEW)lParam)->iSubItem,TRI_STATE_DATE);
+            case DLG_STATE_LV_LOG_STATE:
+              TRI_STATE_LOG = !TRI_STATE_LOG;
+              c_Tri(GetDlgItem(hwnd,((LPNMHDR)lParam)->idFrom),((LPNMLISTVIEW)lParam)->iSubItem,TRI_STATE_LOG);
             break;
             case DLG_STATE_LV_FILTER:
               TRI_STATE_FILTER = !TRI_STATE_FILTER;
