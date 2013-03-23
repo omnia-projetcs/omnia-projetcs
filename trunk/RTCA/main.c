@@ -1123,18 +1123,24 @@ int main(int argc, char* argv[])
     InitCommonControls();
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, CB_LANG, 0), (LPARAM)&rect);
-    hCombo_lang       = CreateWindowEx(0x00, WC_COMBOBOXEX, NULL,0x50010003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
-                                       htoolbar,(HMENU)CB_LANG, hinst, NULL);
+    if (rect.right - rect.left < 150)    hCombo_lang       = CreateWindowEx(0x00, WC_COMBOBOXEX, NULL,0x50010003|WS_TABSTOP,rect.left,rect.top+2,150,200,htoolbar,(HMENU)CB_LANG, hinst, NULL);
+    else hCombo_lang       = CreateWindowEx(0x00, WC_COMBOBOXEX, NULL,0x50010003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,htoolbar,(HMENU)CB_LANG, hinst, NULL);
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, CB_SESSION, 0), (LPARAM)&rect);
-    hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,
-                                     htoolbar,(HMENU)CB_SESSION, hinst, NULL);
+    if (rect.right - rect.left < 300)      hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,300,200,htoolbar,(HMENU)CB_SESSION, hinst, NULL);
+    else     hCombo_session    = CreateWindow("Combobox", NULL,0x50210003|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,200,htoolbar,(HMENU)CB_SESSION, hinst, NULL);
 
     SendMessage(htoolbar, TB_GETITEMRECT, SendMessage(htoolbar, TB_COMMANDTOINDEX, ED_SEARCH, 0), (LPARAM)&rect);
-    he_search         = CreateWindow("Edit", NULL,0x50810080|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,22,
-                                     htoolbar,(HMENU)ED_SEARCH, hinst, NULL);
+    if (rect.right - rect.left < 270)he_search         = CreateWindow("Edit", NULL,0x50810080|WS_TABSTOP,rect.left,rect.top+2,270,22,htoolbar,(HMENU)ED_SEARCH, hinst, NULL);
+    else he_search         = CreateWindow("Edit", NULL,0x50810080|WS_TABSTOP,rect.left,rect.top+2,rect.right - rect.left,22,htoolbar,(HMENU)ED_SEARCH, hinst, NULL);
+
     //status bar
     hstatus_bar       = CreateWindow(STATUSCLASSNAME, NULL,0x50000000,0,0,0,40, h_main,NULL, hinst, NULL);
+    int sPart[2];
+    sPart[0] = 200;   //default information
+    sPart[1] = 2048;  //+
+    SendMessage(hstatus_bar,SB_SETPARTS,(WPARAM)2, (LPARAM)sPart);
+
     //listeview resultats
     hlstv             = CreateWindowEx(0x200,WC_LISTVIEW,NULL,LVS_REPORT|WS_VISIBLE|WS_CHILD,202,32,590,493,h_main,
                                        (HMENU)LV_VIEW, hinst, NULL);
@@ -1396,18 +1402,14 @@ int main(int argc, char* argv[])
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 0, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 0, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 0, &lvc);
-    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 0, &lvc);
     lvc.pszText = "Origine";
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 1, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 1, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 1, &lvc);
-    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 1, &lvc);
     lvc.pszText = "Source";
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 2, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 2, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 2, &lvc);
-    lvc.pszText = "State";
-    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 2, &lvc);
     lvc.pszText = "Info";
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 3, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 3, &lvc);
@@ -1416,7 +1418,6 @@ int main(int argc, char* argv[])
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 4, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 4, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 4, &lvc);
-    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_TIME_ZONE), 3, &lvc);
     lvc.pszText = "Owner/User";
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_ALL), 5, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 5, &lvc);
@@ -1430,9 +1431,21 @@ int main(int argc, char* argv[])
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_CRITICAL), 7, &lvc);
     ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_FILTER), 7, &lvc);
 
+    lvc.pszText = "Event";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 0, &lvc);
+    lvc.pszText = "Source";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 1, &lvc);
+    lvc.pszText = "ID";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 2, &lvc);
+    lvc.pszText = "State";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 3, &lvc);
+    lvc.pszText = "Description";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 4, &lvc);
+    lvc.pszText = "Nb record";
+    ListView_InsertColumn(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), 5, &lvc);
     SendDlgItemMessage(h_state,DLG_STATE_LV_ALL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     SendDlgItemMessage(h_state,DLG_STATE_LV_CRITICAL,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-    SendDlgItemMessage(h_state,DLG_STATE_LV_TIME_ZONE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+    SendDlgItemMessage(h_state,DLG_STATE_LV_LOG_STATE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     SendDlgItemMessage(h_state,DLG_STATE_LV_FILTER,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
 
     SendDlgItemMessage(h_state,DLG_STATE_ED_TIME_1,CB_ADDSTRING,0,(LPARAM)"2012/11/18 11:11:11");

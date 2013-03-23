@@ -114,50 +114,60 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
 
       if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
       {
+
+        printf("resultat:%s\n",resultat);
+
         if (strlen(resultat)>20)
         {
-          if (resultat[16] == 't' && resultat[17] == 'r' && resultat[18] == 'u' && resultat[19] == 'e') //dans la base
+          //"file_exists": true
+          char *c = resultat;
+          while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='f'|| *(c+4)!='i'))c++;
+          if (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='f'|| *(c+4)!='i')
           {
-            vts->exist = TRUE;
-
-            //lecture + convertion : last_analysis_date
-            char *c = resultat;
-            while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='l'|| *(c+4)!='a'))c++;
-
-            if (*c == ',' && *(c+1)==' ' && *(c+2)=='"' && *(c+3)=='l' && *(c+4)=='a')
+            c+=strlen(", \"file_exists\": "); //17
+            if (*c == 't')
             {
-              c+=25;
-
-              //test si une date ou non !!!
-              if (*c == 'u')strncpy(vts->last_analysis_date,"NULL",5);
-              else
-              {
-                //MessageBox(0,resultat,c,MB_OK|MB_TOPMOST);
-
-                strncpy(vts->last_analysis_date,c,19);
-
-                vts->last_analysis_date[4]='/';
-                vts->last_analysis_date[7]='/';
-                vts->last_analysis_date[10]='-';
-                vts->last_analysis_date[19]=0;
-              }
-            }
-
-            //lecture : detection_ratio
-            c = resultat;
-            while (*c && (*c != '['))c++;
-            if (*c == '[')
-            {
-              c++;
-              strncpy(vts->detection_ratio,c,19);
-
-              //recherche de la fin
-              c = vts->detection_ratio;
-              while (*c && *c!=']')c++;
-              *c=0;
-            }
+              vts->exist = TRUE;
+            }else vts->exist = FALSE;
           }else vts->exist = FALSE;
-        }
+
+          //lecture + convertion : , "last_analysis_date": "
+          c = resultat;
+          while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='l'|| *(c+4)!='a'))c++;
+
+          if (*c == ',' && *(c+1)==' ' && *(c+2)=='"' && *(c+3)=='l' && *(c+4)=='a')
+          {
+            c+=strlen(", \"last_analysis_date\": \""); //25
+
+            //test si une date ou non !!!
+            if (*c == 'u')strncpy(vts->last_analysis_date,"NULL",5);
+            else
+            {
+              //MessageBox(0,resultat,c,MB_OK|MB_TOPMOST);
+
+              strncpy(vts->last_analysis_date,c,19);
+
+              vts->last_analysis_date[4]='/';
+              vts->last_analysis_date[7]='/';
+              vts->last_analysis_date[10]='-';
+              vts->last_analysis_date[19]=0;
+            }
+          }
+
+          //lecture : detection_ratio
+          c = resultat;
+          while (*c && (*c != '['))c++;
+          if (*c == '[')
+          {
+            c++;
+            strncpy(vts->detection_ratio,c,19);
+
+            //recherche de la fin
+            c = vts->detection_ratio;
+            while (*c && *c!=']')c++;
+            *c=0;
+          }
+        }else vts->exist = -2;
       }
       InternetCloseHandle(M_requete);
     }
@@ -194,7 +204,15 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   switch(vts.exist)
   {
     case -1:strcpy(resultats,"Connection error");break;
-    case 0:strcpy(resultats,"Unknow");break;
+    case -2:strcpy(resultats,"Unkown datas");break;
+    case 0:
+      strcpy(resultats,"Unknow");
+      if (vts.last_analysis_date[0] != 0 || vts.detection_ratio[0] != 0)
+        snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
+
+      if (vts.last_analysis_date[0] != 0 && vts.detection_ratio[0] != 0)
+        UpdateDataBaseWithVirusTotal(vts.sha256, resultats);
+    break;
     case 1:
       snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
       UpdateDataBaseWithVirusTotal(vts.sha256, resultats);

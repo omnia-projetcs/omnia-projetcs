@@ -50,13 +50,15 @@ void EnumUpdate(HKEY hk, char *chk,char *path, unsigned int session_id, sqlite3 
             name[0]                     = 0;
             if (ReadValue(hk,ttmp_key,"Description",description_package_name, MAX_PATH))ok = TRUE;
             if (ReadValue(hk,ttmp_key,"PackageName",name, MAX_PATH))ok = TRUE;
+            else if (ReadValue(hk,ttmp_key,"InstallName",name, MAX_PATH))ok = TRUE;
 
             if (ok)
             {
               InstalledBy[0]        = 0;
 
               //InstalledBy
-              ReadValue(hk,ttmp_key,"InstalledBy",InstalledBy, MAX_PATH);
+              if(!ReadValue(hk,ttmp_key,"InstalledBy",InstalledBy, MAX_PATH))
+                ReadValue(hk,ttmp_key,"InstallUser",InstalledBy, MAX_PATH);
 
               //last update
               filetimeToString_GMT(LastWriteTime, lastupdate, DATE_SIZE_MAX);

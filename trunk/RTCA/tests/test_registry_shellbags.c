@@ -33,13 +33,22 @@ void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value,
   START_SHELLBAG *ss = data;
   char file[MAX_PATH]="";
 
-  if (ss->type == 0x31 || ss->type == 0x32) //0x31 = répertoire, 0x32 = file
+  if (ss->type == 0x31 || ss->type == 0x32) //0x31 = directory, 0x32 = file
   {
     //read full file name
     char *c = data + sizeof(START_SHELLBAG);
     c = c+(strlen(c)+22);
     if (*c == 0x00)c--;
     snprintf(file,MAX_PATH,"%S",c);
+    if (strlen(file) < 2)
+    {
+      c = data + sizeof(START_SHELLBAG);
+      if (*(c-1) != 0)
+      {
+        c=c-2;
+        snprintf(file,MAX_PATH,"%s",c);
+      }else snprintf(file,MAX_PATH,"%s",c);
+    }
   }else
   {
     //direct share path
