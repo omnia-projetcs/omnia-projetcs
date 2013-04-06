@@ -51,7 +51,8 @@ BEGIN
   CONTROL "Enable ACL files check",     BT_ACL_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,228,174,9
   CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,238,174,9
   CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,248,174,9
-  CONTROL "UTC/GMT",                    BT_UTC_CHK        ,"Button"         ,0x50010003|WS_TABSTOP,272,258,174,9
+  CONTROL "UTC/GMT",                    BT_UTC_CHK        ,"Button"         ,0x50010003|WS_TABSTOP,272,258,90,9
+  CONTROL "File magic number",          BT_MAGIC_CHK      ,"Button"         ,0x50010003|WS_TABSTOP,370,258,80,9
 
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
   CONTROL "",                           DLG_CONF_SB,"msctls_statusbar32",0x50000000,0,265,554,12

@@ -485,6 +485,7 @@ BOOL Readnk_Class(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
       //read
       if (nk_h->class_name_size > 4) // bypass header 0xe8FFFFFF
         snprintf(Class,Class_size,"%S",&buffer[pos_fhbin+nk_h->class_name_offset-HBIN_HEADER_SIZE+4]);
+      else snprintf(Class,Class_size,"%S",&buffer[pos_fhbin+nk_h->class_name_offset-HBIN_HEADER_SIZE]);
       return TRUE;
     }
   }

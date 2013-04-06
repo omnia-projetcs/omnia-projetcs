@@ -136,7 +136,7 @@ HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
 HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed;
-BOOL disable_m_context, disable_p_context;
+BOOL disable_m_context, disable_p_context, enable_magic;
 
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
@@ -154,6 +154,7 @@ BOOL disable_m_context, disable_p_context;
 #define BT_ADS_FILE_CHK          2015
 #define BT_REGISTRY_RECOV_MODE   2016
 #define BT_UTC_CHK               2017
+#define BT_MAGIC_CHK             2018
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
@@ -220,7 +221,7 @@ BOOL reg_file_start_process;
 #define TV_VIEW                     6052
 #define STB                         6053
 
-#define DLG_REG_LV_NB_COLUMN          8
+#define DLG_REG_LV_NB_COLUMN          9
 
 //date
 #define DLG_DATE                    7000

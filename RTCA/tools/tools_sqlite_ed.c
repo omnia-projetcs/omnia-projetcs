@@ -81,7 +81,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               ofn.hwndOwner = h_main;
               ofn.lpstrFile = file;
               ofn.nMaxFile = MAX_PATH;
-              ofn.lpstrFilter ="SQLITE (*.sqlite)\0*.sqlite\0ALL (*.*)\0*.*\0";
+              ofn.lpstrFilter ="SQLITE (*.sqlite)\0*.sqlite\0SQLITE (*.db)\0*.db\0ALL (*.*)\0*.*\0";
               ofn.nFilterIndex = 1;
               ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST| OFN_ALLOWMULTISELECT | OFN_EXPLORER;
               ofn.lpstrDefExt ="*.sqlite\0";

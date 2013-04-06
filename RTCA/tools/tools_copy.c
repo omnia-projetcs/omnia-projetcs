@@ -928,7 +928,6 @@ void SaveALL(char*filetosave, char *computername)
 
     snprintf(file,MAX_PATH,"%s\\log.txt",local_path);
     HANDLE MyhFile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
-    DWORD copiee;
 
     char tmp_path[MAX_PATH]="";
     char *s = tmp_path;

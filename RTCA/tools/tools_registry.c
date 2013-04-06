@@ -41,10 +41,14 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
   strncpy(lv_line[1].c,parent,MAX_LINE_SIZE);
 
   lv_line[7].c[0] = 0;  //deleted = no view in this state
+  lv_line[8].c[0] = 0;
 
   //read nk infos :)
   Readnk_Infos(hks->buffer,hks->taille_fic, (hks->pos_fhbin), hks->position,
                NULL, nk_h, parent_key_update, DATE_SIZE_MAX, NULL, 0,Owner_SID, MAX_PATH);
+
+  Readnk_Class(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position,
+               NULL, nk_h, lv_line[8].c, MAX_PATH);
 
   //read all vk
   nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
