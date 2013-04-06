@@ -190,6 +190,7 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   SQLITE_FULL_SPEED = FALSE;
   B_SCREENSHOT      = FALSE;
   B_SCREENSHOT_START= FALSE;
+  enable_magic      = FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);

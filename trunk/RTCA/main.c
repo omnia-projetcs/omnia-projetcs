@@ -249,6 +249,14 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 char tmp[MAX_PATH];
                 SendMessage(he_search,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
                 LVAllSearch(hlstv, nb_current_columns, tmp);
+
+                DWORD nb = ListView_GetSelectedCount(hlstv);
+                if (nb)
+                {
+                  char t[DEFAULT_TMP_SIZE];
+                  snprintf(t,DEFAULT_TMP_SIZE,"Selected items : %lu",nb);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)t);
+                }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"");
               }
               break;
               //-----------------------------------------------------
@@ -467,6 +475,17 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       {
         switch(((LPNMHDR)lParam)->code)
         {
+          case NM_CLICK:
+          {
+            DWORD nb = ListView_GetSelectedCount(hlstv);
+            if (nb)
+            {
+              char t[DEFAULT_TMP_SIZE];
+              snprintf(t,DEFAULT_TMP_SIZE,"Selected items : %lu",nb);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)t);
+            }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"");
+          }
+          break;
           case LVN_COLUMNCLICK:
             TRI_RESULT_VIEW = !TRI_RESULT_VIEW;
             c_Tri(hlstv,((LPNMLISTVIEW)lParam)->iSubItem,TRI_RESULT_VIEW);
@@ -1315,6 +1334,8 @@ int main(int argc, char* argv[])
     ListView_InsertColumn(GetDlgItem(h_reg,LV_VIEW), 6, &lvc);
     lvc.pszText = "Deleted";
     ListView_InsertColumn(GetDlgItem(h_reg,LV_VIEW), 7, &lvc);
+    lvc.pszText = "Class ID";
+    ListView_InsertColumn(GetDlgItem(h_reg,LV_VIEW), 8, &lvc);
 
     //trv
     HIMAGELIST hImageList=ImageList_Create(16,16,ILC_COLORDDB | ILC_MASK,6,0);

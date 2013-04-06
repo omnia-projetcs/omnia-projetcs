@@ -1072,6 +1072,8 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               //clean LSTV
               ListView_DeleteAllItems(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE));
 
+              //set column title
+
               //get database state of all selected sessions !
               long int s, nb_sessions  = SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETCOUNT,0,(LPARAM)0);
               char request[MAX_LINE_SIZE] = "SELECT event, source, log_id, state, description, count(log_id) AS TOTAL FROM extract_log WHERE";
@@ -1085,9 +1087,9 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 {
                   if (first)
                   {
-                    snprintf(tmp,MAX_LINE_SIZE,"%s session_id = %d",request,session[s]);
+                    snprintf(tmp,MAX_LINE_SIZE,"%s session_id = %lu",request,session[s]);
                     first = FALSE;
-                  }else snprintf(tmp,MAX_LINE_SIZE,"%s OR session_id = %d",request,session[s]);
+                  }else snprintf(tmp,MAX_LINE_SIZE,"%s OR session_id = %lu",request,session[s]);
                   strcpy(request,tmp);
                 }
               }
@@ -1096,7 +1098,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               snprintf(request,MAX_LINE_SIZE,"%s group by source,log_id ORDER BY TOTAL DESC;",tmp);
               sqlite3_exec(db_scan, request, callback_sqlite_state, &fcri, NULL);
 
-              snprintf(request,MAX_LINE_SIZE,"Load %lu item(s)",(DWORD)ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_ALL)));
+              snprintf(request,MAX_LINE_SIZE,"Load %lu item(s)",(DWORD)ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE)));
               SendDlgItemMessage(h_state,DLG_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
               ShowOnglet(DLG_STATE_LV_LOG_STATE);
             break;

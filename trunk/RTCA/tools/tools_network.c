@@ -421,7 +421,7 @@ BOOL TraitementTrame(unsigned char *buffer, unsigned int taille,unsigned long in
   }
 
   //ipv6 : disable
-  if (iphdr_size > taille || iphdr_size < IPV4_HDR_SIZE || (ipv4_hdr->ip_header_len_version >> 4) == 6)return;
+  if (iphdr_size > taille || iphdr_size < IPV4_HDR_SIZE || (ipv4_hdr->ip_header_len_version >> 4) == 6)return 0;
 
   char tmp[DEFAULT_TMP_SIZE];
   LVITEM lvi;
@@ -561,7 +561,7 @@ DWORD WINAPI Sniff(LPVOID lParam)
     memset(&sock_addr, 0, sizeof(sock_addr));
 
     unsigned char buffer[TAILLE_MAX_BUFFER_TRAME]="";
-    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)0),buffer);
+    SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)NULL),buffer);
 
     sock_addr.sin_addr.s_addr = inet_addr(buffer);
     sock_addr.sin_family      = AF_INET;
@@ -903,7 +903,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) & 0x0F)*4;
 
   snprintf(buffer_ipv4,REQUEST_MAX_SIZE,
-               "[%s:%d->%s:%d]%08d\r\n"
+               "[%s:%d->%s:%d]%08lu\r\n"
                "[IPV4 HEADER]\r\n"
                "ip_header_len:\t%d\r\n"
                "ip_version:\t%d\r\n"

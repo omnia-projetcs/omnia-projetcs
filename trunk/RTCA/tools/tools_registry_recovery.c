@@ -222,6 +222,14 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
       if (deleted)strcpy(lv_line[7].c,"X");
       else lv_line[7].c[0]=0;
 
+      lv_line[8].c[0]=0;
+      if (nk_h->class_name_offset < 0xFFFFFFFF && nk_h->class_name_size > 0 && (HBIN_FIRST_DEFAULT+nk_h->class_name_offset)<taille_fic)
+      {
+        if (nk_h->class_name_size > 4) // bypass header 0xe8FFFFFF
+          snprintf(lv_line[8].c,MAX_PATH,"%S",&buffer[HBIN_FIRST_DEFAULT+nk_h->class_name_offset+4]);
+        else snprintf(lv_line[8].c,MAX_PATH,"%S",&buffer[HBIN_FIRST_DEFAULT+nk_h->class_name_offset]);
+      }
+
       //lecture des valeures ^^
       DWORD i, k;
       S_ITEM_LS *item_ls;

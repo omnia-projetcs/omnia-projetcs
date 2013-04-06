@@ -23,6 +23,203 @@ void addFiletoDB(char *path, char *file, char *extension,
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
+//src : http://code.google.com/p/liblnk/
+void ReadLNKInfos(char *file, char*create_time,char*last_access_time,char*last_modification_time,char*local_path,char*to)
+{
+  typedef struct
+  {
+    unsigned int header_size;         // default : 0x0000004C (76)
+    unsigned char lnk_class_id[16];   // default : 00021401-0000-0000-00c0-000000000046
+    unsigned int data_flag;
+    unsigned int file_attribute_flag;
+    FILETIME create_time;
+    FILETIME last_access_time;
+    FILETIME last_modification_time;
+    unsigned int file_size;
+    unsigned int icon_index;
+    unsigned int show_window_value;
+    unsigned short hot_key;
+    unsigned char reserved[10];
+  }LNK_STRUCT, *PLNK_STRUCT;
+
+  if (create_time != NULL)create_time[0]                        = 0;
+  if (last_access_time != NULL)last_access_time[0]              = 0;
+  if (last_modification_time != NULL)last_modification_time[0]  = 0;
+  if (local_path != NULL)local_path[0]                          = 0;
+  if (to != NULL)to[0]                                          = 0;
+
+
+  HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (Hfic != INVALID_HANDLE_VALUE)
+  {
+    DWORD taille_fic = GetFileSize(Hfic,NULL);
+    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
+    {
+      unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      if (buffer != NULL)
+      {
+        DWORD copiee = 0;
+        ReadFile(Hfic, buffer, taille_fic,&copiee,0);
+        if (copiee>0)
+        {
+          //header
+          PLNK_STRUCT p = buffer;
+
+          //get times
+          if (create_time != NULL)filetimeToString_GMT(p->create_time, create_time, DATE_SIZE_MAX);
+          if (last_access_time != NULL)filetimeToString_GMT(p->last_access_time, last_access_time, DATE_SIZE_MAX);
+          if (last_modification_time != NULL)filetimeToString_GMT(p->last_modification_time, last_modification_time, DATE_SIZE_MAX);
+
+          //get path !!!
+          char *c = buffer+taille_fic;
+
+          //search 0x00002500 => start of local path
+          while (c-4 != buffer && *c != 0x00 && *(c-1)!=0x00 && *(c-2)!='%' && *(c-3)!=0x00 && *(c-4)!=0x00)c--;
+          char mlocal_path[MAX_PATH]="";
+          snprintf(mlocal_path,MAX_PATH,"%s",c+1);
+          if (local_path != NULL)strcpy(local_path,mlocal_path);
+
+          //to
+          if (to != NULL)snprintf(to,MAX_PATH,"%s",c+2+strlen(local_path));
+        }
+        HeapFree(GetProcessHeap(), 0,buffer);
+      }
+    }
+  }
+  CloseHandle(Hfic);
+}
+
+//------------------------------------------------------------------------------
+#define MAGIC_NUMBER_SIZE 16
+void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_size_max)
+{
+  if (magicnumber != NULL)
+  {
+    magicnumber[0] = 0;
+    char datas[MAGIC_NUMBER_SIZE+1] = "";
+
+    //read 32first octets if possible
+    HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+    if (Hfic != INVALID_HANDLE_VALUE)
+    {
+      DWORD taille_fic = GetFileSize(Hfic,NULL);
+      if (taille_fic > 0)
+      {
+        unsigned short toread = MAGIC_NUMBER_SIZE;
+        if (taille_fic<toread)toread = taille_fic-1;
+        {
+          //read datas
+          DWORD copiee = 0;
+          ReadFile(Hfic, datas, toread,&copiee,0);
+
+          if (copiee>0)
+          {
+            //search mime type !!!
+            //http://www.garykessler.net/library/file_sigs.html
+            struct
+            {
+              union
+              {
+                unsigned char uc;             //1
+                unsigned short us;            //2
+                unsigned int ui;              //4
+                unsigned long int uli;        //8
+                unsigned long long int ulli;  //16
+              };
+            }*s_datas = datas;
+
+            //movies
+            if (s_datas->uli == 0x7079746614000000) strcpy(magicnumber,"Movie (MOV/MP4)");
+            else if (datas[0] == 0x00 && datas[1] == 0x00 && datas[2] == 0x01 && datas[3]&0xB0 == 0xB0) strcpy(magicnumber,"Movie (MPG, MPEG, VOB/DVD)");
+            else if (s_datas->ui == 0x464D522E) strcpy(magicnumber,"Movie (RMVB/RA)");
+            else if (s_datas->ui == 0x01564C46) strcpy(magicnumber,"Movie (FLV)");
+            //else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Movie (AVI)");
+            else if (s_datas->ui == 0x766F6F6D) strcpy(magicnumber,"Movie (MOV)");
+            else if (s_datas->ulli == 0x616B736F7274616D88824293A3DF451A) strcpy(magicnumber,"Movie (MKV)");
+
+            //audio
+            else if (s_datas->uli == 0x11CF668E75B22630) strcpy(magicnumber,"Audio (ASF, WMA, WMV)");
+            else if (datas[0] == 0x49 && datas[1] == 0x44 && datas[2] == 0x33) strcpy(magicnumber,"Audio (MP3)");
+            else if (s_datas->ui == 0x6468544D) strcpy(magicnumber,"Audio (MID/MIDI)");
+            else if (s_datas->uli == 0x000002005367674F) strcpy(magicnumber,"Audio (OGG)");
+            else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Audio/Movie (WAV/AVI)");
+
+            //image
+            else if (s_datas->us == 0x4D42) strcpy(magicnumber,"Image (BMP)");
+            else if (s_datas->ui == 0x38464947) strcpy(magicnumber,"Image (GIF)");
+            else if (s_datas->ui == 0x474E5089) strcpy(magicnumber,"Image (PNG)");
+            else if (s_datas->ui == 0x00010000) strcpy(magicnumber,"Image (ICO)");
+            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0xE0FFD8FF) strcpy(magicnumber,"Image (JPG)");
+
+            //office
+            else if (s_datas->uli == 0x000560000008190) strcpy(magicnumber,"Office MS (XLS)");
+            else if (s_datas->ui == 0x434F440D || s_datas->ui == 0x002DA5DB || s_datas->ui == 0x00C1A5EC || s_datas->uli == 0x00E11AB1A1E011CF) strcpy(magicnumber,"Office MS (DOC)");
+            else if (s_datas->ui == 0x03E8000F ||s_datas->ui == 0x0F1D46A0) strcpy(magicnumber,"Office MS (PPT)");
+            else if (s_datas->ui == 0x46445025) strcpy(magicnumber,"Office (PDF)");
+            else if (s_datas->uli == 0x0006001404034B50) strcpy(magicnumber,"Office (DOCX, PPTX, XLSX)");
+            else if (s_datas->uli == 0xE11AB1A1E011CFD0) strcpy(magicnumber,"Office (DOC, PPT, XLS)");
+
+            //compressé
+            else if (s_datas->us == 0x8B1F) strcpy(magicnumber,"Archive (GZ, TGZ, GZIP)");
+            else if (s_datas->us == 0x9D1F) strcpy(magicnumber,"Archive (TAR.Z)");
+            else if (s_datas->us == 0xA01F) strcpy(magicnumber,"Archive (TAR.Z)");
+            else if (s_datas->us == 0x6C2D) strcpy(magicnumber,"Archive (LHA, LZH)");
+            else if (s_datas->ui == 0xAFBC7A37) strcpy(magicnumber,"Archive (7zip)");
+            else if (s_datas->us == 0x5A42) strcpy(magicnumber,"Archive (BZ2, TAR.BZ2, TBZ2, TB2)");
+            else if (s_datas->ui == 0x30304443) strcpy(magicnumber,"Archive (ISO)");
+            else if (s_datas->ui == 0x4F534943) strcpy(magicnumber,"Archive (Compresed ISO : CSO)");
+            else if (s_datas->ui == 0x28635349) strcpy(magicnumber,"Archive (CAB, HDR)");
+            else if (s_datas->ui == 0x04034B50 || s_datas->ui == 0x5A6E6957 || s_datas->us == 0x4B50) strcpy(magicnumber,"Archive (ZIP)");
+            else if (s_datas->ui == 0x21726152) strcpy(magicnumber,"Archive (RAR/ZIP)");
+            else if (s_datas->us == 0xEA60) strcpy(magicnumber,"Archive (JAR)");
+            else if (s_datas->ui == 0x61747375) strcpy(magicnumber,"Archive (TAR)");
+            else if (s_datas->ui == 0x4643534D) strcpy(magicnumber,"Archive (CAB)");
+
+            //crypt
+            else if (datas[0] == 0x41 && datas[1] == 0x45 &&  datas[2] == 0x53) strcpy(magicnumber,"Crypt (AES)");
+            else if (s_datas->uc == 0x99) strcpy(magicnumber,"Crypt (GPG)");
+
+            //special
+            else if (s_datas->uli == 0x4143435300000011) strcpy(magicnumber,"System Windows prefetch (PF)");
+            else if (s_datas->uli == 0x654C664C00000030) strcpy(magicnumber,"System Windows log (EVT)");
+            else if (s_datas->ui == 0x46666C45) strcpy(magicnumber,"System Windows log (EVTX)");
+            else if (s_datas->ui == 0x00035F3F || s_datas->ui == 0x00024E4C) strcpy(magicnumber,"System Windows help (HLP)");
+            else if (s_datas->ui == 0x46535449) strcpy(magicnumber,"System Windows help (CHM)");
+            else if (s_datas->ui == 0x65696C43) strcpy(magicnumber,"Navigateur IE history (DAT)");
+            else if (s_datas->ui == 0x45474552) strcpy(magicnumber,"System Windows Registre (REG)");
+            else if (s_datas->ui == 0x66676572) strcpy(magicnumber,"System Windows Registre (DAT)");
+            else if (s_datas->ui == 0xFFFFFFFD) strcpy(magicnumber,"System Windows (Thumbs.db)");
+            else if (s_datas->ui == 0x6974227B) strcpy(magicnumber,"Navigateur bookmark Firefox (JSON)");
+            else if (s_datas->ui == 0x0000004C) strcpy(magicnumber,"System Windows link (LNK)");
+            else if (s_datas->ui == 0x68532E5B) strcpy(magicnumber,"System Windows config file (INI)");
+            else if (s_datas->ui == 0x000DFEFF) strcpy(magicnumber,"System Windows config file (INF)");
+
+            //bdd
+            else if (s_datas->ui == 0x694C5153) strcpy(magicnumber,"Bdd (SQLITE)");
+            else if (s_datas->ui == 0xF905D5D9) strcpy(magicnumber,"Bdd (sqlite-journal)");
+
+            //Executable
+            else if (s_datas->ui == 0x4352414A) strcpy(magicnumber,"Executable (JAR)");
+            else if (s_datas->uli == 0x0008001404034B50) strcpy(magicnumber,"Executable (JAR)");
+            else if (s_datas->us == 0x5A4D || s_datas->ui == 0x54202124) strcpy(magicnumber,"Executable (COM, DLL, DRV, EXE, PIF, QTS, QTX, SYS)"); //32bits
+
+            //code
+            //else if (s_datas->ui == 0x6D783F3C) strcpy(magicnumber,"Web page (XML)");
+            else if (s_datas->ui == 0x4F44213C || s_datas->ui == 0x44213C0A) strcpy(magicnumber,"Web page (HTML)");
+
+            //or
+            //else snprintf(magicnumber,magicnumber_size_max,"MagicNumber: %02X%02X%02X%02X",datas[0]&0xff,datas[1]&0xff,datas[2]&0xff,datas[3]&0xff);
+            //test
+            else snprintf(magicnumber,magicnumber_size_max,"Unknow MagicNumber: %02X%02X%02X%02X",datas[3]&0xff,datas[2]&0xff,datas[1]&0xff,datas[0]&0xff);
+          }
+        }
+      }
+    }
+    CloseHandle(Hfic);
+  }
+}
+
+//------------------------------------------------------------------------------
 //from : http://rootkitanalytics.com/userland/Exploring-Alternate-Data-Streams.php
 DWORD EnumADS(char *file, char *resultat, DWORD size)
 {
@@ -378,6 +575,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
   char s_sha[65]="";
   char s_acl[MAX_PATH]="",owner[MAX_PATH]="",rid[MAX_PATH]="",sid[MAX_PATH]="";
   char ext[MAX_PATH]="";
+  char magi_number[DEFAULT_TMP_SIZE]="";
 
   snprintf(tmp_path,MAX_PATH,"%s*.*",path);
   HANDLE hfic = FindFirstFile(tmp_path, &data);
@@ -447,6 +645,9 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           //acl
           if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
 
+          //file magic number
+          if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
+
           //extension
           strncpy(file,data.cFileName,MAX_PATH);
           extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
@@ -460,7 +661,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
                       data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", "",session_id,db);
+                      s_ads, s_sha, "", magi_number,session_id,db);
         }
     }
   }while(FindNextFile (hfic,&data) && start_scan);
@@ -477,6 +678,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
   char s_sha[65]="";
   char s_acl[MAX_PATH]="",owner[MAX_PATH]="",rid[MAX_PATH]="",sid[MAX_PATH]="";
   char ext[MAX_PATH]="";
+  char magi_number[DEFAULT_TMP_SIZE]="";
 
   snprintf(tmp_path,MAX_PATH,"%s*.*",path);
   HANDLE hfic = FindFirstFile(tmp_path, &data);
@@ -549,6 +751,9 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
           //acl
           if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
 
+          //file magic number
+          if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
+
           //extension
           strncpy(file,data.cFileName,MAX_PATH);
           extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
@@ -562,7 +767,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
                       data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", "",session_id,db);
+                      s_ads, s_sha, "", magi_number,session_id,db);
         }
     }
   }while(FindNextFile (hfic,&data) && start_scan);
@@ -578,6 +783,7 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
   char s_sha[65]="";
   char s_acl[MAX_PATH]="",owner[MAX_PATH]="",rid[MAX_PATH]="",sid[MAX_PATH]="";
   char ext[MAX_PATH]="";
+  char magi_number[DEFAULT_TMP_SIZE]="";
 
   HANDLE hfic = FindFirstFile(path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
@@ -628,6 +834,9 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
           //acl
           if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
 
+          //file magic number
+          if(enable_magic)ReadMagicNumber(path, magi_number, DEFAULT_TMP_SIZE);
+
           //extension
           extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
 
@@ -640,7 +849,7 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
                       data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
                       data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", "",session_id,db);
+                      s_ads, s_sha, "", magi_number,session_id,db);
         }
     }
   }while(FindNextFile (hfic,&data) && start_scan);

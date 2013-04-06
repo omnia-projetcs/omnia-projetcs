@@ -163,7 +163,6 @@ void Scan_registry_ShellBags_direct(char *ckey, unsigned int session_id, sqlite3
   HKEY CleTmp;
   if (RegOpenKey((HKEY)HKEY_USERS,"",&CleTmp)!=ERROR_SUCCESS)return;
 
-  char key[MAX_PATH];
   DWORD nbSubKey=0, i,key_size;
   if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,NULL,NULL,NULL,NULL,NULL)!=ERROR_SUCCESS)
   {
@@ -202,9 +201,6 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
 
   char file[MAX_PATH];
   HK_F_OPEN hks;
-
-  FORMAT_CALBAK_READ_INFO fcri;
-  fcri.type = SQLITE_REGISTRY_TYPE_RUN;
 
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);

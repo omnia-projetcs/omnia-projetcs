@@ -116,7 +116,7 @@ DWORD WINAPI ImpEcran(LPVOID lParam)
                   *lpbi = BmpInfo.bmiHeader;
 
                   //get datas
-                  if (GetDIBits(memDC, Hbmp, 0, (UINT) Height, (LPSTR)lpbi + sizeof(BITMAPINFOHEADER),(LPBITMAPINFO)lpbi, DIB_RGB_COLORS)!=NULL)
+                  if (GetDIBits(memDC, Hbmp, 0, (UINT) Height, (LPSTR)lpbi + sizeof(BITMAPINFOHEADER),(LPBITMAPINFO)lpbi, DIB_RGB_COLORS)!=0)
                   {
                     //create file
                     HANDLE hfile = CreateFile(fic, GENERIC_WRITE,0,NULL,CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, NULL);
