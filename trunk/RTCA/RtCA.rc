@@ -236,6 +236,7 @@ BEGIN
   BEGIN
     MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
+    MENUITEM "Deactivate the grid"        ,BT_DISABLE_GRID
     MENUITEM SEPARATOR
     MENUITEM "Screenshot"                 ,BT_SREEENSHOT
     MENUITEM SEPARATOR

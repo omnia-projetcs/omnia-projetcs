@@ -171,7 +171,6 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     //tests
     case INDEX_FILE://file
     {
-
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
       lvi.mask       = LVIF_TEXT|LVIF_PARAM;
@@ -226,6 +225,56 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
         ListView_SetItemText(hlv,ref_item3,5,argv[7]);    //Owner
         ListView_SetItemText(hlv,ref_item3,6,argv[9]);    //SID
         ListView_SetItemText(hlv,ref_item3,7,session_state);//Session
+      }
+    }
+    break;
+    case INDEX_FILE_NK:
+    {
+      HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
+      LVITEM lvi;
+      lvi.mask       = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem   = 0;
+      lvi.lParam     = LVM_SORTITEMS;
+      lvi.pszText    = "";
+
+      char description[MAX_LINE_SIZE];
+      snprintf(description,MAX_LINE_SIZE,"%s -> %s",argv[4],argv[5]);
+
+      if (strlen(argv[1]) > 8)
+      {
+        lvi.iItem      = ListView_GetItemCount(hlv);
+        DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+        ListView_SetItemText(hlv,ref_item,0,argv[1]);     //date
+        ListView_SetItemText(hlv,ref_item,1,azColName[1]);//Origine
+        ListView_SetItemText(hlv,ref_item,2,src_name);    //Source
+        ListView_SetItemText(hlv,ref_item,3,description); //Description
+        ListView_SetItemText(hlv,ref_item,4,argv[0]);
+        ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+      }
+      if (strlen(argv[2]) > 8)
+      {
+        lvi.iItem      = ListView_GetItemCount(hlv);
+        DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+        ListView_SetItemText(hlv,ref_item,0,argv[2]);     //date
+        ListView_SetItemText(hlv,ref_item,1,azColName[2]);//Origine
+        ListView_SetItemText(hlv,ref_item,2,src_name);    //Source
+        ListView_SetItemText(hlv,ref_item,3,description); //Description
+        ListView_SetItemText(hlv,ref_item,4,argv[0]);
+        ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+      }
+      if (strlen(argv[3]) > 8)
+      {
+        lvi.iItem      = ListView_GetItemCount(hlv);
+        DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+        ListView_SetItemText(hlv,ref_item,0,argv[3]);     //date
+        ListView_SetItemText(hlv,ref_item,1,azColName[3]);//Origine
+        ListView_SetItemText(hlv,ref_item,2,src_name);    //Source
+        ListView_SetItemText(hlv,ref_item,3,description); //Description
+        ListView_SetItemText(hlv,ref_item,4,argv[0]);
+        ListView_SetItemText(hlv,ref_item,7,session_state);//Session
       }
     }
     break;

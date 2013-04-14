@@ -26,6 +26,9 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
   TEST_REG_PASSWORD_ENABLE = Ischeck_treeview(htrv_test, H_tests[INDEX_REG_PASSWORD]);
 
+  if (Ischeck_treeview(htrv_test, H_tests[INDEX_FILE_NK]))enable_LNK= TRUE;
+  else enable_LNK= FALSE;
+
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_log,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_disk,(void*)nb_current_test,0,0); nb_current_test++;
@@ -83,8 +86,9 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   unsigned int j = 0;
 
   //generate new session !!!
-  start_scan = TRUE;
-  nb_current_test = 0;
+  start_scan          = TRUE;
+  nb_current_test     = 0;
+  enable_LNK          = TRUE;
   AddNewSession(LOCAL_SCAN,db_scan);
 
   //test all test on by on
@@ -157,6 +161,7 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
 
   switch(test)
   {
+    case INDEX_FILE_NK        :enable_LNK= TRUE;break;
     case INDEX_FILE           :Scan_files(0);break;
     case INDEX_LOG            :Scan_log(0);break;
     case INDEX_DISK           :Scan_disk(0);break;

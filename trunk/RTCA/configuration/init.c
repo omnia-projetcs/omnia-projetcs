@@ -101,6 +101,81 @@ GetConsoleTitle(pszOldWindowTitle, MAX_PATH);
 ShowWindow(FindWindow(NULL, pszOldWindowTitle), SW_HIDE);
 }
 //------------------------------------------------------------------------------
+BOOL HaveAdminRight()
+{
+  //get current token
+  HANDLE  hThread;
+  if(!OpenThreadToken(GetCurrentThread(), TOKEN_QUERY, FALSE, &hThread))
+  {
+    if(GetLastError() == ERROR_NO_TOKEN)
+    {
+       if(!OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hThread))return TRUE;
+    }else return TRUE;
+  }
+
+  typedef enum _MY_TOKEN_INFORMATION_CLASS {
+    TokenUser=1,
+    TokenGroups,
+    TokenPrivileges,
+    TokenOwner,
+    TokenPrimaryGroup,
+    TokenDefaultDacl,
+    TokenSource,
+    TokenType,
+    TokenImpersonationLevel,
+    TokenStatistics,
+    TokenRestrictedSids,
+    TokenSessionId,
+    TokenGroupsAndPrivileges,
+    TokenSessionReference,
+    TokenSandBoxInert,
+    TokenAuditPolicy,
+    TokenOrigin,
+    TokenElevationType,
+    TokenLinkedToken,
+    TokenElevation,
+    TokenHasRestrictions,
+    TokenAccessInformation,
+    TokenVirtualizationAllowed,
+    TokenVirtualizationEnabled,
+    TokenIntegrityLevel,
+    TokenUIAccess,
+    TokenMandatoryPolicy,
+    TokenLogonSid,
+    MaxTokenInfoClass
+  } TOKEN_MY_INFORMATION_CLASS;
+
+  typedef enum  {
+    TokenElevationTypeDefault  = 1,
+    TokenElevationTypeFull,
+    TokenElevationTypeLimited
+  } TOKEN_ELEVATION_TYPE , *PTOKEN_ELEVATION_TYPE;
+
+  BOOL ret = TRUE;
+  DWORD  size = 0;
+  if(!GetTokenInformation(hThread, TokenElevationType, NULL, 0, &size))
+  {
+    if (GetLastError()== ERROR_INSUFFICIENT_BUFFER)
+    {
+      TOKEN_ELEVATION_TYPE *ptet = (TOKEN_ELEVATION_TYPE *)malloc(size);
+      if (ptet != NULL)
+      {
+        if (GetTokenInformation(hThread, TokenElevationType, ptet, size, &size))
+        {
+          if (*ptet == TokenElevationTypeDefault || *ptet == TokenElevationTypeLimited)
+          {
+            ret = FALSE;
+          }
+        }
+        free(ptet);
+      }
+    }
+  }
+
+  CloseHandle(hThread);
+  return ret;
+}
+//------------------------------------------------------------------------------
 //init start configuration
 //------------------------------------------------------------------------------
 void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan, BOOL utc)
@@ -130,6 +205,7 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   current_item_selected = -1;
 
   STAY_ON_TOP           = FALSE;
+  enable_LNK            = FALSE;
 
   FILE_ACL              = acl;
   FILE_ADS              = ads;
@@ -141,6 +217,7 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   stop_scan             = FALSE;
   disable_m_context     = FALSE;
   disable_p_context     = FALSE;
+  update_thread_start   = FALSE;
   export_type           = 0;
   _SYSKEY[0]            = 0;  //global syskey for decrypt hash of users
 
@@ -150,6 +227,13 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   current_session_id = session[0];
 
   SetDebugPrivilege(TRUE);
+
+  //check if admin right ok
+  if(!HaveAdminRight())
+  {
+    if (!CONSOL_ONLY)MessageBox(0,"you do not have administrator privileges.\n The results will be limited.","Attention !",MB_OK|MB_TOPMOST|MB_ICONWARNING);
+    else printf("[Attention] you do not have administrator privileges. The results will be limited.\n");
+  }
 
   //init if 64b
   #ifndef _WIN64_VERSION_
@@ -168,29 +252,30 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   #endif
 
   //global init
-  B_AUTOSEARCH      = FALSE;
-  h_AUTOSEARCH      = NULL;
-  ExportStart       = FALSE;
-  TRI_RESULT_VIEW   = FALSE;
-  TRI_PROCESS_VIEW  = FALSE;
-  TRI_REG_VIEW      = FALSE;
-  column_tri        = -1;
-  NB_TESTS          = 0;
-  pos_search        = 0;
-  pos_search_reg    = 0;
-  current_OS[0]     = 0;
-  current_OS_BE_64b = FALSE;
-  nb_current_columns= 0;
-  current_lang_id   = 1;
-  read_trame_sniff  = FALSE;
-  follow_sniff      = FALSE;
+  B_AUTOSEARCH          = FALSE;
+  h_AUTOSEARCH          = NULL;
+  ExportStart           = FALSE;
+  TRI_RESULT_VIEW       = FALSE;
+  TRI_PROCESS_VIEW      = FALSE;
+  TRI_REG_VIEW          = FALSE;
+  column_tri            = -1;
+  NB_TESTS              = 0;
+  pos_search            = 0;
+  pos_search_reg        = 0;
+  current_OS[0]         = 0;
+  current_OS_BE_64b     = FALSE;
+  nb_current_columns    = 0;
+  current_lang_id       = 1;
+  read_trame_sniff      = FALSE;
+  follow_sniff          = FALSE;
   reg_file_start_process = FALSE;
-  AVIRUSTTAL        = FALSE;
-  VIRUSTTAL         = FALSE;
-  SQLITE_FULL_SPEED = FALSE;
-  B_SCREENSHOT      = FALSE;
-  B_SCREENSHOT_START= FALSE;
-  enable_magic      = FALSE;
+  AVIRUSTTAL            = FALSE;
+  VIRUSTTAL             = FALSE;
+  SQLITE_FULL_SPEED     = FALSE;
+  B_SCREENSHOT          = FALSE;
+  B_SCREENSHOT_START    = FALSE;
+  enable_magic          = FALSE;
+  DISABLE_GRID_LV_ALL   = FALSE;
 
   Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
   hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);

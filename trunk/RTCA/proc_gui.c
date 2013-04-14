@@ -384,3 +384,16 @@ void IDM_STAY_ON_TOP_fct()
   }
 }
 //-----------------------------------------------------------------------------
+void DisableGrid(HANDLE hlv, BOOL disable, int menu)
+{
+  if (disable)
+  {
+    CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_CHECKED);
+    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,~LVS_EX_GRIDLINES);
+  }else
+  {
+    CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_UNCHECKED);
+    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_GRIDLINES);
+  }
+}
+//-----------------------------------------------------------------------------

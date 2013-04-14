@@ -6,23 +6,26 @@
 //------------------------------------------------------------------------------
 #include "RtCA.h"
 //------------------------------------------------------------------------------
-void UpdateRtCA()
+DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 {
+  update_thread_start = 1;
+
 //---------------------------
 //update malware database
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database update startd...");
   //init database ?
   //sqlite3_exec(db_scan,"DELETE from malware_list;", NULL, NULL, NULL);
 
   //ddl malware file https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
   //init SSL connexion
   HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
-  if (M_connexion==NULL)return;
+  if (M_connexion==NULL)return 0;
 
   HINTERNET M_session = InternetConnect(M_connexion, "easylist-downloads.adblockplus.org",443,"","",INTERNET_SERVICE_HTTP,0,0);
   if (M_session==NULL)
   {
     InternetCloseHandle(M_connexion);
-    return;
+    return 0;
   }
 
   //connexion
@@ -64,7 +67,7 @@ void UpdateRtCA()
                 *d = 0;
 
                 snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
-                                               "VALUES(\"%s\",\"src:https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
+                                               "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
                 sqlite3_exec(db_scan,request, NULL, NULL, NULL);
 
          //next
@@ -78,7 +81,16 @@ void UpdateRtCA()
       free(res);
     }
   }
-//---------------------------
+  //---------------------------
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database updated !!!");
+  update_thread_start = 0;
+  return 0;
+}
+//------------------------------------------------------------------------------
+void UpdateRtCA()
+{
+  if (update_thread_start)return;
+  CreateThread(NULL,0,UpdateRtCA_Thread,NULL,0,0);
 }
 //------------------------------------------------------------------------------
 BOOL FileExist(char *file)
@@ -194,21 +206,24 @@ int GetTrvItemIndex(HTREEITEM hitem, HANDLE htrv)
   return index;
 }
 //------------------------------------------------------------------------------
-void SetDebugPrivilege(BOOL enable)
+BOOL SetDebugPrivilege(BOOL enable)
 {
     TOKEN_PRIVILEGES privilege;
     LUID Luid;
     HANDLE handle1;
     HANDLE handle2;
+
     handle1 = OpenProcess(PROCESS_ALL_ACCESS, FALSE, GetCurrentProcessId());
     OpenProcessToken(handle1,TOKEN_ALL_ACCESS, &handle2);
     LookupPrivilegeValue(NULL, SE_DEBUG_NAME, &Luid);
     privilege.PrivilegeCount = 1;
     privilege.Privileges[0].Luid = Luid;
     privilege.Privileges[0].Attributes = enable?SE_PRIVILEGE_ENABLED:0x04/*SE_PRIVILEGE_REMOVED*/;
-    AdjustTokenPrivileges(handle2, FALSE, &privilege, sizeof(privilege), NULL, NULL);
+    BOOL ret = AdjustTokenPrivileges(handle2, FALSE, &privilege, sizeof(privilege), NULL, NULL);
+
     CloseHandle(handle2);
     CloseHandle(handle1);
+    return ret;
 }
 //------------------------------------------------------------------------------
 char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size)
@@ -231,6 +246,8 @@ char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_siz
     if(FileTimeToLocalFileTime(&FileTime, &LocalFileTime))
       filetimeToString(LocalFileTime, str, string_size);
   }
+
+  if (str[0] == '1' && str[1] == '6')str[0] = 0;
   return str;
 }
 //------------------------------------------------------------------------------
