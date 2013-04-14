@@ -23,8 +23,19 @@ void addFiletoDB(char *path, char *file, char *extension,
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
-//src : http://code.google.com/p/liblnk/
-void ReadLNKInfos(char *file, char*create_time,char*last_access_time,char*last_modification_time,char*local_path,char*to)
+void addFileLNKtoDB(char *file, char *create_time, char *last_access_time, char *last_modification_time,
+                   char *local_path, char *to, unsigned int session_id, sqlite3 *db)
+{
+  char request[REQUEST_MAX_SIZE];
+  snprintf(request,REQUEST_MAX_SIZE,
+           "INSERT INTO extract_file_nk "
+           "(file,create_time,last_access_time,last_modification_time,local_path,to_,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           file,create_time,last_access_time,last_modification_time,local_path,to,session_id);
+  sqlite3_exec(db,request, NULL, NULL, NULL);
+}
+//http://liblnk.googlecode.com/files/Windows%20Shortcut%20File%20%28LNK%29%20format.pdf
+void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db)
 {
   typedef struct
   {
@@ -40,14 +51,11 @@ void ReadLNKInfos(char *file, char*create_time,char*last_access_time,char*last_m
     unsigned int show_window_value;
     unsigned short hot_key;
     unsigned char reserved[10];
+    unsigned short item_list_size;
   }LNK_STRUCT, *PLNK_STRUCT;
 
-  if (create_time != NULL)create_time[0]                        = 0;
-  if (last_access_time != NULL)last_access_time[0]              = 0;
-  if (last_modification_time != NULL)last_modification_time[0]  = 0;
-  if (local_path != NULL)local_path[0]                          = 0;
-  if (to != NULL)to[0]                                          = 0;
-
+  char create_time[DATE_SIZE_MAX]="",last_access_time[DATE_SIZE_MAX]="",last_modification_time[DATE_SIZE_MAX]="";
+  char local_path[MAX_PATH]="",to[MAX_PATH]="", tmp[MAX_PATH]="";
 
   HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (Hfic != INVALID_HANDLE_VALUE)
@@ -55,32 +63,247 @@ void ReadLNKInfos(char *file, char*create_time,char*last_access_time,char*last_m
     DWORD taille_fic = GetFileSize(Hfic,NULL);
     if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
     {
-      unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      unsigned char *b,*buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
       if (buffer != NULL)
       {
         DWORD copiee = 0;
         ReadFile(Hfic, buffer, taille_fic,&copiee,0);
         if (copiee>0)
         {
+          if (copiee != taille_fic) taille_fic = copiee;
+
           //header
           PLNK_STRUCT p = buffer;
 
           //get times
-          if (create_time != NULL)filetimeToString_GMT(p->create_time, create_time, DATE_SIZE_MAX);
-          if (last_access_time != NULL)filetimeToString_GMT(p->last_access_time, last_access_time, DATE_SIZE_MAX);
-          if (last_modification_time != NULL)filetimeToString_GMT(p->last_modification_time, last_modification_time, DATE_SIZE_MAX);
+          filetimeToString_GMT(p->create_time, create_time, DATE_SIZE_MAX);
+          filetimeToString_GMT(p->last_access_time, last_access_time, DATE_SIZE_MAX);
+          filetimeToString_GMT(p->last_modification_time, last_modification_time, DATE_SIZE_MAX);
 
-          //get path !!!
-          char *c = buffer+taille_fic;
+          //unicode or not
+          BOOL unicode = FALSE;
+          if ((p->data_flag & 0x80) == 0x80) unicode = TRUE;
 
-          //search 0x00002500 => start of local path
-          while (c-4 != buffer && *c != 0x00 && *(c-1)!=0x00 && *(c-2)!='%' && *(c-3)!=0x00 && *(c-4)!=0x00)c--;
-          char mlocal_path[MAX_PATH]="";
-          snprintf(mlocal_path,MAX_PATH,"%s",c+1);
-          if (local_path != NULL)strcpy(local_path,mlocal_path);
+          //if items list we pass
+          if ((p->data_flag & 0x01) == 0x01)//hashlinktargetid
+          {
+            b = buffer + 2 + p->header_size + p->item_list_size;
+          }else b = buffer + p->header_size;
 
-          //to
-          if (to != NULL)snprintf(to,MAX_PATH,"%s",c+2+strlen(local_path));
+          if (b-buffer < taille_fic)
+          {
+            typedef struct
+            {
+              unsigned short struct_size;
+            }LNK_WORD_STRUCT, *PLNK_WORD_STRUCT;
+
+            //link info
+            if ((p->data_flag & 0x02) == 0x02)
+            {
+              typedef struct
+              {
+                DWORD struct_size;
+                DWORD header_size;
+                DWORD flags;
+                DWORD vol_ID_offset;
+                DWORD local_base_path_offset;
+                DWORD Network_relative_path_offset;
+                DWORD commun_path_offset;
+
+                //infos
+                DWORD CommonNetworkRelativeLinkSize;
+                DWORD CommonNetworkRelativeLinkFlags;
+                DWORD NetNameOffset;
+                DWORD DeviceNameOffset;
+                DWORD NetWorkProviderType;
+              }LNK_INFO_STRUCT, *PLNK_INFO_STRUCT;
+              PLNK_INFO_STRUCT pi = b;
+
+              if ((pi->flags & 0x01) == 0x01) //local
+              {
+                if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",b+pi->local_base_path_offset);
+              }else if ((pi->flags & 0x02)  == 0x02) //network
+              {
+                //local path
+                if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",b+pi->NetNameOffset+pi->header_size);
+
+                if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",b+pi->DeviceNameOffset+pi->header_size);
+
+                if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,b+pi->commun_path_offset);
+              }
+              b = b + pi->struct_size;
+
+            }else if ((p->data_flag & 0x04) == 0x04 || (p->data_flag & 0x08) == 0x08/* || (p->data_flag & 0x10) == 0x10*/)
+            {
+              //other
+              if (!strlen(local_path) && !strlen(to) && b-buffer < taille_fic)
+              {
+                DWORD tmp_size;
+
+              //pass datas no used
+
+                //0x04 = have name/description first ?
+                PLNK_WORD_STRUCT t = b;
+                if ((p->data_flag & 0x04) == 0x04)
+                {
+                  //0x08 = relative path
+                  if ((p->data_flag & 0x08) == 0x08)
+                  {
+                    if (unicode) b = b + t->struct_size*2 + 2;
+                    else b = b + t->struct_size + 2;
+                    t = b;
+
+                    if(b-buffer < taille_fic)
+                    {
+                      if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
+                      else snprintf(to,MAX_PATH,"%s",b+2);
+
+                      tmp_size = t->struct_size +b-buffer ;
+                      if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
+
+                      if (unicode) b = b + t->struct_size*2 + 2;
+                      else b = b + t->struct_size + 2;
+                      t = b;
+
+                      //0x10 = workingdir
+                      if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
+                      {
+                        if (unicode) b = b + t->struct_size*2 + 2;
+                        else b = b + t->struct_size + 2;
+                        t = b;
+                      }
+
+                      //0x20 = arguments
+                      if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
+                      {
+                        if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
+                        else snprintf(tmp,MAX_PATH," %s",b+2);
+
+                        tmp_size = t->struct_size +b-buffer;
+                        if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
+
+                        strncat(to,tmp,MAX_PATH);
+                        strncat(to,"\0",MAX_PATH);
+                      }
+                    }
+                  }else
+                  {
+                    if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
+                    else snprintf(to,MAX_PATH,"%s",b+2);
+
+                    tmp_size = t->struct_size +b-buffer ;
+                    if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
+                  }
+                }else
+                {
+                  //0x08 = relative path
+                  if ((p->data_flag & 0x08) == 0x08 && b-buffer < taille_fic)
+                  {
+                    //if only we use it !!!
+                    if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
+                    else snprintf(to,MAX_PATH,"%s",b+2);
+
+                    tmp_size = t->struct_size +b-buffer ;
+                    if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
+
+                    if (unicode) b = b + t->struct_size*2 + 2;
+                    else b = b + t->struct_size + 2;
+                    t = b;
+
+                    //0x10 = workingdir
+                    if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
+                    {
+                      if (unicode) b = b + t->struct_size*2 + 2;
+                      else b = b + t->struct_size + 2;
+                      t = b;
+                    }
+
+                    //0x20 = arguments
+                    if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
+                    {
+                      if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
+                      else snprintf(tmp,MAX_PATH," %s",b+2);
+
+                      tmp_size = t->struct_size +b-buffer;
+                      if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
+
+                      strncat(to,tmp,MAX_PATH);
+                      strncat(to,"\0",MAX_PATH);
+                    }
+                  }else
+                  {
+                    //0x10 = workingdir
+                    if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
+                    {
+                      if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
+                      else snprintf(to,MAX_PATH,"%s",b+2);
+
+                      tmp_size = t->struct_size +b-buffer;
+                      if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
+
+                      if (unicode) b = b + t->struct_size*2 + 2;
+                      else b = b + t->struct_size + 2;
+                      t = b;
+                    }
+
+                    //0x20 = arguments
+                    if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
+                    {
+                      if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
+                      else snprintf(tmp,MAX_PATH," %s",b+2);
+
+                      tmp_size = t->struct_size +b-buffer;
+                      if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
+
+                      strncat(to,tmp,MAX_PATH);
+                      strncat(to,"\0",MAX_PATH);
+                    }
+                  }
+                }
+              }
+            }else if ((p->data_flag & 0x200) == 0x200 || p->data_flag == 0x80) // windows 8 format : ext_string
+            {
+              unsigned char *pos = b;
+              PLNK_WORD_STRUCT t = b;
+
+              if ((p->data_flag & 0x10) == 0x10)  //workingdir
+              {
+                if (unicode) pos = pos + t->struct_size*2 + 2;
+                else pos = pos + t->struct_size + 2;
+              }
+
+              if (pos-buffer < taille_fic)
+              {
+                t = pos;
+                if ((p->data_flag & 0x20) == 0x20)  //arguments
+                {
+                  if (unicode) pos = pos + t->struct_size*2 + 2;
+                  else pos = pos + t->struct_size + 2;
+                }
+
+                if (pos-buffer < taille_fic)
+                {
+                  t = pos;
+                  if ((p->data_flag & 0x40) == 0x40)  //iconlocation
+                  {
+                    if (unicode) pos = pos + t->struct_size*2 + 2;
+                    else pos = pos + t->struct_size + 2;
+                  }
+
+                  //pass first headers !!
+                  if (pos-buffer < taille_fic)
+                  {
+                    t = pos;
+                    if (pos-buffer+t->struct_size+8 < taille_fic)
+                    {
+                      snprintf(to,MAX_PATH,"(%d)%s",pos-buffer+t->struct_size+8,pos+t->struct_size+8);
+                    }
+                  }
+                }
+              }
+            }
+          }
+          addFileLNKtoDB(file,create_time,last_access_time,last_modification_time,local_path,to,session_id,db);
         }
         HeapFree(GetProcessHeap(), 0,buffer);
       }
@@ -130,7 +353,7 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
 
             //movies
             if (s_datas->uli == 0x7079746614000000) strcpy(magicnumber,"Movie (MOV/MP4)");
-            else if (datas[0] == 0x00 && datas[1] == 0x00 && datas[2] == 0x01 && datas[3]&0xB0 == 0xB0) strcpy(magicnumber,"Movie (MPG, MPEG, VOB/DVD)");
+            else if (datas[0] == 0x00 && datas[1] == 0x00 && datas[2] == 0x01 && (datas[3]&0xB0) == 0xB0) strcpy(magicnumber,"Movie (MPG, MPEG, VOB/DVD)");
             else if (s_datas->ui == 0x464D522E) strcpy(magicnumber,"Movie (RMVB/RA)");
             else if (s_datas->ui == 0x01564C46) strcpy(magicnumber,"Movie (FLV)");
             //else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Movie (AVI)");
@@ -150,6 +373,8 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             else if (s_datas->ui == 0x474E5089) strcpy(magicnumber,"Image (PNG)");
             else if (s_datas->ui == 0x00010000) strcpy(magicnumber,"Image (ICO)");
             else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0xE0FFD8FF) strcpy(magicnumber,"Image (JPG)");
+            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0x00020000) strcpy(magicnumber,"Image (CUR)");
+            else if (s_datas->ui == 0x6D783F3C) strcpy(magicnumber,"Image (SVG)");
 
             //office
             else if (s_datas->uli == 0x000560000008190) strcpy(magicnumber,"Office MS (XLS)");
@@ -158,6 +383,8 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             else if (s_datas->ui == 0x46445025) strcpy(magicnumber,"Office (PDF)");
             else if (s_datas->uli == 0x0006001404034B50) strcpy(magicnumber,"Office (DOCX, PPTX, XLSX)");
             else if (s_datas->uli == 0xE11AB1A1E011CFD0) strcpy(magicnumber,"Office (DOC, PPT, XLS)");
+            else if (s_datas->ui == 0x00000100) strcpy(magicnumber,"Font (TTF)");
+            else if (s_datas->ui == 0x74725C7B) strcpy(magicnumber,"Office (RTF)");
 
             //compressé
             else if (s_datas->us == 0x8B1F) strcpy(magicnumber,"Archive (GZ, TGZ, GZIP)");
@@ -180,7 +407,7 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             else if (s_datas->uc == 0x99) strcpy(magicnumber,"Crypt (GPG)");
 
             //special
-            else if (s_datas->uli == 0x4143435300000011) strcpy(magicnumber,"System Windows prefetch (PF)");
+            else if (s_datas->ui == 0x00000011 || s_datas->ui == 0x00000017 ) strcpy(magicnumber,"System Windows prefetch (PF)");
             else if (s_datas->uli == 0x654C664C00000030) strcpy(magicnumber,"System Windows log (EVT)");
             else if (s_datas->ui == 0x46666C45) strcpy(magicnumber,"System Windows log (EVTX)");
             else if (s_datas->ui == 0x00035F3F || s_datas->ui == 0x00024E4C) strcpy(magicnumber,"System Windows help (HLP)");
@@ -191,8 +418,9 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             else if (s_datas->ui == 0xFFFFFFFD) strcpy(magicnumber,"System Windows (Thumbs.db)");
             else if (s_datas->ui == 0x6974227B) strcpy(magicnumber,"Navigateur bookmark Firefox (JSON)");
             else if (s_datas->ui == 0x0000004C) strcpy(magicnumber,"System Windows link (LNK)");
-            else if (s_datas->ui == 0x68532E5B) strcpy(magicnumber,"System Windows config file (INI)");
-            else if (s_datas->ui == 0x000DFEFF) strcpy(magicnumber,"System Windows config file (INF)");
+            else if (s_datas->ui == 0x68532E5B || s_datas->ui == 0x000DFEFF ||
+                     s_datas->ui == 0x003BFEFF || s_datas->ui == 0x005BFEFF) strcpy(magicnumber,"System Windows config file (INI/INF)");
+            else if (s_datas->ui == 0x00020101) strcpy(magicnumber,"System Windows config file (PNF)");
 
             //bdd
             else if (s_datas->ui == 0x694C5153) strcpy(magicnumber,"Bdd (SQLITE)");
@@ -204,13 +432,12 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             else if (s_datas->us == 0x5A4D || s_datas->ui == 0x54202124) strcpy(magicnumber,"Executable (COM, DLL, DRV, EXE, PIF, QTS, QTX, SYS)"); //32bits
 
             //code
-            //else if (s_datas->ui == 0x6D783F3C) strcpy(magicnumber,"Web page (XML)");
+            else if (s_datas->ui == 0x6D783F3C || s_datas->ui == 0x003CFEFF) strcpy(magicnumber,"Web page (XML)");
             else if (s_datas->ui == 0x4F44213C || s_datas->ui == 0x44213C0A) strcpy(magicnumber,"Web page (HTML)");
 
-            //or
-            //else snprintf(magicnumber,magicnumber_size_max,"MagicNumber: %02X%02X%02X%02X",datas[0]&0xff,datas[1]&0xff,datas[2]&0xff,datas[3]&0xff);
+            else snprintf(magicnumber,magicnumber_size_max,"Unknow MagicNumber: %02X%02X%02X%02X",datas[0]&0xff,datas[1]&0xff,datas[2]&0xff,datas[3]&0xff);
             //test
-            else snprintf(magicnumber,magicnumber_size_max,"Unknow MagicNumber: %02X%02X%02X%02X",datas[3]&0xff,datas[2]&0xff,datas[1]&0xff,datas[0]&0xff);
+            //else snprintf(magicnumber,magicnumber_size_max,"Unknow MagicNumber: %02X%02X%02X%02X",datas[3]&0xff,datas[2]&0xff,datas[1]&0xff,datas[0]&0xff);
           }
         }
       }
@@ -491,34 +718,37 @@ void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned 
                           psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
                       }
 
-                      //traitement pour affichage des droits
-                      if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
-                      if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
-                      if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
+                      if ((mask & FILE_GENERIC_READ) || (mask & FILE_GENERIC_WRITE) || (mask & FILE_GENERIC_EXECUTE))
+                      {
+                        //traitement pour affichage des droits
+                        if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
+                        if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
+                        if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
 
-                      //traitement des droits étendus ^^
-                      /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
-                      if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
-                      if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
-                      if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
-                      if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
-                      if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
-                      if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
-                      if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
-                      if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
-                      if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
-                      if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
-                      if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
+                        //traitement des droits étendus ^^
+                        /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
+                        if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
+                        if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
+                        if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
+                        if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
+                        if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
+                        if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
+                        if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
+                        if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
+                        if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
+                        if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
+                        if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
 
-                      cuser[0] = 0;
-                      csid[0]  = 0;
-                      crid[0]  = 0;
-                      SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+                        cuser[0] = 0;
+                        csid[0]  = 0;
+                        crid[0]  = 0;
+                        SidtoUser(psid, cuser, crid, csid, MAX_PATH);
 
-                      strncat(acls," ",size_max);
-                      if (strlen(cuser)>0) strncat(acls,cuser,size_max);
-                      if (strlen(csid)>0) strncat(acls,csid,size_max);
-                      strncat(acls,"\r\n\0",size_max);
+                        strncat(acls," ",size_max);
+                        if (strlen(cuser)>0) strncat(acls,cuser,size_max);
+                        if (strlen(csid)>0) strncat(acls,csid,size_max);
+                        strncat(acls,"\r\n\0",size_max);
+                      }
                     }
                   }
                 }
@@ -652,6 +882,16 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           strncpy(file,data.cFileName,MAX_PATH);
           extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
 
+          //lnk
+          if (enable_LNK)
+          {
+            if (!strcmp(ext,"lnk"))
+            {
+              snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+              ReadLNKInfos(file, session_id, db);
+            }
+          }
+
           //ad to bdd
           addFiletoDB(path, data.cFileName, ext,
                       CreationTime, LastWriteTime, LastAccessTime, size,
@@ -700,7 +940,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
 
         if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
         {
-          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+          /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           //directory
           snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
@@ -724,7 +964,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
                       s_ads, "", "", "",session_id,db);
 
           scan_file_ex(path_ex, acl, ads, sha, session_id,db);
-          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+          /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
         }else
         {
           //file
@@ -757,6 +997,16 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
           //extension
           strncpy(file,data.cFileName,MAX_PATH);
           extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
+
+          //lnk
+          if (enable_LNK)
+          {
+            if (!strcmp(ext,"lnk"))
+            {
+              snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+              ReadLNKInfos(file, session_id, db);
+            }
+          }
 
           //ad to bdd
           addFiletoDB(path, data.cFileName, ext,
@@ -839,6 +1089,15 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
 
           //extension
           extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
+
+          //lnk
+          if (enable_LNK)
+          {
+            if (!strcmp(ext,"lnk"))
+            {
+              ReadLNKInfos(path, session_id, db);
+            }
+          }
 
           //ad to bdd
           addFiletoDB(path, data.cFileName, ext,

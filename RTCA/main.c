@@ -67,7 +67,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 sqlite3_exec(db_scan,"VACUUM;", NULL, NULL, NULL);//compact database
               break;
               case IDM_DEL_ALL_SESSION :
-                if (nb_session<1)break;
+                //if (nb_session<1)break;
                 if (MessageBox(0,cps[REF_MSG].c,cps[REF_MSG+1].c,MB_ICONWARNING|MB_OKCANCEL) == IDOK)
                 {
                   FORMAT_CALBAK_READ_INFO fcri;
@@ -151,6 +151,10 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               }
               break;
               case IDM_STAY_ON_TOP:IDM_STAY_ON_TOP_fct();break;
+              case BT_DISABLE_GRID:
+                DISABLE_GRID_LV_ALL = !DISABLE_GRID_LV_ALL;
+                DisableGrid(hlstv, DISABLE_GRID_LV_ALL,BT_DISABLE_GRID);
+              break;
               case BT_SREEENSHOT:SCREENSHOT_fct();break;
               case BT_SEARCH_MATCH_CASE:
                 if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
@@ -182,7 +186,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               //-----------------------------------------------------
               case IDM_RTCA_UPDATE:
                 UpdateRtCA();
-                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database updated !!!");
               break;
               //-----------------------------------------------------
               //popup menu
@@ -994,6 +997,7 @@ int CmdLine(int argc, char* argv[])
       case 's'://scan for test with number 0 1 2 3
         //generate new session
         AddNewSession(LOCAL_SCAN,db_scan);
+        enable_LNK = FALSE;
         for (++i;i<argc;i++)
         {
           if (argv[i][0] == '-'){i--;break;}

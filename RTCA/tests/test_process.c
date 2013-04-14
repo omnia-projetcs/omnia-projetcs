@@ -316,12 +316,18 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
     cmd[0]=0;
     GetProcessArg(hProcess, cmd, MAX_PATH);
 
-    //verify if exist or not
-    ok = TRUE;
-    for (i=0;i<nb_process;i++)
+    if (cmd[0]==0)
     {
-      if (process_info[i].pid == d_pid){ok = FALSE;break;}
-      else if (strcmp(cmd,process_info[i].args) == 0){ok = FALSE;break;}
+      ok = FALSE;
+    }else
+    {
+      ok = TRUE;
+      //verify if exist or not
+      for (i=0;i<nb_process;i++)
+      {
+        if (process_info[i].pid == d_pid){ok = FALSE;break;}
+        else if (strcmp(cmd,process_info[i].args) == 0){ok = FALSE;break;}
+      }
     }
 
     if (ok)

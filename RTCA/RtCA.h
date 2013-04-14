@@ -138,6 +138,8 @@ WNDPROC wndproc_hdbclk_info;
 HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed;
 BOOL disable_m_context, disable_p_context, enable_magic;
 
+BOOL enable_LNK;
+
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
 #define GRP_CONF                 2002
@@ -165,6 +167,8 @@ BOOL disable_m_context, disable_p_context, enable_magic;
 #define LV_VIEW_INFO             3006
 #define BT_SEARCH_MATCH_CASE     3007
 #define BT_SQLITE_FULL_SPEED     3008
+#define BT_DISABLE_GRID          3009
+BOOL DISABLE_GRID_LV_ALL;
 BOOL SQLITE_FULL_SPEED;
 
 #define DLG_PROCESS              4000
@@ -514,6 +518,7 @@ BOOL TEST_REG_PASSWORD_ENABLE;
 #define INDEX_NAV_IE               31
 #define INDEX_ANDROID              32
 #define INDEX_PREFETCH             33
+#define INDEX_FILE_NK              34
 
 //------------------------------------------------------------------------------
 //parameters
@@ -527,6 +532,7 @@ BOOL FILE_SHA;
 BOOL UTC_TIME;
 
 BOOL LOCAL_SCAN;
+BOOL update_thread_start;
 //------------------------------------------------------------------------------
 //scan stats
 BOOL B_AUTOSEARCH;
@@ -919,7 +925,7 @@ void ReviewWOW64Redirect(PVOID OldValue_W64b);
 unsigned long int Contient(char*data,char*chaine);
 unsigned long int ContientNoCass(char*data,char*chaine);
 char *ReplaceEnv(char *var, char *path, unsigned int size_max);
-void SetDebugPrivilege(BOOL enable);
+BOOL SetDebugPrivilege(BOOL enable);
 BOOL startWith(char* txt, char *search);
 char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size);
 char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_size);
@@ -953,6 +959,7 @@ void redimColumnH(HANDLE hlv,int column,unsigned int col_size);
 void Modify_Style(HANDLE hcomp, long style, BOOL add);
 void AddComboBoxItem(HANDLE hcombo, char *txt, DWORD img);
 void FileToTreeView(char *c_path);
+void DisableGrid(HANDLE hlv, BOOL disable, int menu);
 
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 void c_Tri(HANDLE hlv, unsigned short colonne_ref, BOOL sort);

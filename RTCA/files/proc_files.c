@@ -12,9 +12,19 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
   char ext[MAX_PATH], tmp_path[MAX_PATH];
   if (extractExtFromFile(lowcase_file, ext, MAX_PATH))
   {
-    if (strcmp(ext,"log")==0 ||
-        strcmp(ext,"evt")==0 ||
-        strcmp(ext,"evtx")==0) //logs
+    if (strcmp(ext,"lnk")==0)
+    {
+      if (global_path != NULL)
+        AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+      else
+      {
+        snprintf(tmp_path,MAX_PATH,"%s%s",path,lowcase_file);
+        AddItemTreeView(htv,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+      }
+      check_treeview(htrv_test, H_tests[INDEX_FILE_NK], TRV_STATE_CHECK);
+    }else if (strcmp(ext,"log")==0 ||
+              strcmp(ext,"evt")==0 ||
+              strcmp(ext,"evtx")==0) //logs
     {
       if (global_path != NULL)
         AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);
