@@ -114,17 +114,15 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
 
       if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
       {
-
-        printf("resultat:%s\n",resultat);
-
         if (strlen(resultat)>20)
         {
           //"file_exists": true
           char *c = resultat;
           while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='f'|| *(c+4)!='i'))c++;
-          if (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='f'|| *(c+4)!='i')
+          if (*c == ',' && *(c+1)== ' '&& *(c+2)== '"' && *(c+3)== 'f'&& *(c+4)== 'i')
           {
             c+=strlen(", \"file_exists\": "); //17
+
             if (*c == 't')
             {
               vts->exist = TRUE;
@@ -143,8 +141,6 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
             if (*c == 'u')strncpy(vts->last_analysis_date,"NULL",5);
             else
             {
-              //MessageBox(0,resultat,c,MB_OK|MB_TOPMOST);
-
               strncpy(vts->last_analysis_date,c,19);
 
               vts->last_analysis_date[4]='/';
@@ -206,12 +202,14 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
     case -1:strcpy(resultats,"Connection error");break;
     case -2:strcpy(resultats,"Unkown datas");break;
     case 0:
-      strcpy(resultats,"Unknow");
-      if (vts.last_analysis_date[0] != 0 || vts.detection_ratio[0] != 0)
-        snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
-
       if (vts.last_analysis_date[0] != 0 && vts.detection_ratio[0] != 0)
+      {
+        snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
         UpdateDataBaseWithVirusTotal(vts.sha256, resultats);
+      }else if (vts.last_analysis_date[0] != 0 || vts.detection_ratio[0] != 0)
+      {
+        snprintf(resultats,MAX_LINE_SIZE,"Unknow Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
+      }else snprintf(resultats,MAX_LINE_SIZE,"Unknow");
     break;
     case 1:
       snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);

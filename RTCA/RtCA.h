@@ -582,7 +582,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         91
+#define NB_COMPONENT_STRING         95
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -668,6 +668,10 @@ typedef struct SORT_ST
 #define TXT_CHK_ALL_SHA256              89
 #define TXT_POPUP_AUTO_SEARCH_PATH      90
 
+#define TXT_UPDATE_START                91
+#define TXT_UPDATE_END                  92
+#define TXT_MSG_RIGHT_ADMIN             93
+#define TXT_MSG_RIGHT_ADMIN_ATTENTION   94
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];

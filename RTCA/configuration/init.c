@@ -231,8 +231,8 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   //check if admin right ok
   if(!HaveAdminRight())
   {
-    if (!CONSOL_ONLY)MessageBox(0,"you do not have administrator privileges.\n The results will be limited.","Attention !",MB_OK|MB_TOPMOST|MB_ICONWARNING);
-    else printf("[Attention] you do not have administrator privileges. The results will be limited.\n");
+    if (!CONSOL_ONLY)MessageBox(0,cps[TXT_MSG_RIGHT_ADMIN].c,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,MB_OK|MB_TOPMOST|MB_ICONWARNING);
+    else printf("[%s] %s\n",cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,cps[TXT_MSG_RIGHT_ADMIN].c);
   }
 
   //init if 64b
