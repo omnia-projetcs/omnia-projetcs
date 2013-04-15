@@ -737,6 +737,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             case INDEX_NAV_IE:
             case INDEX_ANDROID:
             case INDEX_PREFETCH:
+            case INDEX_FILE_NK:
               //open file path
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
             break;

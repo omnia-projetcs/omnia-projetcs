@@ -12,7 +12,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
 //---------------------------
 //update malware database
-  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database update startd...");
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_START].c);
   //init database ?
   //sqlite3_exec(db_scan,"DELETE from malware_list;", NULL, NULL, NULL);
 
@@ -82,7 +82,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
     }
   }
   //---------------------------
-  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Database updated !!!");
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_END].c);
   update_thread_start = 0;
   return 0;
 }
