@@ -1,6 +1,6 @@
 <map version="0.9.0">
 <!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
-<node CREATED="1352364132027" ID="ID_1142149286" MODIFIED="1366054969016">
+<node CREATED="1352364132027" ID="ID_1142149286" MODIFIED="1367329263022">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -1802,7 +1802,7 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1353688287544" ID="ID_1241527274" MODIFIED="1356689427303">
+<node CREATED="1353688287544" ID="ID_1241527274" MODIFIED="1367329156240">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -1887,10 +1887,14 @@
       Mozzila cookies view&#160;: <a href="http://www.nirsoft.net/utils/mzcv.html">http://www.nirsoft.net/utils/mzcv.html</a>
     </p>
     <p>
-      PasswordFox&#160;: <a href="http://www.nirsoft.net/utils/passwordfox.html">http://www.nirsoft.net/utils/passwordfox.html</a>
+      Dumpzilla Forensic Firefox Tool : <a href="http://packetstormsecurity.com/files/120822" http-equiv="content-type" content="text/html; charset=utf-8">http://packetstormsecurity.com/files/120822</a>
+    </p>
+    <p>
+      PasswordFox&#160;: <a href="http://www.nirsoft.net/utils/passwordfox.html">http://www.nirsoft.net/utils/passwordfox.html </a>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 <node CREATED="1353688291815" ID="ID_898031263" MODIFIED="1356689404647">
 <richcontent TYPE="NODE"><html>
@@ -3002,8 +3006,7 @@
       Acquisition de m&#233;moire sous Windows.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1352467735183" ID="ID_70659825" MODIFIED="1358858772899" TEXT="Processus">
@@ -3857,8 +3860,7 @@
       Outils de recherche de conteneur chiffr&#233; par statistique.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054543733" ID="ID_779061591" MODIFIED="1366054565149" TEXT="Brute force que conteneurs TrueCryt">
 <node CREATED="1366054568280" ID="ID_224907714" MODIFIED="1366054641110">
@@ -3871,8 +3873,7 @@
       <b>TCBrute</b>&#160;<a content="text/html; charset=utf-8" http-equiv="content-type" href="http://dl.securityvision.ch/TCBrute/">http://dl.securityvision.ch/TCBrute/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054571583" ID="ID_1940161865" MODIFIED="1366054678695">
 <richcontent TYPE="NODE"><html>
@@ -3884,8 +3885,7 @@
       <b>TrueCrack</b>&#160;<a content="text/html; charset=utf-8" http-equiv="content-type" href="https://code.google.com/p/truecrack/">https://code.google.com/p/truecrack/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -5181,8 +5181,7 @@
       Framework de manipulation de PDF.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054776599" ID="ID_1568414080" MODIFIED="1366054897661">
 <richcontent TYPE="NODE"><html>
@@ -5197,8 +5196,22 @@
       Unpacker javascript.
     </p>
   </body>
+</html></richcontent>
+</node>
+<node CREATED="1367326772621" ID="ID_67247753" MODIFIED="1367326781094" TEXT="Exploits">
+<node CREATED="1367326783223" ID="ID_1984426856" MODIFIED="1367326792475">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <a href="http://blogs.technet.com/b/mmpc/archive/2013/04/29/the-rise-in-the-exploitation-of-old-pdf-vulnerabilities.aspx" http-equiv="content-type" content="text/html; charset=utf-8">http://blogs.technet.com/b/mmpc/archive/2013/04/29/the-rise-in-the-exploitation-of-old-pdf-vulnerabilities.aspx</a>
+    </p>
+  </body>
 </html>
 </richcontent>
+</node>
 </node>
 </node>
 </node>
@@ -6030,6 +6043,19 @@
   </body>
 </html></richcontent>
 </node>
+<node CREATED="1367329289951" ID="ID_867569375" MODIFIED="1367329311572">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>QuarksPwdump </b><a href="https://github.com/quarkslab/quarkspwdump" http-equiv="content-type" content="text/html; charset=utf-8">https://github.com/quarkslab/quarkspwdump</a>
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
 </node>
 <node CREATED="1358848784483" ID="ID_886567537" MODIFIED="1358848787699" TEXT="Applications">
 <node CREATED="1358525973785" ID="ID_1260017632" MODIFIED="1358526134643">
@@ -6355,6 +6381,21 @@
   </body>
 </html></richcontent>
 </node>
+<node CREATED="1367329046127" ID="ID_398803812" MODIFIED="1367329064477" TEXT="Vuln&#xe9;rabilit&#xe9;s">
+<node CREATED="1367329066463" ID="ID_1934925284" MODIFIED="1367329092099">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      Samsung Delockscreen <a href="http://shkspr.mobi/blog/2013/03/new-bypass-samsung-lockscreen-total-control/" http-equiv="content-type" content="text/html; charset=utf-8">http://shkspr.mobi/blog/2013/03/new-bypass-samsung-lockscreen-total-control/</a>
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
 </node>
 </node>
 <node CREATED="1366055195376" ID="ID_532412078" MODIFIED="1366055348200" TEXT="revers engineering">
@@ -6369,8 +6410,7 @@
       <b>Hex editor neo</b>&#160;<a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.hhdsoftware.com/free-hex-editor">http://www.hhdsoftware.com/free-hex-editor</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1366055385239" ID="ID_331065245" MODIFIED="1366055391738" TEXT="Convertisseur">
@@ -6387,13 +6427,27 @@
       Convertion de donn&#233;e &#224; partir d'un grand nombre de format : XOR/ROT/SFT keys/split/join/convert...
     </p>
   </body>
+</html></richcontent>
+</node>
+</node>
+<node CREATED="1367328861791" ID="ID_461763320" MODIFIED="1367328869471" TEXT="Applications Android">
+<node CREATED="1367328871695" ID="ID_261773078" MODIFIED="1367328897844">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>JEB</b>&#160;<a href="http://www.android-decompiler.com/" http-equiv="content-type" content="text/html; charset=utf-8">http://www.android-decompiler.com/</a>
+    </p>
+  </body>
 </html>
 </richcontent>
 </node>
 </node>
 </node>
 </node>
-<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1366054945368" POSITION="right">
+<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1367328928412" POSITION="right">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6430,16 +6484,16 @@
       <a href="http://computer-forensics.sans.org/community/downloads">http://computer-forensics.sans.org/community/downloads</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://grandstreamdreams.blogspot.fr/">http://grandstreamdreams.blogspot.fr/</a>
+      <a href="http://grandstreamdreams.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://grandstreamdreams.blogspot.fr/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://journeyintoir.blogspot.fr/">http://journeyintoir.blogspot.fr/</a>
+      <a href="http://journeyintoir.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://journeyintoir.blogspot.fr/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://dfstream.blogspot.fr/">http://dfstream.blogspot.fr/ </a>
+      <a href="http://dfstream.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://dfstream.blogspot.fr/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://opensecuritytraining.info/Training.html">http://opensecuritytraining.info/Training.html</a>
+      <a href="http://opensecuritytraining.info/Training.html" http-equiv="content-type" content="text/html; charset=utf-8">http://opensecuritytraining.info/Training.html</a>
     </p>
     <p>
       
@@ -6508,16 +6562,19 @@
       <a href="http://code.google.com/p/winforensicaanalysis/downloads/list">http://code.google.com/p/winforensicaanalysis/downloads/list</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.tarasco.org/security/tools.html">http://www.tarasco.org/security/tools.html</a>
+      <a href="http://www.tarasco.org/security/tools.html" http-equiv="content-type" content="text/html; charset=utf-8">http://www.tarasco.org/security/tools.html</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.osforensics.com/">http://www.osforensics.com/ </a>
+      <a href="http://www.osforensics.com/" http-equiv="content-type" content="text/html; charset=utf-8">http://www.osforensics.com/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://download.savannah.gnu.org/releases/mobiusft/">http://download.savannah.gnu.org/releases/mobiusft/ </a>
+      <a href="http://download.savannah.gnu.org/releases/mobiusft/" http-equiv="content-type" content="text/html; charset=utf-8">http://download.savannah.gnu.org/releases/mobiusft/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://code.google.com/p/omnia-projetcs/">http://code.google.com/p/omnia-projetcs/</a>
+      <a href="http://code.google.com/p/omnia-projetcs/" http-equiv="content-type" content="text/html; charset=utf-8">http://code.google.com/p/omnia-projetcs/ </a>
+    </p>
+    <p>
+      <a href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html" http-equiv="content-type" content="text/html; charset=utf-8">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
     </p>
     <p>
       
@@ -6526,10 +6583,10 @@
       Statistiques :
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.mandiant.com/resources/m-trends/">http://www.mandiant.com/resources/m-trends/</a>
+      <a href="http://www.mandiant.com/resources/m-trends/" http-equiv="content-type" content="text/html; charset=utf-8">http://www.mandiant.com/resources/m-trends/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="https://www.virustotal.com/statistics/">https://www.virustotal.com/statistics/</a>
+      <a href="https://www.virustotal.com/statistics/" http-equiv="content-type" content="text/html; charset=utf-8">https://www.virustotal.com/statistics/</a>
     </p>
   </body>
 </html>
