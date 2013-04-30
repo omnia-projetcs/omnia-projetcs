@@ -670,14 +670,15 @@ Les noms utilis\'es : Commandes AT/Commandes Hayes. Les connexions au modem se f
 \lstinputlisting[language=Python]{src_at.py}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\HACKfiche{}{Backtrack (1/?)}{backtrack4_4.png}
+\HACKfiche{}{Backtrack}{backtrack4_4.png}
 {
 \url{http://www.backtrack-linux.org/}\\
 \url{http://www.backtrack-fr.net/}\\
 \url{http://tools.securitytube.net/index.php?title=Main_Page}
 }
 {
-\\Distribution tout-en-un, d'audit de s\'ecurit\'e, tests d'intrusion, cassage WiFi\dots{} Il est possible de cr\'eer des live-cd \`a partir de syst\`emes install\'e avec l'outil remastersys.\\
+\\Distribution tout-en-un, d'audit de s\'ecurit\'e, tests d'intrusion, cassage WiFi\dots{}\\
+La nouvelle distribution s'appelle maintenant Kali-linux \url{http://www.kali.org/}\\
 Ci-dessous un exemple d'outils pr\'esents.
 }
 {
@@ -1081,7 +1082,7 @@ Un autre fuzze Web : Freakin' Simple Fuzzer \url{http://code.google.com/p/fm-fsf
 {\url{http://www.ex-parrot.com/~chris/driftnet/}}
 {
 \\Outils qui permet la sauvegarde et lecture des contenus sonore (MPEG) et images qui transitent sur le r\'eseau.\\
-Coupl\'e avec un MITM il est possible de voir les images t\'el\'echarg\'ees par un client.
+Coupl\'e avec un MITM il est possible de voir les images t\'el\'echarg\'ees par un client en HTTP.
 }
 {
 \textit{Il est possible d'utiliser les filtres de s\'election de type TCPDUMP/PCAP, ils s'utilisent en dernier param\`etre de la commande (driftnet commande... filtre).}\\
@@ -2621,6 +2622,8 @@ L'option \textbf{-l} active l'affichage des informations en liste.}\vskip +0.2cm
 {
 \begin{LARGE}R\'ecup\'eration de fichiers effac\'es : \end{LARGE}\vskip +0.2cm
 
+Il est important de noter que foremost utilise par défaut le fichier de configuration /etc/foremost.conf.
+
 \textbf{Sauvegarder la liste des fichiers effac\'es sur le disque sda1 dans le fichier save/audit.txt en pr\'ecisant la date et heure :}\\
 {\sl \color{blue}foremost -w -T -i /dev/sda1 -o save/}\\
 
@@ -2645,9 +2648,55 @@ L'option \textbf{-l} active l'affichage des informations en liste.}\vskip +0.2cm
 {\sl \color{blue}alias sup="mv -t \texttildelow/.local/share/Trash/files {-}{-}backup=t"}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{Forensic}{protocole.png}
+\CficheTotal{}{Forensic - Questionnaire}
+{
+
+\textbf{Questions pr\'eliminaires}
+\begin{description}
+    \item[$\Square$] Quel acte ou \'etat inhabituel a \'et\'e identifi\'e ?  
+    \item[$\Square$] Quand et quelles sont les actions men\'es depuis ?
+    \item[$\Square$] Quels sont les syst\`emes d'exploitation, capacit\'es et technologie de stockage,  r\'eseaux, connectiques pr\'esentes et cibl\'es par l'investigation ?
+    \item[$\Square$] Les stockages sont-ils chiffr\'es ?
+    \item[$\Square$] A qui appartiennent les cibles et quels sont les droits sur celle-ci par la soci\'et\'e ?
+    \item[$\Square$] Quand et comment peuvent \^etre programm\'es les acc\`es pour l'extraction des donn\'ees ?
+    \item[$\Square$] Quels sont vos d\'elais maximum pour la r\'eception des r\'esultats ?    
+    \item[$\Square$] Avez-vous d'autres informations ou exigences \`a porter \`a notre attention ?
+\end{description}
+\vskip+0.2cm
+
+\textbf{Investigation sur journaux transmis}
+\begin{description}
+    \item[$\Square$] Quelle est la source, l'origine, le format et la taille des journaux ?
+    \item[$\Square$] En cas de format propri\'etaire prot\'eg\'es, pouvez-vous transmettre le moyen d'exploiter ou de d\'echiffrer les donn\'ees ?
+    \item[$\Square$] Comment pouvez-vous transmettre les journaux d'audit ?
+\end{description}
+\vskip+0.2cm
+
+\textbf{Cas de corruption d'un serveur}
+\begin{description}
+    \item[$\Square$] Quel \'etait le r\^ole du serveur ?
+    \item[$\Square$] Qui administre le serveur et comment ?
+    \item[$\Square$] Quels sont les date de derni\`ere intervention sur le serveur, mise \`a jour des application et du serveur ?
+    \item[$\Square$] Quels sont les langages et technologies utilis\'ees dans les application Web ?
+    \item[$\Square$] Pourriez vous faire un diff entre les fichiers de l'application Web et la derni\`ere version pr\'esente ?
+    \item[$\Square$] Quels sont les \'el\'ements journalis\'es et sont-ils sauvegard\'es ?
+\end{description}
+\vskip+0.2cm
+
+\textbf{Cas d'action de malveillance}
+\begin{description}
+    \item[$\Square$] Quels sont les date de derni\`ere intervention sur le syst\`eme ?
+    \item[$\Square$] Quels sont les services et applications spécifiques utilis\'es sur ce syst\`eme  ?
+    \item[$\Square$] La connexion \`a des r\'eseaux ext\'erieurs à l'entreprise est-elle autoris\'ee pour ce syst\`eme ?
+    \item[$\Square$] Combien d'utilisateurs peuvent se connecter sur ce syst\`eme, et quels sont les comptes, SID et privilèges associés ?
+    \item[$\Square$] Quelle est la date de derni\'er formatage et changement de propri\'etaire du syst\`eme ?
+\end{description}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Forensic - D\'eroulement}{protocole.png}
 {
 \url{http://ncfs.ucf.edu/craiger.forensics.methods.procedures.final.pdf}
+\url{https://omnia-projetcs.googlecode.com/svn/trunk/OFD/Investigations_Inforensique.mm}
 }
 {
 \\Une analyse "forensic" repr\'esente l'analyse d'un syst\`eme ayant \'et\'e compromis.\\
@@ -2658,20 +2707,19 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 {
 \textbf{Lors de la d\'ecouverte ou d'un doute de compromission :}
 \begin{description}
-    \item[$\Square$] Sauvegarder l'\'etat des processus et la liste des ports ouverts.
-    \item[$\Square$] Effectuer un \textit{Dump} de la m\'emoire de l'utilisateur.
+    \item[$\Square$] Sauvegarder de l'\'etat instantan\'e (processus, ports ouverts, m\'emoire).
     \item[$\Square$] Effectuer une copie des disques bit-\`a-bit. 
     \item[$\Square$] V\'erifier l'int\'egrit\'e de l'image en effectuant un checksum SHA du disque original et de l'image.
-    \item[$\Square$] Ne pas \'eteindre la machine, la d\'econnecter de tout r\'eseau en cas de risques de compromissions.
+    \item[$\Square$] Ne pas \'eteindre la machine, la d\'econnecter de tout r\'eseau en cas de risques de compromission (perte des objets r\'eseau).
     \item[$\Square$] En cas de disque chiffr\'e, r\'ecup\'erer la cl\'ee de d\'echiffrement et le type de solution utilis\'ee. 
 \end{description}
 
 \vskip+0.2cm
 \textbf{Syst\`eme de fichier :}
 \begin{description}
-    \item[$\Square$] Monter l'image de la partition.
-    \item[$\Square$] Effectuer une liste de l'ensemble des fichiers pr\'esents sur le disque avec emprunte SHA (peut \^etre demand\'e en cas de demande judiciaire).   
-    \item[$\Square$] Tenter une r\'ecup\'eration des fichiers effac\'es.
+    \item[$\Square$] Lecture de la MFT et v\'erification des anomalies.
+    \item[$\Square$] R\'ecup\'eration des fichiers effac\'es.
+    \item[$\Square$] Effectuer une liste de l'ensemble des fichiers pr\'esents et r\'ecup\'er\'es sur le disque avec emprunte SHA256.   
     \item[$\Square$] V\'erifier la pr\'esence de virus sur tous les fichiers (m\^eme effac\'es).
     \item[$\Square$] Identifier les fichiers importants : scripts, sauvegardes, registre, multim\'edias, bureautiques, compress\'es, ex\'ecutables et temporaires\dots{}
     \item[$\Square$] Rechercher les derniers fichiers modifi\'es.
@@ -2685,8 +2733,9 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 \end{description} 
 
 \vskip+0.2cm
-\textbf{P\'eriph\'eriques :}
+\textbf{Syst\`eme :}
 \begin{description}
+	\item[$\Square$] Configuration du syst\`eme (taille m\'emoire, processeur, carte m\`ere, marque, mod\`ele, num\'eros de s\'erie).
     \item[$\Square$] Liste et date d'utilisation des derniers p\'eriph\'eriques USB/Firewire\dots{}.
     \item[$\Square$] Liste des p\'eriph\'eriques r\'eseau install\'es.
     \item[$\Square$] Liste des r\'eseaux et cartes install\'ees.
@@ -2698,7 +2747,7 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
     \item[$\Square$] Exporter la liste de tous les scripts/applications au d\'emarrage de la machine.
     \item[$\Square$] V\'erifier la liste des applications install\'es.
     \item[$\Square$] V\'erifier la pr\'esence de fichiers, journaux et r\'epertoires d'applications sp\'ecifiques (exemple : putty\dots{}). 
-    \item[$\Square$] V\'erifier les traces d'applications dans la base de registre et dans les fichiers d'audit.
+    \item[$\Square$] V\'erifier les traces d'applications dans la base de registre, fichiers d'audit et prefetch.
     \item[$\Square$] Exporter les journaux de navigation Internet, favoris et cookies (recherche de sites ill\'egaux et statistiques d'utilisation).
     \item[$\Square$] V\'erifier les mails (et sauvegarde des mails) des utilisateurs.    
 \end{description}   
@@ -2708,6 +2757,7 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 \begin{description}    
     \item[$\Square$] V\'erifier tous les journaux d'audit (horaires d'acc\`es, acc\`es multi-utilisateurs, droits sp\'ecifiques, coh\'erance des journaux pour d\'etecter la suppression d'enregistrement ou le changement d'heure.).
     \item[$\Square$] Exportation des applications ex\'ecut\'ees, nombre d'utilisation et dates de derni\'ere utilisation. 
+    \item[$\Square$] \dots{}
 \end{description}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2880,7 +2930,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 }
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{Forensic - Unix/Linux}{protocole.png}{}
+\fiche{}{Forensic - Unix/Linux}{protocole.png}{\url{https://omnia-projetcs.googlecode.com/svn/trunk/OFD/Investigations_Inforensique.mm}}
 {
 \\Avant toute copie d'un disque, v\'erifier le d\'ebit de transfert possible avec les connecteurs et disques qui vont \^etre utilis\'es, pour de meilleures performances pr\'ef\'erer des copies machine/live-cd <-> disque externe : 
 \begin{itemize}
@@ -2957,7 +3007,7 @@ Filtrer les journaux entre deux dates (en cas de fichier compress\'e zgrep peut 
 
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{Forensic - Windows}{protocole.png}{}
+\fiche{}{Forensic - Windows}{protocole.png}{\url{https://omnia-projetcs.googlecode.com/svn/trunk/OFD/Investigations_Inforensique.mm}}
 {
 \\Avant toute copie d'un disque, v\'erifier le d\'ebit de transfert possible avec les connecteurs et disques qui vont \^etre utilis\'es, pour de meilleures performances pr\'ef\'erer des copies machine/live-cd <-> disque externe : 
 \begin{itemize}
@@ -2973,7 +3023,7 @@ gconftool-2 -s -t boolean /apps/nautilus/preferences/mmedia\_automount\_open fal
 
 \vskip+0.2cm
 \textbf{Copie du disque dur bit \`a bit :}\\
-\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour une taille de secteur de 4096, peut \^etre \'etendu \`a la taille de buffer du disque (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
+\textit{Une copie bit \`a bit d'un disque permet de copier tous les secteurs d'un disque, l'option \textbf{bs} permet d'optimiser la copie, ici pour une taille de secteur de 4096 (Pour identifier le disque {\sl \color{blue}fdisk -l}}).\\
 {\sl \color{blue}dd if=/dev/sdc of=/media/Sauvegarde/fichier\_resultat.raw bs=4096 conv=noerror,sync}
 
 \vskip+0.2cm
@@ -3020,6 +3070,8 @@ L'outil WRR de la suite DEFT-EXTRA permet d'ouvrir/extraire/exploiter les fichie
 	\item Fichiers de base de registre : {\sl \color{blue}\%windir\%$\backslash$System32$\backslash$config$\backslash$}
 	\item Fichier de domaine pr\'esent sur les contr\^oleurs : {\sl \color{blue}\%windir\%$\backslash$ntds$\backslash$ntds.dit}
 	\item Journaux d'audit : {\sl \color{blue}*.evt, *.evtx, *.log} dans {\sl \color{blue}\%windir\%$\backslash$Logs$\backslash$} et {\sl \color{blue}\%windir\%$\backslash$System32$\backslash$config$\backslash$}
+	\item Fichiers de prefectch : {\sl \color{blue}\%windir\%$\backslash$Prefecth$\backslash$*.pf}
+	\item T\^aches plannif\'es : {\sl \color{blue}\%windir\%$\backslash$Tasks$\backslash$*.job}
 	\item Fichiers applicatifs : Firefox, Thunderbird\dots{}
 	\item Tout fichier en rapport avec l'investigation : torrent, images,\dots{}
 \end{itemize}
@@ -3347,10 +3399,11 @@ Connexion en SSH sur le client :\\
 \begin{description}
     \item[$\Square$] V\'erifier si les donn\'ees d'impression sont stock\'ees en m\'emoire vive ou via un disque dur. Dans le cas d'un disque dur ou support de stockage, le renvoi du mat\'eriel doit prendre en compte le retrait des supports de stockage.
     \item[$\Square$] L'imprimante doit \^etre situ\'ee dans un secr\'etariat ou dans la m\^eme pi\`ece que les utilisateurs.
-    \item[$\Square$] L'impression des documents classifi\'es doit \^etre consign\'ee dans un registre. 
+    \item[$\Square$] L'impression des documents classifi\'es doit \^etre consign\'ee dans un registre.\\
     %\item[$\Square$] L'imprimante doit \^etre marqu\'ee du niveau de classification du r\'eseau.\\
 \end{description}
 
+En cas de stockage des fichiers imprim\'es certains constructeurs permettent l'acc\`es au cache de l'imprimante \`a partir du r\'eseau via un client spécialis\'e \`a r\'ecup\'erer sur son site.
 
 
 }
@@ -3954,7 +4007,8 @@ Le RDN de Personne1 est rdn:uid=Personne1,\\ son DN est dn:uid=Personne1,ou=Serv
 
 \textbf{Outils :}
 \begin{itemize}
-	\item LDP \url{http://www.computerperformance.co.uk/w2k3/utilities/ldp.htm} %lecture anonyme
+	\item Apache Directory Studio \url{http://directory.apache.org/}
+	%\item LDP \url{http://www.computerperformance.co.uk/w2k3/utilities/ldp.htm} %lecture anonyme
 	\item \addcontentsline{toc}{subsubsection}{LDP Browser} LDP Browser \url{http://www.softerra.com/download.htm}
 	\item \addcontentsline{toc}{subsubsection}{JXplorer} JXplorer \url{http://www.jxplorer.org/} % avanc\'e
 	\item \addcontentsline{toc}{subsubsection}{LDAPMiner} LDAPMiner \url{http://sourceforge.net/projects/ldapminer/}\\
