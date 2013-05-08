@@ -1141,10 +1141,10 @@
 1348085006 source:z:\svn_omnia\rtca_frameworks\rtca_full\tests\test_prefetch.c
 	"../RtCA.h"
 
-1364581459 source:z:\svn_omnia\rtca\configuration\gui_conf.c
+1366231521 source:z:\svn_omnia\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1366056222 z:\svn_omnia\rtca\rtca.h
+1368028581 z:\svn_omnia\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -1171,7 +1171,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1366056294 z:\svn_omnia\rtca\version.h
+1368031498 z:\svn_omnia\rtca\version.h
 
 1353706658 z:\svn_omnia\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -1195,7 +1195,7 @@
 
 1353706658 z:\svn_omnia\rtca\crypt\opensslv.h
 
-1365969519 source:z:\svn_omnia\rtca\configuration\init.c
+1368029115 source:z:\svn_omnia\rtca\configuration\init.c
 	"../RtCA.h"
 
 1353706658 source:z:\svn_omnia\rtca\crypt\d3des.c
@@ -1265,16 +1265,16 @@
 1359155168 source:z:\svn_omnia\rtca\export.c
 	"RtCA.h"
 
-1365708580 source:z:\svn_omnia\rtca\files\proc_files.c
+1366225982 source:z:\svn_omnia\rtca\files\proc_files.c
 	"../RtCA.h"
 
 1365258382 source:z:\svn_omnia\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1366053961 source:z:\svn_omnia\rtca\main.c
+1368030609 source:z:\svn_omnia\rtca\main.c
 	"RtCA.h"
 
-1365942666 source:z:\svn_omnia\rtca\proc.c
+1367852142 source:z:\svn_omnia\rtca\proc.c
 	"RtCA.h"
 
 1354469416 source:z:\svn_omnia\rtca\proc_cmd.c
@@ -1286,10 +1286,10 @@
 1353706654 source:z:\svn_omnia\rtca\proc_registry.c
 	"RtCA.h"
 
-1365619419 source:z:\svn_omnia\rtca\sqlite\interface.c
+1366231469 source:z:\svn_omnia\rtca\sqlite\interface.c
 	"../RtCA.h"
 
-1353706658 source:z:\svn_omnia\rtca\sqlite\load_save.c
+1366231469 source:z:\svn_omnia\rtca\sqlite\load_save.c
 	"../RtCA.h"
 
 1357233036 source:z:\svn_omnia\rtca\sqlite\sqlite3.c
@@ -1339,10 +1339,10 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1365706952 source:z:\svn_omnia\rtca\tests\scan.c
+1366539542 source:z:\svn_omnia\rtca\tests\scan.c
 	"../RtCA.h"
 
-1361100899 source:z:\svn_omnia\rtca\tests\test_android.c
+1367677499 source:z:\svn_omnia\rtca\tests\test_android.c
 	"../RtCA.h"
 
 1361100804 source:z:\svn_omnia\rtca\tests\test_antivirus.c
@@ -1351,10 +1351,10 @@
 1361100899 source:z:\svn_omnia\rtca\tests\test_arp.c
 	"../RtCA.h"
 
-1361100899 source:z:\svn_omnia\rtca\tests\test_chrome.c
+1367677471 source:z:\svn_omnia\rtca\tests\test_chrome.c
 	"../RtCA.h"
 
-1361100899 source:z:\svn_omnia\rtca\tests\test_clipboard.c
+1367682667 source:z:\svn_omnia\rtca\tests\test_clipboard.c
 	"../RtCA.h"
 
 1361100899 source:z:\svn_omnia\rtca\tests\test_disk.c
@@ -1366,11 +1366,11 @@
 1361100899 source:z:\svn_omnia\rtca\tests\test_env.c
 	"../RtCA.h"
 
-1365959885 source:z:\svn_omnia\rtca\tests\test_file.c
+1367852341 source:z:\svn_omnia\rtca\tests\test_file.c
 	"../RtCA.h"
 	"../crypt/sha2.h"
 
-1361100899 source:z:\svn_omnia\rtca\tests\test_firefox.c
+1367677446 source:z:\svn_omnia\rtca\tests\test_firefox.c
 	"../RtCA.h"
 
 1361100894 source:z:\svn_omnia\rtca\tests\test_firewall.c
@@ -1379,10 +1379,10 @@
 1361100973 source:z:\svn_omnia\rtca\tests\test_guide.c
 	"../RtCA.h"
 
-1361100973 source:z:\svn_omnia\rtca\tests\test_ie.c
+1367686129 source:z:\svn_omnia\rtca\tests\test_ie.c
 	"../RtCA.h"
 
-1361100973 source:z:\svn_omnia\rtca\tests\test_log.c
+1367681720 source:z:\svn_omnia\rtca\tests\test_log.c
 	"../RtCA.h"
 
 1357233228 source:z:\svn_omnia\rtca\tests\test_log_files.c
@@ -1397,7 +1397,7 @@
 1361101041 source:z:\svn_omnia\rtca\tests\test_pipe.c
 	"../RtCA.h"
 
-1361101041 source:z:\svn_omnia\rtca\tests\test_prefetch.c
+1367679190 source:z:\svn_omnia\rtca\tests\test_prefetch.c
 	"../RtCA.h"
 
 1365948755 source:z:\svn_omnia\rtca\tests\test_process.c
@@ -1412,19 +1412,19 @@
 1361101041 source:z:\svn_omnia\rtca\tests\test_registry_path.c
 	"../RtCA.h"
 
-1361101041 source:z:\svn_omnia\rtca\tests\test_registry_service.c
+1367677723 source:z:\svn_omnia\rtca\tests\test_registry_service.c
 	"../RtCA.h"
 
 1361101074 source:z:\svn_omnia\rtca\tests\test_registry_settings.c
 	"../RtCA.h"
 
-1361101074 source:z:\svn_omnia\rtca\tests\test_registry_software.c
+1366539760 source:z:\svn_omnia\rtca\tests\test_registry_software.c
 	"../RtCA.h"
 
 1361101074 source:z:\svn_omnia\rtca\tests\test_registry_start.c
 	"../RtCA.h"
 
-1364058618 source:z:\svn_omnia\rtca\tests\test_registry_update.c
+1366538295 source:z:\svn_omnia\rtca\tests\test_registry_update.c
 	"../RtCA.h"
 
 1361101081 source:z:\svn_omnia\rtca\tests\test_registry_usb.c
@@ -1442,19 +1442,19 @@
 1361101133 source:z:\svn_omnia\rtca\tests\test_share.c
 	"../RtCA.h"
 
-1361101133 source:z:\svn_omnia\rtca\tests\test_task.c
+1367679190 source:z:\svn_omnia\rtca\tests\test_task.c
 	"../RtCA.h"
 
 1353706656 source:z:\svn_omnia\rtca\tools\tools_clean.c
 	"../RtCA.h"
 
-1364143964 source:z:\svn_omnia\rtca\tools\tools_copy.c
+1366550988 source:z:\svn_omnia\rtca\tools\tools_copy.c
 	"../RtCA.h"
 
 1353706656 source:z:\svn_omnia\rtca\tools\tools_memory.c
 	"../RtCA.h"
 
-1365255769 source:z:\svn_omnia\rtca\tools\tools_registry.c
+1367849610 source:z:\svn_omnia\rtca\tools\tools_registry.c
 	"../RtCA.h"
 
 1351949483 source:z:\svn_omnia\rtca\tools\tools_sniff.c
@@ -1464,13 +1464,13 @@
 1365283296 source:z:\svn_omnia\rtca\tools\tools_state.c
 	"../RtCA.h"
 
-1366052988 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
+1366493821 source:z:\svn_omnia\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1365865486 source:z:\svn_omnia\rtca\rtca.rc
+1367861713 source:z:\svn_omnia\rtca\rtca.rc
 	"RtCA.h"
 
-1360013398 source:z:\svn_omnia\rtca\tools\tools_process.c
+1367849610 source:z:\svn_omnia\rtca\tools\tools_process.c
 	"../RtCA.h"
 
 1359665604 z:\svn_omnia\rtca\tools\tools_network\_entetes.h
@@ -1488,7 +1488,7 @@
 1360013566 source:z:\svn_omnia\rtca\import.c
 	"RtCA.h"
 
-1364146752 source:z:\svn_omnia\rtca\tools\tools_sqlite_ed.c
+1367872902 source:z:\svn_omnia\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 
 1360011550 source:z:\svn_omnia\rtca\tests\test_log_files_evt.c
@@ -1873,5 +1873,8 @@
 	"../RtCA.h"
 
 1359147478 source:d:\svn_omnia\rtca\tests\test_chrome.c
+	"../RtCA.h"
+
+1367679348 source:z:\svn_omnia\rtca\tests\test_file_lnk.c
 	"../RtCA.h"
 

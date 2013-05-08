@@ -18,7 +18,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
   //ddl malware file https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
   //init SSL connexion
-  HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+  HINTERNET M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
   if (M_connexion==NULL)return 0;
 
   HINTERNET M_session = InternetConnect(M_connexion, "easylist-downloads.adblockplus.org",443,"","",INTERNET_SERVICE_HTTP,0,0);
@@ -327,6 +327,17 @@ char *DataToHexaChar(char *data, unsigned int data_size, char *hexa_char, unsign
     strncat(hexa_char,"\0",hexa_char_size);
     return hexa_char;
   }else return NULL;
+}
+//------------------------------------------------------------------------------
+char *extractDirectoryFromPath(char *path)
+{
+  char *c = path;
+
+  while(*c++);
+  while(*c!='\\' && *c!='/' && c>path)c--;
+  *c = 0;
+
+  return path;
 }
 //------------------------------------------------------------------------------
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max)

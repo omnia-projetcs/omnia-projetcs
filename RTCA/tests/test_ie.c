@@ -8,11 +8,14 @@
 //------------------------------------------------------------------------------
 void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
-  char request[REQUEST_MAX_SIZE];
+  char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_IE (file,parameter,data,date,id_language_description,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
-           file,parameter,data,date,id_language_description,session_id);
+           "INSERT INTO extract_IE (file,parameter,date,id_language_description,session_id,data) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%lu\",%d,\"%s\");",
+           file,parameter,date,id_language_description,session_id,data);
+
+  //if datas too long
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
@@ -132,6 +135,8 @@ void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqli
   //on libère la mémoire
   HeapFree(GetProcessHeap(), 0, buffer);
 }
+
+//bugged in 7
 //------------------------------------------------------------------------------
 void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session_id, sqlite3 *db, BOOL recursif, BOOL IEexclusions)
 {
@@ -145,7 +150,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
     {
       if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
       {
-        if(wfd.cFileName[0] == '.' && (wfd.cFileName[1] == 0 || wfd.cFileName[1] == '.'))continue;
+        if(wfd.cFileName[0] == '.' && ((wfd.cFileName[1] == 0) || (wfd.cFileName[1] == '.')))continue;
         if (recursif)
         {
           if (IEexclusions) //only not exludes !!!
@@ -169,7 +174,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
           ReadDATFile(path_tmp_next, id, session_id, db);
         }
       }
-    }while(FindNextFile (hfic,&wfd));
+    }while(FindNextFile (hfic,&wfd)!= 0 && start_scan);
   }
 }
 
@@ -196,7 +201,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
       if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
       {
         //get subkey
-        for(i=0;i<nbSubKey;i++)
+        for(i=0;i<nbSubKey && start_scan;i++)
         {
           key_size    = MAX_PATH;
           tmp_key[0]  = 0;
@@ -235,3 +240,106 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }
+/*
+Ex : limited but functionne and no bug in 7
+
+/*
+DWORD WINAPI Scan_ie_history(LPVOID lParam)
+{
+  sqlite3 *db = (sqlite3 *)db_scan;
+
+  char tmp_file[MAX_PATH];
+  unsigned int session_id = current_session_id;
+
+  //get child
+  HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
+  if (hitem == NULL && LOCAL_SCAN) //local
+  {
+    //get path of all profils users
+    //HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList
+    HKEY CleTmp   = 0;
+    if (RegOpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\",&CleTmp)==ERROR_SUCCESS)
+    {
+      DWORD i, nbSubKey=0, key_size;
+      char tmp_key[MAX_PATH], tmp_key_path[MAX_PATH];
+      if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+      {
+        //get subkey
+        for(i=0;i<nbSubKey;i++)
+        {
+          key_size    = MAX_PATH;
+          tmp_key[0]  = 0;
+          if (RegEnumKeyEx (CleTmp,i,tmp_key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+          {
+            //generate the key path
+            snprintf(tmp_key_path,MAX_PATH,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%s\\",tmp_key);
+            //get profil path
+            if (ReadValue(HKEY_LOCAL_MACHINE,tmp_key_path,"ProfileImagePath",tmp_key, MAX_PATH))
+            {
+              //verify the path if %systemdrive%
+              ReplaceEnv("SYSTEMDRIVE",tmp_key,MAX_PATH);
+
+              //cookies
+              snprintf(tmp_key_path,MAX_PATH,"%s\\Cookies\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 3, session_id, db);
+
+              //search other files cache
+              WIN32_FIND_DATA wfd0;
+              snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
+              HANDLE hfic = FindFirstFile(tmp_key_path, &wfd0);
+              if (hfic != INVALID_HANDLE_VALUE)
+              {
+                char tmp_path[MAX_PATH],tmp_path2[MAX_PATH];
+                do
+                {
+                  if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                  {
+                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
+
+                    sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+                    snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
+                    ReadDATFile(tmp_path, 15, session_id, db);
+                    sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+                    //get file and tests it
+                    WIN32_FIND_DATA wfd1;
+                    HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
+                    if (hfic2 == INVALID_HANDLE_VALUE)continue;
+                    do
+                    {
+                      if (wfd1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                      {
+                        if(wfd1.cFileName[0] == '.' && (wfd1.cFileName[1] == 0 || wfd1.cFileName[1] == '.'))continue;
+
+                        sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+                        snprintf(tmp_path2,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\%s\\index.dat",tmp_key,wfd0.cFileName,wfd1.cFileName);
+                        ReadDATFile(tmp_path2, 15, session_id, db);
+                        sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+                      }
+                    }while(FindNextFile (hfic,&wfd1) && start_scan);
+                  }
+                }while(FindNextFile (hfic,&wfd0));
+              }
+            }
+          }
+        }
+      }
+      RegCloseKey(CleTmp);
+    }
+  }else
+  {
+    while(hitem!=NULL && start_scan)
+    {
+      //get item txt
+      sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      GetTextFromTrv(hitem, tmp_file, MAX_PATH);
+      ReadDATFile(tmp_file, 15, session_id, db);
+      sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+    }
+  }
+  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
+  h_thread_test[(unsigned int)lParam] = 0;
+  return 0;
+}
+*/

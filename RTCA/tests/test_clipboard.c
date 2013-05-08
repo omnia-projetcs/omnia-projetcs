@@ -9,11 +9,14 @@
 void addClipboardtoDB(char *format, unsigned int code, char*description, char *data, char *user,
                   unsigned int session_id, sqlite3 *db)
 {
-  char request[MAX_LINE_SIZE+DEFAULT_TMP_SIZE];
-  snprintf(request,MAX_LINE_SIZE+DEFAULT_TMP_SIZE,
-           "INSERT INTO extract_clipboard (format,code,description,data,user,session_id) "
-           "VALUES(\"%s\",\"%05d\",\"%s\",\"%s\",\"%s\",%d);",
-           format,code,description,data,user,session_id);
+  char request[REQUEST_MAX_SIZE+4];
+  snprintf(request,REQUEST_MAX_SIZE,
+           "INSERT INTO extract_clipboard (format,code,description,user,session_id,data) "
+           "VALUES(\"%s\",\"%05d\",\"%s\",\"%s\",%d,\"%s\");",
+           format,code,description,user,session_id,data);
+
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------

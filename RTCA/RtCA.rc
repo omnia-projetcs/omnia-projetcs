@@ -37,6 +37,21 @@ BEGIN
   END
 END
 //------------------------------------------------------------------------------
+//ACCELERATORS
+//------------------------------------------------------------------------------
+MY_ACCEL ACCELERATORS DISCARDABLE
+BEGIN
+  "n"                                     ,IDM_NEW_SESSION      , VIRTKEY, SHIFT, NOINVERT
+  "s"                                     ,POPUP_E_CSV          , VIRTKEY, SHIFT, NOINVERT
+
+  "t"                                     ,IDM_STAY_ON_TOP      , VIRTKEY, ALT, NOINVERT
+  "c"                                     ,IDM_CHECK_ALL_TESTS  , VIRTKEY, ALT, NOINVERT
+  "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
+
+  "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
+  VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
+END
+//------------------------------------------------------------------------------
 //configuration dialogue
 //------------------------------------------------------------------------------
 DLG_CONF DIALOGEX 0,24,458,307
@@ -192,49 +207,38 @@ BEGIN
   CONTROL ""                                          ,DLG_SQL_ED_LB_TABLE,"ListBox",0x50310141,2,1,122,240,0x00000200
   CONTROL "Load"                                      ,DLG_SQL_ED_BT_LOAD,"Button",0x50010000,2,245,60,19
   CONTROL "Close"                                     ,DLG_SQL_ED_BT_CLOSE,"Button",0x50010000,64,245,60,19
-  CONTROL "SELECT * FROM table;"                      ,DLG_SQL_ED_ED_REQUEST,"Edit",0x50010004,128,1,402,91,0x00000200
+  CONTROL "SELECT * FROM table;"                      ,DLG_SQL_ED_ED_REQUEST,"Edit",0x50210004,128,1,402,91,0x00000200
   CONTROL "Send"                                      ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,532,1,20,91
   CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
-END
-//------------------------------------------------------------------------------
-//main dialogue menu
-//------------------------------------------------------------------------------
-MY_ACCEL ACCELERATORS DISCARDABLE
-BEGIN
-  "s"                                     ,POPUP_E_CSV          , VIRTKEY, SHIFT, NOINVERT
-  "t"                                     ,IDM_STAY_ON_TOP      , VIRTKEY, ALT, NOINVERT
-  "c"                                     ,IDM_CHECK_ALL_TESTS  , VIRTKEY, ALT, NOINVERT
-  "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
-  "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
-  VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
 END
 //------------------------------------------------------------------------------
 MY_MENU MENU
 BEGIN
   POPUP "File"    //0
   BEGIN
-    MENUITEM "New session"                ,IDM_NEW_SESSION
+    MENUITEM "New session\tCtrl+N"        ,IDM_NEW_SESSION
     MENUITEM "Refresh session list"       ,IDM_REFRESH_SESSION
+    MENUITEM SEPARATOR
+    POPUP    "Save all results"
+    BEGIN
+      MENUITEM "*.csv\tCtrl+S"            ,POPUP_E_CSV
+      MENUITEM "*.html"                   ,POPUP_E_HTML
+      MENUITEM "*.xml"                    ,POPUP_E_XML
+    END
     MENUITEM SEPARATOR
     MENUITEM "Delete current session"     ,IDM_DEL_SESSION
     MENUITEM "Delete all sessions"        ,IDM_DEL_ALL_SESSION
     MENUITEM SEPARATOR
+    MENUITEM "Load an other database"     ,IDM_LOAD_OTHER_BDD
     MENUITEM "Merge to database"          ,IDM_LOAD_SESSION_FILE
     MENUITEM "Save database"              ,IDM_SAVE_SESSION_FILE
-    MENUITEM SEPARATOR
-    POPUP    "Save all results"
-    BEGIN
-      MENUITEM "*.csv\tCtrl+s"            ,POPUP_E_CSV
-      MENUITEM "*.html"                   ,POPUP_E_HTML
-      MENUITEM "*.xml"                    ,POPUP_E_XML
-    END
     MENUITEM SEPARATOR
     MENUITEM "Quit"                       ,IDM_QUIT
   END
   POPUP "Settings"  //1
   BEGIN
-    MENUITEM "Stay on top\tAlt+t"         ,IDM_STAY_ON_TOP
+    MENUITEM "Stay on top\tAlt+T"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
     MENUITEM "Deactivate the grid"        ,BT_DISABLE_GRID
     MENUITEM SEPARATOR
@@ -262,7 +266,7 @@ BEGIN
   BEGIN
     MENUITEM "Update database"           ,IDM_RTCA_UPDATE
     MENUITEM SEPARATOR
-    MENUITEM "Open RtCA home\tAlt+h"     ,IDM_RTCA_HOME
+    MENUITEM "Open RtCA home\tAlt+H"     ,IDM_RTCA_HOME
     MENUITEM SEPARATOR
     MENUITEM "About\tF1"                 ,IDM_ABOUT
   END

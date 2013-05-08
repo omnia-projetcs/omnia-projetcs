@@ -35,6 +35,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               else UTC_TIME=FALSE;
               if (IsDlgButtonChecked(h_conf,BT_MAGIC_CHK)==BST_CHECKED)enable_magic=TRUE;
               else enable_magic=FALSE;
+              if (Ischeck_treeview(htrv_test, H_tests[INDEX_FILE_NK]))enable_LNK= TRUE;
+              else enable_LNK= FALSE;
 
               EnableWindow(htrv_files,FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_ACL_FILE_CHK),FALSE);
@@ -50,7 +52,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
               FORMAT_CALBAK_READ_INFO fcri;
               fcri.type = TYPE_SQL_ADD_SESSION;
-              SQLITE_WriteData(&fcri, DEFAULT_SQLITE_FILE);
+              SQLITE_WriteData(&fcri, SQLITE_LOCAL_BDD);
 
               //start
               h_thread_scan = CreateThread(NULL,0,GUIScan,0,0,0);

@@ -361,7 +361,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
       nb_session = 0;
       FORMAT_CALBAK_READ_INFO fcri;
       fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
-      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+      SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
       //select last item
       SendMessage(hCombo_session, CB_SETCURSEL,SendMessage(hCombo_session, CB_GETCOUNT,0,0)-1,0);

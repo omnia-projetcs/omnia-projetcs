@@ -6,16 +6,19 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addLogtoDB(  char *eventname, char *indx, char *log_id,
+void addLogtoDB(  char *event, char *indx, char *log_id,
                   char *send_date, char *write_date,
                   char *source, char *description, char *user, char *rid, char *sid,
                   char *state, char *critical, unsigned int session_id, sqlite3 *db)
 {
-  char request[REQUEST_MAX_SIZE];
+  char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_log (event,indx,log_id,send_date,write_date,source,description,user,rid,sid,state,critical,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           eventname,indx,log_id,send_date,write_date,source,description,user,rid,sid,state,critical,session_id);
+           "INSERT INTO extract_log (event,indx,log_id,send_date,write_date,source,user,rid,sid,state,critical,session_id,description) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\");",
+           event,indx,log_id,send_date,write_date,source,user,rid,sid,state,critical,session_id,description);
+
+  //if description too long
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }

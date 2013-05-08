@@ -10,7 +10,7 @@
 //------------------------------------------------------------------------------
 LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_CLOSE)ShowWindow (hdbclk_info, SW_HIDE);
+  if (uMsg == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
   else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
   return 0;
 }
@@ -44,7 +44,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 FORMAT_CALBAK_READ_INFO fcri;
                 fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
-                SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
                 SendMessage(hCombo_session, CB_SETCURSEL,0,0);
                 SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"List of session Updated !!!");
               }
@@ -56,12 +56,12 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                   FORMAT_CALBAK_READ_INFO fcri;
                   fcri.type = TYPE_SQL_REMOVE_SESSION;
-                  SQLITE_WriteData(&fcri, DEFAULT_SQLITE_FILE);
+                  SQLITE_WriteData(&fcri, SQLITE_LOCAL_BDD);
 
                   SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
                   nb_session = 0;
                   fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
-                  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
                   SendMessage(hCombo_session, CB_SETCURSEL,0,0);
                 }
                 sqlite3_exec(db_scan,"VACUUM;", NULL, NULL, NULL);//compact database
@@ -72,7 +72,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 {
                   FORMAT_CALBAK_READ_INFO fcri;
                   fcri.type = TYPE_SQL_REMOVE_ALL_SESSION;
-                  SQLITE_WriteData(&fcri, DEFAULT_SQLITE_FILE);
+                  SQLITE_WriteData(&fcri, SQLITE_LOCAL_BDD);
 
                   SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
                   ListView_DeleteAllItems(hlstv);
@@ -417,6 +417,123 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               //---screenshot
               case MSG_SCREENSHOT:CreateThread(0,0,ImpEcran,0,0,0);break;
               //case MSG_SCREENSHOT_WINDOW:CreateThread(0,0,ImpEcran,(LPVOID)1,0,0);break;
+
+              case IDM_LOAD_OTHER_BDD:
+                {
+                  char files[MAX_PATH]="";
+                  memset(files,0,MAX_PATH);
+                  OPENFILENAME ofn;
+                  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+
+                  ofn.lStructSize = sizeof(OPENFILENAME);
+                  ofn.hwndOwner = h_conf;
+                  ofn.lpstrFile = files;
+                  ofn.nMaxFile = MAX_PATH;
+                  ofn.lpstrFilter = "*.sqlite \0*.sqlite\0"
+                                    "*.* \0*.*\0";
+                  ofn.nFilterIndex = 1;
+                  ofn.Flags = OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
+                  ofn.lpstrDefExt ="*.sqlite";
+                  if (GetOpenFileName(&ofn)==TRUE)
+                  {
+                    strncpy(SQLITE_LOCAL_BDD,files,MAX_PATH);
+                    InitGUIConfig(TRUE);
+                    SendMessage(hCombo_lang, CB_SETCURSEL,0,0);
+                  }
+                }
+              break;
+
+            }
+            //tools
+
+            DWORD id = LOWORD(wParam);
+            if(((id >=POPUP_MENU_TOOLS_START) || (id < POPUP_MENU_TOOLS_START+NB_MAX_TOOLS)) &&
+               (id < POPUP_MENU_TOOLS_START+nb_tools))
+            {
+              //get file !
+              char path[MAX_PATH]="";
+              long int nitem = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+              if (nitem == -1)break;
+
+              ListView_GetItemText(hlstv,nitem,0,path,MAX_PATH);
+
+              if (path[1] == ':' || path[1] == '\\'|| path[1] == '//')
+              {
+                switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
+                {
+                  //concat 0=pat + 1 =file
+                  case INDEX_FILE:
+                  {
+                    char file[MAX_PATH]="";
+                    ListView_GetItemText(hlstv,nitem,1,file,MAX_PATH);
+                    if (file[0] == 0)path[0] = 0;
+                    else
+                    {
+                      strncat(path,file,MAX_PATH);
+                      strncat(path,"\0",MAX_PATH);
+                    }
+                  }
+                  break;
+
+                  //0 = file
+                  case INDEX_NAV_FIREFOX:
+                  case INDEX_NAV_CHROME:
+                  case INDEX_NAV_IE:
+                  case INDEX_ANDROID:
+                  case INDEX_PREFETCH:
+                  case INDEX_FILE_NK:
+                  case INDEX_LOG:
+                  case INDEX_LAN:
+                  case INDEX_DNS:
+                  case INDEX_SHARE:
+                  case INDEX_REG_CONF:
+                  case INDEX_REG_SERVICES:
+                  case INDEX_REG_USB:
+                  case INDEX_REG_SOFTWARE:
+                  case INDEX_REG_UPDATE:
+                  case INDEX_REG_START:
+                  case INDEX_REG_USERASSIST:
+                  case INDEX_REG_MRU:
+                  case INDEX_REG_SHELLBAGS:
+                  case INDEX_REG_PATH:
+                  case INDEX_REG_GUIDE:
+                  case INDEX_REG_FIREWALL:
+                  case INDEX_REG_DELETED_KEY:
+                  case INDEX_REG_USERS:
+                  case INDEX_REG_PASSWORD:break;
+                  default:path[0] = 0;break;
+                }
+
+                //get file OK
+                if (path[0] != 0)
+                {
+                  //do
+                  id = id - POPUP_MENU_TOOLS_START;
+                  if (id<NB_MAX_TOOLS)
+                  {
+                    char params[MAX_PATH],tool[MAX_PATH];
+                    switch(tools_load[id].type)
+                    {
+                      case TOOL_TYPE_OPEN:ShellExecute(h_main, "open",path,NULL,NULL,SW_SHOW);break;
+                      case TOOL_TYPE_EDIT:ShellExecute(h_main, "edit",path,NULL,NULL,SW_SHOW);break;
+                      case TOOL_TYPE_LCMD:
+                      {
+                        snprintf(tool,MAX_PATH,"\"%s\"",tools_load[id].cmd);
+                        if (tools_load[id].params[0] == 0)
+                        {
+                          snprintf(params,MAX_PATH,"\"%s\"",path);
+                          ShellExecute(h_main, "open",tool,params,NULL,SW_SHOW);
+                        }else
+                        {
+                          snprintf(params,MAX_PATH,"%s \"%s\"",tools_load[id].params,path);
+                          ShellExecute(h_main, "open",tool,params,NULL,SW_SHOW);
+                        }
+                      }
+                      break;
+                    }
+                  }
+                }
+              }
             }
           break;
           case CBN_SELCHANGE:
@@ -436,7 +553,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ListView_DeleteAllItems(hlstv);
                 FORMAT_CALBAK_READ_INFO fcri;
                 fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-                SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+                SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
                 char tmp_infos[DEFAULT_TMP_SIZE];
                 snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
@@ -454,16 +571,16 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                   //get column count
                   fcri2.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
-                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
 
                   //get column + text
                   fcri2.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
-                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
 
                   //get items infos + items
                   ListView_DeleteAllItems(hlstv);
                   fcri2.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-                  SQLITE_LireData(&fcri2, DEFAULT_SQLITE_FILE);
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
 
                   char tmp_infos2[DEFAULT_TMP_SIZE];
                   snprintf(tmp_infos2,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
@@ -490,8 +607,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           }
           break;
           case LVN_COLUMNCLICK:
-            TRI_RESULT_VIEW = !TRI_RESULT_VIEW;
-            c_Tri(hlstv,((LPNMLISTVIEW)lParam)->iSubItem,TRI_RESULT_VIEW);
+            if (!VIRUSTTAL)
+            {
+              TRI_RESULT_VIEW = !TRI_RESULT_VIEW;
+              c_Tri(hlstv,((LPNMLISTVIEW)lParam)->iSubItem,TRI_RESULT_VIEW);
+            }
           break;
           case NM_DBLCLK:
             if (LOWORD(wParam) == LV_VIEW)
@@ -748,6 +868,17 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
           }
 
+          //Add tools menu !!!
+          if (nb_tools)
+          {
+            unsigned int z = 0;
+            InsertMenu(GetSubMenu(hmenu,0),-1,MF_BYPOSITION|MF_SEPARATOR,POPUP_MENU_TOOLS_START-1,"");
+
+            for (z=0;z<nb_tools && z<NB_MAX_TOOLS;z++)
+            {
+              InsertMenu(GetSubMenu(hmenu,0),-1,MF_BYPOSITION|MF_STRING,POPUP_MENU_TOOLS_START+z,tools_load[z].title);
+            }
+          }
           //affichage du popup menu
           TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
           DestroyMenu(hmenu);
@@ -823,14 +954,14 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 //------------------------------------------------------------------------------
 int CmdLine(int argc, char* argv[])
 {
-  if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
+  if (sqlite3_open(SQLITE_LOCAL_BDD, &db_scan) != SQLITE_OK)
   {
     //if tmp sqlite file exist free !!
     if (GetFileAttributes(DEFAULT_TM_SQLITE_FILE) != INVALID_FILE_ATTRIBUTES)
     {
       DeleteFile(DEFAULT_TM_SQLITE_FILE);
     }
-    sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan);
+    sqlite3_open(SQLITE_LOCAL_BDD, &db_scan);
   }
   SetDebugPrivilege(TRUE);
 
@@ -1043,7 +1174,7 @@ int CmdLine(int argc, char* argv[])
                "\t-Z  Extract local computer file's to investigate in ZIP file, ex : -Z <file to save.zip>\n"
                "\n"
                ,NOM_FULL_APPLI);
-        system("PAUSE");
+        //system("PAUSE");
       break;
     }
   }
@@ -1056,6 +1187,9 @@ int CmdLine(int argc, char* argv[])
 //------------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+  //init bdd
+  strcpy(SQLITE_LOCAL_BDD,DEFAULT_SQLITE_FILE);
+
   //init name
   snprintf(NOM_FULL_APPLI,DEFAULT_TMP_SIZE,"%s %s%s - %s",NOM_APPLI,FULLVERSION_STRING,STATUS_SHORT,URL_APPLI);
 
@@ -1084,9 +1218,6 @@ int main(int argc, char* argv[])
 
     if (!RegisterClassEx (&wincl))return 0;
     h_main = CreateWindowEx(0,szClassName,NOM_FULL_APPLI,WS_OVERLAPPEDWINDOW,CW_USEDEFAULT,CW_USEDEFAULT,800,600,HWND_DESKTOP,NULL,hinst,NULL);
-
-    //create Accelerators
-    HACCEL hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
   //forms
     htoolbar = CreateWindowEx(WS_EX_CLIENTEDGE, TOOLBARCLASSNAME, NULL, WS_CHILD|WS_VISIBLE|WS_BORDER|TBSTYLE_FLAT|WS_TABSTOP, 0,0,0,0,h_main,0,hinst,NULL);
@@ -1168,6 +1299,9 @@ int main(int argc, char* argv[])
     //listeview resultats
     hlstv             = CreateWindowEx(0x200,WC_LISTVIEW,NULL,LVS_REPORT|WS_VISIBLE|WS_CHILD,202,32,590,493,h_main,
                                        (HMENU)LV_VIEW, hinst, NULL);
+    //add extended style to listview
+    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
 
     hlstbox           = CreateWindowEx(0x200,WC_LISTBOX,NULL,0x50310141|WS_TABSTOP,0,32,200,493,h_main,(HMENU)LV_BOX, hinst, NULL);
 
@@ -1194,6 +1328,19 @@ int main(int argc, char* argv[])
     SendMessage(h_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     SetWindowText(h_process,NOM_FULL_APPLI);
 
+    hdbclk_info_process = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+                                         GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                         GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                         h_process, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_info_process, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
+    SendMessage(hdbclk_info_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+    #ifdef _WIN64_VERSION_
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_process, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #else
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_process, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #endif
     //set columns !!!
     LVCOLUMN lvc;
     unsigned int i;
@@ -1300,6 +1447,7 @@ int main(int argc, char* argv[])
 
     SendMessage(hdbclk_sniff, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
     SendMessage(hdbclk_sniff, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
     #ifdef _WIN64_VERSION_
       wndproc_hdbclk_sniff = (WNDPROC)SetWindowLongPtr(hdbclk_sniff, GWL_WNDPROC,(LONG)subclass_hdbclk_sniff);
     #else
@@ -1321,6 +1469,20 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_reg,LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     ShowWindow(GetDlgItem(h_reg,TV_VIEW), SW_HIDE);
     ShowWindow(GetDlgItem(h_reg,LV_VIEW), SW_SHOW);
+
+    hdbclk_info_registry = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+                                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                          h_reg, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_info_registry, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
+    SendMessage(hdbclk_info_registry, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+    #ifdef _WIN64_VERSION_
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_registry, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #else
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_registry, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #endif
 
     lvc.cx      = 110;
     lvc.pszText = "File";
@@ -1483,6 +1645,20 @@ int main(int argc, char* argv[])
     SendMessage(h_sqlite_ed, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     SetWindowText(h_sqlite_ed,NOM_FULL_APPLI);
     SendDlgItemMessage(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
+    hdbclk_info_sqlite = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+                                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                                          h_sqlite_ed, NULL, hinst, NULL);
+
+    SendMessage(hdbclk_info_sqlite, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
+    SendMessage(hdbclk_info_sqlite, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+    #ifdef _WIN64_VERSION_
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_sqlite, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #else
+      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_sqlite, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+    #endif
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);

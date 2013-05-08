@@ -494,8 +494,8 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
               strncat(buffer,"\0",MAX_LINE_SIZE);
 
               //set text
-              SetWindowText(hdbclk_info, buffer);
-              ShowWindow (hdbclk_info, SW_SHOW);
+              SetWindowText(hdbclk_info_registry, buffer);
+              ShowWindow (hdbclk_info_registry, SW_SHOW);
             }
           }
         break;

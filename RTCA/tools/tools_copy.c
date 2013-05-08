@@ -436,9 +436,9 @@ DWORD WINAPI BackupFile(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
-void GetLocalPath(char *path, unsigned int SIZE_MAX)
+void GetLocalPath(char *path, unsigned int sizeMax)
 {
-  char *c = path+GetModuleFileName(0, path,SIZE_MAX);
+  char *c = path+GetModuleFileName(0, path,sizeMax);
   while(*c != '\\') c--;
   *c = 0;
 }

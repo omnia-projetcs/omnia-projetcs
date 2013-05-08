@@ -130,7 +130,18 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               //request
               FORMAT_CALBAK_READ_INFO fcri;
               fcri.type = TYPE_SQLITE_REQUEST;
-              sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, NULL);
+              char *error_msg = 0;
+              if (sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, &error_msg)!= SQLITE_OK)
+              {
+                snprintf(request,MAX_PATH,"Error: %s",error_msg);
+                SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
+                sqlite3_free(error_msg);
+              }else
+              {
+                //set number of items
+                snprintf(request,MAX_PATH,"Item(s) : %lu",SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_GETITEMCOUNT,0,0));
+                SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
+              }
             }
             break;
             //-----------------------------------------------------
@@ -288,8 +299,8 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               strncat(buffer,"\0",MAX_LINE_SIZE);
 
               //set text
-              SetWindowText(hdbclk_info, buffer);
-              ShowWindow (hdbclk_info, SW_SHOW);
+              SetWindowText(hdbclk_info_sqlite, buffer);
+              ShowWindow (hdbclk_info_sqlite, SW_SHOW);
             }
           }
         break;
