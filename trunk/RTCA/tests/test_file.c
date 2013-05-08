@@ -12,306 +12,20 @@ void addFiletoDB(char *path, char *file, char *extension,
                   char *Hidden, char *System, char *Archive, char *Encrypted, char *Tempory,
                   char *ADS, char *SAH256, char *VirusTotal, char *Description, unsigned int session_id, sqlite3 *db)
 {
-  char request[REQUEST_MAX_SIZE];
+  char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_file "
-           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SId,ACL,"
-           "Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-            path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,ACL,
-            Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id);
+           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SId,"
+           "Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id,ACL) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\");",
+            path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,
+            Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id,ACL);
+
+  //if ACL datas too long
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
-//------------------------------------------------------------------------------
-void addFileLNKtoDB(char *file, char *create_time, char *last_access_time, char *last_modification_time,
-                   char *local_path, char *to, unsigned int session_id, sqlite3 *db)
-{
-  char request[REQUEST_MAX_SIZE];
-  snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_file_nk "
-           "(file,create_time,last_access_time,last_modification_time,local_path,to_,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           file,create_time,last_access_time,last_modification_time,local_path,to,session_id);
-  sqlite3_exec(db,request, NULL, NULL, NULL);
-}
-//http://liblnk.googlecode.com/files/Windows%20Shortcut%20File%20%28LNK%29%20format.pdf
-void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db)
-{
-  typedef struct
-  {
-    unsigned int header_size;         // default : 0x0000004C (76)
-    unsigned char lnk_class_id[16];   // default : 00021401-0000-0000-00c0-000000000046
-    unsigned int data_flag;
-    unsigned int file_attribute_flag;
-    FILETIME create_time;
-    FILETIME last_access_time;
-    FILETIME last_modification_time;
-    unsigned int file_size;
-    unsigned int icon_index;
-    unsigned int show_window_value;
-    unsigned short hot_key;
-    unsigned char reserved[10];
-    unsigned short item_list_size;
-  }LNK_STRUCT, *PLNK_STRUCT;
-
-  char create_time[DATE_SIZE_MAX]="",last_access_time[DATE_SIZE_MAX]="",last_modification_time[DATE_SIZE_MAX]="";
-  char local_path[MAX_PATH]="",to[MAX_PATH]="", tmp[MAX_PATH]="";
-
-  HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-  if (Hfic != INVALID_HANDLE_VALUE)
-  {
-    DWORD taille_fic = GetFileSize(Hfic,NULL);
-    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
-    {
-      unsigned char *b,*buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
-      if (buffer != NULL)
-      {
-        DWORD copiee = 0;
-        ReadFile(Hfic, buffer, taille_fic,&copiee,0);
-        if (copiee>0)
-        {
-          if (copiee != taille_fic) taille_fic = copiee;
-
-          //header
-          PLNK_STRUCT p = buffer;
-
-          //get times
-          filetimeToString_GMT(p->create_time, create_time, DATE_SIZE_MAX);
-          filetimeToString_GMT(p->last_access_time, last_access_time, DATE_SIZE_MAX);
-          filetimeToString_GMT(p->last_modification_time, last_modification_time, DATE_SIZE_MAX);
-
-          //unicode or not
-          BOOL unicode = FALSE;
-          if ((p->data_flag & 0x80) == 0x80) unicode = TRUE;
-
-          //if items list we pass
-          if ((p->data_flag & 0x01) == 0x01)//hashlinktargetid
-          {
-            b = buffer + 2 + p->header_size + p->item_list_size;
-          }else b = buffer + p->header_size;
-
-          if (b-buffer < taille_fic)
-          {
-            typedef struct
-            {
-              unsigned short struct_size;
-            }LNK_WORD_STRUCT, *PLNK_WORD_STRUCT;
-
-            //link info
-            if ((p->data_flag & 0x02) == 0x02)
-            {
-              typedef struct
-              {
-                DWORD struct_size;
-                DWORD header_size;
-                DWORD flags;
-                DWORD vol_ID_offset;
-                DWORD local_base_path_offset;
-                DWORD Network_relative_path_offset;
-                DWORD commun_path_offset;
-
-                //infos
-                DWORD CommonNetworkRelativeLinkSize;
-                DWORD CommonNetworkRelativeLinkFlags;
-                DWORD NetNameOffset;
-                DWORD DeviceNameOffset;
-                DWORD NetWorkProviderType;
-              }LNK_INFO_STRUCT, *PLNK_INFO_STRUCT;
-              PLNK_INFO_STRUCT pi = b;
-
-              if ((pi->flags & 0x01) == 0x01) //local
-              {
-                if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",b+pi->local_base_path_offset);
-              }else if ((pi->flags & 0x02)  == 0x02) //network
-              {
-                //local path
-                if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",b+pi->NetNameOffset+pi->header_size);
-
-                if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",b+pi->DeviceNameOffset+pi->header_size);
-
-                if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,b+pi->commun_path_offset);
-              }
-              b = b + pi->struct_size;
-
-            }else if ((p->data_flag & 0x04) == 0x04 || (p->data_flag & 0x08) == 0x08/* || (p->data_flag & 0x10) == 0x10*/)
-            {
-              //other
-              if (!strlen(local_path) && !strlen(to) && b-buffer < taille_fic)
-              {
-                DWORD tmp_size;
-
-              //pass datas no used
-
-                //0x04 = have name/description first ?
-                PLNK_WORD_STRUCT t = b;
-                if ((p->data_flag & 0x04) == 0x04)
-                {
-                  //0x08 = relative path
-                  if ((p->data_flag & 0x08) == 0x08)
-                  {
-                    if (unicode) b = b + t->struct_size*2 + 2;
-                    else b = b + t->struct_size + 2;
-                    t = b;
-
-                    if(b-buffer < taille_fic)
-                    {
-                      if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-                      else snprintf(to,MAX_PATH,"%s",b+2);
-
-                      tmp_size = t->struct_size +b-buffer ;
-                      if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
-
-                      if (unicode) b = b + t->struct_size*2 + 2;
-                      else b = b + t->struct_size + 2;
-                      t = b;
-
-                      //0x10 = workingdir
-                      if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
-                      {
-                        if (unicode) b = b + t->struct_size*2 + 2;
-                        else b = b + t->struct_size + 2;
-                        t = b;
-                      }
-
-                      //0x20 = arguments
-                      if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
-                      {
-                        if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
-                        else snprintf(tmp,MAX_PATH," %s",b+2);
-
-                        tmp_size = t->struct_size +b-buffer;
-                        if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
-
-                        strncat(to,tmp,MAX_PATH);
-                        strncat(to,"\0",MAX_PATH);
-                      }
-                    }
-                  }else
-                  {
-                    if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-                    else snprintf(to,MAX_PATH,"%s",b+2);
-
-                    tmp_size = t->struct_size +b-buffer ;
-                    if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
-                  }
-                }else
-                {
-                  //0x08 = relative path
-                  if ((p->data_flag & 0x08) == 0x08 && b-buffer < taille_fic)
-                  {
-                    //if only we use it !!!
-                    if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-                    else snprintf(to,MAX_PATH,"%s",b+2);
-
-                    tmp_size = t->struct_size +b-buffer ;
-                    if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
-
-                    if (unicode) b = b + t->struct_size*2 + 2;
-                    else b = b + t->struct_size + 2;
-                    t = b;
-
-                    //0x10 = workingdir
-                    if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
-                    {
-                      if (unicode) b = b + t->struct_size*2 + 2;
-                      else b = b + t->struct_size + 2;
-                      t = b;
-                    }
-
-                    //0x20 = arguments
-                    if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
-                    {
-                      if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
-                      else snprintf(tmp,MAX_PATH," %s",b+2);
-
-                      tmp_size = t->struct_size +b-buffer;
-                      if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
-
-                      strncat(to,tmp,MAX_PATH);
-                      strncat(to,"\0",MAX_PATH);
-                    }
-                  }else
-                  {
-                    //0x10 = workingdir
-                    if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
-                    {
-                      if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-                      else snprintf(to,MAX_PATH,"%s",b+2);
-
-                      tmp_size = t->struct_size +b-buffer;
-                      if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
-
-                      if (unicode) b = b + t->struct_size*2 + 2;
-                      else b = b + t->struct_size + 2;
-                      t = b;
-                    }
-
-                    //0x20 = arguments
-                    if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
-                    {
-                      if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
-                      else snprintf(tmp,MAX_PATH," %s",b+2);
-
-                      tmp_size = t->struct_size +b-buffer;
-                      if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
-
-                      strncat(to,tmp,MAX_PATH);
-                      strncat(to,"\0",MAX_PATH);
-                    }
-                  }
-                }
-              }
-            }else if ((p->data_flag & 0x200) == 0x200 || p->data_flag == 0x80) // windows 8 format : ext_string
-            {
-              unsigned char *pos = b;
-              PLNK_WORD_STRUCT t = b;
-
-              if ((p->data_flag & 0x10) == 0x10)  //workingdir
-              {
-                if (unicode) pos = pos + t->struct_size*2 + 2;
-                else pos = pos + t->struct_size + 2;
-              }
-
-              if (pos-buffer < taille_fic)
-              {
-                t = pos;
-                if ((p->data_flag & 0x20) == 0x20)  //arguments
-                {
-                  if (unicode) pos = pos + t->struct_size*2 + 2;
-                  else pos = pos + t->struct_size + 2;
-                }
-
-                if (pos-buffer < taille_fic)
-                {
-                  t = pos;
-                  if ((p->data_flag & 0x40) == 0x40)  //iconlocation
-                  {
-                    if (unicode) pos = pos + t->struct_size*2 + 2;
-                    else pos = pos + t->struct_size + 2;
-                  }
-
-                  //pass first headers !!
-                  if (pos-buffer < taille_fic)
-                  {
-                    t = pos;
-                    if (pos-buffer+t->struct_size+8 < taille_fic)
-                    {
-                      snprintf(to,MAX_PATH,"(%d)%s",pos-buffer+t->struct_size+8,pos+t->struct_size+8);
-                    }
-                  }
-                }
-              }
-            }
-          }
-          addFileLNKtoDB(file,create_time,last_access_time,last_modification_time,local_path,to,session_id,db);
-        }
-        HeapFree(GetProcessHeap(), 0,buffer);
-      }
-    }
-  }
-  CloseHandle(Hfic);
-}
-
 //------------------------------------------------------------------------------
 #define MAGIC_NUMBER_SIZE 16
 void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_size_max)
@@ -1037,81 +751,82 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
 
   HANDLE hfic = FindFirstFile(path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
-  do
+
+
+  if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+  else
   {
-    // return
-    if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
-    else
-    {
-        //dates
-        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
+      //dates
+      filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
-        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        //ads
+        if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+        //acls
+        if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+        //ad to bdd
+        addFiletoDB(path, "", "",
+                    CreationTime, LastWriteTime, LastAccessTime,"",
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, "", "", "",session_id,db);
+      }else
+      {
+        //size
+        if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+        else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+        else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+        //ads
+        if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+        //sha256
+        if(sha)FileToSHA256(path, s_sha);
+
+        //acl
+        if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+        //file magic number
+        if(enable_magic)ReadMagicNumber(path, magi_number, DEFAULT_TMP_SIZE);
+
+        //extension
+        extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
+
+        //lnk
+        if (enable_LNK)
         {
-          //ads
-          if(ads)EnumADS(path, s_ads, MAX_PATH);
-
-          //acls
-          if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
-
-          //ad to bdd
-          addFiletoDB(path, "", "",
-                      CreationTime, LastWriteTime, LastAccessTime,"",
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, "", "", "",session_id,db);
-        }else
-        {
-          //size
-          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
-          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
-          else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
-
-          //ads
-          if(ads)EnumADS(path, s_ads, MAX_PATH);
-
-          //sha256
-          if(sha)FileToSHA256(path, s_sha);
-
-          //acl
-          if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
-
-          //file magic number
-          if(enable_magic)ReadMagicNumber(path, magi_number, DEFAULT_TMP_SIZE);
-
-          //extension
-          extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
-
-          //lnk
-          if (enable_LNK)
+          if (!strcmp(ext,"lnk"))
           {
-            if (!strcmp(ext,"lnk"))
-            {
-              ReadLNKInfos(path, session_id, db);
-            }
+            ReadLNKInfos(path, session_id, db);
           }
-
-          //ad to bdd
-          addFiletoDB(path, data.cFileName, ext,
-                      CreationTime, LastWriteTime, LastAccessTime, size,
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", magi_number,session_id,db);
         }
-    }
-  }while(FindNextFile (hfic,&data) && start_scan);
+
+        //extract path ^^
+        extractDirectoryFromPath(path);
+
+        //ad to bdd
+        addFiletoDB(path, data.cFileName, ext,
+                    CreationTime, LastWriteTime, LastAccessTime, size,
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, s_sha, "", magi_number,session_id,db);
+      }
+  }
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_files(LPVOID lParam)
@@ -1167,7 +882,8 @@ DWORD WINAPI Scan_files(LPVOID lParam)
       {
         //get item txt
         GetTextFromTrv(hitem, tmp, MAX_PATH);
-        scan_file_exF(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+        if (tmp[strlen(tmp)-1] == '\\' || tmp[strlen(tmp)-1] == '/') scan_file_exF(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
+        else scan_file_uniq(tmp, FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
 
         hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
       }

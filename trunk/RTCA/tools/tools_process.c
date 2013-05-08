@@ -688,8 +688,8 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
 
       //set text
       strncat(buffer,"\0",DIXM);
-      SetWindowText(hdbclk_info, buffer);
-      ShowWindow (hdbclk_info, SW_SHOW);
+      SetWindowText(hdbclk_info_process, buffer);
+      ShowWindow (hdbclk_info_process, SW_SHOW);
 
       LocalFree((HLOCAL)buffer);
     }

@@ -10,11 +10,15 @@ void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,
 //------------------------------------------------------------------------------
 void addChrometoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
-  char request[REQUEST_MAX_SIZE];
+  char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_chrome (file,parameter,data,date,id_language_description,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
-           file,parameter,data,date,id_language_description,session_id);
+           "INSERT INTO extract_chrome (file,parameter,date,id_language_description,session_id,data) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%lu\",%d,\"%s\");",
+           file,parameter,date,id_language_description,session_id,data);
+
+  //if datas too long
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------

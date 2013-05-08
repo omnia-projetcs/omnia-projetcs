@@ -138,6 +138,9 @@
 		<Unit filename="tests/test_file.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tests/test_file_lnk.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tests/test_firefox.c">
 			<Option compilerVar="CC" />
 		</Unit>

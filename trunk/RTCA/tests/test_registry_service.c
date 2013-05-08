@@ -10,11 +10,15 @@ void addRegistryServicetoDB(char *file, char *hk, char *key, char*name,
                             DWORD state_id, char*path, char*description, DWORD type_id,
                              char *last_update,unsigned int session_id, sqlite3 *db)
 {
-  char request[REQUEST_MAX_SIZE];
+  char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_registry_service_driver (file,hk,key,name,state_id,path,description,type_id,last_update,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",\"%s\",%lu,\"%s\",%d);",
-           file,hk,key,name,state_id,path,description,type_id,last_update,session_id);
+           "INSERT INTO extract_registry_service_driver (file,hk,key,name,state_id,path,type_id,last_update,session_id,description) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",%lu,\"%s\",%d,\"%s\");",
+           file,hk,key,name,state_id,path,type_id,last_update,session_id,description);
+
+  //if description too long
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------

@@ -22,6 +22,7 @@
 
 #define DEFAULT_SQLITE_FILE    "RtCA.sqlite"
 #define DEFAULT_TM_SQLITE_FILE "RtCA.sqlite-journal"
+#define DEFAULT_TOOL_MENU_FILE "tools.cfg"
 
 #define DEFAULT_INI_FILE       "\\RtCA.ini"
 
@@ -74,6 +75,9 @@
 
 #include "files/LiteZip.h"      //zip file for save all locals datas
 //---------------------------------------------------------------------------
+char SQLITE_LOCAL_BDD[MAX_PATH];
+HACCEL hcl;
+//---------------------------------------------------------------------------
 PVOID OldValue_W64b;            //64bits OS
 
 //for cross compilation bug in 64bit
@@ -90,7 +94,7 @@ char _SYSKEY[MAX_PATH];
 #define DEFAULT_TMP_SIZE          256
 #define MAX_LINE_SIZE      8*MAX_PATH
 #define MAX_LINE_DBSIZE    2*MAX_LINE_SIZE
-#define REQUEST_MAX_SIZE   MAX_LINE_SIZE
+#define REQUEST_MAX_SIZE      1024*64
 #define DEFAULT_EVENT_SIZE    1024*64
 
 #define HEIGHT_SEARCH              30
@@ -117,6 +121,28 @@ char _SYSKEY[MAX_PATH];
 #define MSG_ERROR             "ERROR"
 #define MSG_TEST            "TESTING"
 //------------------------------------------------------------------------------
+//TOOLS POPUP MENU OPEN
+#define NB_MAX_TOOLS            256
+
+#define TOOL_TYPE_OPEN          0   //open file
+#define TOOL_TYPE_EDIT          1   //edit file
+#define TOOL_TYPE_LCMD          2   //exec local cmd
+
+
+unsigned int nb_tools;
+typedef struct
+{
+  unsigned int type;
+  char title[DEFAULT_TMP_SIZE];
+  char cmd[DEFAULT_TMP_SIZE];
+  char params[DEFAULT_TMP_SIZE];
+}TOOLS_USE;
+TOOLS_USE tools_load[NB_MAX_TOOLS];
+
+#define POPUP_MENU_TOOLS_START  25000
+
+
+//------------------------------------------------------------------------------
 //TREVIEW STATE
 #define TRV_STATE_CHECK             2
 #define TRV_STATE_UNCHECK           1
@@ -129,7 +155,7 @@ char _SYSKEY[MAX_PATH];
 #define TOOL_BAR                 1002
 
 HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip,
-     hdbclk_info;
+     hdbclk_info, hdbclk_info_process, hdbclk_info_registry, hdbclk_info_sqlite;
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
@@ -300,6 +326,7 @@ DWORD last_bt;
 #define IDM_REFRESH_SESSION     10024
 #define IDM_RTCA_UPDATE         10025
 #define BT_SREEENSHOT           10026
+#define IDM_LOAD_OTHER_BDD      10027
 BOOL B_SCREENSHOT;
 BOOL B_SCREENSHOT_START;
 NOTIFYICONDATA TrayIcon;
@@ -484,13 +511,17 @@ FORMAT_TESTS_STRING S_tests_XML_header[NB_MAX_ITEMS_HEADERS_XML];
 HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
 BOOL TEST_REG_PASSWORD_ENABLE;
+/*
 #define INDEX_FILE                  0
+//#define INDEX_FILE_NK               1
 #define INDEX_LOG                   1
 #define INDEX_DISK                  2
 #define INDEX_CLIPBOARD             3
 #define INDEX_ENV                   4
 #define INDEX_TASK                  5
 #define INDEX_PROCESS               6
+//#define INDEX_PREFETCH              7
+
 #define INDEX_PIPE                  7
 #define INDEX_LAN                   8
 #define INDEX_ROUTE                 9
@@ -517,8 +548,45 @@ BOOL TEST_REG_PASSWORD_ENABLE;
 #define INDEX_NAV_CHROME           30
 #define INDEX_NAV_IE               31
 #define INDEX_ANDROID              32
-#define INDEX_PREFETCH             33
-#define INDEX_FILE_NK              34
+//#define INDEX_PREFETCH             33
+//#define INDEX_FILE_NK              34
+*/
+#define INDEX_FILE                  0
+#define INDEX_FILE_NK               1
+#define INDEX_LOG                   2
+#define INDEX_DISK                  3
+#define INDEX_CLIPBOARD             4
+#define INDEX_ENV                   5
+#define INDEX_TASK                  6
+#define INDEX_PROCESS               7
+#define INDEX_PREFETCH              8
+#define INDEX_PIPE                  9
+#define INDEX_LAN                  10
+#define INDEX_ROUTE                11
+#define INDEX_DNS                  12
+#define INDEX_ARP                  13
+#define INDEX_SHARE                14
+#define INDEX_REG_CONF             15
+#define INDEX_REG_SERVICES         16
+#define INDEX_REG_USB              17
+#define INDEX_REG_SOFTWARE         18
+#define INDEX_REG_UPDATE           19
+#define INDEX_REG_START            20
+#define INDEX_REG_USERS            21
+#define INDEX_REG_USERASSIST       22
+#define INDEX_REG_MRU              23
+#define INDEX_REG_SHELLBAGS        24
+#define INDEX_REG_PASSWORD         25
+#define INDEX_REG_PATH             26
+#define INDEX_REG_GUIDE            27
+#define INDEX_REG_DELETED_KEY      28
+#define INDEX_ANTIVIRUS            29
+#define INDEX_REG_FIREWALL         30
+#define INDEX_NAV_FIREFOX          31
+#define INDEX_NAV_CHROME           32
+#define INDEX_NAV_IE               33
+#define INDEX_ANDROID              34
+
 
 //------------------------------------------------------------------------------
 //parameters
@@ -850,7 +918,6 @@ FORMAT_FILE_CMD file_cmd[NB_MAX_ITEM_CMD], path_cmd[NB_MAX_ITEM_CMD];
 #define MODE_SQL_LITE               1
 #define MODE_SQL_LOGS               2
 
-#define REQUEST_MAX_SIZE           MAX_LINE_SIZE
 #define NB_MAX_COLUMNS             32
 #define NB_MAX_ST_COLUMS           32
 typedef struct
@@ -902,7 +969,7 @@ BOOL SQLITE_LireData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
 BOOL SQLITE_WriteData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
 BOOL SQLITE_LoadSession(char *file);
 BOOL SQLITE_SaveSession(char *file);
-void addLogtoDB(char *eventname, char *indx, char *log_id,
+void addLogtoDB(char *event, char *indx, char *log_id,
                 char *send_date, char *write_date,
                 char *source, char *description, char *user, char *rid, char *sid,
                 char *state, char *critical, unsigned int session_id, sqlite3 *db);
@@ -939,6 +1006,7 @@ char *convertUTF8toUTF16toChar(char *src, DWORD size_src, char *dst, DWORD size_
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 char *charToLowChar(char *src);
 char *DataToHexaChar(char *data, unsigned int data_size, char *hexa_char, unsigned int hexa_char_size);
+char *extractDirectoryFromPath(char *path);
 char *extractExtFromFile(char *file, char *ext, unsigned int ext_size_max);
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
 BOOL isDirectory(char *path);
@@ -990,7 +1058,7 @@ void SCREENSHOT_fct();
 
 //file function
 BOOL FileExist(char *file);
-void GetLocalPath(char *path, unsigned int SIZE_MAX);
+void GetLocalPath(char *path, unsigned int sizeMax);
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size);

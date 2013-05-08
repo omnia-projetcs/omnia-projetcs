@@ -27,7 +27,7 @@ typedef struct
 //------------------------------------------------------------------------------
 void GetCSRFToken(VIRUSTOTAL_STR *vts)
 {
-    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_PRECONFIG/*INTERNET_OPEN_TYPE_DIRECT*/, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
     if (M_connexion==NULL)return;
 
     //init connexion
@@ -70,7 +70,7 @@ void GetCSRFToken(VIRUSTOTAL_STR *vts)
 void GetSHA256Info(VIRUSTOTAL_STR *vts)
 {
     //init connexion
-    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+    HINTERNET M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_PRECONFIG/*INTERNET_OPEN_TYPE_DIRECT*/, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
     if (M_connexion==NULL)return;
 
     HINTERNET M_session = InternetConnect(M_connexion, "www.virustotal.com",443,"","",INTERNET_SERVICE_HTTP,0,0);

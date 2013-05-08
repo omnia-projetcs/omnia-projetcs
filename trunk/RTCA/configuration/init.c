@@ -15,25 +15,25 @@ void InitGlobalLangueString(unsigned int langue_id)
   //get global GUI and message strings
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = TYPE_SQLITE_FLAG_LANG_INIT_STRINGS;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
   if (CONSOL_ONLY == FALSE)
   {
     //update menu
     FORMAT_CALBAK_READ_INFO fcri;
     fcri.type = TYPE_SQLITE_FLAG_LANGUAGE_CHANGE;
-    SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+    SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
     if (current_item_selected > -1)
     {
       fcri.type = TYPE_SQLITE_FLAG_LANGUAGE_COL_CHANGE;
-      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+      SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
     }
 
     //update list of tests
     SendMessage(hlstbox, LB_RESETCONTENT,0,0);
     fcri.type = TYPE_SQLITE_FLAG_TESTS_INIT;
-    SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+    SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
     //update Windows
     ShowWindow(h_main, SW_HIDE);
@@ -54,16 +54,16 @@ void InitGlobalLangueString(unsigned int langue_id)
 
       //get column count
       fcri.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
-      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+      SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
       //get column + text
       fcri.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
-      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+      SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
       //get items infos + items
       ListView_DeleteAllItems(hlstv);
       fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-      SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+      SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
       char tmp_infos[DEFAULT_TMP_SIZE];
       snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
@@ -83,13 +83,13 @@ void InitSQLStrings()
 
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = TYPE_SQLITE_FLAG_ANDROID_INIT_STRINGS;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
   fcri.type = TYPE_SQLITE_FLAG_CHROME_INIT_STRINGS;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
   fcri.type = TYPE_SQLITE_FLAG_FIREFOX_INIT_STRINGS;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 }
 //------------------------------------------------------------------------------
 //hide DOS form
@@ -242,10 +242,103 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   #endif
 }
 //------------------------------------------------------------------------------
+//load tools items
+//------------------------------------------------------------------------------
+void LoadTools()
+{
+  nb_tools = 0;
+
+  //open file
+  HANDLE hFile = CreateFile(DEFAULT_TOOL_MENU_FILE,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hFile != INVALID_HANDLE_VALUE)
+  {
+    DWORD file_size = GetFileSize(hFile,NULL);
+    if (file_size>0)
+    {
+      //load file
+      char *buffer = (char*)LocalAlloc(LMEM_FIXED, sizeof(char)*file_size+1);
+      if (buffer != NULL)
+      {
+         DWORD copiee = 0;
+         ReadFile(hFile, buffer, file_size,&copiee,0);
+         if (copiee<file_size)file_size = copiee;
+         if (file_size>0)
+         {
+           //work
+           char line[MAX_LINE_SIZE] ="";
+           char *t,tmp[DEFAULT_TMP_SIZE];
+           char *l = line;
+           char *b = buffer;
+
+           while (*b)
+           {
+             //get line by line
+             l = line;
+             while (*b && *b != '\r' && *b!='\n') *l++ = *b++;
+             *l = 0;
+
+             if (line[0] != '#')
+             {
+               //work format : TYPE;TITLE;CMD;PARAMS
+               //    exemple : 01;Open file;;
+
+               //TYPE
+               tmp[0] = line[0];
+               tmp[1] = line[1];
+               tmp[2] = 0;
+               tools_load[nb_tools].type = atoi(tmp);
+
+               //TITLE
+               tools_load[nb_tools].title[0] = 0;
+               t = tools_load[nb_tools].title;
+               l = line+3; // pass "01;"
+
+               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               *t = 0;
+               l++;
+
+               //CMD
+               tools_load[nb_tools].cmd[0] = 0;
+               t = tools_load[nb_tools].cmd;
+
+               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               *t = 0;
+               l++;
+
+               //PARAMS
+               tools_load[nb_tools].params[0] = 0;
+               t = tools_load[nb_tools].params;
+
+               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               *t = 0;
+               l++;
+
+               //next
+               //printf("[%d] (%s) %s - %s\n",tools_load[nb_tools].type,tools_load[nb_tools].title,tools_load[nb_tools].cmd,tools_load[nb_tools].params);
+               nb_tools++;
+             }
+             while (*b && (*b=='\r' || *b == '\n'))b++; //pass \r\n
+           }
+         }
+        LocalFree(buffer);
+      }
+    }
+  }
+  CloseHandle(hFile);
+}
+//------------------------------------------------------------------------------
 //init GUI configuration
 //------------------------------------------------------------------------------
 DWORD WINAPI InitGUIConfig(LPVOID lParam)
 {
+  BOOL reinit = (BOOL)lParam;
+  if (reinit)
+  {
+    //clean
+    sqlite3_close(db_scan);
+  }
+
+
   //hidden DOS form
   #ifndef DEV_DEBUG_MODE
     hideDOSForm();
@@ -277,11 +370,15 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   enable_magic          = FALSE;
   DISABLE_GRID_LV_ALL   = FALSE;
 
-  Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
-  hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
+  if (!reinit)
+  {
+    Trame_buffer = malloc(100*sizeof(TRAME_BUFFER));
+    hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
+  }
+
 
   //open sqlite file
-  if (sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan) != SQLITE_OK)
+  if (sqlite3_open(SQLITE_LOCAL_BDD, &db_scan) != SQLITE_OK)
   {
     //if tmp sqlite file exist free !!
     //for bug case
@@ -290,36 +387,41 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
       DeleteFile(DEFAULT_TM_SQLITE_FILE);
     }*/
 
-    sqlite3_open(DEFAULT_SQLITE_FILE, &db_scan);
+    sqlite3_open(SQLITE_LOCAL_BDD, &db_scan);
   }
 
-  //Init language cb
-  HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_EN)));
-  ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_FR)));
-  ImageList_SetBkColor(H_ImagList, GetSysColor(COLOR_WINDOW));
+  if (!reinit)
+  {
+    //Init language cb
+    HANDLE H_ImagList = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icones*/2, 0);
+    ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_EN)));
+    ImageList_AddIcon(H_ImagList,(HICON)LoadIcon((HINSTANCE) hinst, MAKEINTRESOURCE(ICON_LANGUAGE_FR)));
+    ImageList_SetBkColor(H_ImagList, GetSysColor(COLOR_WINDOW));
+    SendMessage(hCombo_lang,CBEM_SETIMAGELIST,0,(LPARAM)H_ImagList);
+  }
 
   //init la combo box des langues
-  SendMessage(hCombo_lang,CBEM_SETIMAGELIST,0,(LPARAM)H_ImagList);
+  SendMessage(hCombo_lang, CB_RESETCONTENT,0,0);
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = TYPE_SQLITE_FLAG_LANG_INIT;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
   SendMessage(hCombo_lang, CB_SETCURSEL,0,0);//default select English
 
-  //add extended style to listview
-  SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
-
   //list of sessions !!!
+  SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
   nb_session = 0;
   fcri.type  = TYPE_SQLITE_FLAG_SESSIONS_INIT;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
   SendMessage(hCombo_session, CB_SETCURSEL,0,0);
 
   //icons for tests
-  H_ImagList_icon = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icon*/2, 0);
-  ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FOLDER)));
-  ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE)));
-  ImageList_SetBkColor(H_ImagList_icon, GetSysColor(COLOR_WINDOW));
+  if (!reinit)
+  {
+    H_ImagList_icon = ImageList_Create(GetSystemMetrics(SM_CXSMICON),GetSystemMetrics(SM_CYSMICON), ILC_COLOR32 , /*nb icon*/2, 0);
+    ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FOLDER)));
+    ImageList_AddIcon(H_ImagList_icon,(HICON)LoadIcon((HINSTANCE) GetModuleHandle(0), MAKEINTRESOURCE(ICON_FILE)));
+    ImageList_SetBkColor(H_ImagList_icon, GetSysColor(COLOR_WINDOW));
+  }
 
   //all others datas
   InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
@@ -328,10 +430,17 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   AddtoToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
   AddtoToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
 
+  //init load of externes tools or actions :
+  LoadTools();
+
+
   if (WINE_OS)
   {
     EnableMenuItem(GetMenu(h_main),IDM_TOOLS_PROCESS,MF_BYCOMMAND|MF_GRAYED);
   }
+
+  //create Accelerators
+  hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
   return 0;
 }

@@ -26,7 +26,6 @@ void Scan_registry_softwareKey(HKEY hk, char *chk, char *ckey, sqlite3 *db, unsi
   if (RegOpenKey(hk,ckey,&CleTmp)==ERROR_SUCCESS)
   {
     DWORD nbSubKey = 0;
-
     if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
       FILETIME LastWriteTime;

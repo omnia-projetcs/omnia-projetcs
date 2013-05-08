@@ -35,12 +35,12 @@ BOOL SQLITE_LoadSession(char *file)
   //backup file first
   SQLITE_SaveSession("RtCA.sqlite.back");
 
-  BOOL ret = BackupSQLITESession(file, DEFAULT_SQLITE_FILE);
+  BOOL ret = BackupSQLITESession(file, SQLITE_LOCAL_BDD);
 
   //recharger la liste des sessions
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = TYPE_SQLITE_FLAG_SESSIONS_INIT;
-  SQLITE_LireData(&fcri, DEFAULT_SQLITE_FILE);
+  SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
 
   SendMessage(hCombo_session, CB_SETCURSEL,SendMessage(hCombo_session, CB_GETCOUNT,0,0)-1,0);
   return ret;
@@ -48,6 +48,6 @@ BOOL SQLITE_LoadSession(char *file)
 //------------------------------------------------------------------------------
 BOOL SQLITE_SaveSession(char *file)
 {
-  BOOL ret = BackupSQLITESession(DEFAULT_SQLITE_FILE, file);
+  BOOL ret = BackupSQLITESession(SQLITE_LOCAL_BDD, file);
   return ret;
 }
