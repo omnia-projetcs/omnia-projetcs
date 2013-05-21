@@ -515,7 +515,7 @@ Pour afficher la configuration locale du proxy : {\sl \color{blue}env | grep -i 
 {\sl \color{blue}ip neigh replace 192.168.0.1 dev eth0 nud permanent}\\
 
 \textbf{Automatiser la t\^ache en utilisant un fichier externe (Linux) :}\\
-\textit{Le contenu du fichier devrais \^etre sous la forme d'une entr\'ee par ligne : 192.168.0.1 00:11:22:33:44:55}\\
+\textit{Le contenu du fichier devrait \^etre sous la forme d'une entr\'ee par ligne : 192.168.0.1 00:11:22:33:44:55}\\
 \textit{Le fichier par d\'efaut est /etc/ethers (si on ne met que le param\`etre -f).}\\
 {\sl \color{blue}arp -f /etc/ethers}\\
 }
@@ -2878,7 +2878,7 @@ Se base sur les ent\^etes de fichier : \url{http://www.cgsecurity.org/wiki/File_
 \fl{\textbf{Rifiuti}\\\url{http://www.mcafee.com/us/downloads/free-tools/rifiuti.aspx}}{Fichier corbeille}{1.2cm}
 \fl{\textbf{RecycleReader}\\\url{http://www.live-forensics.com/dl/RecycleReader.zip}}{Fichier corbeille}{1.2cm}
 \fl{\textbf{Vinetto}\\\url{http://sourceforge.net/projects/vinetto/}}{Thumbs.db}{1.2cm}
-\fl{\textbf{Exif}\\\url{http://araskin.webs.com/exif/exif.html}}{Pluggin Firefox/thunderbird, pour extraction des informations des fichier Exif d'index d'appareil num\'erique (exemple : photos)}{1.2cm}
+\fl{\textbf{Exif}\\\url{http://araskin.webs.com/exif/exif.html}}{Plugin Firefox/thunderbird, pour extraction des informations des fichier Exif d'index d'appareil num\'erique (exemple : photos)}{1.2cm}
 \fl{\textbf{Meta-extractor}\\\url{http://meta-extractor.sourceforge.net/}}{Fichiers image, BMP, GIF, JPEG et TIFF}{1.2cm}
 \fl{\textbf{Hachoir}\\\url{https://bitbucket.org/haypo/hachoir/wiki/Home}}{Librairie Python pour extraire les m\'etadonn\'ees : Vid\'eos, musiques, images, archives ZIP, TAR, PDF, torrent, HTML}{1.2cm}
 \end{tabular}
@@ -4618,7 +4618,7 @@ forwarders \{194.168.1.1;194.168.1.2;\};
 }\vskip+0.2cm
 
 \textbf{Autoriser le transfert de zone vers le serveur DNS dns2 :} {\sl \color{blue}/etc/bind/named.conf.options}\\
-\textit{Attention pour autoriser le transfert de zone pour tout le monde (non recommander) il faut utiliser \`a la place de l'ip : \textbf{any} ou \textbf{0/0}}\\
+\textit{Attention pour autoriser le transfert de zone pour tout le monde (non recommand\'e) il faut utiliser \`a la place de l'ip : \textbf{any} ou \textbf{0/0}}\\
 {\sl \color{blue}
 allow-transfer \{ 192.168.0.2; \};
 }\\
@@ -8786,7 +8786,7 @@ Services standards de VMware :
 \url{http://www.aldeid.com/index.php/OWASP_WebGoat}
 }
 {
-\\Outils de s\'ecurit\'e d'OWASP d\'evelopp\'e en Java, permettant d'effectuer des tests de s\'ecurit\'e sur les applications Web HTTP/HTTPS (proxy, spider, automatisation et recherche de failles).
+\\Outils de s\'ecurit\'e d'OWASP d\'evelopp\'es en Java, permettant d'effectuer des tests de s\'ecurit\'e sur les applications Web HTTP/HTTPS (proxy, spider, automatisation et recherche de failles).
 }
 {
 {\Large \textbf{WebScarab-NG}} (version simple d'utilisation)\\
@@ -8944,7 +8944,7 @@ Attention, les portails captifs peuvent souvent \^etre contourn\'es en usurpant 
 \fiche{}{Windows - Base de registre}{microsoft.png}
 {\url{http://www.beginningtoseethelight.org/ntsecurity/index.php}}
 {
-Depuis la cr\'eation des syst\`emes d'exploitation graphique de Microsoft la base de registre existe, il en existe deux format : un pour syst\`eme embarqu\'e (Windows mobile, CE\dots{}) et un pour PC. \\La liste des emplacements des diff\'erents fichiers de registre est pr\'esent dans la base de registre : HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$hivelist$\backslash$
+Depuis la cr\'eation des syst\`emes d'exploitation graphiques de Microsoft la base de registre existe, il en existe deux format : un pour syst\`eme embarqu\'e (Windows mobile, CE\dots{}) et un pour PC. \\La liste des emplacements des diff\'erents fichiers de registre est pr\'esent dans la base de registre : HKEY\_LOCAL\_MACHINE$\backslash$SYSTEM$\backslash$CurrentControlSet$\backslash$Control$\backslash$hivelist$\backslash$
 }
 {
 {
@@ -9180,6 +9180,58 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
 	{\small \url{http://www.hsc.fr/ressources/breves/WMI.html.fr}}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Wordlist}{wordlist.png}
+{
+\url{http://download.openwall.net/pub/wordlists/}\\
+\url{http://www.skullsecurity.org/wiki/index.php/Passwords}\
+}
+{
+	\\Listes de mots utilisées pour attaquer des mots de passe.
+	De très nombreuses wordlist sont disponibles sur le web et les réseaux P2P.\\
+	Des outils permettent d'en générer selon plusieurs méthodes.
+}
+{
+\textbf{CUPP}\addcontentsline{toc}{subsubsection}{CUPP}\\
+\url{http://www.social-engineer.org/framework/Computer_Based_Social_Engineering_Tools}
+\begin{itemize}
+	\item Génère une liste de mots de passe en fonction de l'environnement défini. Possibilité de définir des règles spécifiques ou des mots-clefs supplémentaires.
+	\item Entrée : nom, prénom, date naissance, enfant, chien etc + mots-clefs définissables 
+	\item Sortie : liste de tout les éléments mixés, sauf les mots clefs qui sont juste pré/sufixés
+	\item Exemple : {\sl \color{blue}python cupp.py -i}
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{CEWL}\addcontentsline{toc}{subsubsection}{CEWL}\\
+\url{http://www.digininja.org/projects/cewl.php}
+\begin{itemize}
+	\item Génère une liste de mots de passe en parsant un site.
+	\item Entrée : url
+	\item Sortie : liste de mots
+	\item Exemple : {\sl \color{blue}./cewl.rb -w list.txt www.example.org}
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{RSMangler}\addcontentsline{toc}{subsubsection}{RSMangler}\\
+\url{http://www.randomstorm.com/rsmangler-security-tool.php}
+\begin{itemize}
+	\item Génère une liste de mots à partir d'une autre en appliquant permutation, ajout de pre/suffixe, leet, lower/uppercase, acronyme etc.\\
+	Les options sont toutes actives par défaut, les ajouter à la commande les désactive.
+	\item Entrée : liste de mots 
+	\item Sortie : liste de mots 
+	\item Exemple : {\sl \color{blue}./rsmangler.rb -f list.txt -reverse > output.txt}
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{Crunch}\addcontentsline{toc}{subsubsection}{Crunch}\\
+\url{http://sourceforge.net/projects/crunch-wordlist/}
+\begin{itemize}
+	\item Génère une liste de mots à partir de différents paramètre (longueur, type de char à inclure etc).
+	\item Entrée : paramètres 
+	\item Sortie : liste de mots
+	\item Exemple : {\sl \color{blue}crunch 1 8 -o list.txt (liste de a à zzzzzzzz)}
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Yersinia}{yersinia.png}
 {
 \url{http://www.yersinia.net/}\\
@@ -9229,7 +9281,7 @@ Pour utiliser plusieurs interfaces il suffit d'en s\'electionner plusieurs (i, o
  Il suffit maintenant de remplir avec les informations pr\'ec\'edentes.\\
 
  \textbf{\Large DHCP Starvation (DoS) / Rogue DHCP server (MitM) :}\\ 
- \textit{L'objectif est d'envoyer un grand nombre de demande d'adresse avec des adresse MAC al\'eatoires pour saturer le nombre d'adresse \`a alouer.}\vskip+0.1cm
+ \textit{L'objectif est d'envoyer un grand nombre de demandes d'adresse avec des adresses MAC al\'eatoires pour saturer le nombre d'adresses \`a alouer.}\vskip+0.1cm
  \textbf{Ex\'ecuter Yersinia en mode console : } {\sl \color{blue} yersinia -I}\\
  \textbf{S\'electionner l'interface r\'eseau : } {\sl \color{blue}i}\\
  \textbf{S\'electionner le protocole DHCP : } {\sl \color{blue}g} et s\'electionner DHCP.\\
