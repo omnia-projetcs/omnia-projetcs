@@ -1,11 +1,4 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%En cours : 
-%			- fiches SQL par type de BDD
-%           - VI
-%           - supprimer fiche Backtrack
-%			- fiche DNS
-%			- IRC + screen + issi
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Auteur  : Hanteville Nicolas
 % Site    : http://omni-a.blogspot.com/
 % Sources : http://code.google.com/p/omnia-projetcs/
@@ -18,6 +11,7 @@
 \usepackage[latin1]{inputenc}							% format d'ecriture en latin1
 \usepackage[T1]{fontenc}								% format d'encodage de l'ecriture
 \usepackage[francais]{babel}							% conversion des phrases type pour le francais
+\selectlanguage{french}		                            % utilisation du francais dans les modules tels que la date
 \NoAutoSpaceBeforeFDP 									% supprimer l'espace automatique
 \usepackage{graphicx}									% permet l'ajout\begin{normalsize}
 \usepackage[colorlinks=true,urlcolor=blue]{hyperref}	% permet la gestion des liens colore		
@@ -269,7 +263,7 @@
 \fbox{
 \begin{minipage}[t]{16cm}
 \textsf{\footnotesize Certaines informations contenus dans ce document sont extraites de pages Web sit\'ees.\\\vskip-1cm
-Ces informations sont divulgu\'ees \`a titre d'instruction, l'auteur ne peut \^etre rendu responsable de ce que vous en faites !}
+Ces informations sont divulgu\'ees \`a titre d'instruction, les auteurs et contributeurs ne peuvent \^etre rendus responsable de ce que vous en faites !}
 \end{minipage}}
 }
 \author{\footnotesize Sous licence GPLv3 \url{http://www.gnu.org/licenses/gpl.html}}
@@ -2615,7 +2609,7 @@ L'option \textbf{-l} active l'affichage des informations en liste.}\vskip +0.2cm
 \end{description}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{Foremost}{foremost.png}{\url{http://foremost.sourceforge.net/}}
+\fiche{}{Foremost}{foremost.png}{\url{http://foremost.sourceforge.net/}\\\url{http://www.garykessler.net/library/file_sigs.html}}
 {
 \\Outil Unix/Linux console de r\'ecup\'eration de fichier, permet une utilisation sur des fichiers raw (cr\'e\'es avec dd).
 }
@@ -5427,9 +5421,9 @@ redirect \small http://127.0.0.1/cgi-bin/squidGuard.cgi?clientaddr=\% a+clientna
 			which \textit{[commande]}
 			}\\
 			\MbFCmd{0.7cm}
-			{Recherche d'un fichier index\'e :}
+			{Recherche d'un fichier index\'e : (mise à jour : updatedb)}
 			{
-			whereis \textit{[fichier]}
+			locate \textit{[fichier]}
 			}\\
 			\MbFCmd{0.7cm}
 			{Recherche d'un fichier \`a partir de la racine :}
@@ -9204,7 +9198,7 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
 \textbf{CEWL}\addcontentsline{toc}{subsubsection}{CEWL}\\
 \url{http://www.digininja.org/projects/cewl.php}
 \begin{itemize}
-	\item Génère une liste de mots de passe en parsant un site.
+	\item Génère une liste de mots de passe en fonction du contenu d'un site.
 	\item Entrée : url
 	\item Sortie : liste de mots
 	\item Exemple : {\sl \color{blue}./cewl.rb -w list.txt www.example.org}
@@ -9214,7 +9208,7 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
 \textbf{RSMangler}\addcontentsline{toc}{subsubsection}{RSMangler}\\
 \url{http://www.randomstorm.com/rsmangler-security-tool.php}
 \begin{itemize}
-	\item Génère une liste de mots à partir d'une autre en appliquant permutation, ajout de pre/suffixe, leet, lower/uppercase, acronyme etc.\\
+	\item Génère une liste de mots à partir d'une autre en appliquant permutation, ajout de pre/suffixe, leet, minuscule/majuscule, acronyme etc.\\
 	Les options sont toutes actives par défaut, les ajouter à la commande les désactive.
 	\item Entrée : liste de mots 
 	\item Sortie : liste de mots 
@@ -9225,7 +9219,7 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
 \textbf{Crunch}\addcontentsline{toc}{subsubsection}{Crunch}\\
 \url{http://sourceforge.net/projects/crunch-wordlist/}
 \begin{itemize}
-	\item Génère une liste de mots à partir de différents paramètre (longueur, type de char à inclure etc).
+	\item Génère une liste de mots à partir de différents paramètre (longueur, type de caractères à inclure etc).
 	\item Entrée : paramètres 
 	\item Sortie : liste de mots
 	\item Exemple : {\sl \color{blue}crunch 1 8 -o list.txt (liste de a à zzzzzzzz)}
