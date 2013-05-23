@@ -2755,6 +2755,79 @@ Attention ! Toute analyse doit \^etre effectu\'ee sur une copie d'une disque afi
 \end{description}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Forensic - Investigation sur serveur web Linux}{protocole.png}
+{
+\url{https://omnia-projetcs.googlecode.com/svn/trunk/OFD/Investigations_Inforensique.mm}
+}
+{
+\\Cette fiche a pour objectif de fournir une aide dans un contexte de corruption de serveur Web Linux afin d'identifier de potentiels programmes malveillants.
+}
+{
+\textbf{Contexte et état du serveur :}\\
+\textit{Il est important dans un premier temps d'identifier si le serveur était protégé par un solution de filtrage (WAF, firewall, proxy, NAT), s'il était mutualisé ou encore virtualisé afin de s'assurer de la méthode de compromission. Le serveur détecté comme compromis n'est pas forcément la porte d'entrée de l'intrusion. En effet, un élément frontal avec une interface d'administration, un autre site mutualisé et non sécurisé ou encore une souche vérolée de système d'exploitation ou d'application peut en \^etre l'origine.}
+
+\begin{description}
+    \item[$\Square$] Identifier la présence de solution de filtrage sur le serveur (sans oublier la table {\sl \color{blue}-t NAT}) :\\
+    {\sl \color{blue}iptables -L -n -v} et {\sl \color{blue}ip6tables -L -n -v}\vskip+0.1cm
+    				 
+    \item[$\Square$] Activation ou non de la synchronisation horaire (attention aux décalages horaire entre serveurs) :\\
+    {\sl \color{blue}ntpdc -n -c pe} et {\sl \color{blue}ntpq -p}\vskip+0.1cm
+    
+    \item[$\Square$] Activation et export des journaux d'audit : 
+    {\sl \color{blue}egrep -v '\^{}\#|\^{}\$' /etc/syslog.conf}%\vskip+0.1cm
+    
+    \item[$\Square$] Type et version du système d'exploitation et du noyau : 
+    {\sl \color{blue}uname -arv} ou {\sl \color{blue}lsb\_release -a}%\vskip+0.1cm
+    
+    \item[$\Square$] Liste des paquets installés (certains paquets vulnérables peuvent \^etre à l'origine de la corruption du serveur. Les CMS comme Joomla ou WordPress ainsi que leurs pluggins associés doivent \^etre vérifiés):\\ 
+    {\sl \color{blue}rpm -qa} ou {\sl \color{blue}dpkg {-}{-}get-selections}%\vskip+0.1cm
+    
+    \item[$\Square$] Liste des services utilisés : 
+    {\sl \color{blue}chkconfig {-}{-}list} ou {\sl \color{blue}netstat -planetuvo} et {\sl \color{blue}netstat -plaetuvo}\vskip+0.1cm
+\end{description}
+
+\vskip+0.2cm 
+\textbf{Identification d'application malveillante :}\\
+\textit{La recherche doit commencer par identifier les fichiers modifiés et ajoutés sur le système. Dont ceux pouvant \^etre des programmes malveillants.}
+\begin{description}
+    \item[$\Square$] Droits appliqués sur les fichiers de l'application Web (normalement doit \^etre 400) :\\
+    {\sl \color{blue}ls -altR /var/www/vhosts/}
+    
+    \item[$\Square$] Identifier les fichiers différents entre deux version de fichiers : 
+    {\sl \color{blue}diff -qNr rep\_origine/ rep\_serveur/}%\vskip+0.1cm
+    
+    \item[$\Square$] Recherche de modification entre deux fichiers : 
+    {\sl \color{blue}diff -Nau fichier\_ok fichier\_nok}%\vskip+0.1cm
+    
+    \item[$\Square$] Recherche de fichier PHP contenant des fonctions très utilisées dans des applications malveillantes :\\
+    {\sl \color{blue}grep -r 'base64\_decode' /var/www/vhosts/*} et les termes {\sl \color{blue}'gzinflate('}, {\sl \color{blue}'\$GLOBALS'} et {\sl \color{blue}'eval('}\vskip+0.1cm
+    
+     \item[$\Square$] La génération d'empreintes SHA-256 et son utilisation sur l'application RtCA (\url{http://code.google.com/p/omnia-projetcs}) permet de vérifier si ces fichiers sont reconnus comme virus par les solutions antivirus sur le site de \url{https://www.virustotal.com} :\\
+     {\sl \color{blue}sha256deep -r / > sha256deep.txt}
+\end{description}
+
+\vskip+0.2cm  
+\textbf{Journaux d'audit :}\\
+\textit{Il est nécessaire d'avoir pour chaque élément une preuve de la manière dont a été corrompue le serveur. Dans la majorité des cas, les journaux permettent de valider les hypothèses de scénarios d'intrusion.}
+\begin{description}    
+    \item[$\Square$] Des connexions réussies, échec et d'administration des éléments frontaux (WAF, firewall, proxy\dots{}).
+    \item[$\Square$] Des connexions réussies, échec et d'administration des éléments internes de filtrage.
+    \item[$\Square$] Des journaux système, web, base de données et tout autre service démarré sur le serveur corrompu.
+    \item[$\Square$] Toute information de suspicion de la compromission pouvant induire une date et la méthode de compromission (défaillance, redémarrage de service, saturation de base\dots{}).
+\end{description}
+
+\vskip+0.2cm 
+Il suffira par la suite de rechercher dans ces journaux les noms des fichiers identifiés ci-dessus afin d'établir si la modification ou création de fichier a été effectuée au travers d'une faille web standard ou logiciel. 
+
+
+
+
+
+}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \CficheTotal{}{Forensic - Outils (1/3)}
 {
 
