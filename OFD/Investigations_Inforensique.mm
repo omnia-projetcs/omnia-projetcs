@@ -1417,8 +1417,7 @@
       MessenPass&#160;: <a href="http://www.nirsoft.net/utils/mspass.html">http://www.nirsoft.net/utils/mspass.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688132713" ID="ID_1709658188" MODIFIED="1367583408113" TEXT="Client de messagerie">
 <node CREATED="1353688239225" ID="ID_1308788959" MODIFIED="1356687864781">
@@ -1809,8 +1808,7 @@
       PASCO : <a content="text/html; charset=utf-8" href="http://www.mcafee.com/us/downloads/free-tools/index.aspx" http-equiv="content-type">http://www.mcafee.com/us/downloads/free-tools/index.aspx</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688287544" ID="ID_1241527274" MODIFIED="1367583335789">
 <richcontent TYPE="NODE"><html>
@@ -1906,8 +1904,7 @@
       PasswordFox&#160;: <a href="http://www.nirsoft.net/utils/passwordfox.html">http://www.nirsoft.net/utils/passwordfox.html </a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688291815" ID="ID_898031263" MODIFIED="1367583346781">
 <richcontent TYPE="NODE"><html>
@@ -1979,8 +1976,7 @@
       Internet History Browser : <a content="text/html; charset=utf-8" href="http://www.mitec.cz/ihb.html" http-equiv="content-type">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688303529" ID="ID_1138214650" MODIFIED="1367583355399">
 <richcontent TYPE="NODE"><html>
@@ -2052,8 +2048,7 @@
       Internet History Browser : <a content="text/html; charset=utf-8" href="http://www.mitec.cz/ihb.html" http-equiv="content-type">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356624084647" ID="ID_338646044" MODIFIED="1367583364410">
 <richcontent TYPE="NODE"><html>
@@ -2122,8 +2117,7 @@
       Internet History Browser : <a content="text/html; charset=utf-8" href="http://www.mitec.cz/ihb.html" http-equiv="content-type">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1353688166169" FOLDED="true" ID="ID_1146404688" MODIFIED="1367583576134" TEXT="Serveur Web">
@@ -2420,8 +2414,8 @@
 <node CREATED="1352466988481" ID="ID_1133295871" MODIFIED="1358497224616" POSITION="left" TEXT="Investigation">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352467751993" ID="ID_499975759" MODIFIED="1358499517987" TEXT="Syst&#xe8;me">
-<node CREATED="1352467577911" FOLDED="true" ID="ID_68648110" MODIFIED="1367583566214" TEXT="M&#xe9;moire">
-<node CREATED="1353597380064" FOLDED="true" ID="ID_1788451408" MODIFIED="1366055149041">
+<node CREATED="1352467577911" ID="ID_68648110" MODIFIED="1369393992779" TEXT="M&#xe9;moire">
+<node CREATED="1353597380064" FOLDED="true" ID="ID_1788451408" MODIFIED="1369394033485">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -2433,8 +2427,12 @@
     <p>
       Framework d'extraction de donn&#233;es de la m&#233;moire.
     </p>
+    <p>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://volatility-labs.blogspot.fr/">http://volatility-labs.blogspot.fr/</a>
+    </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 <node CREATED="1358193496092" ID="ID_786047713" MODIFIED="1358193519564" TEXT="Configuration">
 <node CREATED="1358098000412" ID="ID_1857252608" MODIFIED="1358099164153">
 <richcontent TYPE="NODE"><html>
@@ -4875,8 +4873,7 @@
       <a href="http://nirsoft.net/">http://securityxploded.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1352467585225" FOLDED="true" ID="ID_1021868050" MODIFIED="1367583846613" TEXT="Navigateurs">
 <node CREATED="1356623598303" ID="ID_1531425829" MODIFIED="1358500060505">
 <richcontent TYPE="NODE"><html>
@@ -5003,8 +5000,7 @@
       <b>E-mail History Browser</b>&#160;<a content="text/html; charset=utf-8" href="http://www.mitec.cz/ehb.html" http-equiv="content-type">http://www.mitec.cz/ehb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1357995572705" ID="ID_1445618094" MODIFIED="1357996397969">
 <richcontent TYPE="NODE"><html>
@@ -5381,8 +5377,7 @@
       Base de donn&#233;es
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1367584046326" ID="ID_404593123" MODIFIED="1367584073556">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5393,8 +5388,7 @@
       <b>SQLite Query</b>&#160;<a content="text/html; charset=utf-8" href="http://www.mitec.cz/sqliteq.html" http-equiv="content-type">http://www.mitec.cz/sqliteq.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -5723,8 +5717,7 @@
       <i><font color="#ff0000" face="Courier New">grep -i -f dico.txt -A image.raw</font></i>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356616010838" ID="ID_1216994389" MODIFIED="1356617750541">
 <richcontent TYPE="NODE"><html>
@@ -6047,8 +6040,7 @@
       <b>ForensicUserInfo</b>&#160;<a content="text/html; charset=utf-8" href="http://www.woanware.co.uk/?page_id=42" http-equiv="content-type">http://www.woanware.co.uk/?page_id=42</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358850837083" ID="ID_324357677" MODIFIED="1358851054969">
 <richcontent TYPE="NODE"><html>
@@ -6443,8 +6435,7 @@
       Delock screen <a content="text/html; charset=utf-8" href="http://shkspr.mobi/blog/2013/03/new-bypass-samsung-lockscreen-total-control/" http-equiv="content-type">http://shkspr.mobi/blog/2013/03/new-bypass-samsung-lockscreen-total-control/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -6473,8 +6464,7 @@
       <b>HexEdit</b>&#160;<a content="text/html; charset=utf-8" href="http://www.mitec.cz/hex.html" http-equiv="content-type">http://www.mitec.cz/hex.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1366055385239" FOLDED="true" ID="ID_331065245" MODIFIED="1367584801822" TEXT="Convertisseur">
@@ -6558,8 +6548,7 @@
       <b>LordPE</b>&#160;<a content="text/html; charset=utf-8" href="http://www.woodmann.com/collaborative/tools/index.php/LordPE" http-equiv="content-type">http://www.woodmann.com/collaborative/tools/index.php/LordPE</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1367584514600" ID="ID_780393272" MODIFIED="1367584535700">
 <richcontent TYPE="NODE"><html>
@@ -6571,8 +6560,7 @@
       <b>PEBrowser64 Professional</b>&#160;<a content="text/html; charset=utf-8" href="http://www.smidgeonsoft.prohosting.com/pebrowse-pro-file-viewer.html" http-equiv="content-type">http://www.smidgeonsoft.prohosting.com/pebrowse-pro-file-viewer.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1367584617656" ID="ID_1077735889" MODIFIED="1367584640375">
 <richcontent TYPE="NODE"><html>
@@ -6587,8 +6575,7 @@
       <a content="text/html; charset=utf-8" href="http://www.aldeid.com/wiki/PEiD" http-equiv="content-type">http://www.aldeid.com/wiki/PEiD</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1367584673760" ID="ID_1988770272" MODIFIED="1367584684380">
 <richcontent TYPE="NODE"><html>
@@ -6600,8 +6587,7 @@
       <b>PEView</b>&#160;<a content="text/html; charset=utf-8" href="http://sourceforge.net/projects/peview/" http-equiv="content-type">http://sourceforge.net/projects/peview/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1367584819816" ID="ID_716098239" MODIFIED="1367584836099">
 <richcontent TYPE="NODE"><html>
@@ -6613,8 +6599,7 @@
       <b>Dependency Walker&#160;</b><a content="text/html; charset=utf-8" href="http://www.dependencywalker.com/" http-equiv="content-type">http://www.dependencywalker.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1367582744029" ID="ID_1357990945" MODIFIED="1367584252372">
