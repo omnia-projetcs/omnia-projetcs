@@ -8492,6 +8492,49 @@ Pour plus d'information lire le man : \url{http://www.tcpdump.org/tcpdump_man.ht
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\fiche{}{Timeline}{timeline.png}
+{
+\url{http://computer-forensics.sans.org/blog/2011/12/07/}\\
+\url{http://code.google.com/p/log2timeline/}\\
+\url{http://code.google.com/p/plaso/}\\
+}
+{
+	\\D\'eterminer la chronologie des \'evènements d'un syst\`eme. Se fait en deux temps : collection des donn\'ees puis construction de la timeline.
+}
+{
+\textbf{Sleuthkit}\addcontentsline{toc}{subsubsection}{Sleuthkit}\\
+\url{http://wiki.sleuthkit.org/index.php?title=Timelines}
+\begin{itemize}
+	\item Utile pour une Timeline du filesystem
+	\item Collecte des donn\'ees se fait avec fls : {\sl \color{blue}fls -l -r -m C : > data}
+	\item Construction de la timeline se fait avec mactime: {\sl \color{blue}mactime -b data}
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{log2timeline}\addcontentsline{toc}{subsubsection}{log2timeline}\\
+\url{http://log2timeline.net/}
+\begin{itemize}
+	\item Framework Perl avec plugins, permet de construire une timeline avec le filesystem et d'autres \'el\'ements (pcapc, RAM, log, historique web, evt log...)
+	\item Réécriture en Python en cours dans le projet Plaso. 
+	\item Collecte des donn\'ees :{\sl \color{blue} log2timeline -r -z Europe/Paris -p -f win7 /mnt/evidence -w timeline.csv}
+	\item Un seul module possible \`a la fois, mais possibilité de concaténer les sorties dans le même fichier.
+	\item Construction de la timeline : {\sl \color{blue} l2t_process -b timeline.csv 01-01-2013..01-31-2013 > timeline-final.csv}
+	\item 2 front-end sont fournis en plus de la ligne de commande :\\
+	timescanner : permet de charger plusieurs modules (tous par d\'efaut) et de parcourir les donn\'ees de façon r\'ecursives en essayant les plugins. \\
+	glog2timeline : interface graphique non maintenue\\
+	\item Il existe une version remani\'ee par SANS, log2timeline-sift, qui se rapproche de timescanner. 
+\end{itemize}
+
+\vskip+0.5cm
+\textbf{4n6time}\addcontentsline{toc}{subsubsection}{4n6time}\\
+\url{https://code.google.com/p/plaso/downloads/list}
+\begin{itemize}
+	\item Outil graphique du projet Plaso. 
+	\item Accepte les fichiers log2timeline, les bdd, les images disques en entr\'ee. 
+	\item Encore en phase de développement.
+\end{itemize}
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{USB}{USB.png}
 {
 \url{http://sourceforge.net/projects/noautorun/}, \url{http://www.flashboot.ru/iflash.html}
