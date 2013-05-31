@@ -8497,41 +8497,53 @@ Pour plus d'information lire le man : \url{http://www.tcpdump.org/tcpdump_man.ht
 \url{http://computer-forensics.sans.org/blog/2011/12/07/}\\
 \url{http://code.google.com/p/log2timeline/}\\
 \url{http://code.google.com/p/plaso/}\\
+\url{http://sleuthkit.org}
 }
 {
-	\\D\'eterminer la chronologie des \'evènements d'un syst\`eme. Se fait en deux temps : collection des donn\'ees puis construction de la timeline.
+	\\La génération de la chronologie des \'ev\`enements d'un syst\`eme s'effectue en deux temps : collection des donn\'ees puis construction de la timeline.
 }
 {
-\textbf{Sleuthkit}\addcontentsline{toc}{subsubsection}{Sleuthkit}\\
-\url{http://wiki.sleuthkit.org/index.php?title=Timelines}
+{\Large \textbf{Timeline}}
 \begin{itemize}
-	\item Utile pour une Timeline du filesystem
-	\item Collecte des donn\'ees se fait avec fls : {\sl \color{blue}fls -l -r -m C : > data}
-	\item Construction de la timeline se fait avec mactime: {\sl \color{blue}mactime -b data}
+	\item Timeline du système de fichiers :\\ {\sl \color{blue}timescanner -z <TIMEZONE> -d /mnt/point\_de\_montage -w f\_resultats}\addcontentsline{toc}{subsubsection}{timescanner}
+	\item Timeline du système de fichiers des fichiers supprimés :\\ {\sl \color{blue}fls -m c: -r image.raw >> f\_resultats}\addcontentsline{toc}{subsubsection}{fls}
+	\item Timeline de la base de registre Windows :\\ {\sl \color{blue}perl regtime.pl -r <ruche> -m <format de ruche> >> f\_resultats}\addcontentsline{toc}{subsubsection}{regtime.pl}
+	\item Création de la timeline :\\ {\sl \color{blue}mactime -d -b f\_resultats > timeline.csv}\addcontentsline{toc}{subsubsection}{mactime}
+\end{itemize}
+Time zone : \url{http://www.cs.berkeley.edu/CT/ag4.0/appendid.htm}\\
+Regtime : \url{http://code.google.com/p/winforensicaanalysis/downloads/list}\\
+Modèle Excel d'analyse avec coloration : \url{http://computer-forensics.sans.org/blog/2012/01/25/digital-forensic-sifting-colorized-super-timeline-template-for-log2timeline-output-files}\\
+Analyse du résultat avec Excel : \url{http://journeyintoir.blogspot.fr/2010/11/reviewing-timelines-with-excel.html}\\
+Et calc : \url{http://journeyintoir.blogspot.fr/2010/11/reviewing-timelines-with-calc.html}\\
+
+{\Large \textbf{Super Timeline}}\\
+\textbf{log2timeline} \url{http://log2timeline.net/}\addcontentsline{toc}{subsubsection}{log2timeline}\\
+Framework Perl avec plugins, permet de construire une timeline avec le système de fichier et d'autres \'el\'ements (pcapc, RAM, log, historique web, evt log...)
+\begin{itemize}
+	\item Génération d'une super timeline sur un disque entier :\\ {\sl \color{blue}log2timeline-sift -z MET-1METDST -i image.raw -w timeline.csv} 
+	\item Pour une partition  : {\sl \color{blue}log2timeline-sift -z MET-1METDST -p 0 -i partition.raw -w timeline.csv} 
+	\item Pour une partition  montée avec un système d'exploitation cible Windows 7 : {\sl \color{blue}log2timeline -z MET-1METDST -p -r -f win7 /media/windows7 -w timeline.csv}	
+	\item 2 front-end sont fournis en plus de la ligne de commande :
+	\begin{itemize}
+		\item timescanner : permet de charger plusieurs modules (tous par d\'efaut) et de parcourir les donn\'ees de façon r\'ecursives en essayant les plugins.
+		\item glog2timeline : interface graphique non maintenue
+	\end{itemize}
+	\item Version SANS, log2timeline-sift : \url{http://computer-forensics.sans.org/blog/2011/12/07/digital-forensic-sifting-super-timeline-analysis-and-creation}\addcontentsline{toc}{subsubsection}{log2timeline-sift}
 \end{itemize}
 
-\vskip+0.5cm
-\textbf{log2timeline}\addcontentsline{toc}{subsubsection}{log2timeline}\\
-\url{http://log2timeline.net/}
-\begin{itemize}
-	\item Framework Perl avec plugins, permet de construire une timeline avec le filesystem et d'autres \'el\'ements (pcapc, RAM, log, historique web, evt log...)
-	\item Réécriture en Python en cours dans le projet Plaso. 
-	\item Collecte des donn\'ees :{\sl \color{blue} log2timeline -r -z Europe/Paris -p -f win7 /mnt/evidence -w timeline.csv}
-	\item Un seul module possible \`a la fois, mais possibilité de concaténer les sorties dans le même fichier.
-	\item Construction de la timeline : {\sl \color{blue} l2t_process -b timeline.csv 01-01-2013..01-31-2013 > timeline-final.csv}
-	\item 2 front-end sont fournis en plus de la ligne de commande :\\
-	timescanner : permet de charger plusieurs modules (tous par d\'efaut) et de parcourir les donn\'ees de façon r\'ecursives en essayant les plugins. \\
-	glog2timeline : interface graphique non maintenue\\
-	\item Il existe une version remani\'ee par SANS, log2timeline-sift, qui se rapproche de timescanner. 
-\end{itemize}
+\vskip+0.2cm
+\textbf{l2t-tools :} \url{http://code.google.com/p/l2t-tools/}\addcontentsline{toc}{subsubsection}{l2t-tools}\\
+Filtre des résultats, supprime les entrée dupliquée, avec liste blanche des mots clés à considérés, liste noire des mots clés à exclure sur une intervalle de date :\\
+{\sl \color{blue}l2t\_process -b timeline.csv -k liste\_blanche.txt -w liste\_noire.txt 01-25-2013..01-26-2013 > timeline\_filtree.csv}\vskip+0.2cm
+Filtre des résultats, supprime les entrée dupliquée, avec liste blanche des mots clés à considérés, liste noire des mots clés à exclure pour un date :\\
+{\sl \color{blue}l2t\_process -b timeline.csv -k liste\_blanche.txt -w liste\_noire.txt 01-25-2013 > timeline\_filtree.csv}
 
-\vskip+0.5cm
+\vskip+0.2cm
 \textbf{4n6time}\addcontentsline{toc}{subsubsection}{4n6time}\\
 \url{https://code.google.com/p/plaso/downloads/list}
 \begin{itemize}
-	\item Outil graphique du projet Plaso. 
+	\item Outil graphique du projet Plaso encore en phase de développement.
 	\item Accepte les fichiers log2timeline, les bdd, les images disques en entr\'ee. 
-	\item Encore en phase de développement.
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

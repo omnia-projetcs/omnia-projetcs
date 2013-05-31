@@ -2431,8 +2431,7 @@
       <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://volatility-labs.blogspot.fr/">http://volatility-labs.blogspot.fr/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358193496092" ID="ID_786047713" MODIFIED="1358193519564" TEXT="Configuration">
 <node CREATED="1358098000412" ID="ID_1857252608" MODIFIED="1358099164153">
 <richcontent TYPE="NODE"><html>
@@ -6467,7 +6466,7 @@
 </html></richcontent>
 </node>
 </node>
-<node CREATED="1366055385239" FOLDED="true" ID="ID_331065245" MODIFIED="1367584801822" TEXT="Convertisseur">
+<node CREATED="1366055385239" ID="ID_331065245" MODIFIED="1369402424183" TEXT="Convertisseur">
 <node CREATED="1366055393688" ID="ID_164887114" MODIFIED="1366055481803">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -6626,9 +6625,23 @@
 </html></richcontent>
 </node>
 </node>
+<node CREATED="1369402429523" ID="ID_1008496330" MODIFIED="1369402449123" TEXT="D&#xe9;sassembleur &amp; d&#xe9;bugger">
+<node CREATED="1369402464560" ID="ID_1665420884" MODIFIED="1369402479965">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Hopper</b>&#160;(payant) <a http-equiv="content-type" href="http://www.hopperapp.com/" content="text/html; charset=utf-8">http://www.hopperapp.com</a>
+    </p>
+  </body>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1367328928412" POSITION="right">
+</node>
+</node>
+<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1369918796584" POSITION="right">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6665,16 +6678,16 @@
       <a href="http://computer-forensics.sans.org/community/downloads">http://computer-forensics.sans.org/community/downloads</a>
     </p>
     <p>
-      <a href="http://grandstreamdreams.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://grandstreamdreams.blogspot.fr/</a>
+      <a href="http://grandstreamdreams.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://grandstreamdreams.blogspot.fr/</a>
     </p>
     <p>
-      <a href="http://journeyintoir.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://journeyintoir.blogspot.fr/</a>
+      <a href="http://journeyintoir.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://journeyintoir.blogspot.fr/</a>
     </p>
     <p>
-      <a href="http://dfstream.blogspot.fr/" http-equiv="content-type" content="text/html; charset=utf-8">http://dfstream.blogspot.fr/ </a>
+      <a href="http://dfstream.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://dfstream.blogspot.fr/ </a>
     </p>
     <p>
-      <a href="http://opensecuritytraining.info/Training.html" http-equiv="content-type" content="text/html; charset=utf-8">http://opensecuritytraining.info/Training.html</a>
+      <a href="http://opensecuritytraining.info/Training.html" content="text/html; charset=utf-8" http-equiv="content-type">http://opensecuritytraining.info/Training.html</a>
     </p>
     <p>
       
@@ -6716,7 +6729,10 @@
       <a href="http://www.digital-forensic.org/">http://www.digital-forensic.org</a>
     </p>
     <p>
-      <a href="http://www.deftlinux.net/">http://www.deftlinux.net</a>
+      <a href="http://www.deftlinux.net/">http://www.deftlinux.net </a>
+    </p>
+    <p>
+      <a href="http://www.deftlinux.net/">http://www.4discovery.com/our-tools/</a>
     </p>
     <p>
       <a href="https://computer-forensics.sans.org/community/downloads/">https://computer-forensics.sans.org/community/downloads/</a>
@@ -6743,19 +6759,19 @@
       <a href="http://code.google.com/p/winforensicaanalysis/downloads/list">http://code.google.com/p/winforensicaanalysis/downloads/list</a>
     </p>
     <p>
-      <a href="http://www.tarasco.org/security/tools.html" http-equiv="content-type" content="text/html; charset=utf-8">http://www.tarasco.org/security/tools.html</a>
+      <a href="http://www.tarasco.org/security/tools.html" content="text/html; charset=utf-8" http-equiv="content-type">http://www.tarasco.org/security/tools.html</a>
     </p>
     <p>
-      <a href="http://www.osforensics.com/" http-equiv="content-type" content="text/html; charset=utf-8">http://www.osforensics.com/ </a>
+      <a href="http://www.osforensics.com/" content="text/html; charset=utf-8" http-equiv="content-type">http://www.osforensics.com/ </a>
     </p>
     <p>
-      <a href="http://download.savannah.gnu.org/releases/mobiusft/" http-equiv="content-type" content="text/html; charset=utf-8">http://download.savannah.gnu.org/releases/mobiusft/ </a>
+      <a href="http://download.savannah.gnu.org/releases/mobiusft/" content="text/html; charset=utf-8" http-equiv="content-type">http://download.savannah.gnu.org/releases/mobiusft/ </a>
     </p>
     <p>
-      <a href="http://code.google.com/p/omnia-projetcs/" http-equiv="content-type" content="text/html; charset=utf-8">http://code.google.com/p/omnia-projetcs/ </a>
+      <a href="http://code.google.com/p/omnia-projetcs/" content="text/html; charset=utf-8" http-equiv="content-type">http://code.google.com/p/omnia-projetcs/ </a>
     </p>
     <p>
-      <a href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html" http-equiv="content-type" content="text/html; charset=utf-8">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
+      <a href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html" content="text/html; charset=utf-8" http-equiv="content-type">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
     </p>
     <p>
       
@@ -6764,13 +6780,14 @@
       Statistiques :
     </p>
     <p>
-      <a href="http://www.mandiant.com/resources/m-trends/" http-equiv="content-type" content="text/html; charset=utf-8">http://www.mandiant.com/resources/m-trends/</a>
+      <a href="http://www.mandiant.com/resources/m-trends/" content="text/html; charset=utf-8" http-equiv="content-type">http://www.mandiant.com/resources/m-trends/</a>
     </p>
     <p>
-      <a href="https://www.virustotal.com/statistics/" http-equiv="content-type" content="text/html; charset=utf-8">https://www.virustotal.com/statistics/</a>
+      <a href="https://www.virustotal.com/statistics/" content="text/html; charset=utf-8" http-equiv="content-type">https://www.virustotal.com/statistics/</a>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 </node>
 </map>
