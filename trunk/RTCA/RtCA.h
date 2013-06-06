@@ -378,7 +378,8 @@ BOOL SELECT_SESSION, SELECT_TEST;
 #define POPUP_LSTV_EMPTY_FILE                 12999
 BOOL AVIRUSTTAL,VIRUSTTAL;
 HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
-#define NB_VIRUTOTAL_THREADS                      8
+#define NB_VIRUTOTAL_THREADS                    100
+#define NB_VIRUTOTAL_THREADS_REF                  8
 #define COLUMN_SHA256                            17
 #define COLUMN_PATH                               0
 #define COLUMN_FILE                               1
