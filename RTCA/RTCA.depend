@@ -1878,3 +1878,371 @@
 1367679348 source:z:\svn_omnia\rtca\tests\test_file_lnk.c
 	"../RtCA.h"
 
+1370501706 source:c:\documents and settings\nico\bureau\rtca\rtca.rc
+	"RtCA.h"
+
+1370507781 c:\documents and settings\nico\bureau\rtca\rtca.h
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<Winsock2.h>
+	<windows.h>
+	"version.h"
+	<commctrl.h>
+	<shlobj.h>
+	<iprtrmib.h>
+	<iphlpapi.h>
+	<lmshare.h>
+	<tlhelp32.h>
+	<psapi.h>
+	"sqlite/sqlite3.h"
+	"sqlite/interface.h"
+	"Registry.h"
+	<Windns.h>
+	<Wincrypt.h>
+	"crypt/d3des.h"
+	<lmaccess.h>
+	<wininet.h>
+	"files/LiteZip.h"
+	"crypt/md5.h"
+	"crypt/rc4.h"
+	"crypt/opensslv.h"
+
+1370501718 c:\documents and settings\nico\bureau\rtca\version.h
+
+1370501711 c:\documents and settings\nico\bureau\rtca\sqlite\sqlite3.h
+	<stdarg.h>
+
+1370501710 c:\documents and settings\nico\bureau\rtca\sqlite\interface.h
+
+1370501706 c:\documents and settings\nico\bureau\rtca\registry.h
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\d3des.h
+
+1370501713 c:\documents and settings\nico\bureau\rtca\files\litezip.h
+	<windows.h>
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\md5.h
+	"e_os2.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\e_os2.h
+	"opensslconf.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\opensslconf.h
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\rc4.h
+	"opensslconf.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\opensslv.h
+
+1370501717 source:c:\documents and settings\nico\bureau\rtca\configuration\gui_conf.c
+	"../RtCA.h"
+
+1370501717 source:c:\documents and settings\nico\bureau\rtca\configuration\init.c
+	"../RtCA.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\d3des.c
+	"d3des.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\des.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"opensslconf.h"
+	<unistd.h>
+	<math.h>
+	<io.h>
+	<time.h>
+	<types.h>
+	<stat.h>
+	<sys/types.h>
+	<sys/stat.h>
+	"des.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\des.h
+	"opensslconf.h"
+	"e_os2.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\md5.c
+	"../RtCA.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\md5_dgst.c
+	<stdio.h>
+	"opensslv.h"
+	"md5_locl.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\md5_locl.h
+	<stdlib.h>
+	<string.h>
+	"e_os2.h"
+	"md5.h"
+	"md32_common.h"
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\md32_common.h
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\rc4_enc.c
+	"../RtCA.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\rc4_skey.c
+	"../RtCA.h"
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
+
+1370501712 c:\documents and settings\nico\bureau\rtca\crypt\sha2.h
+	<limits.h>
+
+1370501712 source:c:\documents and settings\nico\bureau\rtca\crypt\windows_users_hashs_registry.c
+	"../RtCA.h"
+
+1370501717 source:c:\documents and settings\nico\bureau\rtca\export.c
+	"RtCA.h"
+
+1370501713 source:c:\documents and settings\nico\bureau\rtca\files\litezip.c
+	<windows.h>
+	"LiteZip.h"
+
+1370501713 source:c:\documents and settings\nico\bureau\rtca\files\proc_files.c
+	"../RtCA.h"
+
+1370501713 source:c:\documents and settings\nico\bureau\rtca\files\proc_registry_files.c
+	"../RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\import.c
+	"RtCA.h"
+
+1370501717 source:c:\documents and settings\nico\bureau\rtca\main.c
+	"RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\proc.c
+	"RtCA.h"
+
+1370501717 source:c:\documents and settings\nico\bureau\rtca\proc_cmd.c
+	"RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\proc_gui.c
+	"RtCA.h"
+
+1370501719 source:c:\documents and settings\nico\bureau\rtca\proc_registry.c
+	"RtCA.h"
+
+1370501710 source:c:\documents and settings\nico\bureau\rtca\sqlite\interface.c
+	"../RtCA.h"
+
+1370501711 source:c:\documents and settings\nico\bureau\rtca\sqlite\load_save.c
+	"../RtCA.h"
+
+1370501710 source:c:\documents and settings\nico\bureau\rtca\sqlite\sqlite3.c
+	"config.h"
+	<stdint.h>
+	<inttypes.h>
+	<tcl.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<stddef.h>
+	<windows.h>
+	<os2safe.h>
+	<os2.h>
+	<uconv.h>
+	<ctype.h>
+	<time.h>
+	<sys/sysctl.h>
+	<malloc/malloc.h>
+	<libkern/OSAtomic.h>
+	<malloc.h>
+	<pthread.h>
+	<math.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<fcntl.h>
+	<unistd.h>
+	<sys/time.h>
+	<errno.h>
+	<sys/mman.h>
+	<sys/ioctl.h>
+	<semaphore.h>
+	<limits.h>
+	<sys/file.h>
+	<sys/param.h>
+	<sys/mount.h>
+	<utime.h>
+	<dlfcn.h>
+	<sys/cygwin.h>
+	"sqlite3rtree.h"
+	<unicode/utypes.h>
+	<unicode/uregex.h>
+	<unicode/ustring.h>
+	<unicode/ucol.h>
+	<unicode/ubrk.h>
+	<unicode/utf16.h>
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\scan.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_android.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_antivirus.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_arp.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_chrome.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_clipboard.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_disk.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_dns.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_env.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_file.c
+	"../RtCA.h"
+	"../crypt/sha2.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_file_lnk.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_firefox.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_firewall.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_guide.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_ie.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_log.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_log_files.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_log_files_evt.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_log_files_evtx.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_network.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_pipe.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_prefetch.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_process.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_deleted_keys.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_mru.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_password.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_path.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_service.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_settings.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_shellbags.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_software.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_start.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_update.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_usb.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_userassist.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_registry_users.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_route.c
+	"../RtCA.h"
+
+1370501715 source:c:\documents and settings\nico\bureau\rtca\tests\test_share.c
+	"../RtCA.h"
+
+1370501716 source:c:\documents and settings\nico\bureau\rtca\tests\test_task.c
+	"../RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\tools\tools_clean.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_copy.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_date.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_memory.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_network.c
+	"../RtCA.h"
+	"tools_network/_entetes.h"
+
+1370501707 c:\documents and settings\nico\bureau\rtca\tools\tools_network\_entetes.h
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\tools\tools_process.c
+	"../RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\tools\tools_registry.c
+	"../RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\tools\tools_registry_recovery.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_screenshot.c
+	"../RtCA.h"
+
+1370501707 source:c:\documents and settings\nico\bureau\rtca\tools\tools_sqlite_ed.c
+	"../RtCA.h"
+
+1370501706 source:c:\documents and settings\nico\bureau\rtca\tools\tools_state.c
+	"../RtCA.h"
+
+1370507170 source:c:\documents and settings\nico\bureau\rtca\tools\tools_virustotal.c
+	"../RtCA.h"
+
