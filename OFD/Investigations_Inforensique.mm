@@ -5932,6 +5932,23 @@
 </html></richcontent>
 </node>
 </node>
+<node CREATED="1370441865931" ID="ID_846679017" MODIFIED="1370441876202" TEXT="P&#xe9;riph&#xe9;riques externes">
+<node CREATED="1370441878269" ID="ID_908656577" MODIFIED="1370441880531" TEXT="USB">
+<node CREATED="1370441883172" ID="ID_740939500" MODIFIED="1370441910299">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Ghost USB honeypot</b>&#160;<a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.honeynet.org/node/871">http://www.honeynet.org/node/871</a>
+    </p>
+  </body>
+</html>
+</richcontent>
+</node>
+</node>
+</node>
 </node>
 <node CREATED="1358525588761" ID="ID_1072770550" MODIFIED="1358858773389">
 <richcontent TYPE="NODE"><html>
@@ -6786,8 +6803,7 @@
       <a href="https://www.virustotal.com/statistics/" content="text/html; charset=utf-8" http-equiv="content-type">https://www.virustotal.com/statistics/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </map>
