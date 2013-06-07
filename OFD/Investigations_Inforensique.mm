@@ -2414,7 +2414,7 @@
 <node CREATED="1352466988481" ID="ID_1133295871" MODIFIED="1358497224616" POSITION="left" TEXT="Investigation">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352467751993" ID="ID_499975759" MODIFIED="1358499517987" TEXT="Syst&#xe8;me">
-<node CREATED="1352467577911" ID="ID_68648110" MODIFIED="1369393992779" TEXT="M&#xe9;moire">
+<node CREATED="1352467577911" FOLDED="true" ID="ID_68648110" MODIFIED="1370607916842" TEXT="M&#xe9;moire">
 <node CREATED="1353597380064" FOLDED="true" ID="ID_1788451408" MODIFIED="1369394033485">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4921,7 +4921,7 @@
 </node>
 <node CREATED="1358499956762" ID="ID_827005377" LINK="#ID_1750292902" MODIFIED="1358500147378" TEXT="Exploitation des donn&#xe9;es"/>
 </node>
-<node CREATED="1352467908695" FOLDED="true" ID="ID_1427477515" MODIFIED="1367583848311">
+<node CREATED="1352467908695" ID="ID_1427477515" MODIFIED="1370607897137">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -5105,6 +5105,88 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+<node CREATED="1370606086720" ID="ID_1944258638" MODIFIED="1370608259664">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Exchange</b>
+    </p>
+    <p>
+      Journaux d'audits :
+    </p>
+    <p>
+      Exchange 2003 : <font color="#0000ff">C:\Program Files\Exchsrvr\&lt;ServerName&gt;.log</font>
+    </p>
+    <p>
+      Exchange 2007 : <font color="#0000ff">C:\Program Files\Microsoft\Exchange Server\TransportRoles\ Logs\MessageTracking</font>
+    </p>
+    <p>
+      <font color="#0000ff">%PROGRAMFILES%\Exchange Server\ Logs\AuditLogs</font>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      <b>ACL par d&#233;faut :</b>
+    </p>
+    <p>
+      - Administrateurs des destinataires Exchange : acc&#232;s en lecture et en suppression
+    </p>
+    <p>
+      - Administrateur de l'organisation Exchange : acc&#232;s en lecture et en suppression
+    </p>
+    <p>
+      - Serveurs Exchange : acc&#232;s en lecture et en &#233;criture
+    </p>
+    <p>
+      - Service local : acc&#232;s complet
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      La valeure <font color="#0000ff">CustomSD</font>&#160;permet de modifier ces ACL &#224; la cl&#233; de registre :
+    </p>
+    <p>
+      <font color="#0000ff">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\EventLog\Exchange Auditing</font>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Journaux des applications ID : (Click Start =&gt; Administrative Tools =&gt; Event Viewer =&gt; application)
+    </p>
+    <p>
+      <font color="#0000ff">10100 (source : Audit MSExchangeIS) : AccessAuditing, Le dossier %1 de la bo&#238;te aux lettres &#171; %3 &#187; a &#233;t&#233; ouvert par l'utilisateur %4 </font>
+    </p>
+    <p>
+      <font color="#0000ff">10102&#160;(source : Audit MSExchangeIS) : AccessAuditing, Le message %1 de la bo&#238;te aux lettres %3 a &#233;t&#233; ouvert par l'utilisateur %4 </font>
+    </p>
+    <p>
+      <font color="#0000ff">10104 (source : Audit MSExchangeIS) : SendOnBehalfOf, %1 a envoy&#233; un message de la part de %2</font>
+    </p>
+    <p>
+      <font color="#0000ff">10106 (source : Audit MSExchangeIS) : SendAs, %1 a envoy&#233; un message en tant que %2</font>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      <u>Ressources :</u>
+    </p>
+    <p>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://technet.microsoft.com/fr-fr/library/ee221156(v=exchg.80).aspx">http://technet.microsoft.com/fr-fr/library/ee221156(v=exchg.80).aspx </a>
+    </p>
+    <p>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://searchitchannel.techtarget.com/feature/Monitoring-Exchange-Server-2010-Using-event-logs-ExBPA">http://searchitchannel.techtarget.com/feature/Monitoring-Exchange-Server-2010-Using-event-logs-ExBPA</a>
+    </p>
+  </body>
+</html>
+</richcontent>
 </node>
 </node>
 <node CREATED="1352467830233" ID="ID_1713117046" MODIFIED="1367583851102" TEXT="Bureautique">
@@ -5944,8 +6026,7 @@
       <b>Ghost USB honeypot</b>&#160;<a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.honeynet.org/node/871">http://www.honeynet.org/node/871</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
