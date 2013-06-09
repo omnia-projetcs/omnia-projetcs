@@ -437,7 +437,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   if (GetOpenFileName(&ofn)==TRUE)
                   {
                     strncpy(SQLITE_LOCAL_BDD,files,MAX_PATH);
-                    InitGUIConfig(TRUE);
+                    InitGUIConfig(1);
                     SendMessage(hCombo_lang, CB_SETCURSEL,0,0);
                   }
                 }
@@ -457,7 +457,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
               ListView_GetItemText(hlstv,nitem,0,path,MAX_PATH);
 
-              if (path[1] == ':' || path[1] == '\\'|| path[1] == '//')
+              if (path[1] == ':' || path[1] == '\\' || path[1] == '//')
               {
                 switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
                 {

@@ -61,6 +61,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0); nb_current_test++;
+  if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0); nb_current_test++;
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
@@ -134,7 +135,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   h_thread_test[j++] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);nb_current_test++;
-
+  h_thread_test[j++] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0);nb_current_test++;
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
@@ -194,7 +195,7 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
     case INDEX_NAV_IE         :Scan_ie_history(0);break;
     case INDEX_ANDROID        :Scan_android_history(0);break;
     case INDEX_PREFETCH       :Scan_prefetch(0);break;
-
+    case INDEX_LDAP           :Scan_ldap(0);break;
   }
 
   sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations

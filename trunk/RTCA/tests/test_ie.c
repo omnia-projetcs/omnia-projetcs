@@ -294,7 +294,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                 {
                   if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                   {
-                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
+                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileNamPLNK_WORD_STRUCTe[1] == 0 || wfd0.cFileName[1] == '.'))continue;
 
                     sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                     snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);

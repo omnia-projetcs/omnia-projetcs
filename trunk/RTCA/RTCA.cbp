@@ -23,6 +23,7 @@
 					<Add library="crypt32" />
 					<Add library="iphlpapi" />
 					<Add library="wininet" />
+					<Add library="wldap32" />
 				</Linker>
 			</Target>
 		</Build>
@@ -151,6 +152,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tests/test_ie.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/test_ldap.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tests/test_log.c">
