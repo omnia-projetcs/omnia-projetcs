@@ -259,17 +259,19 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
   //init semaphore
   ST_VIRUSTOTAL sv;
   sv.hlv = hlstv;
+  //Ratio : 0, 43 (Last analysis : UKtF/RH/IW-VLofR_62) Url : https://www.virustotal.com/file/2842973d15a14323e08598be1dfb87e54bf88a76be8c7bc94c56b079446edf38/analysis/
   hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS,NB_VIRUTOTAL_THREADS,NULL);
   hSemaphoreItem=CreateSemaphore(NULL,1,1,NULL);
 
   //la gestion du nombre en lecture continue permet d'effectuer un scan pendant l'énumération
   DWORD i;
-  sv.token[0] = 0;
+	sv.token[0] = 0;
   for (i=0;i<SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);i++)
   {
     WaitForSingleObject(hSemaphore,INFINITE);
     WaitForSingleObject(hSemaphoreItem,INFINITE);
     sv.id = i;
+
     if (i%NB_VIRUTOTAL_THREADS_REF == 0)sv.token[0] = 0;
     CreateThread(NULL,0,TCheckFileToVirusTotal,&sv,0,0);
   }
@@ -285,7 +287,7 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
 {
-  DWORD i;
+  //init semaphore
   ST_VIRUSTOTAL sv;
   sv.hlv = hlstv_process;
   char path[MAX_PATH]="",ok_path[MAX_PATH]="";
@@ -294,12 +296,9 @@ DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
   hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS,NB_VIRUTOTAL_THREADS,NULL);
   hSemaphoreItem=CreateSemaphore(NULL,1,1,NULL);
 
-  //lecture du token
-  VIRUSTOTAL_STR vts;
-  vts.token[0] = 0;
-  GetCSRFToken(&vts);
-
   //la gestion du nombre en lecture continue permet d'effectuer un scan pendant l'énumération
+  DWORD i;
+	sv.token[0] = 0;
   for (i=0;i<SendMessage(hlstv_process,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);i++)
   {
     WaitForSingleObject(hSemaphore,INFINITE);
@@ -341,6 +340,7 @@ DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
       {
         ListView_SetItemText(hlstv_process,i,18,s_sha);
         //get VirusTotal Datas
+        if (i%NB_VIRUTOTAL_THREADS_REF == 0)sv.token[0] = 0;
         CreateThread(NULL,0,TCheckFileToVirusTotalProcess,&sv,0,0);
       }
     }else

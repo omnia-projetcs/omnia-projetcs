@@ -6,9 +6,11 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //******************************************************************************
-//#define _WIN64_VERSION_        1       //64bit OS Compilation
+//#define _WIN64_VERSION_        1       //Enable for 64bit OS Compilation
+//#define VISUAL_STUDIO          1       //Enable for visual studio compilation
 //debug mode dev test
-//#define DEV_DEBUG_MODE              1
+//#define DEV_DEBUG_MODE         1
+
 //******************************************************************************
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -74,6 +76,8 @@
 #include <wininet.h>            //for VirusTotal + update
 
 #include "files/LiteZip.h"      //zip file for save all locals datas
+
+#include <Winldap.h>            //LDAP
 //---------------------------------------------------------------------------
 char SQLITE_LOCAL_BDD[MAX_PATH];
 HACCEL hcl;
@@ -86,6 +90,19 @@ PVOID OldValue_W64b;            //64bits OS
 #endif
 //---------------------------------------------------------------------------
 char _SYSKEY[MAX_PATH];
+//---------------------------------------------------------------------------
+#ifdef VISUAL_STUDIO
+  #pragma comment (lib, "comdlg32.lib")
+  #pragma comment (lib, "comctl32.lib")
+  #pragma comment (lib, "gdi32.lib")
+  #pragma comment (lib, "psapi.lib")
+  #pragma comment (lib, "dnsapi.lib")
+  #pragma comment (lib, "ws2_32.lib")
+  #pragma comment (lib, "crypt32.lib")
+  #pragma comment (lib, "iphlpapi.lib")
+  #pragma comment (lib, "wininet.lib")
+  #pragma comment (lib, "Wldap32.lib")
+#endif
 //---------------------------------------------------------------------------
 //size constant
 #undef MAX_PATH                       //new value for max_path
@@ -512,46 +529,7 @@ FORMAT_TESTS_STRING S_tests_XML_header[NB_MAX_ITEMS_HEADERS_XML];
 HTREEITEM TRV_HTREEITEM_CONF[NB_MX_TYPE_FILES_TITLE]; //list of files
 
 BOOL TEST_REG_PASSWORD_ENABLE;
-/*
-#define INDEX_FILE                  0
-//#define INDEX_FILE_NK               1
-#define INDEX_LOG                   1
-#define INDEX_DISK                  2
-#define INDEX_CLIPBOARD             3
-#define INDEX_ENV                   4
-#define INDEX_TASK                  5
-#define INDEX_PROCESS               6
-//#define INDEX_PREFETCH              7
 
-#define INDEX_PIPE                  7
-#define INDEX_LAN                   8
-#define INDEX_ROUTE                 9
-#define INDEX_DNS                  10
-#define INDEX_ARP                  11
-#define INDEX_SHARE                12
-#define INDEX_REG_CONF             13
-#define INDEX_REG_SERVICES         14
-#define INDEX_REG_USB              15
-#define INDEX_REG_SOFTWARE         16
-#define INDEX_REG_UPDATE           17
-#define INDEX_REG_START            18
-#define INDEX_REG_USERS            19
-#define INDEX_REG_USERASSIST       20
-#define INDEX_REG_MRU              21
-#define INDEX_REG_SHELLBAGS        22
-#define INDEX_REG_PASSWORD         23
-#define INDEX_REG_PATH             24
-#define INDEX_REG_GUIDE            25
-#define INDEX_REG_DELETED_KEY      26
-#define INDEX_ANTIVIRUS            27
-#define INDEX_REG_FIREWALL         28
-#define INDEX_NAV_FIREFOX          29
-#define INDEX_NAV_CHROME           30
-#define INDEX_NAV_IE               31
-#define INDEX_ANDROID              32
-//#define INDEX_PREFETCH             33
-//#define INDEX_FILE_NK              34
-*/
 #define INDEX_FILE                  0
 #define INDEX_FILE_NK               1
 #define INDEX_LOG                   2
@@ -587,7 +565,7 @@ BOOL TEST_REG_PASSWORD_ENABLE;
 #define INDEX_NAV_CHROME           32
 #define INDEX_NAV_IE               33
 #define INDEX_ANDROID              34
-
+#define INDEX_LDAP                 35
 
 //------------------------------------------------------------------------------
 //parameters
@@ -1102,6 +1080,7 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
 DWORD GetBinaryRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer, DWORD pos_fhbin, char *data, DWORD *data_size);
 DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DWORD pos_fhbin,
                          unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);
+void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db);
 void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE hlv, HANDLE htv);
 
 //process
@@ -1180,6 +1159,7 @@ DWORD WINAPI Scan_task(LPVOID lParam);
 DWORD WINAPI Scan_antivirus(LPVOID lParam);
 DWORD WINAPI Scan_firewall(LPVOID lParam);
 DWORD WINAPI Scan_prefetch(LPVOID lParam);
+DWORD WINAPI Scan_ldap(LPVOID lParam);
 
 DWORD WINAPI CMDScanNum(LPVOID lParam);
 DWORD WINAPI CMDScan(LPVOID lParam);
@@ -1192,3 +1172,4 @@ DWORD WINAPI BackupNTDIS(LPVOID lParam);
 DWORD WINAPI BackupFile(LPVOID lParam);
 DWORD WINAPI BackupAllFiles(LPVOID lParam);
 DWORD WINAPI DumpProcessMemory(LPVOID lParam);
+

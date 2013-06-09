@@ -123,7 +123,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
 
         description[0] = 0;
         data[0]= 0;
-        if (GetClipboardFormatName(uFormat, description, MAX_LINE_SIZE) != NULL)
+        if (GetClipboardFormatName(uFormat, description, MAX_LINE_SIZE) != 0)
         {
           hMem = GetClipboardData(uFormat);
           if (hMem != NULL)

@@ -42,7 +42,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
   unsigned char tmp[MAX_PATH]="", *b;
 
   //header
-  PLNK_STRUCT p = buffer;
+  PLNK_STRUCT p = (PLNK_STRUCT)buffer;
 
   //get times
   filetimeToString_GMT(p->create_time, create_time, DATE_SIZE_MAX);
@@ -86,7 +86,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
         DWORD DeviceNameOffset;
         DWORD NetWorkProviderType;
       }LNK_INFO_STRUCT, *PLNK_INFO_STRUCT;
-      PLNK_INFO_STRUCT pi = b;
+      PLNK_INFO_STRUCT pi = (PLNK_INFO_STRUCT)b;
 
       if ((pi->flags & 0x01) == 0x01 && (pi->flags & 0x02)  == 0x02)
       {
@@ -121,7 +121,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
       //pass datas no used
 
         //0x04 = have name/description first ?
-        PLNK_WORD_STRUCT t = b;
+        PLNK_WORD_STRUCT t = (PLNK_WORD_STRUCT)b;
         if ((p->data_flag & 0x04) == 0x04)
         {
           //0x08 = relative path
@@ -242,7 +242,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
     }else if ((p->data_flag & 0x200) == 0x200 || p->data_flag == 0x80) // windows 8 format : ext_string
     {
       unsigned char *pos = b;
-      PLNK_WORD_STRUCT t = b;
+      PLNK_WORD_STRUCT t = (PLNK_WORD_STRUCT)b;
 
       if ((p->data_flag & 0x10) == 0x10)  //workingdir
       {
