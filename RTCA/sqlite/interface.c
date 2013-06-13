@@ -297,6 +297,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                                       "DELETE from extract_prefetch WHERE session_id=%lu;"
                                       "DELETE from extract_registry_deleted_keys WHERE session_id=%lu;"
                                       "DELETE from extract_file_nk WHERE session_id=%lu;"
+                                      "DELETE from extract_ldap WHERE session_id=%lu;"
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
@@ -304,7 +305,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
                                       ,current_session_id,current_session_id,current_session_id,current_session_id,current_session_id
-                                      ,current_session_id,current_session_id);
+                                      ,current_session_id,current_session_id,current_session_id);
       sqlite3_exec(db,request, callback_sqlite, datas, NULL);
     }
     break;
@@ -347,6 +348,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
                       "DELETE from extract_prefetch;"
                       "DELETE from extract_registry_deleted_keys;"
                       "DELETE from extract_file_nk;"
+                      "DELETE from extract_ldap;"
                       , callback_sqlite, datas, NULL);
     break;
     //----------------------------------------

@@ -318,15 +318,12 @@ char *DataToHexaChar(char *data, unsigned int data_size, char *hexa_char, unsign
   if (data_size >0 && hexa_char_size > 0 && data!=NULL && hexa_char!=NULL)
   {
     unsigned int i;
-    char tmp[11];
     for (i=0;i<data_size && i<(hexa_char_size/2);i++)
     {
-      snprintf(tmp,10,"%02X",data[i]&0xff);
-      strncat(hexa_char,tmp,hexa_char_size);
+      snprintf(hexa_char+strlen(hexa_char),hexa_char_size-strlen(hexa_char),"%02X",data[i]&0xff);
     }
-    strncat(hexa_char,"\0",hexa_char_size);
-    return hexa_char;
-  }else return NULL;
+  }
+  return hexa_char;
 }
 //------------------------------------------------------------------------------
 char *extractDirectoryFromPath(char *path)
