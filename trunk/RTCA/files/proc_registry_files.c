@@ -234,7 +234,7 @@ HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD positio
         {
           //get list of nk child
           lf_h = (HBIN_CELL_LF_HEADER *)&buffer[pos_fhbin+nk_h_tmp->lf_offset-HBIN_HEADER_SIZE];
-		  if(lf_h->type == 0x686C || lf_h->type == 0x666C )
+          if(lf_h->type == 0x686C || lf_h->type == 0x666C )
           {
             for (j=0;j<nk_h_tmp->nb_subkeys;j++)
             {

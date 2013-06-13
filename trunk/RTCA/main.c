@@ -778,7 +778,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_I_00+i,MF_BYCOMMAND);
 
           //add specific menu
-          switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
+          int iitem = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+          switch(iitem)
           {
             case INDEX_FILE:
               //add menu
@@ -863,13 +864,14 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             break;
             default:
               //supp menu
+              iitem = -1;
               RemoveMenu(GetSubMenu(hmenu,0),4,MF_BYPOSITION);
               RemoveMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND);
             break;
           }
 
           //Add tools menu !!!
-          if (nb_tools)
+          if (nb_tools && iitem != -1)
           {
             unsigned int z = 0;
             InsertMenu(GetSubMenu(hmenu,0),-1,MF_BYPOSITION|MF_SEPARATOR,POPUP_MENU_TOOLS_START-1,"");

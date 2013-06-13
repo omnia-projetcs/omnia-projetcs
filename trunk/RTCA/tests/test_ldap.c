@@ -6,22 +6,17 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-void addLDAPtoDB(char *dit, char *value, char *type, char *data, unsigned int session_id, sqlite3 *db)
+void addLDAPtoDB(char *dit, char *value, char *dn, char *data, unsigned int session_id, sqlite3 *db)
 {
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
-           "INSERT INTO extract_ldap (dit,value,type,data,session_id) "
+           "INSERT INTO extract_ldap (dit,value,dn,data,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           dit,value,type,data,session_id);
+           dit,value,dn,data,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
 }
 //------------------------------------------------------------------------------
-//http://msdn.microsoft.com/en-us/library/windows/desktop/aa367033%28v=vs.85%29.aspx
 //http://msdn.microsoft.com/en-us/library/aa367016%28v=vs.85%29.aspx
-
-//help from : http://msdn.microsoft.com/en-us/library/aa367016%28v=vs.85%29.aspx
-//http://msdn.microsoft.com/en-us/library/exchange/ms998858%28v=exchg.65%29.aspx
-//http://books.google.fr/books?id=STOAuoPkJdQC&pg=PA472&lpg=PA472&dq=ldap_get_values%28&source=bl&ots=hNQRoH0EwG&sig=jN7-7DoRWbGKAz9i3Z37Zw1K4aI&hl=fr&sa=X&ei=E7qYUdGWGYOLhQeZl4D4AQ&ved=0CFYQ6AEwBjge#v=onepage&q=ldap_get_values%28&f=false
 //------------------------------------------------------------------------------
 //init LDAP
 LDAP* init_ldap_connection()
@@ -57,6 +52,87 @@ LDAP* init_ldap_connection()
   return ldap_c;
 }
 //------------------------------------------------------------------------------
+//view if hexa !!!
+char *ValidDataValue(char *attrbut, char *value, struct berval*value_len,char *tmp, unsigned int tmp_size)
+{
+  if (strlen(value) != value_len->bv_len)
+  {
+    strcpy(tmp,"0x\0");
+    //binary data
+    if (!strcmp(attrbut,"objectGUID") || !strcmp(attrbut,"fRSReplicaSetGUID")  || !strcmp(attrbut,"fRSVersionGUID"))  //GUID
+    {
+      //size : 4-2-2-2-6
+      if (value_len->bv_len >= 16)
+      {
+        snprintf(tmp,DEFAULT_TMP_SIZE,"{%02X%02X%02X%02X-%02X%02X-%02X%02X-%02X%02X-%02X%02X%02X%02X%02X%02X}",
+                 value_len->bv_val[3] & 0xFF,value_len->bv_val[2] & 0xFF,value_len->bv_val[1] & 0xFF,value_len->bv_val[0] & 0xFF,
+                 value_len->bv_val[5] & 0xFF,value_len->bv_val[4] & 0xFF,
+                 value_len->bv_val[7] & 0xFF,value_len->bv_val[6] & 0xFF,
+                 value_len->bv_val[8] & 0xFF,value_len->bv_val[9] & 0xFF,
+                 value_len->bv_val[10] & 0xFF,value_len->bv_val[11] & 0xFF,value_len->bv_val[12] & 0xFF,value_len->bv_val[13] & 0xFF,value_len->bv_val[14] & 0xFF,value_len->bv_val[15] & 0xFF);
+        return tmp;
+
+      }else return DataToHexaChar(value_len->bv_val, value_len->bv_len, tmp, tmp_size);
+
+    }else if (!strcmp(attrbut,"objectSid")) //SID
+    {
+      SK_SID *sid = (SK_SID *)value_len->bv_val;
+      if (sid != NULL)
+      {
+        unsigned int i, nb = sid->nb_ID;
+        if (nb > 6)nb = 6;
+
+        snprintf(tmp,DEFAULT_TMP_SIZE,"S-1-%u",sid->ID0);
+        for (i=0;i<nb;i++)snprintf(tmp+strlen(tmp),DEFAULT_TMP_SIZE-strlen(tmp),"-%lu",sid->ID[i]);
+
+        return tmp;
+      }else return DataToHexaChar(value_len->bv_val, value_len->bv_len, tmp, tmp_size);
+    }else if (!strcmp(attrbut,"auditingPolicy") ||
+              !strcmp(attrbut,"ipsecData") ||
+              !strcmp(attrbut,"dnsRecord") ||
+              !strcmp(attrbut,"dNSProperty")) return DataToHexaChar(value_len->bv_val, value_len->bv_len, tmp, tmp_size);
+
+  //date formats
+  }else if ((!strcmp(attrbut,"whenCreated") || !strcmp(attrbut,"whenChanged")) && value_len->bv_len >= 14)
+  {
+    snprintf(tmp,DEFAULT_TMP_SIZE,"%c%c%c%c/%c%c/%c%c %c%c:%c%c:%c%c",
+             value[0],value[1],value[2],value[3],value[4],value[5],value[6],value[7],
+             value[8],value[9],value[10],value[11],value[12],value[13]);
+    return tmp;
+
+  }else if (!strcmp(attrbut,"creationTime") || !strcmp(attrbut,"lastLogon") || !strcmp(attrbut,"pwdLastSet") || !strcmp(attrbut,"priorSetTime"))
+  {
+    return DataToHexaChar(value_len->bv_val, value_len->bv_len, tmp, tmp_size);
+
+    /*typedef struct
+    {
+      DWORD d2_utc;
+      DWORD d1_utc;
+
+    }*PDATE_M;
+    PDATE_M Date_m = value_len->bv_val;
+
+    if (Date_m->d1_utc == 0 && Date_m->d2_utc == 0)
+    {
+      strcpy(tmp,"0 (Never)\0");
+      return tmp;
+    }
+    else
+    {
+      //DWORD d1_utc = (val >> 32);
+      //DWORD d2_utc = (val & 0xFFFFFFFF);
+
+      FILETIME FileTime;
+      FileTime.dwLowDateTime  = Date_m->d2_utc;
+      FileTime.dwHighDateTime = Date_m->d1_utc;
+
+      return filetimeToString(FileTime, tmp, DEFAULT_TMP_SIZE);
+    }*/
+  }
+
+  return value;
+}
+//------------------------------------------------------------------------------
 BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
 {
   LDAP* ldap_c = init_ldap_connection();
@@ -88,7 +164,10 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
           char *pAttribute = NULL;
           BerElement* pBer = NULL;
           char **ppValue = NULL;
+          struct berval**ppValueInfos = NULL;
+          char *dn;
           DWORD i =0, j, jValue;
+          char tmp[DEFAULT_TMP_SIZE];
 
           pEntry = ldap_first_entry(ldap_c, pMsg_dc);
           do
@@ -100,21 +179,17 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
               break;
             }
 
-            #ifdef DEV_DEBUG_MODE
-            printf("[LDAP] entry %d OK!\n",i);
-            #endif
-
             //get only name for path !
-            /*char **ppszConfigDN = NULL;
-            ppszConfigDN = ldap_get_values(ldap_c, pMsg_dc, "distinguishedName");
-           /* if (ppszConfigDN!=NULL)
-            {
+            dn = ldap_get_dn(ldap_c, pEntry);
 
-            }*/
+            #ifdef DEV_DEBUG_MODE
+            if (dn != NULL)printf("[LDAP] entry %d - %s OK!\n",i,dn);
+            else printf("[LDAP] entry %d - <NULL> OK!\n",i);
+            #endif
 
             //get atribute
             pAttribute = ldap_first_attribute(ldap_c,pEntry,&pBer);
-            while(pAttribute != NULL)
+            while(pAttribute != NULL && start_scan)
             {
               //get value
               #ifdef DEV_DEBUG_MODE
@@ -123,8 +198,11 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
 
               //Get the string values
               ppValue = ldap_get_values(ldap_c,pEntry,pAttribute);
+              ppValueInfos = ldap_get_values_len(ldap_c,pEntry,pAttribute);
+
               if (ppValue != NULL)
               {
+
                 jValue = ldap_count_values(ppValue);
                 for (j=0;j<jValue;j++)
                 {
@@ -132,7 +210,8 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
                   printf("[LDAP]   ppValue %s\n",ppValue[j]);
                   #endif
 
-                  addLDAPtoDB(dc, pAttribute, ""/*ppszConfigDN[0]*/, ppValue[j], session_id, db);
+                  if (dn != NULL) addLDAPtoDB(dc, pAttribute, dn, ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
+                  else addLDAPtoDB(dc, pAttribute, "", ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
                 }
                 ldap_value_free(ppValue);
                 ppValue = NULL;
@@ -143,8 +222,10 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
               pAttribute = ldap_next_attribute(ldap_c,pEntry,pBer);
             }
             pEntry = ldap_next_entry(ldap_c, pEntry);
+            if (dn!=NULL)ldap_memfree(dn);
+
             i++;
-          }while(pEntry != NULL);
+          }while(pEntry != NULL && start_scan);
         }
         ldap_msgfree(pMsg_dc);
       }
@@ -186,7 +267,7 @@ DWORD Scan_ldap_g(LPVOID lParam, unsigned int session_id, sqlite3 *db)
           //get DN root values one by one
           LDAPMessage *pMsg = NULL;
           unsigned long int j=0;
-          for (i=0;i<iValue;i++)
+          for (i=0;i<iValue && start_scan;i++)
           {
             #ifdef DEV_DEBUG_MODE
             printf("[LDAP] Get iValue[%d] \"%s\" (ldap_get_values) OK!\n",i,ppszConfigDN[i]);
