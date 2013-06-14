@@ -262,8 +262,8 @@
 \color{red}
 \fbox{
 \begin{minipage}[t]{16cm}
-\textsf{\footnotesize Certaines informations contenus dans ce document sont extraites de pages Web sit\'ees.\\\vskip-1cm
-Ces informations sont divulgu\'ees \`a titre d'instruction, les auteurs et contributeurs ne peuvent \^etre rendus responsable de ce que vous en faites !}
+\textsf{\footnotesize Les informations de ce document ne sont communiquées qu'à titre d'instruction.\\\vskip-1cm
+Les auteurs et contributeurs ne peuvent \^etre rendus responsable de ce que vous en faites !}
 \end{minipage}}
 }
 \author{\footnotesize Sous licence GPLv3 \url{http://www.gnu.org/licenses/gpl.html}}
@@ -3153,7 +3153,7 @@ L'outil WRR de la suite DEFT-EXTRA permet d'ouvrir/extraire/exploiter les fichie
 \\Quelques combinaisons de touches utiles lors de d\'emarrage des supports utilisant MacOSX : 
 \begin{itemize}
 	\item C : Boot sur CD ou DVD ()
-	\item T :  D\'emmare en mode disque cible, le disque dur est alors vue comme un support de stockage externe et peut être accéder via le port firewire (Target Mode)
+	\item T :  Démarre en mode disque cible, le disque dur est alors vue comme un support de stockage externe et peut être accédé à partir du port firewire (Target Mode)
 	\item Pomme + S : Démarre une invite de commande root (Single User Mode)
 \end{itemize}
 }
@@ -3161,35 +3161,35 @@ L'outil WRR de la suite DEFT-EXTRA permet d'ouvrir/extraire/exploiter les fichie
 \textbf{Syst\`eme de fichiers :}
 \\ HFS (Hierarchical File Fystem) et HFS+ (HFS extended) avec des extensions telles que la prise en compte de la casse pour les noms de fichiers (HFSX).
 \begin{itemize}
-	\item Volume Header : header qui contient des donn\'ees \`a propos du syst\`eme de fichiers (date cr\'eation, taille des blocs etc.)
-	\\ Il est situé 1024 octects après le début du volume et peut être analys\'e avec fsstat du Sleuthkit via une commande du type : {\sl \color{blue}fsstat -i raw -o OFFSETPARITION image.dd}
-	\item Allocation file : fichier bitmap qui suit l'évolution de chaque bloc du volume
-	\item Catalog file : fichier contenant les entr\'ees de chaque fichier et r\'epertoire (~~MFT)
+	\item \textbf{Volume Header} : header qui contient des donn\'ees \`a propos du syst\`eme de fichiers (date de cr\'eation, taille des blocs etc.). 
+	Il est situé 1024 octets après le début du volume et peut être analysé avec fsstat du Sleuthkit.
+	\\ Exemple de commande : {\sl \color{blue}fsstat -i raw -o OFFSETPARITION image.dd}\vskip+0.1cm
+	\item \textbf{Allocation file} : fichier bitmap qui suit l'évolution de chaque bloc du volume.\vskip+0.1cm
+	\item \textbf{Catalog file} : fichier contenant les entrées de chaque fichier et répertoire (MFT).
 \end{itemize}
 
 \vskip+0.2cm
 \textbf{Fichiers plist :}
-Fichiers de configuration utilis\'es sur les systèmes Apple. 3 types existent : binaire, XML, JSON.\\
-Possibilit\'e de convertir les plist binaire avec le script plutil.pl : \url{http://theiphonewiki.com/wiki/Plutil}
+Fichiers de configuration utilis\'es sur les systèmes Apple. 3 types existent : binaire, XML, JSON. Possibilité de convertir les plist binaires avec le script plutil.pl : \url{http://theiphonewiki.com/wiki/Plutil}
 
 \vskip+0.2cm
 \textbf{Fichiers Lowdown iOS (Escrow Keybag) :}
-\\Le r\'epertoire /private/var/db/lockdown/ peut conteir des fichiers créés par le service Usbmuxd lors de la connection d'un iDevice déverouill\'e via USB autorisant l'ordinateur \`a communiquer avec le iDevice. Ce fichier permet de futurs connexions sans avoir \`a fournir le passcode même si le device est v\'erouill\'e ou si le passcode a chang\'e !
+\\Le r\'epertoire /private/var/db/lockdown/ peut contenir des fichiers créés par le service Usbmuxd lors de la connexion d'un iDevice déverrouillé via USB autorisant la machine \`a communiquer avec le iDevice. Ce fichier permet de futurs connexions sans avoir \`a fournir le passcode même si le device est verrouillé ou si le passcode a été  changé.
 
 \vskip+0.2cm
 \textbf{Fichiers et r\'epertoires importants :}
 \begin{itemize}
 	\item Date d'installation : {\sl \color{blue}/private/var/vm/swapfile} et {\sl \color{blue}/private/var/vm/sleepimage}
-	\item Information sur le premier compte configur\'e : {\sl \color{blue}/private/var/db/.AppleSetupDone} 
+	\item Information sur le premier compte configuré : {\sl \color{blue}/private/var/db/.AppleSetupDone} 
 	\item Configuration date et heure : {\sl \color{blue}/Library/Preferences/.GlobalPreferences.plist} 
-	\item Logiciels install\'es via l'OS : {\sl \color{blue}/Library/Receipts}  
-	\item Caches des applications (Mail, web, IM...) : {\sl \color{blue}/Users/username/Library/Caches/} et {\sl \color{blue}/Users/username/Library/Application Support} 
-	\item Fichiers d'hibernation et fichier d'\'echange : {\sl \color{blue}/private/var/vm/swapfile} et {\sl \color{blue}/private/var/vm/sleepimage}
+	\item Logiciels installés via l'OS : {\sl \color{blue}/Library/Receipts}  
+	\item Caches des applications (Mail, web, IM...) :\\ {\sl \color{blue}/Users/username/Library/Caches/} et {\sl \color{blue}/Users/username/Library/Application Support} 
+	\item Fichiers d'hibernation et fichier d'échange : {\sl \color{blue}/private/var/vm/swapfile} et {\sl \color{blue}/private/var/vm/sleepimage}
 	\item Version de l'OS : {\sl \color{blue}/System/Library/CoreServices/SystemVersion.plist}
-	\item Configuration r\'eseau : {\sl \color{blue}/Library/Preferences/SystemConfiguration/preferences.plist} et {\sl \color{blue}/Library/Preferences/SystemConfiguration/com.apple.network.identification.plist}
+	\item Configuration réseau :\\ {\sl \color{blue}/Library/Preferences/SystemConfiguration/preferences.plist} et {\sl \color{blue}/Library/Preferences/SystemConfiguration/com.apple.network.identification.plist}
 	\item Comptes utilisateurs : {\sl \color{blue}/private/var/db/dslocal/nodes/Default/users/USERNAME.plist}
 	\item Dernier utilisateur logg\'e : {\sl \color{blue}/Library/Preferences/com.apple.loginwindow.plist}
-	\item Fichiers r\'ecents : {\sl \color{blue}/Users/username/Library/Preferences/com.apple.recentitems/plist}
+	\item Fichiers récents : {\sl \color{blue}/Users/username/Library/Preferences/com.apple.recentitems/plist}
 	\item Journaux d'audit : {\sl \color{blue}/private/var/log}, {\sl \color{blue}/Library/Logs} et {\sl \color{blue}/Library/Preferences/}
 \end{itemize}
 }
@@ -9349,7 +9349,11 @@ $\geq$ Vista & 4720-4726, 4740-4743 & System & Modification/cr\'eation d'un comp
    {\small \url{http://www.microsoft.com/downloads/details.aspx?familyid=47809025-D896-482E-A0D6-524E7E844D81}}\\
 
 	\textbf{Utilisation de WMI (Commandes)}\\
-	{\small \url{http://www.hsc.fr/ressources/breves/WMI.html.fr}}
+	{\small \url{http://www.hsc.fr/ressources/breves/WMI.html.fr}}\\
+	
+	\textbf{Pour autoriser l'a connexion à distance en WMI à une machine Windows avec un firewall d'activé :}\\
+	{\sl \color{blue}Netsh firewall set service remoteadmin enable}\\
+	Ref : \url{http://technet.microsoft.com/en-us/library/cc738900(v=ws.10).aspx}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Wordlist}{wordlist.png}
