@@ -369,6 +369,9 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   B_SCREENSHOT_START    = FALSE;
   enable_magic          = FALSE;
   DISABLE_GRID_LV_ALL   = FALSE;
+  h_Hexa                = 0;
+  last_search_mode      = DEFAULT_MODE_SEARCH_HX;
+  last_pos_hex_search   = 0;
 
   if (!reinit)
   {

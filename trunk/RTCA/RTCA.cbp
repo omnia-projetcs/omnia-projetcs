@@ -238,6 +238,9 @@
 		<Unit filename="tools/tools_date.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools/tools_hexa.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tools/tools_memory.c">
 			<Option compilerVar="CC" />
 		</Unit>

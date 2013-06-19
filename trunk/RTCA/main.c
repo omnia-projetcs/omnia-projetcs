@@ -386,6 +386,9 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_SQLITE_ED:
                 ShowWindow(h_sqlite_ed, SW_SHOW);
               break;
+              case IDM_TOOLS_HEXA_READER:
+                ShowWindow(h_hexa, SW_SHOW);
+              break;
               case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
               case POPUP_FILE_REMOVE_ITEM:LVDelete(hlstv);break;
               case POPUP_FILE_VIRUSTOTAL:
@@ -1661,6 +1664,49 @@ int main(int argc, char* argv[])
     #else
       wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_sqlite, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
     #endif
+
+    //hexa reader
+    h_hexa = CreateDialog(0, MAKEINTRESOURCE(DLG_HEXA_READER), NULL,DialogProc_hexa);
+    SendMessage(h_hexa, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SetWindowText(h_hexa,NOM_FULL_APPLI);
+
+    lvc.cx      = 75;
+    lvc.pszText = "Type";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_INFOS), 0, &lvc);
+
+    lvc.cx      = 150;
+    lvc.pszText = "Data";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_INFOS), 1, &lvc);
+    SendDlgItemMessage(h_hexa,DLG_HEXA_LV_INFOS,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_GRIDLINES);
+
+    lvc.cx      = 100;
+    lvc.pszText = "";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 0, &lvc);
+
+    lvc.cx      = 70;
+    lvc.pszText = "00010203";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 1, &lvc);
+    lvc.pszText = "04050607";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 2, &lvc);
+    lvc.pszText = "08091011";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 3, &lvc);
+    lvc.pszText = "12131415";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 4, &lvc);
+    lvc.pszText = "16171819";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 5, &lvc);
+    lvc.pszText = "20212223";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 6, &lvc);
+    lvc.pszText = "24252627";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 7, &lvc);
+    lvc.cx      = 100;
+    lvc.pszText = "28293031";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 8, &lvc);
+
+    lvc.cx      = 240;
+    lvc.pszText = "Data";
+    ListView_InsertColumn(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA), 9, &lvc);
+    SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT);
+    SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);
