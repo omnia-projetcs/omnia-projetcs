@@ -178,10 +178,18 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed;
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa;
 BOOL disable_m_context, disable_p_context, enable_magic;
 
+
 BOOL enable_LNK;
+
+#define DEFAULT_MODE_SEARCH_HX  0
+#define UNICODE_MODE_SEARCH_HX  1
+#define HEXA_MODE_SEARCH_HX     2
+unsigned int last_search_mode;
+unsigned long int last_pos_hex_search;
+HANDLE h_Hexa;
 
 #define DLG_CONF                 2000
 #define CB_LANG                  2001
@@ -321,6 +329,16 @@ DWORD last_bt;
 #define MY_POPUP_SCREENSHOT         9009
 #define MSG_SCREENSHOT              9010
 //#define MSG_SCREENSHOT_WINDOW       9011
+
+#define DLG_HEXA_READER             9100
+#define DLG_HEXA_BT_LOAD            9101
+#define DLG_HEXA_BT_CLOSE           9102
+#define DLG_HEXA_BT_SEARCH          9103
+#define DLG_HEXA_EDT_SEARCH         9104
+#define DLG_HEXA_CHK_UNICODE        9105
+#define DLG_HEXA_CHK_HEXA           9106
+#define DLG_HEXA_LV_INFOS           9107
+#define DLG_HEXA_LV_HEXA            9108
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -360,6 +378,7 @@ HHOOK HHook; // Handle du hook global
 #define IDM_TOOLS_ANALYSER      10109
 #define IDM_TOOLS_SQLITE_ED     10110
 #define IDM_TOOLS_GLOBAL_COPY   10111
+#define IDM_TOOLS_HEXA_READER   10112
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
 #define POPUP_TRV_FILES_REF_NB_ITEMS_STRINGS      7
@@ -1119,6 +1138,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
 BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 DWORD WINAPI ImpEcran(LPVOID lParam);
 
 //subclass

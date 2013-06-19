@@ -156,7 +156,7 @@ BEGIN
 
   CONTROL "FileTime/Windows 64 bit (Little Endian) :",0,"Static",0x50000002,4,51,134,9
   CONTROL ""                                        ,DLG_DATE_EDT4,"Edit",0x50010800,142,49,124,13,0x00000200
-  CONTROL "FileTime/Windows 64 bit  (Big Endian) :" ,0,"Static",0x50000002,4,66,134,9
+  CONTROL "FileTime/Windows 6Create : 4 bit  (Big Endian) :" ,0,"Static",0x50000002,4,66,134,9
   CONTROL ""                                        ,DLG_DATE_EDT5,"Edit",0x50010800,142,64,124,13,0x00000200
   CONTROL "time_t Unix 32 bit (Little Endian) :"    ,0,"Static",0x50000002,4,81,134,9
   CONTROL ""                                        ,DLG_DATE_EDT6,"Edit",0x50010800,142,79,124,13,0x00000200
@@ -213,6 +213,20 @@ BEGIN
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
 //------------------------------------------------------------------------------
+DLG_HEXA_READER DIALOGEX 6,5,800,265
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CF0800
+BEGIN
+  CONTROL "Load"                                      ,DLG_HEXA_BT_LOAD,"Button",0x50010000,2,1,60,11
+  CONTROL ""                                          ,DLG_HEXA_LV_INFOS,"SysListView32",0x50810089,2,14,122,212,0x00000200
+  CONTROL "Close"                                     ,DLG_HEXA_BT_CLOSE,"Button",0x50010000,64,1,60,11
+  CONTROL "Search"                                    ,DLG_HEXA_BT_SEARCH,"Button",0x50010000,74,251,50,11
+  CONTROL ""                                          ,DLG_HEXA_EDT_SEARCH,"Edit",0x50010000,2,228,122,11,0x00000200
+  CONTROL "Unicode "                                  ,DLG_HEXA_CHK_UNICODE,"Button",0x50010003,4,241,54,9
+  CONTROL "Hexa"                                      ,DLG_HEXA_CHK_HEXA,"Button",0x50010003,4,252,54,9
+  CONTROL ""                                          ,DLG_HEXA_LV_HEXA,"SysListView32",0x50810089,126,1,426,262,0x00000200
+END
+//------------------------------------------------------------------------------
 MY_MENU MENU
 BEGIN
   POPUP "File"    //0
@@ -258,6 +272,7 @@ BEGIN
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
     MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
     MENUITEM "Decode date"                ,IDM_TOOLS_DATE
+    MENUITEM "Hexa reader"                ,IDM_TOOLS_HEXA_READER
     MENUITEM "SQLITE ED"                  ,IDM_TOOLS_SQLITE_ED
     MENUITEM SEPARATOR
     MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
