@@ -2427,7 +2427,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1352466988481" ID="ID_1133295871" MODIFIED="1358497224616" POSITION="left" TEXT="Investigation">
+<node CREATED="1352466988481" ID="ID_1133295871" MODIFIED="1372835481705" POSITION="left" TEXT="Investigation">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352467751993" ID="ID_499975759" MODIFIED="1370876847347" TEXT="Syst&#xe8;me">
 <node CREATED="1352467577911" FOLDED="true" ID="ID_68648110" MODIFIED="1370871400034" TEXT="M&#xe9;moire">
@@ -4865,8 +4865,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="https://github.com/jensvoid/lorg">https://github.com/jensvoid/lorg</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358525695832" ID="ID_1721977439" MODIFIED="1358525726028">
@@ -5507,7 +5506,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1352468026615" FOLDED="true" ID="ID_710213636" MODIFIED="1370877455417" TEXT="Recherche de malware">
+<node CREATED="1352468026615" FOLDED="true" ID="ID_710213636" MODIFIED="1372835493651" TEXT="Recherche de malware">
 <node CREATED="1352468037409" FOLDED="true" ID="ID_569718388" MODIFIED="1370877273953">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5812,7 +5811,7 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1356616001365" FOLDED="true" ID="ID_884037289" MODIFIED="1370877392921" TEXT="Par cha&#xee;ne">
+<node CREATED="1356616001365" ID="ID_884037289" MODIFIED="1372835481741" TEXT="Par cha&#xee;ne">
 <node CREATED="1358333271801" ID="ID_5682600" MODIFIED="1367583061800">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5880,14 +5879,17 @@
 </html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
-<node CREATED="1358333457865" ID="ID_548550340" MODIFIED="1358338152293">
+<node CREATED="1358333457865" ID="ID_548550340" MODIFIED="1372835490374">
 <richcontent TYPE="NODE"><html>
   <head>
     
   </head>
   <body>
     <p>
-      <b>bulk_extractor</b>&#160;<a href="https://github.com/simsong/bulk_extractor/wiki" http-equiv="content-type" content="text/html; charset=utf-8">https://github.com/simsong/bulk_extractor/wiki</a>
+      <b>bulk_extractor</b>&#160;<a href="https://github.com/simsong/bulk_extractor/wiki" content="text/html; charset=utf-8" http-equiv="content-type">https://github.com/simsong/bulk_extractor/wiki </a>
+    </p>
+    <p>
+      <a href="https://github.com/simsong/bulk_extractor/wiki" content="text/html; charset=utf-8" http-equiv="content-type">http://digitalcorpora.org/downloads/bulk_extractor/</a>
     </p>
     <p>
       Outil permettant l'extraction de donn&#233;es (num&#233;ros de t&#233;l&#233;phones, images, fichiers ZIP, etc.) directement sur une image RAW. Les r&#233;sultats sont stoqu&#233;s sous forme de fichier texte.
@@ -5905,13 +5907,14 @@
       
     </p>
     <p>
-      <b>BEViewer</b>&#160;<a href="https://github.com/simsong/bulk_extractor/wiki/BEViewer" http-equiv="content-type" content="text/html; charset=utf-8">https://github.com/simsong/bulk_extractor/wiki/BEViewer</a>
+      <b>BEViewer</b>&#160;<a href="https://github.com/simsong/bulk_extractor/wiki/BEViewer" content="text/html; charset=utf-8" http-equiv="content-type">https://github.com/simsong/bulk_extractor/wiki/BEViewer</a>
     </p>
     <p>
       Utilitaire graphique Java d'exploitation des r&#233;sultats.
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 </node>
 <node CREATED="1358516569740" FOLDED="true" ID="ID_1441269879" MODIFIED="1370877450299" TEXT="A partir de capture r&#xe9;seau">
@@ -6571,7 +6574,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1366055195376" FOLDED="true" ID="ID_532412078" MODIFIED="1372174580906">
+<node CREATED="1366055195376" FOLDED="true" ID="ID_532412078" MODIFIED="1372835497080">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6584,8 +6587,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://pythonarsenal.erpscan.com/">http://pythonarsenal.erpscan.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1366055202280" ID="ID_721316283" MODIFIED="1366055221015" TEXT="Editeur hexad&#xe9;cimal">
 <node CREATED="1366055223431" ID="ID_1330058738" MODIFIED="1366055240877">
 <richcontent TYPE="NODE"><html>
@@ -6627,6 +6629,22 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+<node CREATED="1372835323680" ID="ID_503793098" MODIFIED="1372835420895">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Unobfuscate PHP</b>
+    </p>
+    <p>
+      <a href="http://www.whitefirdesign.com/tools/unobfuscate-php-hack-code.html" content="text/html; charset=utf-8" http-equiv="content-type">http://www.whitefirdesign.com/tools/unobfuscate-php-hack-code.html</a>
+    </p>
+  </body>
+</html>
+</richcontent>
 </node>
 </node>
 <node CREATED="1367328861791" ID="ID_461763320" MODIFIED="1367584801034" TEXT="Applications Android">
