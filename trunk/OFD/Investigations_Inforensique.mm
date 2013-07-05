@@ -5506,8 +5506,8 @@
 </node>
 </node>
 </node>
-<node CREATED="1352468026615" FOLDED="true" ID="ID_710213636" MODIFIED="1372835493651" TEXT="Recherche de malware">
-<node CREATED="1352468037409" FOLDED="true" ID="ID_569718388" MODIFIED="1370877273953">
+<node CREATED="1352468026615" FOLDED="true" ID="ID_710213636" MODIFIED="1373036899582" TEXT="Recherche de malware">
+<node CREATED="1352468037409" FOLDED="true" ID="ID_569718388" MODIFIED="1373036898326">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -5684,6 +5684,64 @@
   </body>
 </html></richcontent>
 </node>
+</node>
+<node CREATED="1373036706599" ID="ID_1567682474" MODIFIED="1373036893681">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Ressources</b>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Liste de nom de fichier en tant que malware :
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.exterminate-it.com/malware-files-top100">http://www.exterminate-it.com/malware-files-top100</a>
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.spywareremove.com/malware-files/">http://www.spywareremove.com/malware-files/</a>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Liste de virus :
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.cloudantivirus.com/en/listofviruses/">http://www.cloudantivirus.com/en/listofviruses/</a>
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.symantec.com/security_response/landing/threats.jsp">http://www.symantec.com/security_response/landing/threats.jsp</a>
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://cme.mitre.org/data/list.html">http://cme.mitre.org/data/list.html</a>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Extensions de fichiers :
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.file-extensions.org/filetype/extension/name/dangerous-malicious-files">http://www.file-extensions.org/filetype/extension/name/dangerous-malicious-files</a>
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Liste de DNS malware :
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.selectrealsecurity.com/public-block-lists">http://www.selectrealsecurity.com/public-block-lists</a>
+    </p>
+  </body>
+</html>
+</richcontent>
 </node>
 </node>
 <node CREATED="1358018534111" FOLDED="true" ID="ID_1648292851" MODIFIED="1370877280314" TEXT="Programmes valides (liste blanche de fichiers)">
@@ -5913,8 +5971,7 @@
       Utilitaire graphique Java d'exploitation des r&#233;sultats.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358516569740" FOLDED="true" ID="ID_1441269879" MODIFIED="1370877450299" TEXT="A partir de capture r&#xe9;seau">
@@ -6643,8 +6700,7 @@
       <a href="http://www.whitefirdesign.com/tools/unobfuscate-php-hack-code.html" content="text/html; charset=utf-8" http-equiv="content-type">http://www.whitefirdesign.com/tools/unobfuscate-php-hack-code.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1367328861791" ID="ID_461763320" MODIFIED="1367584801034" TEXT="Applications Android">
