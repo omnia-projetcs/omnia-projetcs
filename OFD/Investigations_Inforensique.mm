@@ -189,7 +189,7 @@
 </html></richcontent>
 </node>
 </node>
-<node CREATED="1352368047048" FOLDED="true" ID="ID_277826334" MODIFIED="1370871073315" POSITION="left" TEXT="Acquisition des donn&#xe9;es">
+<node CREATED="1352368047048" ID="ID_277826334" MODIFIED="1373188419256" POSITION="left" TEXT="Acquisition des donn&#xe9;es">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352369905922" ID="ID_496434698" MODIFIED="1370868269792" TEXT="Acquisition compl&#xe8;te">
 <node CREATED="1358021271659" ID="ID_627491056" MODIFIED="1358021591636">
@@ -697,8 +697,8 @@
 </node>
 </node>
 </node>
-<node CREATED="1352369113616" FOLDED="true" ID="ID_725294455" MODIFIED="1370868996649" TEXT="Image de disque">
-<node CREATED="1352458741544" HGAP="25" ID="ID_1623924636" MODIFIED="1353666032452" VSHIFT="1">
+<node CREATED="1352369113616" ID="ID_725294455" MODIFIED="1373188422752" TEXT="Image de disque">
+<node CREATED="1352458741544" HGAP="25" ID="ID_1623924636" MODIFIED="1373188598811" VSHIFT="1">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -708,21 +708,22 @@
       <b>dd </b>
     </p>
     <p>
-      Copy de la MBR :
+      Copie de la MBR :
     </p>
     <p>
-      <font face="Courier New" color="#ff0000"><i>dd if=/dev/sda of=/tmp/mbr.raw bs=512 count=1</i></font><i><font face="Courier New">&#160;</font></i>
+      <font color="#ff0000" face="Courier New"><i>dd if=/dev/sda of=/tmp/mbr.raw bs=512 count=1</i></font><i><font face="Courier New">&#160;</font></i>
     </p>
     <p>
-      Copy d'un disque :
+      Copie d'un disque :
     </p>
     <p>
-      <font face="Courier New" color="#ff0000"><i>dd if=/dev/sda of=/tmp/sda.raw bs=4096 conv=noerror,sync</i></font>
+      <font color="#ff0000" face="Courier New"><i>dd if=/dev/sda of=/tmp/sda.raw bs=4096 conv=noerror,sync</i></font>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
-<node CREATED="1352458753912" ID="ID_126099341" MODIFIED="1356680543896">
+<node CREATED="1352458753912" ID="ID_126099341" MODIFIED="1373188592308">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -732,22 +733,42 @@
       <b>dc3dd</b>&#160; <a href="http://sourceforge.net/projects/dc3dd/">http://sourceforge.net/projects/dc3dd/</a>&#160;
     </p>
     <p>
-      Copy d'un disque et g&#233;n&#233;ration du SHA1 &#224; la vol&#233;e :
+      Copie d'un disque et g&#233;n&#233;ration du SHA1 &#224; la vol&#233;e :
     </p>
     <p>
-      <font face="Courier New" color="#ff0000"><i>dc3dd if=/dev/sda of=/tmp/sda.raw&#160;bs=4096 hash=sha1 </i></font>
+      <font color="#ff0000" face="Courier New"><i>dc3dd if=/dev/sda of=/tmp/sda.raw&#160;bs=4096 hash=sha1 </i></font>
     </p>
     <p>
-      <font face="SansSerif" color="#000000">Sous Windows :</font>
+      <font color="#000000" face="SansSerif">Sous Windows :</font>
     </p>
     <p>
-      <font face="Courier New" color="#ff0000"><i>dc3dd.exe if=\\.\PhysicalDrive0 of=E:\C_image.raw hash=sha1 </i></font>
+      <font color="#ff0000" face="Courier New"><i>dc3dd.exe if=\\.\PhysicalDrive0 of=E:\C_image.raw hash=sha1 </i></font>
     </p>
     <p>
-      <font face="Courier New" color="#ff0000"><i>dc3dd.exe if=\\.\C: of=E:\C_image.raw hash=sha1</i></font>
+      <font color="#ff0000" face="Courier New"><i>dc3dd.exe if=\\.\C: of=E:\C_image.raw hash=sha1</i></font>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
+</node>
+<node CREATED="1373188440960" ID="ID_1862261958" MODIFIED="1373188628940">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <b>Invoke-NinjaCopy </b><a content="text/html; charset=utf-8" http-equiv="content-type" href="https://github.com/clymb3r/PowerShell/tree/master/Invoke-NinjaCopy">https://github.com/clymb3r/PowerShell/tree/master/Invoke-NinjaCopy</a>
+    </p>
+    <p>
+      Copie du syst&#232;me de fichier et fichiers en ps1 en utilisant les api Windows.
+    </p>
+    <p>
+      <font face="Courier New" color="#ff0000"><i>.\Invoke-NinjaCopy.ps1 -path c:\windows\system32\config\system -localdestination c:\system -verbose -computername mamachine</i></font>
+    </p>
+  </body>
+</html>
+</richcontent>
 </node>
 <node CREATED="1358506608380" ID="ID_117208008" MODIFIED="1358506714120">
 <richcontent TYPE="NODE"><html>
@@ -5740,8 +5761,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.selectrealsecurity.com/public-block-lists">http://www.selectrealsecurity.com/public-block-lists</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358018534111" FOLDED="true" ID="ID_1648292851" MODIFIED="1370877280314" TEXT="Programmes valides (liste blanche de fichiers)">
@@ -6861,7 +6881,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1369918796584" POSITION="right">
+<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1373188410665" POSITION="right">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6898,16 +6918,19 @@
       <a href="http://computer-forensics.sans.org/community/downloads">http://computer-forensics.sans.org/community/downloads</a>
     </p>
     <p>
-      <a href="http://grandstreamdreams.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://grandstreamdreams.blogspot.fr/</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://grandstreamdreams.blogspot.fr/">http://grandstreamdreams.blogspot.fr/</a>
     </p>
     <p>
-      <a href="http://journeyintoir.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://journeyintoir.blogspot.fr/</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://journeyintoir.blogspot.fr/">http://journeyintoir.blogspot.fr/</a>
     </p>
     <p>
-      <a href="http://dfstream.blogspot.fr/" content="text/html; charset=utf-8" http-equiv="content-type">http://dfstream.blogspot.fr/ </a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://dfstream.blogspot.fr/">http://dfstream.blogspot.fr/ </a>
     </p>
     <p>
-      <a href="http://opensecuritytraining.info/Training.html" content="text/html; charset=utf-8" http-equiv="content-type">http://opensecuritytraining.info/Training.html</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://opensecuritytraining.info/Training.html">http://opensecuritytraining.info/Training.html </a>
+    </p>
+    <p>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://opensecuritytraining.info/Training.html">http://clymb3r.wordpress.com/2013/06/13/using-powershell-to-copy-ntds-dit-registry-hives-bypass-sacls-dacls-file-locks/</a>
     </p>
     <p>
       
@@ -6979,19 +7002,19 @@
       <a href="http://code.google.com/p/winforensicaanalysis/downloads/list">http://code.google.com/p/winforensicaanalysis/downloads/list</a>
     </p>
     <p>
-      <a href="http://www.tarasco.org/security/tools.html" content="text/html; charset=utf-8" http-equiv="content-type">http://www.tarasco.org/security/tools.html</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.tarasco.org/security/tools.html">http://www.tarasco.org/security/tools.html</a>
     </p>
     <p>
-      <a href="http://www.osforensics.com/" content="text/html; charset=utf-8" http-equiv="content-type">http://www.osforensics.com/ </a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.osforensics.com/">http://www.osforensics.com/ </a>
     </p>
     <p>
-      <a href="http://download.savannah.gnu.org/releases/mobiusft/" content="text/html; charset=utf-8" http-equiv="content-type">http://download.savannah.gnu.org/releases/mobiusft/ </a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://download.savannah.gnu.org/releases/mobiusft/">http://download.savannah.gnu.org/releases/mobiusft/ </a>
     </p>
     <p>
-      <a href="http://code.google.com/p/omnia-projetcs/" content="text/html; charset=utf-8" http-equiv="content-type">http://code.google.com/p/omnia-projetcs/ </a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://code.google.com/p/omnia-projetcs/">http://code.google.com/p/omnia-projetcs/ </a>
     </p>
     <p>
-      <a href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html" content="text/html; charset=utf-8" http-equiv="content-type">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
     </p>
     <p>
       
@@ -7000,13 +7023,14 @@
       Statistiques :
     </p>
     <p>
-      <a href="http://www.mandiant.com/resources/m-trends/" content="text/html; charset=utf-8" http-equiv="content-type">http://www.mandiant.com/resources/m-trends/</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.mandiant.com/resources/m-trends/">http://www.mandiant.com/resources/m-trends/</a>
     </p>
     <p>
-      <a href="https://www.virustotal.com/statistics/" content="text/html; charset=utf-8" http-equiv="content-type">https://www.virustotal.com/statistics/</a>
+      <a content="text/html; charset=utf-8" http-equiv="content-type" href="https://www.virustotal.com/statistics/">https://www.virustotal.com/statistics/</a>
     </p>
   </body>
-</html></richcontent>
+</html>
+</richcontent>
 </node>
 </node>
 </map>
