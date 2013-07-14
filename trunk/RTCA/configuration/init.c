@@ -445,6 +445,21 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   //create Accelerators
   hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
+  //init dd menu to copy only driver in disk format
+  char letter;
+  char tmp[] = "C:\\";
+  for (letter='Z';letter>='A';letter--)
+  {
+    tmp[0] = letter;
+    switch(GetDriveType(tmp))
+    {
+      case DRIVE_FIXED:
+      case DRIVE_REMOVABLE:break;
+      default:
+        RemoveMenu(GetSubMenu(GetSubMenu(GetMenu(h_main),2),5),letter-'A',MF_BYPOSITION); //-E au lieu de -A car 5 menus en +
+      break;
+    }
+  }
   return 0;
 }
 //------------------------------------------------------------------------------

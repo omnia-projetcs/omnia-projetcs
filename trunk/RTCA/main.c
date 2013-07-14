@@ -389,6 +389,41 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_HEXA_READER:
                 ShowWindow(h_hexa, SW_SHOW);
               break;
+              case IDM_TOOLS_CP_DRIVE_A:
+              case IDM_TOOLS_CP_DRIVE_B:
+              case IDM_TOOLS_CP_DRIVE_C:
+              case IDM_TOOLS_CP_DRIVE_D:
+              case IDM_TOOLS_CP_DRIVE_E:
+              case IDM_TOOLS_CP_DRIVE_F:
+              case IDM_TOOLS_CP_DRIVE_G:
+              case IDM_TOOLS_CP_DRIVE_H:
+              case IDM_TOOLS_CP_DRIVE_I:
+              case IDM_TOOLS_CP_DRIVE_J:
+              case IDM_TOOLS_CP_DRIVE_K:
+              case IDM_TOOLS_CP_DRIVE_L:
+              case IDM_TOOLS_CP_DRIVE_M:
+              case IDM_TOOLS_CP_DRIVE_N:
+              case IDM_TOOLS_CP_DRIVE_O:
+              case IDM_TOOLS_CP_DRIVE_P:
+              case IDM_TOOLS_CP_DRIVE_Q:
+              case IDM_TOOLS_CP_DRIVE_R:
+              case IDM_TOOLS_CP_DRIVE_S:
+              case IDM_TOOLS_CP_DRIVE_T:
+              case IDM_TOOLS_CP_DRIVE_U:
+              case IDM_TOOLS_CP_DRIVE_V:
+              case IDM_TOOLS_CP_DRIVE_W:
+              case IDM_TOOLS_CP_DRIVE_X:
+              case IDM_TOOLS_CP_DRIVE_Y:
+              case IDM_TOOLS_CP_DRIVE_Z:
+                CreateThread(NULL,0,BackupDrive,(LOWORD(wParam)-IDM_TOOLS_CP_DRIVE_A+65),0,0);
+              break;
+              case IDM_TOOLS_CP_DISK_0:
+              case IDM_TOOLS_CP_DISK_1:
+              case IDM_TOOLS_CP_DISK_2:
+              case IDM_TOOLS_CP_DISK_3:
+                CreateThread(NULL,0,BackupDisk,(LOWORD(wParam)-IDM_TOOLS_CP_DISK_0+48),0,0);
+              break;
+              case IDM_TOOLS_CP_MBR:dd_mbr();break;
               case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
               case POPUP_FILE_REMOVE_ITEM:LVDelete(hlstv);break;
               case POPUP_FILE_VIRUSTOTAL:

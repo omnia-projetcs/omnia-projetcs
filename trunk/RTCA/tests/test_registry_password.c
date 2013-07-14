@@ -163,16 +163,39 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   }
 
   //--------------------------------------------------
-  //read login+password of user in registry
-  //--------------------------------------------------
-
-  //--------------------------------------------------
   //read login+password of AD
   //--------------------------------------------------
 
   //--------------------------------------------------
-  //read login+password of cachedump
+  //read login+password of mscache
   //--------------------------------------------------
+
+  //get LSAKEY
+  char LSA_key[MAX_LINE_SIZE]="", NLKM_key[MAX_LINE_SIZE]="";
+
+  BOOL ok_LSA_key = FALSE;
+  //Windows Vista,7,8,2008 OS
+  set_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy");
+  if (ReadValue(HKEY_LOCAL_MACHINE,"SECURITY\\Policy\\PolEKList","",LSA_key, MAX_LINE_SIZE))
+  {
+    ok_LSA_key = TRUE;
+  }else
+  {
+    //Windows XP,2000,2003
+    if (ReadValue(HKEY_LOCAL_MACHINE,"SECURITY\\Policy\\PolSecretEncryptionKey","",LSA_key, MAX_LINE_SIZE))
+    {
+      ok_LSA_key = TRUE;
+    }
+  }
+  restore_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy");
+
+  //get NLKM
+  BOOL ok_NLKM_key = FALSE;
+  set_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy\\Secrets");
+  if (ReadValue(HKEY_LOCAL_MACHINE,"SECURITY\\Policy\\Secrets\\NL$KM\\CurrVal","",LSA_key, MAX_LINE_SIZE))ok_NLKM_key = TRUE;
+  restore_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy\\Secrets");
+
+/*in coding*/
 
 }
 //------------------------------------------------------------------------------
