@@ -13,20 +13,30 @@
 //------------------------------------------------------------------------------
 DWORD WINAPI LoadHexaFile(LPVOID lParam)
 {
-  //récupération du path
-  OPENFILENAME ofn;
   char file[MAX_PATH]="";
-  ZeroMemory(&ofn, sizeof(OPENFILENAME));
-  ofn.lStructSize = sizeof(OPENFILENAME);
-  ofn.hwndOwner = h_hexa;
-  ofn.lpstrFile = file;
-  ofn.nMaxFile = MAX_PATH;
-  ofn.lpstrFilter ="*.*\0*.*\0";
-  ofn.nFilterIndex = 1;
-  ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST | OFN_EXPLORER;
-  ofn.lpstrDefExt ="*.*\0";
+  BOOL inc = FALSE;
+  if (lParam != 0)
+  {
+    snprintf(file,MAX_PATH,"%s",lParam);
+    inc = TRUE;
+  }else
+  {
+    //récupération du path
+    OPENFILENAME ofn;
 
-  if (GetOpenFileName(&ofn)==TRUE)
+    ZeroMemory(&ofn, sizeof(OPENFILENAME));
+    ofn.lStructSize = sizeof(OPENFILENAME);
+    ofn.hwndOwner = h_hexa;
+    ofn.lpstrFile = file;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrFilter ="*.*\0*.*\0";
+    ofn.nFilterIndex = 1;
+    ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST | OFN_EXPLORER;
+    ofn.lpstrDefExt ="*.*\0";
+    if (GetOpenFileName(&ofn)==TRUE)inc = TRUE;
+  }
+
+  if (inc)
   {
     //clean LSVs
     ListView_DeleteAllItems(GetDlgItem(h_hexa,DLG_HEXA_LV_INFOS));
@@ -133,6 +143,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
               //add data
               buf[32] = 0;
               ListView_SetItemText(hlv,ref_item,HEXA_READER_TXT_COLUMN,buf);
+              memset(buf,0,32);
 
               lvi.iItem = ListView_GetItemCount(hlv);
               ref_item = ListView_InsertItem(hlv, &lvi);
@@ -415,13 +426,6 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 if (last_pos_hex_search)last_pos_hex_search++;
                 last_pos_hex_search = Hex_search_ansi(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA), tmp, last_pos_hex_search);
               }
-              /*
-              - sélection des lignes impactées !!
-              coloration des chaines impactées (texte + hexa)
-              - reini la recherche si : sélection de l'item 0
-              - popup menu de copy des items :p
-              - ajout dans la partie type : CRC???
-              */
 
             break;
             case DLG_HEXA_CHK_UNICODE:CheckDlgButton(hwnd,DLG_HEXA_CHK_HEXA,BST_UNCHECKED);break;
@@ -431,6 +435,31 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         //case CBN_SELCHANGE:CalculDate(last_bt);break;
       }
     break;
+
+    case WM_DROPFILES://gestion du drag and drop de fichier ^^
+    {
+      char file[MAX_PATH]="";
+      HDROP H_DropInfo=(HDROP)wParam;
+      DWORD i=0,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, file, MAX_PATH);
+      //only fisrt item or fisrt good item
+      for (i=0;i<nb_path;i++)
+      {
+        file[0] = 0;
+        DragQueryFile(H_DropInfo, i, file, MAX_PATH);
+        if (file[0] != 0)break;
+      }
+
+      if (h_Hexa != 0)
+      {
+        h_Hexa = NULL;
+        //clean LSVs
+        ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_INFOS));
+        ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA));
+      }
+      h_Hexa = CreateThread(NULL,0,LoadHexaFile,(LPARAM)file,0,0);
+
+      DragFinish(H_DropInfo);
+    }break;
     case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
   }
   return FALSE;

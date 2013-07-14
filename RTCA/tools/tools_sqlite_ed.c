@@ -225,6 +225,44 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
         break;
       }
     break;
+    case WM_DROPFILES://gestion du drag and drop de fichier ^^
+    {
+      char file[MAX_PATH]="";
+      HDROP H_DropInfo=(HDROP)wParam;
+      DWORD i=0,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, file, MAX_PATH);
+      //only fisrt item or fisrt good item
+      for (i=0;i<nb_path;i++)
+      {
+        file[0] = 0;
+        DragQueryFile(H_DropInfo, i, file, MAX_PATH);
+        if (file[0] != 0)break;
+      }
+
+
+      //close if already open
+      sqlite3_close(db_sqlite_test);
+      db_sqlite_test = NULL;
+
+      //delete columns
+      while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+
+      //init LV
+      TRI_SQLITE_ED = FALSE;
+      SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"");
+      SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_DELETEALLITEMS,0, (LPARAM)"");
+
+      //open file
+      sqlite3_open(file, &db_sqlite_test);
+      //clean
+      SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_RESETCONTENT,0,0);
+      //load list of tables
+      FORMAT_CALBAK_READ_INFO fcri;
+      fcri.type = TYPE_SQLITE_LOAD_TABLES;
+      sqlite3_exec(db_sqlite_test,"SELECT DISTINCT tbl_name FROM sqlite_master ORDER BY tbl_name;", callback_sqlite_sqlite_ed, &fcri, NULL);
+
+      DragFinish(H_DropInfo);
+    }
+    break;
     case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
     case WM_SIZE:
     {

@@ -10,7 +10,6 @@
 //#define VISUAL_STUDIO          1       //Enable for visual studio compilation
 //debug mode dev test
 //#define DEV_DEBUG_MODE         1
-
 //******************************************************************************
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -127,8 +126,9 @@ char _SYSKEY[MAX_PATH];
 #define SZ_PART_SYSKEY           0x21
 #define NB_TESTS_GLOBALS           34
 
-#define OMB              10*1024*1024     //1mo 2ko
+#define OMB              10*1024*1024    //10mo
 #define DIXM             10*1024*1024    //10mo
+#define DBM               2*1024*1024    //2mo
 //------------------------------------------------------------------------------
 //debug message
 #define NB_MSG_COLUMN               6
@@ -379,6 +379,39 @@ HHOOK HHook; // Handle du hook global
 #define IDM_TOOLS_SQLITE_ED     10110
 #define IDM_TOOLS_GLOBAL_COPY   10111
 #define IDM_TOOLS_HEXA_READER   10112
+
+#define IDM_TOOLS_CP_DRIVE_A    10201
+#define IDM_TOOLS_CP_DRIVE_B    10202
+#define IDM_TOOLS_CP_DRIVE_C    10203
+#define IDM_TOOLS_CP_DRIVE_D    10204
+#define IDM_TOOLS_CP_DRIVE_E    10205
+#define IDM_TOOLS_CP_DRIVE_F    10206
+#define IDM_TOOLS_CP_DRIVE_G    10207
+#define IDM_TOOLS_CP_DRIVE_H    10208
+#define IDM_TOOLS_CP_DRIVE_I    10209
+#define IDM_TOOLS_CP_DRIVE_J    10210
+#define IDM_TOOLS_CP_DRIVE_K    10211
+#define IDM_TOOLS_CP_DRIVE_L    10212
+#define IDM_TOOLS_CP_DRIVE_M    10213
+#define IDM_TOOLS_CP_DRIVE_N    10214
+#define IDM_TOOLS_CP_DRIVE_O    10215
+#define IDM_TOOLS_CP_DRIVE_P    10216
+#define IDM_TOOLS_CP_DRIVE_Q    10217
+#define IDM_TOOLS_CP_DRIVE_R    10218
+#define IDM_TOOLS_CP_DRIVE_S    10219
+#define IDM_TOOLS_CP_DRIVE_T    10220
+#define IDM_TOOLS_CP_DRIVE_U    10221
+#define IDM_TOOLS_CP_DRIVE_V    10222
+#define IDM_TOOLS_CP_DRIVE_W    10223
+#define IDM_TOOLS_CP_DRIVE_X    10224
+#define IDM_TOOLS_CP_DRIVE_Y    10225
+#define IDM_TOOLS_CP_DRIVE_Z    10226
+
+#define IDM_TOOLS_CP_DISK_0     10227
+#define IDM_TOOLS_CP_DISK_1     10228
+#define IDM_TOOLS_CP_DISK_2     10229
+#define IDM_TOOLS_CP_DISK_3     10230
+#define IDM_TOOLS_CP_MBR        10231
 //------------------------------------------------------------------------------
 #define POPUP_TRV_FILES_REF_ITEMS_STRINGS         0
 #define POPUP_TRV_FILES_REF_NB_ITEMS_STRINGS      7
@@ -648,7 +681,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         95
+#define NB_COMPONENT_STRING         96
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -738,6 +771,8 @@ typedef struct SORT_ST
 #define TXT_UPDATE_END                  92
 #define TXT_MSG_RIGHT_ADMIN             93
 #define TXT_MSG_RIGHT_ADMIN_ATTENTION   94
+
+#define TXT_GRP_CONF                    95
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
@@ -1069,6 +1104,7 @@ void FileToSHA256(char *path, char *csha256);
 //registry functions
 void OpenRegeditKey(char* chk, char *key);
 HKEY hkStringtohkey(char *chkey);
+int set_sam_tree_access( HKEY start, char *pth);
 void GetRegistryKeyOwner(HKEY hKey, char* owner,char *rid, char *sid, unsigned int size_max);
 void ReadKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
 DWORD ReadValue(HKEY hk,char *path,char *value,char *data, DWORD data_size);
@@ -1189,6 +1225,9 @@ DWORD WINAPI StopGUIScan(LPVOID lParam);
 DWORD WINAPI BackupRegFile(LPVOID lParam);
 DWORD WINAPI BackupEvtFile(LPVOID lParam);
 DWORD WINAPI BackupNTDIS(LPVOID lParam);
+DWORD WINAPI BackupDrive(LPVOID lParam);
+void dd_mbr();
+DWORD WINAPI BackupDisk(LPVOID lParam);
 DWORD WINAPI BackupFile(LPVOID lParam);
 DWORD WINAPI BackupAllFiles(LPVOID lParam);
 DWORD WINAPI DumpProcessMemory(LPVOID lParam);

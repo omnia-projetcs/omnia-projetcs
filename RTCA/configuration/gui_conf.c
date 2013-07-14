@@ -480,6 +480,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       SetWindowText(GetDlgItem(hwnd,BT_SHA_FILE_CHK),cps[TXT_CHECK_SHA].c);
       SetWindowText(GetDlgItem(hwnd,BT_ADS_FILE_CHK),cps[TXT_CHECK_ADS].c);
       SetWindowText(GetDlgItem(hwnd,BT_START),cps[TXT_BT_START].c);
+      SetWindowText(GetDlgItem(hwnd,GRP_CONF),cps[TXT_GRP_CONF].c);
 
       //check all tests
       CheckDlgButton(hwnd,BT_ACL_FILE_CHK,BST_CHECKED);

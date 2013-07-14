@@ -203,6 +203,7 @@ END
 DLG_SQLITE_EDITOR DIALOGEX 6,6,553,276
 FONT 8,"MS Sans Serif",0,0
 STYLE 0x00CF0800
+EXSTYLE 0x00000010
 BEGIN
   CONTROL ""                                          ,DLG_SQL_ED_LB_TABLE,"ListBox",0x50310141,2,1,122,240,0x00000200
   CONTROL "Load"                                      ,DLG_SQL_ED_BT_LOAD,"Button",0x50010000,2,245,60,19
@@ -216,6 +217,7 @@ END
 DLG_HEXA_READER DIALOGEX 6,5,800,265
 FONT 8,"MS Sans Serif",0,0
 STYLE 0x00CF0800
+EXSTYLE 0x00000010
 BEGIN
   CONTROL "Load"                                      ,DLG_HEXA_BT_LOAD,"Button",0x50010000,2,1,60,11
   CONTROL ""                                          ,DLG_HEXA_LV_INFOS,"SysListView32",0x50810089,2,14,122,212,0x00000200
@@ -254,7 +256,7 @@ BEGIN
   BEGIN
     MENUITEM "Stay on top\tAlt+T"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
-    MENUITEM "Deactivate the grid"        ,BT_DISABLE_GRID
+    MENUITEM "Desactivate the grid"        ,BT_DISABLE_GRID
     MENUITEM SEPARATOR
     MENUITEM "Screenshot"                 ,BT_SREEENSHOT
     MENUITEM SEPARATOR
@@ -267,6 +269,41 @@ BEGIN
     MENUITEM "Copy NTDIS.DIT(AD) file"    ,IDM_TOOLS_CP_AD
     MENUITEM "Copy specific file"         ,IDM_TOOLS_CP_FILE
     MENUITEM "Save all local datas to ZIP file"         ,IDM_TOOLS_GLOBAL_COPY
+    POPUP "DD"
+    BEGIN
+      MENUITEM "DD A:\\"    ,IDM_TOOLS_CP_DRIVE_A
+      MENUITEM "DD B:\\"    ,IDM_TOOLS_CP_DRIVE_B
+      MENUITEM "DD C:\\"    ,IDM_TOOLS_CP_DRIVE_C
+      MENUITEM "DD D:\\"    ,IDM_TOOLS_CP_DRIVE_D
+      MENUITEM "DD E:\\"    ,IDM_TOOLS_CP_DRIVE_E
+      MENUITEM "DD F:\\"    ,IDM_TOOLS_CP_DRIVE_F
+      MENUITEM "DD G:\\"    ,IDM_TOOLS_CP_DRIVE_G
+      MENUITEM "DD H:\\"    ,IDM_TOOLS_CP_DRIVE_H
+      MENUITEM "DD I:\\"    ,IDM_TOOLS_CP_DRIVE_I
+      MENUITEM "DD J:\\"    ,IDM_TOOLS_CP_DRIVE_J
+      MENUITEM "DD K:\\"    ,IDM_TOOLS_CP_DRIVE_K
+      MENUITEM "DD L:\\"    ,IDM_TOOLS_CP_DRIVE_L
+      MENUITEM "DD M:\\"    ,IDM_TOOLS_CP_DRIVE_M
+      MENUITEM "DD N:\\"    ,IDM_TOOLS_CP_DRIVE_N
+      MENUITEM "DD O:\\"    ,IDM_TOOLS_CP_DRIVE_O
+      MENUITEM "DD P:\\"    ,IDM_TOOLS_CP_DRIVE_P
+      MENUITEM "DD Q:\\"    ,IDM_TOOLS_CP_DRIVE_Q
+      MENUITEM "DD R:\\"    ,IDM_TOOLS_CP_DRIVE_R
+      MENUITEM "DD S:\\"    ,IDM_TOOLS_CP_DRIVE_S
+      MENUITEM "DD T:\\"    ,IDM_TOOLS_CP_DRIVE_T
+      MENUITEM "DD U:\\"    ,IDM_TOOLS_CP_DRIVE_U
+      MENUITEM "DD V:\\"    ,IDM_TOOLS_CP_DRIVE_V
+      MENUITEM "DD W:\\"    ,IDM_TOOLS_CP_DRIVE_W
+      MENUITEM "DD X:\\"    ,IDM_TOOLS_CP_DRIVE_X
+      MENUITEM "DD Y:\\"    ,IDM_TOOLS_CP_DRIVE_Y
+      MENUITEM "DD Z:\\"    ,IDM_TOOLS_CP_DRIVE_Z
+      MENUITEM SEPARATOR
+      MENUITEM "DD MBR \\\\.\\PhysicalDrive0",IDM_TOOLS_CP_MBR
+      MENUITEM "DD \\\\.\\PhysicalDrive0"    ,IDM_TOOLS_CP_DISK_0
+      MENUITEM "DD \\\\.\\PhysicalDrive1"    ,IDM_TOOLS_CP_DISK_1
+      MENUITEM "DD \\\\.\\PhysicalDrive2"    ,IDM_TOOLS_CP_DISK_2
+      MENUITEM "DD \\\\.\\PhysicalDrive3"    ,IDM_TOOLS_CP_DISK_3
+    END
     MENUITEM SEPARATOR
     MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
     MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER

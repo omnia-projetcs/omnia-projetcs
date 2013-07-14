@@ -367,7 +367,7 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_date     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_state    ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_sqlite_ed,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-
+    SetWindowPos(h_hexa     ,HWND_TOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_CHECKED);
   }else
   {
@@ -379,7 +379,7 @@ void IDM_STAY_ON_TOP_fct()
     SetWindowPos(h_date     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_state    ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     SetWindowPos(h_sqlite_ed,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
-
+    SetWindowPos(h_hexa     ,HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
     CheckMenuItem(GetMenu(h_main),IDM_STAY_ON_TOP,MF_BYCOMMAND|MF_UNCHECKED);
   }
 }

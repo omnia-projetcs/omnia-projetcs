@@ -5,6 +5,194 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
+#define dd_buffer_size  4096
+//------------------------------------------------------------------------------
+BOOL dd_partition(char drive_letter, char *save_file)
+{
+  BOOL ret = FALSE;
+  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+  if (hf_save != INVALID_HANDLE_VALUE)
+  {
+    char path_disk[7] = "\\\\?\\C:";
+    char ltc[4]       = "C:\\";
+    path_disk[4]      = drive_letter;
+    ltc[0]            = drive_letter;
+
+    //get drive size
+    DWORD cluster=0, secteur=0, Cluster_libre=0, Total_Cluster=0;
+    if (GetDiskFreeSpace(ltc,&cluster,&secteur,&Cluster_libre,&Total_Cluster))
+    {
+      DWORD total_size_to_cp =  Total_Cluster * cluster * secteur;
+      if (total_size_to_cp > 0)
+      {
+        HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+        if (hdrive != INVALID_HANDLE_VALUE)
+        {
+          DWORD buffer_size = dd_buffer_size, pos = 0;
+          char buffer[dd_buffer_size], progress[MAX_PATH]="";
+          DWORD cr=0, cp = 0;
+
+          do
+          {
+            if (total_size_to_cp-pos < buffer_size) buffer_size = total_size_to_cp-pos;
+
+            cr=0;cp=0;
+            ReadFile(hdrive, buffer, buffer_size,&cr,0);
+            /*if (cr == buffer_size) */WriteFile(hf_save,buffer,buffer_size,&cp,0);
+            /*else break; *///erreur : pas de traitement des erreur, permet un accès aux données même si des erreurs de copie/binaire
+
+            pos+=buffer_size;
+            snprintf(progress,MAX_PATH,"%d%% (%lu mo) %c:\\ -> %s",(pos/total_size_to_cp)*100,pos/1048510,drive_letter,save_file);
+            SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
+
+          }while (pos < total_size_to_cp && cr > 0 && cp > 0);
+
+          if (pos == total_size_to_cp) ret = TRUE;
+        }
+        CloseHandle(hdrive);
+      }
+    }
+    CloseHandle(hf_save);
+  }
+  return ret;
+}
+//------------------------------------------------------------------------------
+BOOL dd_disk(char *path_disk, char *save_file)
+{
+  BOOL ret = FALSE;
+  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+  if (hf_save != INVALID_HANDLE_VALUE)
+  {
+    HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+    if (hdrive != INVALID_HANDLE_VALUE)
+    {
+      DWORD buffer_size = dd_buffer_size, pos = 0;
+      char buffer[dd_buffer_size], progress[MAX_PATH]="";
+      DWORD cr=0, cp = 0;
+      BOOL ret_r, ret_w;
+
+      do
+      {
+        cr=0;cp=0;
+        ret_r = ReadFile(hdrive, buffer, buffer_size,&cr,0);
+        ret_w = WriteFile(hf_save,buffer,buffer_size,&cp,0);
+
+        pos+=buffer_size;
+        snprintf(progress,MAX_PATH,"%lu mo %s -> %s",pos/1048510,path_disk,save_file);
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
+
+      }while (ret_r && ret_w && cp > 0);
+
+      if (!ret_r) ret = TRUE;
+    }
+    CloseHandle(hdrive);
+    CloseHandle(hf_save);
+  }
+  return ret;
+}
+//------------------------------------------------------------------------------
+void dd_mbr()
+{
+  char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
+  ofn.hwndOwner = h_main;
+  ofn.lpstrFile = file;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
+  ofn.nFilterIndex = 1;
+  ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+  ofn.lpstrDefExt =".raw\0";
+
+  if (GetSaveFileName(&ofn)==TRUE)
+  {
+    HANDLE hf_save = CreateFile(file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+    if (hf_save != INVALID_HANDLE_VALUE)
+    {
+      HANDLE hdrive = CreateFile("\\\\.\\PhysicalDrive0",GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      if (hdrive != INVALID_HANDLE_VALUE)
+      {
+        DWORD dw=0;
+        char buffer[512];
+        if (ReadFile(hdrive, buffer, 512,&dw,0))
+        {
+          if (WriteFile(hf_save,buffer,512,&dw,0))
+          {
+            snprintf(tmp,MAX_PATH,"MBR copy OK to %s",file);
+            SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
+          }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in writing to file!");
+        }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in reading from \\\\.\\PhysicalDrive0");
+      }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in opening \\\\.\\PhysicalDrive0");
+      CloseHandle(hdrive);
+    }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in creating file to save!");
+    CloseHandle(hf_save);
+  }
+}
+//------------------------------------------------------------------------------
+DWORD WINAPI BackupDrive(LPVOID lParam)
+{
+  char letter = lParam;
+  char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
+  ofn.hwndOwner = h_main;
+  ofn.lpstrFile = file;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
+  ofn.nFilterIndex = 1;
+  ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+  ofn.lpstrDefExt =".raw\0";
+
+  if (GetSaveFileName(&ofn)==TRUE)
+  {
+    if (dd_partition(letter, file))
+    {
+      snprintf(tmp,MAX_PATH,"Drive imagine %c:\\ saved to : %s",letter,file);
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
+    }else
+    {
+      snprintf(tmp,MAX_PATH,"Error in imagine drive %c:\\ to file : %s",letter,file);
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
+    }
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
+DWORD WINAPI BackupDisk(LPVOID lParam)
+{
+  char id = lParam;
+  char letter = lParam;
+  char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
+  ofn.hwndOwner = h_main;
+  ofn.lpstrFile = file;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
+  ofn.nFilterIndex = 1;
+  ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+  ofn.lpstrDefExt =".raw\0";
+
+  if (GetSaveFileName(&ofn)==TRUE)
+  {
+    char pathdisk[19]="\\\\.\\PhysicalDrive0";
+    pathdisk[18] = id;
+
+    if (dd_disk(pathdisk, file))
+    {
+      snprintf(tmp,MAX_PATH,"Physical Drive imagine %c:\\ saved to : %s",letter,file);
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
+    }else
+    {
+      snprintf(tmp,MAX_PATH,"Error in imagine Physical Drive %c:\\ to file : %s",letter,file);
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
+    }
+  }
+  return 0;
+}
 //------------------------------------------------------------------------------
 BOOL CreateFileCopyFilefromPath(char *path_src, char *path_dst)
 {
