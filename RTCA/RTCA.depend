@@ -1144,7 +1144,7 @@
 1373190472 source:z:\svn_omnia\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1373733335 z:\svn_omnia\rtca\rtca.h
+1375275707 z:\svn_omnia\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -1172,7 +1172,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1373811100 z:\svn_omnia\rtca\version.h
+1375275720 z:\svn_omnia\rtca\version.h
 
 1353706658 z:\svn_omnia\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -1229,7 +1229,7 @@
 	"opensslv.h"
 	"md5_locl.h"
 
-1353706658 z:\svn_omnia\rtca\crypt\md5_locl.h
+1375204168 z:\svn_omnia\rtca\crypt\md5_locl.h
 	<stdlib.h>
 	<string.h>
 	"e_os2.h"
@@ -1407,7 +1407,7 @@
 1361101041 source:z:\svn_omnia\rtca\tests\test_registry_mru.c
 	"../RtCA.h"
 
-1373187531 source:z:\svn_omnia\rtca\tests\test_registry_password.c
+1375204398 source:z:\svn_omnia\rtca\tests\test_registry_password.c
 	"../RtCA.h"
 
 1361101041 source:z:\svn_omnia\rtca\tests\test_registry_path.c
@@ -1876,10 +1876,10 @@
 1359147478 source:d:\svn_omnia\rtca\tests\test_chrome.c
 	"../RtCA.h"
 
-1370784099 source:z:\svn_omnia\rtca\tests\test_file_lnk.c
+1375204204 source:z:\svn_omnia\rtca\tests\test_file_lnk.c
 	"../RtCA.h"
 
-1371127501 source:z:\svn_omnia\rtca\tests\test_ldap.c
+1374411450 source:z:\svn_omnia\rtca\tests\test_ldap.c
 	"../RtCA.h"
 
 1370104440 z:\svn_omnia\rtca\adshlp.h
@@ -1922,6 +1922,848 @@
 
 1370107021 z:\svn_omnia\rtca\mssdk\adshlp.h
 
-1371670602 source:z:\svn_omnia\rtca\tools\tools_hexa.c
+1373811095 source:z:\svn_omnia\rtca\tools\tools_hexa.c
 	"../RtCA.h"
+
+1374859060 source:z:\svn_omnia\rtca\crypt\mscache.c
+	"../RtCA.h"
+	<openssl/aes.h>
+	<openssl/des.h>
+	"../crypt/sha2.h"
+
+1374320426 z:\svn_omnia\rtca\crypt\aes.h
+	<stddef.h>
+
+1374320707 z:\svn_omnia\rtca\crypt\des_.h
+	<openssl/e_os2.h>
+
+1374321975 source:z:\svn_omnia\rtca\crypt\aes_core.c
+	<assert.h>
+	<stdlib.h>
+	"aes.h"
+	"aes_locl.h"
+
+1360598567 z:\svn_omnia\rtca\crypt\aes_locl.h
+	<openssl/e_os2.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1374321844 source:z:\svn_omnia\rtca\crypt\aes_misc.c
+	"aes.h"
+
+1374323330 z:\svn_omnia\rtca\crypt\sha256.h
+	<stdio.h>
+
+1374323326 source:z:\svn_omnia\rtca\crypt\sha256.c
+	"sha256.h"
+
+1374399389 source:z:\svn_omnia\rtca\crypt\aes_cbc.c
+	"aes.h"
+	"modes.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\modes.h
+	<stddef.h>
+
+1374399660 source:z:\svn_omnia\rtca\crypt\cbc128.c
+	<stddef.h>
+	"modes.h"
+	<assert.h>
+
+1374684431 source:z:\svn_omnia\rtca\crypt\rsa_sign.c
+	<stdio.h>
+	"cryptlib.h"
+	"rsa.h"
+	<openssl/bn.h>
+	<openssl/objects.h>
+	<openssl/x509.h>
+	<openssl/err.h>
+	"rsa_locl.h"
+
+1374686165 z:\svn_omnia\rtca\crypt\cryptlib.h
+	<stdlib.h>
+	<string.h>
+	<e_os.h>
+	<e_os2.h>
+	"ms/uplink.h"
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/err.h>
+	<openssl/opensslconf.h>
+
+1374410336 z:\svn_omnia\rtca\crypt\rsa.h
+	"m_md5.h"
+	<openssl/asn1.h>
+	<openssl/bio.h>
+	<openssl/crypto.h>
+	<openssl/ossl_typ.h>
+	<openssl/bn.h>
+
+1374860632 z:\svn_omnia\rtca\crypt\m_md5.h
+	"e_os2.h"
+	<crypto/cryptlib.h>
+	<openssl/rsa.h>
+	"md5.h"
+	<openssl/ossl_typ.h>
+	<openssl/evp.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\rsa_locl.h
+
+1360599964 source:z:\svn_omnia\rtca\crypt\err.c
+	<stdio.h>
+	<stdarg.h>
+	<string.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/err.h>
+
+1374686097 source:z:\svn_omnia\rtca\crypt\cryptlib.c
+	"cryptlib.h"
+	<openssl/safestack.h>
+	<windows.h>
+	<tchar.h>
+	<signal.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\stack.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/stack.h>
+	<openssl/objects.h>
+	<errno.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\buf_str.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/buffer.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\mem.c
+	<stdio.h>
+	<stdlib.h>
+	<openssl/crypto.h>
+	"cryptlib.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\o_init.c
+	<e_os.h>
+	<openssl/err.h>
+	<openssl/fips.h>
+	<openssl/rand.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\mem_dbg.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	"cryptlib.h"
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/lhash.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\lhash.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<openssl/crypto.h>
+	<openssl/lhash.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\b_print.c
+	<stdio.h>
+	<string.h>
+	<ctype.h>
+	<assert.h>
+	<limits.h>
+	"cryptlib.h"
+	<sys/types.h>
+	<openssl/bn.h>
+	<openssl/bio.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bio_lib.c
+	<stdio.h>
+	<errno.h>
+	<openssl/crypto.h>
+	"cryptlib.h"
+	<openssl/bio.h>
+	<openssl/stack.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ex_data.c
+	"cryptlib.h"
+	<openssl/lhash.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bss_file.c
+	<stdio.h>
+	<errno.h>
+	"cryptlib.h"
+	"bio_lcl.h"
+	<openssl/err.h>
+	<nwfileio.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\bio_lcl.h
+	<openssl/bio.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\obj_dat.c
+	<stdio.h>
+	<ctype.h>
+	<limits.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/asn1.h>
+	<openssl/objects.h>
+	<openssl/bn.h>
+	"obj_dat.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\obj_dat.h
+
+1360599964 source:z:\svn_omnia\rtca\crypt\a_object.c
+	<stdio.h>
+	<limits.h>
+	"cryptlib.h"
+	<openssl/buffer.h>
+	<openssl/asn1.h>
+	<openssl/objects.h>
+	<openssl/bn.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\asn1_lib.c
+	<stdio.h>
+	<limits.h>
+	"cryptlib.h"
+	<openssl/asn1.h>
+	<openssl/asn1_mac.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_lib.c
+	<assert.h>
+	<limits.h>
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\bn_lcl.h
+	<openssl/bn.h>
+	<c_asm.h>
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_word.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\obj_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/objects.h>
+	<openssl/buffer.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_shift.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_asm.c
+	<stdio.h>
+	<assert.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+	<alloca.h>
+	<alloca.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_print.c
+	<stdio.h>
+	<ctype.h>
+	"cryptlib.h"
+	<openssl/buffer.h>
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\rsa_crpt.c
+	<stdio.h>
+	<openssl/crypto.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/bn.h>
+	<openssl/rsa.h>
+	<openssl/rand.h>
+	<openssl/engine.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_blind.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_add.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_mod.c
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_div.c
+	<stdio.h>
+	<openssl/bn.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_rand.c
+	<stdio.h>
+	<time.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+	<openssl/rand.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_exp.c
+	"cryptlib.h"
+	"bn_lcl.h"
+	<stdlib.h>
+	<malloc.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_ctx.c
+	<stdio.h>
+	<assert.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_mul.c
+	<stdio.h>
+	<assert.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_gcd.c
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_recp.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\bn_mont.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_sqr.c
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\rand_lib.c
+	<stdio.h>
+	<time.h>
+	"cryptlib.h"
+	<openssl/rand.h>
+	<openssl/engine.h>
+	<openssl/fips.h>
+	<openssl/fips_rand.h>
+
+1360598568 source:z:\svn_omnia\rtca\crypt\eng_init.c
+	"eng_int.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\eng_int.h
+	"cryptlib.h"
+	<openssl/engine.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\eng_lib.c
+	"eng_int.h"
+	<openssl/rand.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\tb_pkmeth.c
+	"eng_int.h"
+	<openssl/evp.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\tb_asnmth.c
+	"eng_int.h"
+	"asn1_locl.h"
+	<openssl/evp.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\asn1_locl.h
+
+1360598568 source:z:\svn_omnia\rtca\crypt\tb_rand.c
+	"eng_int.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\md_rand.c
+	<assert.h>
+	<stdio.h>
+	<string.h>
+	"e_os.h"
+	<openssl/crypto.h>
+	<openssl/rand.h>
+	"rand_lcl.h"
+	<openssl/err.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\rand_lcl.h
+	<openssl/evp.h>
+	<openssl/md5.h>
+	<openssl/sha.h>
+	<openssl/mdc2.h>
+	<openssl/md2.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\digest.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/objects.h>
+	<openssl/evp.h>
+	<openssl/engine.h>
+	<openssl/fips.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\evp_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/objects.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\pmeth_lib.c
+	<stdio.h>
+	<stdlib.h>
+	"cryptlib.h"
+	<openssl/objects.h>
+	<openssl/evp.h>
+	<openssl/engine.h>
+	"asn1_locl.h"
+	"evp_locl.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\evp_locl.h
+
+1360598568 source:z:\svn_omnia\rtca\crypt\tb_digest.c
+	"eng_int.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\eng_table.c
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/lhash.h>
+	"eng_int.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\eng_list.c
+	"eng_int.h"
+
+1360598568 source:z:\svn_omnia\rtca\crypt\eng_ctrl.c
+	"eng_int.h"
+
+1374699559 source:z:\svn_omnia\rtca\crypt\evp_asn1.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1.h>
+	<openssl/asn1_mac.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\a_type.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/objects.h>
+
+1374698971 source:z:\svn_omnia\rtca\crypt\m_sha1.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/objects.h>
+	<openssl/sha.h>
+	<openssl/rsa.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\tasn_fre.c
+	<stddef.h>
+	<openssl/asn1.h>
+	<openssl/asn1t.h>
+	<openssl/objects.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\a_int.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1.h>
+	<openssl/bn.h>
+
+1360598567 source:z:\svn_omnia\rtca\crypt\a_bytes.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\tasn_dec.c
+	<stddef.h>
+	<string.h>
+	<openssl/asn1.h>
+	<openssl/asn1t.h>
+	<openssl/objects.h>
+	<openssl/buffer.h>
+	<openssl/err.h>
+
+1360598568 source:z:\svn_omnia\rtca\crypt\rand_nw.c
+	"cryptlib.h"
+	<openssl/rand.h>
+	"rand_lcl.h"
+	<nks/thread.h>
+	<nwthread.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\buffer.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/buffer.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\p_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/err.h>
+	<openssl/objects.h>
+	<openssl/evp.h>
+	<openssl/asn1_mac.h>
+	<openssl/x509.h>
+	<openssl/rsa.h>
+	<openssl/dsa.h>
+	<openssl/dh.h>
+	<openssl/engine.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\rsa_lib.c
+	<stdio.h>
+	<openssl/crypto.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/bn.h>
+	<openssl/rsa.h>
+	<openssl/rand.h>
+	<openssl/engine.h>
+	<openssl/fips.h>
+
+1360598568 source:z:\svn_omnia\rtca\crypt\rand_win.c
+	"cryptlib.h"
+	<openssl/rand.h>
+	"rand_lcl.h"
+	<windows.h>
+	<wincrypt.h>
+	<tlhelp32.h>
+	<lmcons.h>
+	<lmstats.h>
+
+1360598567 source:z:\svn_omnia\rtca\crypt\tasn_utl.c
+	<stddef.h>
+	<string.h>
+	<openssl/asn1.h>
+	<openssl/asn1t.h>
+	<openssl/objects.h>
+	<openssl/err.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ameth_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/x509.h>
+	<openssl/engine.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dsa_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/x509.h>
+	<openssl/asn1.h>
+	<openssl/dsa.h>
+	<openssl/bn.h>
+	<openssl/cms.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\rsa_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/x509.h>
+	<openssl/rsa.h>
+	<openssl/bn.h>
+	<openssl/cms.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dh_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/x509.h>
+	<openssl/asn1.h>
+	<openssl/dh.h>
+	<openssl/bn.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ec_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/x509.h>
+	<openssl/ec.h>
+	<openssl/bn.h>
+	<openssl/cms.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\hm_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\cm_ameth.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/cmac.h>
+	"asn1_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\cmac.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"cryptlib.h"
+	<openssl/cmac.h>
+	<openssl/fips.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\evp_enc.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/err.h>
+	<openssl/rand.h>
+	<openssl/engine.h>
+	<openssl/fips.h>
+	"evp_locl.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\t_pkey.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/objects.h>
+	<openssl/buffer.h>
+	<openssl/bn.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dh_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/dh.h>
+	<openssl/engine.h>
+	<openssl/fips.h>
+
+1360598568 source:z:\svn_omnia\rtca\crypt\tb_dh.c
+	"eng_int.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dh_key.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/rand.h>
+	<openssl/dh.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dh_check.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/dh.h>
+
+1360598567 source:z:\svn_omnia\rtca\crypt\bn_prime.c
+	<stdio.h>
+	<time.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+	<openssl/rand.h>
+	"bn_prime.h"
+
+1360598567 z:\svn_omnia\rtca\crypt\bn_prime.h
+
+1360599964 source:z:\svn_omnia\rtca\crypt\x_pubkey.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/x509.h>
+	"asn1_locl.h"
+	<openssl/rsa.h>
+	<openssl/dsa.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\x_algor.c
+	<stddef.h>
+	<openssl/x509.h>
+	<openssl/asn1.h>
+	<openssl/asn1t.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\p8_pkey.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/x509.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dsa_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/dsa.h>
+	<openssl/asn1.h>
+	<openssl/engine.h>
+	<openssl/dh.h>
+	<openssl/fips.h>
+
+1360598568 source:z:\svn_omnia\rtca\crypt\tb_dsa.c
+	"eng_int.h"
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dsa_ossl.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/bn.h>
+	<openssl/sha.h>
+	<openssl/dsa.h>
+	<openssl/rand.h>
+	<openssl/asn1.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\dsa_sign.c
+	"cryptlib.h"
+	<openssl/dsa.h>
+	<openssl/rand.h>
+	<openssl/bn.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ext\aes_x86core.c
+	<assert.h>
+	<stdlib.h>
+	<openssl/aes.h>
+	"aes_locl.h"
+
+1360598567 z:\svn_omnia\rtca\crypt\ext\aes_locl.h
+	<openssl/e_os2.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ext\aes_cbc.c
+	<openssl/aes.h>
+	<openssl/modes.h>
+
+1360599964 source:z:\svn_omnia\rtca\crypt\ext\cbc128.c
+	<openssl/crypto.h>
+	"modes_lcl.h"
+	<string.h>
+	<assert.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\ext\modes_lcl.h
+	<openssl/modes.h>
+
+1374858336 source:z:\svn_omnia\rtca\crypt\ext\rsa_sign.c
+	<stdio.h>
+	<crypto/cryptlib.h>
+	<openssl/bn.h>
+	<openssl/rsa.h>
+	<openssl/objects.h>
+	<openssl/x509.h>
+	"rsa_locl.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\ext\rsa_locl.h
+
+1374779399 source:z:\svn_omnia\rtca\crypt\ext\mem.c
+	<stdio.h>
+	<stdlib.h>
+	<openssl/crypto.h>
+	<openssl/crypto.h>
+	<crypto/cryptlib.h>
+
+1374853990 source:z:\svn_omnia\rtca\crypt\ext\err.c
+	<stdio.h>
+	<stdarg.h>
+	<string.h>
+	<crypto/cryptlib.h>
+	<openssl/lhash.h>
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/err.h>
+
+1374852662 source:z:\svn_omnia\rtca\crypt\ext\cryptlib.c
+	"cryptlib.h"
+	<openssl/safestack.h>
+	<windows.h>
+	<tchar.h>
+	<signal.h>
+
+1360599964 z:\svn_omnia\rtca\crypt\ext\cryptlib.h
+	<stdlib.h>
+	<string.h>
+	"e_os.h"
+	"ms/uplink.h"
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/err.h>
+	<openssl/opensslconf.h>
+
+1374852495 source:z:\svn_omnia\rtca\crypt\ext\mem_dbg.c
+	<stdio.h>
+	<stdlib.h>
+	<time.h>
+	"cryptlib.h"
+	<openssl/crypto.h>
+	<openssl/buffer.h>
+	<openssl/bio.h>
+	<openssl/lhash.h>
+
+1374852306 source:z:\svn_omnia\rtca\crypt\ext\b_print.c
+	<stdio.h>
+	<string.h>
+	<ctype.h>
+	<assert.h>
+	<limits.h>
+	"cryptlib.h"
+	<sys/types.h>
+	<openssl/bn.h>
+	<openssl/bio.h>
+
+1374852973 source:z:\svn_omnia\rtca\crypt\ext\rsa_crpt.c
+	<stdio.h>
+	<openssl/crypto.h>
+	"cryptlib.h"
+	<openssl/lhash.h>
+	<openssl/bn.h>
+	<openssl/rsa.h>
+	<openssl/rand.h>
+	<openssl/engine.h>
+
+1374853253 source:z:\svn_omnia\rtca\crypt\ext\stack.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/stack.h>
+	<openssl/objects.h>
+	<errno.h>
+
+1374853817 source:z:\svn_omnia\rtca\crypt\ext\lhash.c
+	<stdio.h>
+	<string.h>
+	<stdlib.h>
+	<openssl/crypto.h>
+	<openssl/lhash.h>
+
+1374854534 source:z:\svn_omnia\rtca\crypt\ext\bn_lib.c
+	<assert.h>
+	<limits.h>
+	<stdio.h>
+	"cryptlib.h"
+	"bn_lcl.h"
+
+1360599964 z:\svn_omnia\rtca\crypt\ext\bn_lcl.h
+	<openssl/bn.h>
+	<c_asm.h>
+
+1374854807 source:z:\svn_omnia\rtca\crypt\ext\a_type.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/asn1t.h>
+	<openssl/objects.h>
+
+1374855059 source:z:\svn_omnia\rtca\crypt\ext\names.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/objects.h>
+	<openssl/x509.h>
+
+1374855579 source:z:\svn_omnia\rtca\crypt\ext\o_names.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<openssl/err.h>
+	<openssl/lhash.h>
+	<openssl/objects.h>
+	<openssl/safestack.h>
+	<openssl/e_os2.h>
+
+1374855801 source:z:\svn_omnia\rtca\crypt\ext\evp_lib.c
+	<stdio.h>
+	"cryptlib.h"
+	<openssl/evp.h>
+	<openssl/objects.h>
 
