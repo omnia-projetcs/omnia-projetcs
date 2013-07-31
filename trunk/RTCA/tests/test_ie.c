@@ -177,7 +177,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
     }while(FindNextFile (hfic,&wfd)!= 0 && start_scan);
   }
 }
-
+#ifndef _WIN64_VERSION_
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_ie_history(LPVOID lParam)
 {
@@ -240,10 +240,11 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }
+#else
 /*
 Ex : limited but functionne and no bug in 7
 
-/*
+*/
 DWORD WINAPI Scan_ie_history(LPVOID lParam)
 {
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -283,6 +284,16 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
               snprintf(tmp_key_path,MAX_PATH,"%s\\Cookies\\index.dat",tmp_key);
               ReadDATFile(tmp_key_path, 3, session_id, db);
 
+              //other
+              snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\Low\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 15, session_id, db);
+              snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\PrivacIE\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 15, session_id, db);
+              snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Internet Explorer\\DOMStore\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 15, session_id, db);
+              snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Feeds Cache\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 15, session_id, db);
+
               //search other files cache
               WIN32_FIND_DATA wfd0;
               snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
@@ -294,7 +305,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                 {
                   if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
                   {
-                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileNamPLNK_WORD_STRUCTe[1] == 0 || wfd0.cFileName[1] == '.'))continue;
+                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
 
                     sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
                     snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
@@ -342,4 +353,4 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;
 }
-*/
+#endif

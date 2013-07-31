@@ -146,7 +146,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
     addPasswordtoDB(source,login,raw_password,raw_password,REG_PASSWORD_STRING_TERMINAL_SERVER,session_id,db);
   }
 
-  //Session auto login
+  //Session auto login (win 98,2000, NT)
   tmp[0] = 0;
   login[0] = 0;
   password[0] = 0;
@@ -166,10 +166,14 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   //read login+password of AD
   //--------------------------------------------------
 
+ //--------------------------------------------------
+  //read LSa secrets
+  //--------------------------------------------------
+
   //--------------------------------------------------
   //read login+password of mscache
   //--------------------------------------------------
-
+/*
   //get LSAKEY
   char LSA_key[MAX_LINE_SIZE]="", NLKM_key[MAX_LINE_SIZE]="";
 
@@ -194,7 +198,7 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   set_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy\\Secrets");
   if (ReadValue(HKEY_LOCAL_MACHINE,"SECURITY\\Policy\\Secrets\\NL$KM\\CurrVal","",LSA_key, MAX_LINE_SIZE))ok_NLKM_key = TRUE;
   restore_sam_tree_access(HKEY_LOCAL_MACHINE, "SECURITY\\Policy\\Secrets");
-
+*/
 /*in coding*/
 
 }

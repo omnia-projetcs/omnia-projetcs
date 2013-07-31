@@ -232,6 +232,7 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
     }
     ldap_unbind(ldap_c);
   }
+  return 0;
 }
 //------------------------------------------------------------------------------
 DWORD Scan_ldap_g(LPVOID lParam, unsigned int session_id, sqlite3 *db)
@@ -265,7 +266,7 @@ DWORD Scan_ldap_g(LPVOID lParam, unsigned int session_id, sqlite3 *db)
           #endif
 
           //get DN root values one by one
-          LDAPMessage *pMsg = NULL;
+          //LDAPMessage *pMsg = NULL;
           unsigned long int j=0;
           for (i=0;i<iValue && start_scan;i++)
           {
@@ -305,6 +306,7 @@ DWORD Scan_ldap_g(LPVOID lParam, unsigned int session_id, sqlite3 *db)
     //clean
     ldap_unbind(ldap_c);
   }
+  return 0;
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_ldap(LPVOID lParam)

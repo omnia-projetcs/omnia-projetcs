@@ -785,6 +785,10 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 #define REG_PASSWORD_STRING_AUTO_LOGON         603
 #define SYSKEY_STRING_DEF                     "604"
 #define REG_PASSWORD_STRING_LOCAL_USER         605
+#define LSAKEY_STRING_DEF                     "606"
+#define NLKM_STRING_DEF                       "607"
+#define REG_MSCACHE_STRING                     608
+
 
 //------------------------------------------------------------------------------
 //registry params
