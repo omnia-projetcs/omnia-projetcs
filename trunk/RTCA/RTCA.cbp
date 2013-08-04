@@ -8,6 +8,8 @@
 		<Build>
 			<Target title="Release">
 				<Option output="RtCA" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output=".obj" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
@@ -23,7 +25,6 @@
 					<Add library="iphlpapi" />
 					<Add library="wininet" />
 					<Add library="wldap32" />
-					<Add library="crypt32" />
 				</Linker>
 			</Target>
 		</Build>
@@ -35,49 +36,49 @@
 		<Unit filename="RtCA.rc">
 			<Option compilerVar="WINDRES" />
 		</Unit>
-		<Unit filename="configuration\gui_conf.c">
+		<Unit filename="configuration/gui_conf.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="configuration\init.c">
+		<Unit filename="configuration/init.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\d3des.c">
+		<Unit filename="crypt/d3des.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\d3des.h" />
-		<Unit filename="crypt\des.c">
+		<Unit filename="crypt/d3des.h" />
+		<Unit filename="crypt/des.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\des.h" />
-		<Unit filename="crypt\md5.c">
+		<Unit filename="crypt/des.h" />
+		<Unit filename="crypt/md5.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\md5_dgst.c">
+		<Unit filename="crypt/md5_dgst.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\rc4.h" />
-		<Unit filename="crypt\rc4_enc.c">
+		<Unit filename="crypt/rc4.h" />
+		<Unit filename="crypt/rc4_enc.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\rc4_skey.c">
+		<Unit filename="crypt/rc4_skey.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="crypt\sha2.cpp" />
-		<Unit filename="crypt\sha2.h" />
-		<Unit filename="crypt\windows_users_hashs_registry.c">
+		<Unit filename="crypt/sha2.cpp" />
+		<Unit filename="crypt/sha2.h" />
+		<Unit filename="crypt/windows_users_hashs_registry.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="export.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="files\LiteZip.c">
+		<Unit filename="files/LiteZip.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="files\LiteZip.h" />
-		<Unit filename="files\proc_files.c">
+		<Unit filename="files/LiteZip.h" />
+		<Unit filename="files/proc_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="files\proc_registry_files.c">
+		<Unit filename="files/proc_registry_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="import.c">
@@ -98,176 +99,176 @@
 		<Unit filename="proc_registry.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sqlite\interface.c">
+		<Unit filename="sqlite/interface.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sqlite\interface.h" />
-		<Unit filename="sqlite\load_save.c">
+		<Unit filename="sqlite/interface.h" />
+		<Unit filename="sqlite/load_save.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sqlite\sqlite3.c">
+		<Unit filename="sqlite/sqlite3.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="sqlite\sqlite3.h" />
+		<Unit filename="sqlite/sqlite3.h" />
 		<Unit filename="suivie.txt" />
-		<Unit filename="tests\scan.c">
+		<Unit filename="tests/scan.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_android.c">
+		<Unit filename="tests/test_android.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_antivirus.c">
+		<Unit filename="tests/test_antivirus.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_arp.c">
+		<Unit filename="tests/test_arp.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_chrome.c">
+		<Unit filename="tests/test_chrome.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_clipboard.c">
+		<Unit filename="tests/test_clipboard.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_disk.c">
+		<Unit filename="tests/test_disk.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_dns.c">
+		<Unit filename="tests/test_dns.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_env.c">
+		<Unit filename="tests/test_env.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_file.c">
+		<Unit filename="tests/test_file.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_file_lnk.c">
+		<Unit filename="tests/test_file_lnk.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_firefox.c">
+		<Unit filename="tests/test_firefox.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_firewall.c">
+		<Unit filename="tests/test_firewall.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_guide.c">
+		<Unit filename="tests/test_guide.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_ie.c">
+		<Unit filename="tests/test_ie.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_ldap.c">
+		<Unit filename="tests/test_ldap.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_log.c">
+		<Unit filename="tests/test_log.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_log_files.c">
+		<Unit filename="tests/test_log_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_log_files_evt.c">
+		<Unit filename="tests/test_log_files_evt.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_log_files_evtx.c">
+		<Unit filename="tests/test_log_files_evtx.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_network.c">
+		<Unit filename="tests/test_network.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_pipe.c">
+		<Unit filename="tests/test_pipe.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_prefetch.c">
+		<Unit filename="tests/test_prefetch.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_process.c">
+		<Unit filename="tests/test_process.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_deleted_keys.c">
+		<Unit filename="tests/test_registry_deleted_keys.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_mru.c">
+		<Unit filename="tests/test_registry_mru.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_password.c">
+		<Unit filename="tests/test_registry_password.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_path.c">
+		<Unit filename="tests/test_registry_path.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_service.c">
+		<Unit filename="tests/test_registry_service.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_settings.c">
+		<Unit filename="tests/test_registry_settings.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_shellbags.c">
+		<Unit filename="tests/test_registry_shellbags.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_software.c">
+		<Unit filename="tests/test_registry_software.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_start.c">
+		<Unit filename="tests/test_registry_start.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_update.c">
+		<Unit filename="tests/test_registry_update.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_usb.c">
+		<Unit filename="tests/test_registry_usb.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_userassist.c">
+		<Unit filename="tests/test_registry_userassist.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_registry_users.c">
+		<Unit filename="tests/test_registry_users.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_route.c">
+		<Unit filename="tests/test_route.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_share.c">
+		<Unit filename="tests/test_share.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests\test_task.c">
+		<Unit filename="tests/test_task.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_clean.c">
+		<Unit filename="tools/tools_clean.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_copy.c">
+		<Unit filename="tools/tools_copy.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_date.c">
+		<Unit filename="tools/tools_date.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_hexa.c">
+		<Unit filename="tools/tools_hexa.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_memory.c">
+		<Unit filename="tools/tools_memory.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_network.c">
+		<Unit filename="tools/tools_network.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_network\_entetes.h" />
-		<Unit filename="tools\tools_process.c">
+		<Unit filename="tools/tools_network/_entetes.h" />
+		<Unit filename="tools/tools_process.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_registry.c">
+		<Unit filename="tools/tools_registry.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_registry_recovery.c">
+		<Unit filename="tools/tools_registry_recovery.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_screenshot.c">
+		<Unit filename="tools/tools_screenshot.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_sqlite_ed.c">
+		<Unit filename="tools/tools_sqlite_ed.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_state.c">
+		<Unit filename="tools/tools_state.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tools\tools_virustotal.c">
+		<Unit filename="tools/tools_virustotal.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="version.h" />

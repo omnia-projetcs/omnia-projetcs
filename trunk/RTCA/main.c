@@ -994,16 +994,24 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 //------------------------------------------------------------------------------
 int CmdLine(int argc, char* argv[])
 {
-  if (sqlite3_open(SQLITE_LOCAL_BDD, &db_scan) != SQLITE_OK)
+  char tmp[MAX_PATH]="", current_path[MAX_PATH]="";
+  GetLocalPath(tmp, MAX_PATH);
+  snprintf(current_path,MAX_PATH,"%s\\%s",tmp,SQLITE_LOCAL_BDD);
+
+  if (sqlite3_open(current_path/*SQLITE_LOCAL_BDD*/, &db_scan) != SQLITE_OK)
   {
     //if tmp sqlite file exist free !!
     if (GetFileAttributes(DEFAULT_TM_SQLITE_FILE) != INVALID_FILE_ATTRIBUTES)
     {
       DeleteFile(DEFAULT_TM_SQLITE_FILE);
     }
-    sqlite3_open(SQLITE_LOCAL_BDD, &db_scan);
+    sqlite3_open(current_path/*SQLITE_LOCAL_BDD*/, &db_scan);
   }
   SetDebugPrivilege(TRUE);
+  #ifdef DEV_DEBUG_MODE
+    printf("Current bdd load: %s\n",current_path);
+  #endif
+
 
   nb_file_cmd         = 0;
   nb_path_cmd         = 0;
@@ -1045,7 +1053,7 @@ int CmdLine(int argc, char* argv[])
                    "** %s\n"
                    "*******************************************************\n"
                    "\n"
-                   "List of sessions :\n",NOM_FULL_APPLI);
+                   "List of sessions:\n",NOM_FULL_APPLI);
             fcri.type = CMD_TYPE_LIST_SESSION;
             snprintf(request,MAX_LINE_SIZE,"SELECT id,name FROM session;");
             sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
@@ -1056,12 +1064,11 @@ int CmdLine(int argc, char* argv[])
                  "** %s\n"
                  "*******************************************************\n"
                  "\n"
-                 "List of sessions :\n",NOM_FULL_APPLI);
+                 "List of sessions:\n",NOM_FULL_APPLI);
           fcri.type = CMD_TYPE_LIST_SESSION;
           snprintf(request,MAX_LINE_SIZE,"SELECT id,name FROM session;");
           sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
         }
-        system("PAUSE");
       break;
       //------------------------------------------------------------------------------
       case 'L'://list of all languages supported + select
@@ -1078,7 +1085,7 @@ int CmdLine(int argc, char* argv[])
                    "** %s\n"
                    "*******************************************************\n"
                    "\n"
-                   "List of languages :\n",NOM_FULL_APPLI);
+                   "List of languages:\n",NOM_FULL_APPLI);
             fcri.type = CMD_TYPE_LIST_LANGUAGE;
             snprintf(request,MAX_LINE_SIZE,"SELECT name FROM language;");
             sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
@@ -1089,12 +1096,11 @@ int CmdLine(int argc, char* argv[])
                  "** %s\n"
                  "*******************************************************\n"
                  "\n"
-                 "List of languages :\n",NOM_FULL_APPLI);
+                 "List of languages:\n",NOM_FULL_APPLI);
           fcri.type = CMD_TYPE_LIST_LANGUAGE;
           snprintf(request,MAX_LINE_SIZE,"SELECT id,name FROM language;");
           sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
         }
-        system("PAUSE");
       break;
       //------------------------------------------------------------------------------
       case 'T': UTC_TIME = TRUE;break;
@@ -1104,6 +1110,7 @@ int CmdLine(int argc, char* argv[])
       case '1': FILE_ADS = TRUE;break;
       //enable SHA hashes for tests files
       case '2': FILE_SHA = TRUE;break;
+      case 'S': sqlite3_exec(db_scan,"PRAGMA journal_mode = ON;", NULL, NULL, NULL);break;
       //------------------------------------------------------------------------------
       case 'o'://save alls data session to path
         if (i+1<argc)
@@ -1151,7 +1158,10 @@ int CmdLine(int argc, char* argv[])
       break;
       //------------------------------------------------------------------------------
       //scan with all tests
-      case 'a': CMDScan((LPVOID)FALSE);break;
+      case 'a':
+        enable_LNK = TRUE;
+        CMDScan((LPVOID)FALSE);
+      break;
       //scan with all tests in safe mode with no log and no file test
       case 'A': CMDScan((LPVOID)TRUE);break;
       case 't'://list of all tests
@@ -1159,23 +1169,34 @@ int CmdLine(int argc, char* argv[])
                "** %s\n"
                "*******************************************************\n"
                "\n"
-               "List of tests :\n",NOM_FULL_APPLI);
+               "List of tests:\n",NOM_FULL_APPLI);
         fcri.type = CMD_TYPE_LIST_TESTS;
-        //snprintf(request,MAX_LINE_SIZE,"SELECT id_item, string FROM language_strings WHERE id_language=1 ORDER BY id_item;");
         snprintf(request,MAX_LINE_SIZE,"SELECT ord, string FROM language_strings,language_strings_columns_settings WHERE id_language=1 AND language_strings_columns_settings.id_item = language_strings.id_item ORDER BY ord;");
         sqlite3_exec(db_scan, request, callback_sqlite_CMD, &fcri, NULL);
-        system("PAUSE");
       break;
       case 's'://scan for test with number 0 1 2 3
         //generate new session
         AddNewSession(LOCAL_SCAN,db_scan);
-        enable_LNK = FALSE;
+        enable_LNK = TRUE;
         for (++i;i<argc;i++)
         {
           if (argv[i][0] == '-'){i--;break;}
           CMDScanNum((LPVOID)atoi(argv[i]));
         }
       break;
+      //------------------------------------------------------------------------------
+      //advanced functions
+      case 'e': //sha256deep of directory
+         if (i+1<argc)
+         {
+          i++;
+          if (argv[i][0] == '-'){i--;break;}
+          else ConsoleDirectory_sha256deep(argv[i]);
+         }
+      break;
+
+
+
       //------------------------------------------------------------------------------
       default:
       case 'h'://help
@@ -1204,6 +1225,7 @@ int CmdLine(int argc, char* argv[])
                "\t-1  Enable ADS check in files test.\n"
                "\t-2  Enable SHA in files test.\n"
                "\t-T  Export in UTC time.\n"
+               "\t-S  SQLITE FULL SPEED.\n"
                "\n"
                "\t-a  Start all tests.\n\n"
                "\t-A  Start all tests in safe mode with no Files and no Logs test.\n"
@@ -1212,9 +1234,9 @@ int CmdLine(int argc, char* argv[])
                "\t-o  Export all data to path.\n\t    Exemple: -o \"c:\\\"\n"
                "\t-F  Format to export : CSV (default), XML or HTML\n"
                "\t-Z  Extract local computer file's to investigate in ZIP file, ex : -Z <file to save.zip>\n"
+               "\t-e  SHA256deep of directories (recursive).\n\t    Exemple: -e \"C:\\path\\\\\" >> sha256deep_directory_results.txt\n"
                "\n"
                ,NOM_FULL_APPLI);
-        //system("PAUSE");
       break;
     }
   }

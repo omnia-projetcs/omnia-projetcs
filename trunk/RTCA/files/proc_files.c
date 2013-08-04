@@ -6,6 +6,46 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+//sha256deep format
+void ConsoleDirectory_sha256deep(char *tmp_path)
+{
+  char path[MAX_PATH];
+  if (tmp_path[0] == '"')
+  {
+    //extract separators : "
+    snprintf(path,strlen(tmp_path)-2,"%s",tmp_path+1);
+    path[strlen(path)] = 0;
+  }else strncpy(path,tmp_path,MAX_PATH);
+
+  printf("[%s]\n",path);
+
+  char search[MAX_PATH]="",path_ex[MAX_PATH],s_sha[MAX_PATH];
+  snprintf(search,MAX_PATH,"%s*.*",path);
+
+  WIN32_FIND_DATA data;
+  HANDLE hfic = FindFirstFile(search, &data);
+  if (hfic == INVALID_HANDLE_VALUE)return;
+  do
+  {
+    if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+    else
+    {
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
+        ConsoleDirectory_sha256deep(path_ex);
+      }else
+      {
+        s_sha[0] = 0;
+        snprintf(path_ex,MAX_PATH,"%s%s",path,data.cFileName);
+        FileToSHA256(path_ex, s_sha);
+        if (s_sha[0] != 0)printf("%s  %s\n",s_sha,path_ex);
+      }
+    }
+  }while(FindNextFile (hfic,&data));
+}
+//------------------------------------------------------------------------------
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path)
 {
   //get extension
