@@ -78,7 +78,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               char file[MAX_PATH]="";
               ZeroMemory(&ofn, sizeof(OPENFILENAME));
               ofn.lStructSize = sizeof(OPENFILENAME);
-              ofn.hwndOwner = h_main;
+              ofn.hwndOwner = h_sqlite_ed;
               ofn.lpstrFile = file;
               ofn.nMaxFile = MAX_PATH;
               ofn.lpstrFilter ="SQLITE (*.sqlite)\0*.sqlite\0SQLITE (*.db)\0*.db\0ALL (*.*)\0*.*\0";
@@ -105,6 +105,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
               //delete columns
               while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+              ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),0);
 
               //init LV
               TRI_SQLITE_ED = FALSE;
@@ -118,6 +119,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             {
               //delete columns
               while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+              ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),0);
 
               //init LV
               TRI_SQLITE_ED = FALSE;
@@ -151,7 +153,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               OPENFILENAME ofn;
               ZeroMemory(&ofn, sizeof(OPENFILENAME));
               ofn.lStructSize = sizeof(OPENFILENAME);
-              ofn.hwndOwner = h_main;
+              ofn.hwndOwner = h_sqlite_ed;
               ofn.lpstrFile = file;
               ofn.nMaxFile = MAX_PATH;
               ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
@@ -172,7 +174,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               OPENFILENAME ofn;
               ZeroMemory(&ofn, sizeof(OPENFILENAME));
               ofn.lStructSize = sizeof(OPENFILENAME);
-              ofn.hwndOwner = h_main;
+              ofn.hwndOwner = h_sqlite_ed;
               ofn.lpstrFile = file;
               ofn.nMaxFile = MAX_PATH;
               ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
@@ -200,6 +202,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
               //delete columns
               while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+              ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),0);
 
               //get actual table
               char tmp_table[MAX_PATH]="";
@@ -245,6 +248,8 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
       //delete columns
       while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+      ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),0);
+
 
       //init LV
       TRI_SQLITE_ED = FALSE;
