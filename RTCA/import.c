@@ -148,6 +148,20 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
         }while (*b++);
       }else //sha256deep
       {
+        current_session_id = 0;
+
+        //add in bdd or not ?
+        if (MessageBox(h_main,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,cps[REF_MSG].c,MB_YESNO|MB_TOPMOST)==IDYES)
+        {
+          //create new session and select it !
+          SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
+          FORMAT_CALBAK_READ_INFO fcri;
+          fcri.type = TYPE_SQL_ADD_SESSION;
+          SQLITE_WriteData(&fcri, SQLITE_LOCAL_BDD);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+        }
+
+        char sha256_s[65];
         do
         {
           //get line
@@ -193,15 +207,23 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
             ListView_SetItemText(hlstv,pos,COLUMN_PATH,&line[66]);
 
             //SHA256
-            line[64] = 0;
-            ListView_SetItemText(hlstv,pos,COLUMN_SHA256,line);
+            strncpy(sha256_s,line,64);
+            sha256_s[64] = 0;
+            ListView_SetItemText(hlstv,pos,COLUMN_SHA256,sha256_s);
+
+            if (current_session_id != 0)
+              addFiletoDB(&line[66],file,ext,"","","","","","","","","","","","","","",sha256_s,"","", current_session_id, db_scan);
           }
         }while (*b++);
+        if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
       }
       //free memory
       HeapFree(GetProcessHeap(), 0, buffer);
     }
   }
-  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Load file done !!!");
+
+  char msg[MAX_PATH];
+  snprintf(msg,MAX_PATH,"Load file done !!! (%lu items)",ListView_GetItemCount(hlstv));
+  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)msg);
   return 0;
 }

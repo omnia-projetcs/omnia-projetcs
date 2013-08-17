@@ -10,6 +10,7 @@ void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,
 //------------------------------------------------------------------------------
 void addChrometoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_chrome (file,parameter,date,id_language_description,session_id,data) "
@@ -20,6 +21,10 @@ void addChrometoDB(char *file, char *parameter, char *data, char *date, DWORD id
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Chrome\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%d\";\"%s\";\r\n",
+         file,parameter,date,id_language_description,session_id,data);
+  #endif
 }
 //------------------------------------------------------------------------------
 int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
@@ -79,10 +84,6 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
     }
   }
   return 0;
-
-  /*
-  CREATE TABLE logins (origin_url VARCHAR NOT NULL, action_url VARCHAR, username_element VARCHAR, username_value VARCHAR, password_element VARCHAR, password_value BLOB, submit_element VARCHAR, signon_realm VARCHAR NOT NULL,ssl_valid INTEGER NOT NULL,preferred INTEGER NOT NULL,date_created INTEGER NOT NULL,blacklisted_by_user INTEGER NOT NULL,scheme INTEGER NOT NULL,UNIQUE (origin_url, username_element, username_value, password_element, submit_element, signon_realm))
-  */
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_chrome_history(LPVOID lParam)
@@ -105,6 +106,10 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
       char tmp_key[MAX_PATH], tmp_key_path[MAX_PATH];
       if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
       {
+        #ifdef CMD_LINE_ONLY_NO_DB
+        printf("\"file\";\"parameter\";\"date\";\"id_language_description\";\"session_id\";\"data\";\r\n");
+        #endif
+
         //get subkey
         for(i=0;i<nbSubKey;i++)
         {
@@ -161,7 +166,9 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
   }else
   {
     sqlite3 *db_tmp;
-
+    #ifdef CMD_LINE_ONLY_NO_DB
+    printf("\"Chrome\";\"file\";\"parameter\";\"date\";\"id_language_description\";\"session_id\";\"data\";\r\n");
+    #endif
     while(hitem!=NULL)
     {
       //get item txt

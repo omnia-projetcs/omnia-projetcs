@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addDeletedKey(char *source, char*key, char*value, char*data, char *type, char *sid, char *last_update,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_deleted_keys (source,key,value,data,type,sid,last_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            source,key,value,data,type,sid,last_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Registry_Deleted_Key\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         source,key,value,data,type,sid,last_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 DWORD Traiter_RegBin_nk_deleted(char *fic, DWORD position, DWORD taille_fic, char *buffer, unsigned int session_id, sqlite3 *db, BOOL deleted)
@@ -332,6 +337,9 @@ DWORD WINAPI Scan_registry_deletedKey(LPVOID lParam)
   unsigned int session_id = current_session_id;
   char file[MAX_PATH];
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Registry_Deleted_Key\";\"source\";\"key\";\"value\";\"data\";\"type\";\"sid\";\"last_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

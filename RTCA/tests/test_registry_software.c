@@ -10,12 +10,17 @@ void addRegistrySoftwaretoDB(char *file, char *hk, char *key, char*name,
                              char *publisher, char*uninstallstring, char*installlocation, char *install_date_update,
                              char *install_user, char*url,char*source,char*valid,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_software (file,hk,key,name,publisher,uninstallstring,installlocation,install_date_update,install_user,url,source,valid,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,name,publisher,uninstallstring,installlocation,install_date_update,install_user,url,source,valid,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Software\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,name,publisher,uninstallstring,installlocation,install_date_update,install_user,url,source,valid,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -191,6 +196,9 @@ DWORD WINAPI Scan_registry_software(LPVOID lParam)
   char file[MAX_PATH];
   HK_F_OPEN hks;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Software\";\"file\";\"hk\";\"key\";\"name\";\"publisher\";\"uninstallstring\";\"installlocation\";\"install_date_update\";\"install_user\";\"url\";\"source\";\"valid\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

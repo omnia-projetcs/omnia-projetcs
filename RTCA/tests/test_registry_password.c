@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addPasswordtoDB(char *source, char*login, char*password, char*raw_password,unsigned int description_id,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_account_password (source,login,password,raw_password,description_id,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d,%d);",
            source,login,password,raw_password,description_id,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Password\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\"%d\";\r\n",
+         source,login,password,raw_password,description_id,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void vncpwd(unsigned char *pwd, int bytelen)
@@ -331,6 +336,9 @@ DWORD WINAPI Scan_registry_password(LPVOID lParam)
   char file[MAX_PATH];
   HK_F_OPEN hks;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Password\";\"source\";\"login\";\"password\";\"raw_password\";\"description_id\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

@@ -9,12 +9,17 @@
 void addDisktoDB(char *drive, char *type, char *name, char *filesystem,
                  char *freespace, char *globalspace, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_disk (drive,type,name,filesystem,freespace,globalspace,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            drive,type,name,filesystem,freespace,globalspace,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Disk\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         drive,type,name,filesystem,freespace,globalspace,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void DisktoDB(char *drive, char *type, unsigned int session_id, sqlite3 *db)
@@ -61,6 +66,9 @@ DWORD WINAPI Scan_disk(LPVOID lParam)
 
   char tmp[MAX_PATH];
   int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Disk\";\"drive\";\"type\";\"name\";\"filesystem\";\"freespace\";\"globalspace\";\"session_id\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
   for (i=0;i<nblecteurs;i+=4)
   {
     switch(GetDriveType(&tmp[i]))

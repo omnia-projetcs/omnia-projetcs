@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addLDAPtoDB(char *dit, char *value, char *dn, char *data, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_ldap (dit,value,dn,data,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            dit,value,dn,data,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"LDAP\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         dit,value,dn,data,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //http://msdn.microsoft.com/en-us/library/aa367016%28v=vs.85%29.aspx
@@ -318,7 +323,9 @@ DWORD WINAPI Scan_ldap(LPVOID lParam)
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);
     return 0;
   }
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"LDAP\";\"dit\";\"value\";\"dn\";\"data\";\"session_id\";\r\n");
+  #endif
   //init
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   sqlite3 *db = (sqlite3 *)db_scan;

@@ -52,7 +52,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               //-------------------------------------------------
               case IDM_DEL_SESSION :
                 if (nb_session<1)break;
-                if (MessageBox(0,cps[REF_MSG].c,cps[REF_MSG+1].c,MB_ICONWARNING|MB_OKCANCEL) == IDOK)
+                if (MessageBox(h_main,cps[REF_MSG].c,cps[TXT_ADD_DB].c,MB_ICONWARNING|MB_OKCANCEL) == IDOK)
                 {
                   FORMAT_CALBAK_READ_INFO fcri;
                   fcri.type = TYPE_SQL_REMOVE_SESSION;
@@ -68,7 +68,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               break;
               case IDM_DEL_ALL_SESSION :
                 //if (nb_session<1)break;
-                if (MessageBox(0,cps[REF_MSG].c,cps[REF_MSG+1].c,MB_ICONWARNING|MB_OKCANCEL) == IDOK)
+                if (MessageBox(h_main,cps[REF_MSG].c,cps[REF_MSG+1].c,MB_ICONWARNING|MB_OKCANCEL) == IDOK)
                 {
                   FORMAT_CALBAK_READ_INFO fcri;
                   fcri.type = TYPE_SQL_REMOVE_ALL_SESSION;
@@ -156,6 +156,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 DisableGrid(hlstv, DISABLE_GRID_LV_ALL,BT_DISABLE_GRID);
               break;
               case BT_SREEENSHOT:SCREENSHOT_fct();break;
+              case BT_PROXY: ShowWindow(h_proxy, SW_SHOW);break;
               case BT_SEARCH_MATCH_CASE:
                 if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
                   CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_UNCHECKED);
@@ -175,7 +176,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   SQLITE_FULL_SPEED = TRUE;
                 }
               break;
-              case IDM_ABOUT:MessageBox(0,"to Read to Catch All :\n"
+              case IDM_ABOUT:MessageBox(h_main,"to Read to Catch All :\n"
                                             "Licensed under the terms of the GNU\n"
                                             "General Public License version 3.\n\n"
                                             "Author: nicolas.hanteville@gmail.com\n"
@@ -415,13 +416,13 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_CP_DRIVE_X:
               case IDM_TOOLS_CP_DRIVE_Y:
               case IDM_TOOLS_CP_DRIVE_Z:
-                CreateThread(NULL,0,BackupDrive,(LOWORD(wParam)-IDM_TOOLS_CP_DRIVE_A+65),0,0);
+                CreateThread(NULL,0,BackupDrive,(PVOID)(LOWORD(wParam)-IDM_TOOLS_CP_DRIVE_A+65),0,0);
               break;
               case IDM_TOOLS_CP_DISK_0:
               case IDM_TOOLS_CP_DISK_1:
               case IDM_TOOLS_CP_DISK_2:
               case IDM_TOOLS_CP_DISK_3:
-                CreateThread(NULL,0,BackupDisk,(LOWORD(wParam)-IDM_TOOLS_CP_DISK_0+48),0,0);
+                CreateThread(NULL,0,BackupDisk,(PVOID)(LOWORD(wParam)-IDM_TOOLS_CP_DISK_0+48),0,0);
               break;
               case IDM_TOOLS_CP_MBR:dd_mbr();break;
               case POPUP_FILE_IMPORT_FILE:CreateThread(NULL,0,ImportCVSorSHA256deep,0,0,0);break;
@@ -475,7 +476,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   if (GetOpenFileName(&ofn)==TRUE)
                   {
                     strncpy(SQLITE_LOCAL_BDD,files,MAX_PATH);
-                    InitGUIConfig(1);
+                    InitGUIConfig((PVOID)TRUE);
                     SendMessage(hCombo_lang, CB_SETCURSEL,0,0);
                   }
                 }
@@ -495,7 +496,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
               ListView_GetItemText(hlstv,nitem,0,path,MAX_PATH);
 
-              if (path[1] == ':' || path[1] == '\\' || path[1] == '//')
+              if (path[1] == ':' || path[1] == '\\' || path[1] == '/')
               {
                 switch(SendMessage(hlstbox, LB_GETCURSEL, 0, 0))
                 {
@@ -1012,7 +1013,8 @@ int CmdLine(int argc, char* argv[])
     printf("Current bdd load: %s\n",current_path);
   #endif
 
-
+  use_proxy_advanced_settings = 0;
+  use_other_proxy     = 0;
   nb_file_cmd         = 0;
   nb_path_cmd         = 0;
   export_type         = SAVE_TYPE_CSV;
@@ -1194,7 +1196,24 @@ int CmdLine(int argc, char* argv[])
           else ConsoleDirectory_sha256deep(argv[i]);
          }
       break;
-
+      case 'd': //dd of disk or image with size option + file to save
+         if (i+3<argc)
+         {
+          i++;
+          if (argv[i][0] == '-' && argv[i+2][0] == '-'){i--;break;}
+          else
+          {
+            if (argv[i+1][0] == '-' && argv[i+1][1] == '-') // no size limit
+            {
+              DDConsole(argv[i], 0, argv[i+2]);
+            }else
+            {
+              DDConsole(argv[i], atol(argv[i+1]), argv[i+2]);
+            }
+            i++;
+          }
+         }
+      break;
 
 
       //------------------------------------------------------------------------------
@@ -1233,8 +1252,11 @@ int CmdLine(int argc, char* argv[])
                "\n"
                "\t-o  Export all data to path.\n\t    Exemple: -o \"c:\\\"\n"
                "\t-F  Format to export : CSV (default), XML or HTML\n"
-               "\t-Z  Extract local computer file's to investigate in ZIP file, ex : -Z <file to save.zip>\n"
+               "\n"
                "\t-e  SHA256deep of directories (recursive).\n\t    Exemple: -e \"C:\\path\\\\\" >> sha256deep_directory_results.txt\n"
+               "\t-d  disk imaging to file.\n\t    Exemple with no size limit: -d \\\\.\\PhysicalDrive0 -- c:\\image.raw\n"
+                                            "\t    Exemple with partition and size limit in byte: -d \\\\?\\C: -512 c:\\image.raw\n"
+               "\t-Z  Extract local computer file's to investigate in ZIP file, ex : -Z <file to save.zip>\n"
                "\n"
                ,NOM_FULL_APPLI);
       break;
@@ -1256,6 +1278,7 @@ int main(int argc, char* argv[])
   snprintf(NOM_FULL_APPLI,DEFAULT_TMP_SIZE,"%s %s%s - %s",NOM_APPLI,FULLVERSION_STRING,STATUS_SHORT,URL_APPLI);
 
   //check if console or GUI mode
+  #ifndef CMD_LINE_ONLY_NO_DB
   if (argc == 1)//no params = GUI mode
   {
     CONSOL_ONLY = FALSE;
@@ -1765,6 +1788,10 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT);
     SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
 
+    //proxy
+    h_proxy = CreateDialog(0, MAKEINTRESOURCE(DLG_PROXY), NULL,DialogProc_proxy);
+    SendMessage(h_proxy, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);
     ShowWindow(hCombo_session, SW_SHOW);
@@ -1781,4 +1808,7 @@ int main(int argc, char* argv[])
     return msg.wParam;
 
   }else return CmdLine(argc, argv);
+  #else
+  return CmdLine(argc, argv);
+  #endif
 }

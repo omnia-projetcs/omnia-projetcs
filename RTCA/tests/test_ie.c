@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_IE (file,parameter,date,id_language_description,session_id,data) "
@@ -18,6 +19,10 @@ void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_la
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"IE\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%d\";\r\n",
+         file,parameter,date,id_language_description,session_id,data);
+  #endif
 }
 //------------------------------------------------------------------------------
 void ReadDATFile(char *file, DWORD id_description, unsigned int session_id, sqlite3 *db)
@@ -185,7 +190,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
 
   char tmp_file[MAX_PATH];
   unsigned int session_id = current_session_id;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"IE\";\"file\";\"parameter\";\"date\";\"id_language_description\";\"session_id\";\"data\";\r\n");
+  #endif
   //get child
   HTREEITEM hitem = NULL;
   if (!CONSOL_ONLY)hitem =(HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
@@ -251,7 +258,9 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
 
   char tmp_file[MAX_PATH];
   unsigned int session_id = current_session_id;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"IE\";\"file\";\"parameter\";\"date\";\"id_language_description\";\"session_id\";\"data\";\r\n");
+  #endif
   //get child
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem == NULL && LOCAL_SCAN) //local
@@ -313,6 +322,7 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                     sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                     //get file and tests it
                     WIN32_FIND_DATA wfd1;
+                    snprintf(tmp_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\*.*",tmp_key,wfd0.cFileName);
                     HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
                     if (hfic2 == INVALID_HANDLE_VALUE)continue;
                     do

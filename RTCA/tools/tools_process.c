@@ -917,7 +917,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 {
                   ListView_SetItemText(hlstv_process,current_item,18,s_sha);
 
-                  MessageBox(0,s_sha,ok_path,MB_OK|MB_TOPMOST);
+                  MessageBox(h_process,s_sha,ok_path,MB_OK|MB_TOPMOST);
 
                   //get VirusTotal Datas
                   CheckItemToVirusTotal(hlstv_process, current_item, 18, 18, NULL, FALSE);

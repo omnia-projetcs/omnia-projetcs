@@ -18,12 +18,17 @@ void addRegistryUsertoDB(char *source, char *name, char *RID, char *SID, char *g
                          char *description, char *last_logon, char *last_password_change,
                          DWORD nb_connexion, char *type, DWORD state_id, DWORD session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_user (source,name,RID,SID,grp,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",%lu,%lu);",
            source,name,RID,SID,group,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"RegistryUser\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%s\";\"%lu\";\"%lu\";\r\n",
+         source,name,RID,SID,group,description,last_logon,last_password_change,nb_connexion,type,state_id,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -293,7 +298,10 @@ void Scan_registry_user_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_i
 {
   DWORD userRID = 0;
   USERS_INFOS User_infos;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"RegistryUser\";\"source\";\"name\";\"RID\";\"SID\";\"grp\";\"description\";\"last_logon\";\"last_password_change\";"
+         "\"nb_connexion\";\"type\";\"state_id\";\"session_id\";\r\n");
+  #endif
   //get ref key for hashs
   BYTE b_f[MAX_LINE_SIZE];
   Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "SAM\\Domains\\Account", NULL,"F", b_f, MAX_LINE_SIZE);

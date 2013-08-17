@@ -11,6 +11,7 @@ void addLogtoDB(  char *event, char *indx, char *log_id,
                   char *source, char *description, char *user, char *rid, char *sid,
                   char *state, char *critical, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_log (event,indx,log_id,send_date,write_date,source,user,rid,sid,state,critical,session_id,description) "
@@ -21,6 +22,10 @@ void addLogtoDB(  char *event, char *indx, char *log_id,
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Log\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\"%s\";\r\n",
+         event,indx,log_id,send_date,write_date,source,user,rid,sid,state,critical,session_id,description);
+  #endif
 }
 //------------------------------------------------------------------------------
 void GetPointToArray(EVENTLOGRECORD *pevlr, DWORD_PTR Array[], DWORD nb_array_max)
@@ -196,6 +201,9 @@ void OpenDirectEventLog(char *eventname, sqlite3 *db, unsigned int session_id)
 DWORD WINAPI Scan_log(LPVOID lParam)
 {
   unsigned int session_id = current_session_id;
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Log\";\"event\";\"indx\";\"log_id\";\"send_date\";\"write_date\";\"source\";\"user\";\"rid\";\"sid\";\"state\";\"critical\";\"session_id\";\"description\";\r\n");
+  #endif
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_LOGS]);

@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addGuidetoDB(char *file, char *hk,char *key,char *value,char*data,char *data_read, char*title_id, char*description_id, unsigned int ok_id, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_guide (file,hk,key,value,data,data_read,title_id,description_id,ok_id,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,%d,%d);",
            file,hk,key,value,data,data_read,title_id,description_id,ok_id,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Guide\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\"%d\";\r\n",
+         file,hk,key,value,data,data_read,title_id,description_id,ok_id,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //test if the os match with os of the test
@@ -231,7 +236,9 @@ DWORD WINAPI Scan_guide(LPVOID lParam)
 
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = SQLITE_GUIDE;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Guide\";\"file\";\"hk\";\"key\";\"value\";\"data\";\"data_read\";\"title_id\";\"description_id\";\"ok_id\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

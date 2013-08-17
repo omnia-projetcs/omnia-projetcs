@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addARPtoDB(char *ip, char *mac, char *type, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_arp (ip,mac,type,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",%d);",
            ip,mac,type,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"ARP\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         ip,mac,type,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_arp(LPVOID lParam)
@@ -46,6 +51,10 @@ DWORD WINAPI Scan_arp(LPVOID lParam)
         {
           char ip[IP_SIZE_MAX], mac[MAC_SIZE], type[DEFAULT_TMP_SIZE];
 
+
+          #ifdef CMD_LINE_ONLY_NO_DB
+          printf("\"ARP\";\"ip\";\"mac\";\"type\";\"session_id\";\r\n");
+          #endif
           for (i=0; i<pIpNetTable->dwNumEntries; i++)
           {
             snprintf(ip,IP_SIZE_MAX,"%s",inet_ntoa(*(struct in_addr*)&pIpNetTable->table[i].dwAddr));

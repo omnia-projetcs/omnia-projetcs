@@ -10,12 +10,17 @@ void addRegistryUpdatetoDB(char *file, char *hk, char *key, char*component,char 
                              char *publisher, char*description_package_name,
                              char *install_date_update,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_update (file,hk,key,component,name,publisher,description_package_name,install_date_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,component,name,publisher,description_package_name,install_date_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Update\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,component,name,publisher,description_package_name,install_date_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -274,6 +279,9 @@ DWORD WINAPI Scan_registry_update(LPVOID lParam)
   char file[MAX_PATH];
   HK_F_OPEN hks;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Update\";\"file\";\"hk\";\"key\";\"component\";\"name\";\"publisher\";\"description_package_name\";\"install_date_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

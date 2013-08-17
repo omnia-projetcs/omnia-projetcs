@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addPipetoDB(char *pipe, char *owner, char *rid, char *sid,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_pipe (pipe,owner,rid,sid,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            pipe,owner,rid,sid,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"pipe\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         pipe,owner,rid,sid,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_pipe(LPVOID lParam)
@@ -25,6 +30,10 @@ DWORD WINAPI Scan_pipe(LPVOID lParam)
     check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
     return 0;
   }
+
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"pipe\";\"pipe\";\"owner\";\"rid\";\"sid\";\"session_id\";\r\n");
+  #endif
 
   //init
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);

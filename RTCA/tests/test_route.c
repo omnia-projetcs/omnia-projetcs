@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addRoutetoDB(char *destination, char *netmask, char *gateway, DWORD metric, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_route (destination,netmask,gateway,metric,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%lu\",%d);",
            destination,netmask,gateway,metric,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Route\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         destination,netmask,gateway,metric,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_route(LPVOID lParam)
@@ -26,6 +31,9 @@ DWORD WINAPI Scan_route(LPVOID lParam)
     return 0;
   }
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Route\";\"destination\";\"netmask\";\"gateway\";\"metric\";\"session_id\";\r\n");
+  #endif
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;

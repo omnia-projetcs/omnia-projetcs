@@ -9,6 +9,7 @@ char tmp_file_android[MAX_PATH];
 //------------------------------------------------------------------------------
 void addAndroidtoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_android (file,parameter,date,id_language_description,session_id,data) "
@@ -19,6 +20,11 @@ void addAndroidtoDB(char *file, char *parameter, char *data, char *date, DWORD i
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf ("\"ANDROID\";\"%s\";\"%s\";\"%s\";\"%lu\":\"%d\";\"%s\";\r\n",
+           file,parameter,date,id_language_description,session_id,data);
+
+  #endif
 }
 //------------------------------------------------------------------------------
 int callback_sqlite_android(void *datas, int argc, char **argv, char **azColName)

@@ -10,12 +10,17 @@ void addRegistryUserassisttoDB(char *file, char *hk, char *key, char*raw_type,DW
                              char *path, char*use_count, char *session_number, char *time, char *last_use,
                              char *user, char *RID, char *SID, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_userassist (file,hk,key,raw_type,type_id,path,use_count,user,RID,SID,session_number,time,last_use,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,raw_type,type_id,path,use_count,user,RID,SID,session_number,time,last_use,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"registry_userassist\";\"%s\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,raw_type,type_id,path,use_count,user,RID,SID,session_number,time,last_use,session_id);
+  #endif
 }
 //---------------------------------------------------------------------------------------------------------------
 void ROTTOASCII(char *donnee,char *resultat,int size)
@@ -612,6 +617,9 @@ DWORD WINAPI Scan_registry_userassist(LPVOID lParam)
   char file[MAX_PATH];
   HK_F_OPEN hks;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"registry_userassist\";\"file\";\"hk\";\"key\";\"raw_type\";\"type_id\";\"path\";\"use_count\";\"user\";\"RID\";\"SID\";\"session_number\";\"time\";\"last_use\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

@@ -12,12 +12,17 @@ void addNetworktoDB(char *source, char *card, char *description, char *guid,
                char *dhcp_server, char *dhcp_mode,
                char *wifi, char *last_update, DWORD session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_network (source,card,description,guid,ip,netmask,gateway,dns,domain,dhcp_mode,dhcp_server,wifi,last_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu);",
            source,card,description,guid, ip,netmask,gateway,dns,domain,dhcp_mode,dhcp_server,wifi,last_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Network\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%lu\";\r\n",
+         source,card,description,guid, ip,netmask,gateway,dns,domain,dhcp_mode,dhcp_server,wifi,last_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -475,7 +480,9 @@ DWORD WINAPI Scan_network(LPVOID lParam)
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
   char file[MAX_PATH];
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Network\";\"source\";\"card\";\"description\";\"guid\";\"ip\";\"netmask\";\"gateway\";\"dns\";\"domain\";\"dhcp_mode\";\"dhcp_server\";\"wifi\";\"last_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

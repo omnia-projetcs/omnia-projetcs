@@ -5,6 +5,8 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
+
+#define DNS_MALWARE_MIN_SIZE  4
 //------------------------------------------------------------------------------
 DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 {
@@ -12,77 +14,229 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
 //---------------------------
 //update malware database
+//http://www.selectrealsecurity.com/public-block-lists
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_START].c);
   //init database ?
   //sqlite3_exec(db_scan,"DELETE from malware_list;", NULL, NULL, NULL);
 
   //ddl malware file https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
   //init SSL connexion
-  HINTERNET M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+  HINTERNET M_connexion = 0;
+  if (!use_other_proxy)M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
+  else M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PROXY, proxy_ch_auth, NULL, 0);
+
   if (M_connexion==NULL)return 0;
-
+  //---------------------------
   HINTERNET M_session = InternetConnect(M_connexion, "easylist-downloads.adblockplus.org",443,"","",INTERNET_SERVICE_HTTP,0,0);
-  if (M_session==NULL)
+  if (M_session!=NULL)
   {
-    InternetCloseHandle(M_connexion);
-    return 0;
-  }
-
-  //connexion
-  HINTERNET M_requete = HttpOpenRequest(M_session,"GET","/malwaredomains_full.txt",NULL,"https://www.virustotal.com/",NULL,
-                                        INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE
-                                        |INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,0);
-  if (HttpSendRequest(M_requete, NULL, 0, NULL, 0))
-  {
-    char *res = malloc(DIXM); //10MO
-    memset(res,0,DIXM);
-    if (res != NULL)
+    //connexion
+    HINTERNET M_requete = HttpOpenRequest(M_session,"GET","/malwaredomains_full.txt",NULL,"https://easylist-downloads.adblockplus.org",NULL,
+                                          INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE
+                                          |INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,0);
+    if (use_proxy_advanced_settings)
     {
-      INTERNET_BUFFERS ib;
-      ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
-      ib.lpcszHeader        = NULL;
-      ib.dwHeadersLength    = 0;
-      ib.dwHeadersTotal     = 0;
-      ib.dwOffsetLow        = 0;
-      ib.dwOffsetHigh       = 0;
-      ib.lpvBuffer          = res;
-      ib.dwBufferLength     = DIXM-1;
-      ib.dwBufferTotal      = DIXM-1;
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_USERNAME,proxy_ch_user,sizeof(proxy_ch_user));
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_PASSWORD,proxy_ch_password,sizeof(proxy_ch_password));
+    }
 
-      if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
+    if (HttpSendRequest(M_requete, NULL, 0, NULL, 0))
+    {
+      char *res = malloc(DIXM); //10MO
+      memset(res,0,DIXM);
+      if (res != NULL)
       {
-        if (strlen(res)>0)
+        INTERNET_BUFFERS ib;
+        ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
+        ib.lpcszHeader        = NULL;
+        ib.dwHeadersLength    = 0;
+        ib.dwHeadersTotal     = 0;
+        ib.dwOffsetLow        = 0;
+        ib.dwOffsetHigh       = 0;
+        ib.lpvBuffer          = res;
+        ib.dwBufferLength     = DIXM-1;
+        ib.dwBufferTotal      = DIXM-1;
+
+        if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
         {
-          //working with file and update
-          char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res, *d;
-          do
+          if (strlen(res)>0)
           {
-            //get data by line
-            if (*c++ == '|')
+            //working with file and update
+            char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res, *d;
+            do
             {
+              //get data by line
               if (*c++ == '|')
               {
-                d = domain;
-                while (d+1 < domain+MAX_PATH-1 && *c && *c!='^') *d++ = *c++;
-                *d = 0;
+                if (*c++ == '|')
+                {
+                  d = domain;
+                  while (d+1 < domain+MAX_PATH-1 && *c && *c!='^') *d++ = *c++;
+                  *d = 0;
 
-                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
-                                               "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
-                sqlite3_exec(db_scan,request, NULL, NULL, NULL);
+                  if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
+                  {
+                    snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
+                                                   "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
+                    sqlite3_exec(db_scan,request, NULL, NULL, NULL);
+                    SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+                  }
 
-         //next
-                while (*c && *c != '\n')c++;
+           //next
+                  while (*c && *c != '\n')c++;
+                }else while (*c && *c != '\n')c++;
               }else while (*c && *c != '\n')c++;
-            }else while (*c && *c != '\n')c++;
-            if (*c == '\n')c++;
-          }while (*c);
+              if (*c == '\n')c++;
+            }while (*c);
+          }
         }
+        free(res);
       }
-      free(res);
     }
+    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : https://easylist-downloads.adblockplus.org/malwaredomains_full.txt");
   }
   //---------------------------
+  //http://malc0de.com/bl/BOOT
+  M_session = InternetConnect(M_connexion, "malc0de.com",80,"","",INTERNET_SERVICE_HTTP,0,0);
+  if (M_session!=NULL)
+  {
+    //connexion
+    HINTERNET M_requete = HttpOpenRequest(M_session,"GET","/bl/BOOT",NULL,"http://malc0de.com",NULL,
+                                          INTERNET_FLAG_NO_CACHE_WRITE,0);
+
+    if (use_proxy_advanced_settings)
+    {
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_USERNAME,proxy_ch_user,sizeof(proxy_ch_user));
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_PASSWORD,proxy_ch_password,sizeof(proxy_ch_password));
+    }
+
+    if (HttpSendRequest(M_requete, NULL, 0, NULL, 0))
+    {
+      char *res = malloc(DIXM); //10MO
+      memset(res,0,DIXM);
+      if (res != NULL)
+      {
+        INTERNET_BUFFERS ib;
+        ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
+        ib.lpcszHeader        = NULL;
+        ib.dwHeadersLength    = 0;
+        ib.dwHeadersTotal     = 0;
+        ib.dwOffsetLow        = 0;
+        ib.dwOffsetHigh       = 0;
+        ib.lpvBuffer          = res;
+        ib.dwBufferLength     = DIXM-1;
+        ib.dwBufferTotal      = DIXM-1;
+
+        if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
+        {
+          DWORD sz = strlen(res);
+          if (strlen(res)>323)//bypass 323 first caracts
+          {
+            //working with file and update
+            char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res+323, *d;
+            do
+            {
+              //get data by line
+              //PRIMARY duote.com.cn blockeddomain.hosts
+
+              while(*c && *c!=' ')c++;
+              if (*c==' ')
+              {
+                c++;
+                d = domain;
+                while (d+1 < domain+MAX_PATH-1 && *c && *c!=' ') *d++ = *c++;
+                *d = 0;
+
+                if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
+                {
+                  snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
+                                                 "VALUES(\"%s\",\"http://malc0de.com/bl/BOOT\");",domain);
+                  sqlite3_exec(db_scan,request, NULL, NULL, NULL);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+                }
+
+                //next line
+                while (*c && *c != '\n')c++;
+                if (*c == '\n')c++;
+              }else break;
+            }while (*c);
+          }
+        }
+        free(res);
+      }
+    }
+    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : http://malc0de.com/bl/BOOT");
+  }
+  //---------------------------
+  //http://www.malwaredomainlist.com/hostslist/hosts.txt
+  M_session = InternetConnect(M_connexion, "www.malwaredomainlist.com",80,"","",INTERNET_SERVICE_HTTP,0,0);
+  if (M_session!=NULL)
+  {
+    //connexion
+    HINTERNET M_requete = HttpOpenRequest(M_session,"GET","/hostslist/hosts.txt",NULL,"http://www.malwaredomainlist.com",NULL,
+                                          INTERNET_FLAG_NO_CACHE_WRITE,0);
+    if (use_proxy_advanced_settings)
+    {
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_USERNAME,proxy_ch_user,sizeof(proxy_ch_user));
+      InternetSetOption(M_requete,INTERNET_OPTION_PROXY_PASSWORD,proxy_ch_password,sizeof(proxy_ch_password));
+    }
+
+    if (HttpSendRequest(M_requete, NULL, 0, NULL, 0))
+    {
+      char *res = malloc(DIXM); //10MO
+      memset(res,0,DIXM);
+      if (res != NULL)
+      {
+        INTERNET_BUFFERS ib;
+        ib.dwStructSize       = sizeof(INTERNET_BUFFERS);
+        ib.lpcszHeader        = NULL;
+        ib.dwHeadersLength    = 0;
+        ib.dwHeadersTotal     = 0;
+        ib.dwOffsetLow        = 0;
+        ib.dwOffsetHigh       = 0;
+        ib.lpvBuffer          = res;
+        ib.dwBufferLength     = DIXM-1;
+        ib.dwBufferTotal      = DIXM-1;
+
+        if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
+        {
+          DWORD sz = strlen(res);
+          if (sz>207) //bypass 206 first caracts
+          {
+            //working with file and update
+            char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res+206, *d;
+            do
+            {
+              //get data by line
+              //127.0.0.1  0koryu0.easter.ne.jp
+              d = domain;
+              while (d+1 < domain+MAX_PATH-1 && *c && *c!='\r' && *c!='\n') *d++ = *c++;
+              *d = 0;
+
+              if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
+              {
+                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
+                                               "VALUES(\"%s\",\"http://www.malwaredomainlist.com/hostslist/hosts.txt\");",domain);
+                sqlite3_exec(db_scan,request, NULL, NULL, NULL);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+              }
+
+              //next datas
+              while (*c && *c != ' ')c++;
+              if (*c == ' ')c++;
+              if (*c == ' ')c++;
+            }while (*c);
+          }
+        }
+        free(res);
+      }
+    }
+    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : http://www.malwaredomainlist.com/hostslist/hosts.txt");
+  }
+  //---------------------------
+  InternetCloseHandle(M_connexion);
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_END].c);
+  SendMessage(hstatus_bar,SB_SETTEXT,1, "");
   update_thread_start = 0;
   return 0;
 }

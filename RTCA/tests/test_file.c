@@ -12,10 +12,11 @@ void addFiletoDB(char *path, char *file, char *extension,
                   char *Hidden, char *System, char *Archive, char *Encrypted, char *Tempory,
                   char *ADS, char *SAH256, char *VirusTotal, char *Description, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_file "
-           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SId,"
+           "(path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,SID,"
            "Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id,ACL) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,\"%s\");",
             path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,
@@ -25,6 +26,11 @@ void addFiletoDB(char *path, char *file, char *extension,
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"ARP\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\"%s\";\r\n",
+         path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,
+            Hidden,System,Archive,Encrypted,Tempory,ADS,SAH256,VirusTotal,Description,session_id,ACL);
+  #endif
 }
 //------------------------------------------------------------------------------
 #define MAGIC_NUMBER_SIZE 16
@@ -102,8 +108,7 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
 
             //compressé
             else if (s_datas->us == 0x8B1F) strcpy(magicnumber,"Archive (GZ, TGZ, GZIP)");
-            else if (s_datas->us == 0x9D1F) strcpy(magicnumber,"Archive (TAR.Z)");
-            else if (s_datas->us == 0xA01F) strcpy(magicnumber,"Archive (TAR.Z)");
+            else if (s_datas->us == 0x9D1F || s_datas->us == 0xA01F) strcpy(magicnumber,"Archive (TAR.GZ)");
             else if (s_datas->us == 0x6C2D) strcpy(magicnumber,"Archive (LHA, LZH)");
             else if (s_datas->ui == 0xAFBC7A37) strcpy(magicnumber,"Archive (7zip)");
             else if (s_datas->us == 0x5A42) strcpy(magicnumber,"Archive (BZ2, TAR.BZ2, TBZ2, TB2)");
@@ -426,42 +431,46 @@ void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned 
                       if (((ACCESS_ALLOWED_ACE *)ace)->Header.AceType == ACCESS_ALLOWED_ACE_TYPE){
                           mask = ((ACCESS_ALLOWED_ACE *)ace)->Mask;
                           psid  = (SID *) &((ACCESS_ALLOWED_ACE *)ace)->SidStart;
+
+                          if ((mask & FILE_GENERIC_READ) || (mask & FILE_GENERIC_WRITE) || (mask & FILE_GENERIC_EXECUTE))
+                          {
+                            //traitement pour affichage des droits
+                            if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
+                            if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
+                            if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
+
+                            cuser[0] = 0;
+                            csid[0]  = 0;
+                            crid[0]  = 0;
+                            SidtoUser(psid, cuser, crid, csid, MAX_PATH);
+
+                            strncat(acls," (ALLOWED) ",size_max);
+                            if (strlen(cuser)>0) strncat(acls,cuser,size_max);
+                            if (strlen(csid)>0) strncat(acls,csid,size_max);
+                            strncat(acls,"\r\n\0",size_max);
+                          }
                       //récupération des droits refusés
                       }else if(((ACCESS_DENIED_ACE *)ace)->Header.AceType == ACCESS_DENIED_ACE_TYPE){
                           mask = ((ACCESS_DENIED_ACE *)ace)->Mask;
                           psid  = (SID *) &((ACCESS_DENIED_ACE *)ace)->SidStart;
-                      }
 
-                      if ((mask & FILE_GENERIC_READ) || (mask & FILE_GENERIC_WRITE) || (mask & FILE_GENERIC_EXECUTE))
-                      {
-                        //traitement pour affichage des droits
-                        if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
-                        if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
-                        if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
+                          if ((mask & FILE_GENERIC_READ) || (mask & FILE_GENERIC_WRITE) || (mask & FILE_GENERIC_EXECUTE))
+                          {
+                            //traitement pour affichage des droits
+                            if (mask & FILE_GENERIC_READ) strncat(acls,"r",size_max); else strncat(acls,"-",size_max);
+                            if (mask & FILE_GENERIC_WRITE) strncat(acls,"w",size_max); else strncat(acls,"-",size_max);
+                            if (mask & FILE_GENERIC_EXECUTE) strncat(acls,"x",size_max); else strncat(acls,"-",size_max);
 
-                        //traitement des droits étendus ^^
-                        /*if (mask & FILE_EXECUTE)ad_r->b_FILE_EXECUTE = TRUE;
-                        if (mask & FILE_READ_DATA)ad_r->b_FILE_READ_DATA = TRUE;
-                        if (mask & FILE_READ_EA)ad_r->b_FILE_READ_EA = TRUE;
-                        if (mask & FILE_WRITE_DATA)ad_r->b_FILE_WRITE_DATA = TRUE;
-                        if (mask & FILE_WRITE_EA)ad_r->b_FILE_WRITE_EA = TRUE;
-                        if (mask & FILE_READ_ATTRIBUTES)ad_r->b_FILE_READ_ATTRIBUTES = TRUE;
-                        if (mask & FILE_WRITE_ATTRIBUTES)ad_r->b_FILE_WRITE_ATTRIBUTES = TRUE;
-                        if (mask & FILE_APPEND_DATA)ad_r->b_FILE_APPEND_DATA = TRUE;
-                        if (mask & STANDARD_RIGHTS_EXECUTE)ad_r->b_STANDARD_RIGHTS_EXECUTE = TRUE;
-                        if (mask & STANDARD_RIGHTS_READ)ad_r->b_STANDARD_RIGHTS_READ = TRUE;
-                        if (mask & STANDARD_RIGHTS_WRITE)ad_r->b_STANDARD_RIGHTS_WRITE = TRUE;
-                        if (mask & SYNCHRONIZE)ad_r->b_SYNCHRONIZE = TRUE;*/
+                            cuser[0] = 0;
+                            csid[0]  = 0;
+                            crid[0]  = 0;
+                            SidtoUser(psid, cuser, crid, csid, MAX_PATH);
 
-                        cuser[0] = 0;
-                        csid[0]  = 0;
-                        crid[0]  = 0;
-                        SidtoUser(psid, cuser, crid, csid, MAX_PATH);
-
-                        strncat(acls," ",size_max);
-                        if (strlen(cuser)>0) strncat(acls,cuser,size_max);
-                        if (strlen(csid)>0) strncat(acls,csid,size_max);
-                        strncat(acls,"\r\n\0",size_max);
+                            strncat(acls," (DENIED) ",size_max);
+                            if (strlen(cuser)>0) strncat(acls,cuser,size_max);
+                            if (strlen(csid)>0) strncat(acls,csid,size_max);
+                            strncat(acls,"\r\n\0",size_max);
+                          }
                       }
                     }
                   }
@@ -838,6 +847,15 @@ DWORD WINAPI Scan_files(LPVOID lParam)
 
   //db
   sqlite3 *db = (sqlite3 *)db_scan;
+
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"ARP\";\"path\";\"file\";\"extension\";\"Create_time\";\"Modify_time\";\"Access_Time\";\"Size\";\"Owner\";\"RID\";\"SID\";"
+         "\"Hidden\";\"System\";\"Archive\";\"Encrypted\";\"Tempory\";\"ADS\";\"SAH256\";\"VirusTotal\";\"Description\";\"session_id\";\"ACL\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
+
+  #ifdef CMD_LINE_ONLY_NO_DB
+  if (enable_LNK) printf("\"FileLNK\";\"file\";\"create_time\";\"last_access_time\";\"last_modification_time\";\"local_path\";\"to_\";\"session_id\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
 
   //get local path !
   //get child

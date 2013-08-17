@@ -8,21 +8,21 @@
 //------------------------------------------------------------------------------
 char malware_check[MAX_PATH];
 //------------------------------------------------------------------------------
-/*
-  - malware liste : https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
-                    http://mirror1.malwaredomains.com/files/domains.txt
-*/
 void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned int session_id, sqlite3 *db)
 {
   //chek name if malware or not
   MalwareCheck(name, malware_check, MAX_PATH);
-
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[MAX_LINE_SIZE+DEFAULT_TMP_SIZE];
   snprintf(request,MAX_LINE_SIZE+DEFAULT_TMP_SIZE,
            "INSERT INTO extract_host (file,ip,name,last_file_update,malware_check,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,ip,name,last_file_update,malware_check,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"DNS\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,ip,name,last_file_update,malware_check,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName)
@@ -73,6 +73,10 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   char file[MAX_PATH]="";
   char ip[IPV6_SIZE_MAX],name[MAX_PATH];
   snprintf(file,MAX_PATH,"%s\\WINDOWS\\system32\\drivers\\etc\\hosts",getenv("SYSTEMDRIVE"));
+
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"DNS\";\"file\";\"ip\";\"name\";\"last_file_update\";\"malware_check\";\"session_id\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
 
   //open host file and read all hosts
   HANDLE Hfic = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
