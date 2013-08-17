@@ -10,6 +10,7 @@
 void addFileLNKtoDB(char *file, char *create_time, char *last_access_time, char *last_modification_time,
                    char *local_path, char *to, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_file_nk "
@@ -17,6 +18,10 @@ void addFileLNKtoDB(char *file, char *create_time, char *last_access_time, char 
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,create_time,last_access_time,last_modification_time,local_path,to,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"FileLNK\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,create_time,last_access_time,last_modification_time,local_path,to,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
@@ -90,24 +95,24 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
 
       if ((pi->flags & 0x01) == 0x01 && (pi->flags & 0x02)  == 0x02)
       {
-        if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",b+pi->local_base_path_offset);
+        if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",(char*)(b+pi->local_base_path_offset));
 
-        if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",b+pi->NetNameOffset+pi->header_size);
+        if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",(char*)(b+pi->NetNameOffset+pi->header_size));
 
-        if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",b+pi->DeviceNameOffset+pi->header_size);
+        if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",(char*)(b+pi->DeviceNameOffset+pi->header_size));
 
-        if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,b+pi->commun_path_offset);
+        if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,(char*)(b+pi->commun_path_offset));
       }else if ((pi->flags & 0x01) == 0x01) //local
       {
-        if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",b+pi->local_base_path_offset);
+        if (pi->local_base_path_offset && pi->local_base_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s",(char*)(b+pi->local_base_path_offset));
       }else if ((pi->flags & 0x02)  == 0x02) //network
       {
         //local path
-        if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",b+pi->NetNameOffset+pi->header_size);
+        if (pi->NetNameOffset && pi->NetNameOffset+pi->header_size < pi->struct_size)snprintf(local_path,MAX_PATH,"%s",(char*)(b+pi->NetNameOffset+pi->header_size));
 
-        if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",b+pi->DeviceNameOffset+pi->header_size);
+        if (pi->DeviceNameOffset && pi->DeviceNameOffset+pi->header_size < pi->struct_size)snprintf(tmp,MAX_PATH,"%s\\",(char*)(b+pi->DeviceNameOffset+pi->header_size));
 
-        if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,b+pi->commun_path_offset);
+        if (pi->commun_path_offset && pi->commun_path_offset < pi->struct_size)snprintf(to,MAX_PATH,"%s%s",tmp,(char*)(b+pi->commun_path_offset));
       }
       b = b + pi->struct_size;
 
@@ -134,7 +139,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
             if(b-buffer < taille_fic)
             {
               if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-              else snprintf(to,MAX_PATH,"%s",b+2);
+              else snprintf(to,MAX_PATH,"%s",(char*)(b+2));
 
               tmp_size = t->struct_size +b-buffer ;
               if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
@@ -155,7 +160,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
               if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
               {
                 if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
-                else snprintf(tmp,MAX_PATH," %s",b+2);
+                else snprintf(tmp,MAX_PATH," %s",(char*)(b+2));
 
                 tmp_size = t->struct_size +b-buffer;
                 if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
@@ -167,7 +172,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
           }else
           {
             if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-            else snprintf(to,MAX_PATH,"%s",b+2);
+            else snprintf(to,MAX_PATH,"%s",(char*)(b+2));
 
             tmp_size = t->struct_size +b-buffer ;
             if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
@@ -179,7 +184,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
           {
             //if only we use it !!!
             if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-            else snprintf(to,MAX_PATH,"%s",b+2);
+            else snprintf(to,MAX_PATH,"%s",(char*)(b+2));
 
             tmp_size = t->struct_size +b-buffer ;
             if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
@@ -200,7 +205,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
             if ((p->data_flag & 0x20) == 0x20 && b-buffer < taille_fic)
             {
               if (unicode) snprintf(tmp,MAX_PATH," %S",b+2);
-              else snprintf(tmp,MAX_PATH," %s",b+2);
+              else snprintf(tmp,MAX_PATH," %s",(char*)(b+2));
 
               tmp_size = t->struct_size +b-buffer;
               if (tmp_size < taille_fic && tmp_size+1 < MAX_PATH) tmp[t->struct_size+1] = 0;
@@ -214,7 +219,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
             if ((p->data_flag & 0x10) == 0x10 && b-buffer < taille_fic)
             {
               if (unicode) snprintf(to,MAX_PATH,"%S",b+2);
-              else snprintf(to,MAX_PATH,"%s",b+2);
+              else snprintf(to,MAX_PATH,"%s",(char*)(b+2));
 
               tmp_size = t->struct_size +b-buffer;
               if (tmp_size < taille_fic && tmp_size < MAX_PATH) to[t->struct_size] = 0;
@@ -274,7 +279,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
             t = pos;
             if (pos-buffer+t->struct_size+8 < taille_fic)
             {
-              snprintf(to,MAX_PATH,"%s",pos+t->struct_size+8);
+              snprintf(to,MAX_PATH,"%s",(char*)(pos+t->struct_size+8));
             }
           }
         }
@@ -296,7 +301,7 @@ void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
           if (pos-buffer+8 < taille_fic)
           {
             if (unicode)snprintf(to,MAX_PATH,"%S",pos+8);
-            else snprintf(to,MAX_PATH,"%s",pos+8);
+            else snprintf(to,MAX_PATH,"%s",(char*)(pos+8));
           }
         }
       }

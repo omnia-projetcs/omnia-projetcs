@@ -8,7 +8,6 @@
 		<Build>
 			<Target title="Release">
 				<Option output="RtCA" prefix_auto="1" extension_auto="1" />
-				<Option working_dir="" />
 				<Option object_output=".obj" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -40,6 +39,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="configuration/init.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="configuration/proxy.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="crypt/d3des.c">

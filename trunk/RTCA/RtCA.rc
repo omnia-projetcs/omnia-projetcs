@@ -229,6 +229,22 @@ BEGIN
   CONTROL ""                                          ,DLG_HEXA_LV_HEXA,"SysListView32",0x50810089,126,1,426,262,0x00000200
 END
 //------------------------------------------------------------------------------
+DLG_PROXY DIALOGEX 6,5,165,75
+CAPTION "Proxy settings"
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00C80800
+BEGIN
+  CONTROL "http://proxy:8080"                         ,PROXY_ED_PROXY,"Edit",0x58010004,32,25,130,13,0x00000200
+  CONTROL "Use advanced proxy settings"               ,PROXY_CHK_USE,"Button",0x50010003,2,1,110,9
+  CONTROL "Proxy:"                                    ,PROXY_ST_PROXY,"Static",0x50000000,2,27,26,9
+  CONTROL "Proxy auto settings"                       ,PROXY_CHK_AUTOCONF,"Button",0x58010003,2,12,110,9
+  CONTROL "User:"                                     ,PROXY_ST_USER,"Static",0x50000000,2,46,34,9
+  CONTROL "Password:"                                 ,PROXY_ST_PASSWORD,"Static",0x50000000,2,60,34,9
+  CONTROL ""                                          ,PROXY_ED_USER,"Edit",0x58010004,40,44,122,13,0x00000200
+  CONTROL ""                                          ,PROXY_ED_PASSWORD,"Edit",0x58010024,40,59,122,13,0x00000200
+  CONTROL "OK"                                        ,PROXY_BT_OK,"Button",0x50010000,116,1,48,20
+END
+//------------------------------------------------------------------------------
 MY_MENU MENU
 BEGIN
   POPUP "File"    //0
@@ -256,9 +272,10 @@ BEGIN
   BEGIN
     MENUITEM "Stay on top\tAlt+T"         ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
-    MENUITEM "Desactivate the grid"        ,BT_DISABLE_GRID
+    MENUITEM "Desactivate the grid"       ,BT_DISABLE_GRID
     MENUITEM SEPARATOR
     MENUITEM "Screenshot"                 ,BT_SREEENSHOT
+    MENUITEM "Proxy"                      ,BT_PROXY
     MENUITEM SEPARATOR
     MENUITEM "SQLite FULL SPEED"          ,BT_SQLITE_FULL_SPEED
   END

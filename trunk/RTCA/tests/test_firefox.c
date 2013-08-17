@@ -9,6 +9,7 @@ char tmp_file_firefox[MAX_PATH];
 //------------------------------------------------------------------------------
 void addFirefoxtoDB(char *file, char *parameter, char *data, char *date, DWORD id_language_description, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_firefox (file,parameter,date,id_language_description,session_id,data) "
@@ -19,6 +20,10 @@ void addFirefoxtoDB(char *file, char *parameter, char *data, char *date, DWORD i
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Firefox\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%d\",\"%s\";\r\n",
+         file,parameter,date,id_language_description,session_id,data);
+  #endif
 }
 //------------------------------------------------------------------------------
 int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName)
@@ -93,6 +98,9 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
 
   //get child
   HTREEITEM hitem = NULL;
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Firefox\";\"file\";\"parameter\";\"date\";\"id_language_description\";\"session_id\",\"data\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
   if (!CONSOL_ONLY)hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if ((hitem == NULL && LOCAL_SCAN) || CONSOL_ONLY) //local
   {

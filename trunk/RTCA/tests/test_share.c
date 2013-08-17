@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addSharetoDB(char *file, char *share, char *path, char *description, char *type, char *connexion, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_share (file,share,path,description,type,connexion,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,share,path,description,type,connexion,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Share\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,share,path,description,type,connexion,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void EnumShare(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db, char*reg_path)
@@ -38,7 +43,9 @@ DWORD WINAPI Scan_share(LPVOID lParam)
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Share\";\"file\";\"share\";\"path\";\"description\";\"type\";\"connexion\";\"session_id\";\r\n");
+  #endif
   if (!LOCAL_SCAN)
   {
     //get in registry files

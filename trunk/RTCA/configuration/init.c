@@ -231,7 +231,7 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   //check if admin right ok
   if(!HaveAdminRight())
   {
-    if (!CONSOL_ONLY)MessageBox(0,cps[TXT_MSG_RIGHT_ADMIN].c,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,MB_OK|MB_TOPMOST|MB_ICONWARNING);
+    if (!CONSOL_ONLY)MessageBox(h_main,cps[TXT_MSG_RIGHT_ADMIN].c,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,MB_OK|MB_TOPMOST|MB_ICONWARNING);
     else printf("[%s] %s\n",cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,cps[TXT_MSG_RIGHT_ADMIN].c);
   }
 
@@ -369,9 +369,12 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   B_SCREENSHOT_START    = FALSE;
   enable_magic          = FALSE;
   DISABLE_GRID_LV_ALL   = FALSE;
+  backup_dd             = FALSE;
   h_Hexa                = 0;
   last_search_mode      = DEFAULT_MODE_SEARCH_HX;
   last_pos_hex_search   = 0;
+  use_proxy_advanced_settings = 0;
+  use_other_proxy       = 0;
 
   if (!reinit)
   {

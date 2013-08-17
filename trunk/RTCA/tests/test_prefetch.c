@@ -37,6 +37,7 @@
 //------------------------------------------------------------------------------
 void addPrefetchtoDB(char *file, char *create_time, char *last_update, char*last_access, DWORD count, char *exec, char *depend, char *path_application, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_prefetch (file,path,create_time,last_update,last_access,count,exec,session_id,depend) "
@@ -47,6 +48,10 @@ void addPrefetchtoDB(char *file, char *create_time, char *last_update, char*last
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Prefetch\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%08lu\";\"%s\";\"%d\";\"%s\";\r\n",
+         file,path_application,create_time,last_update,last_access,count,exec,session_id,depend);
+  #endif
 }
 //------------------------------------------------------------------------------
 void PfCheck(unsigned int session_id, sqlite3 *db, char *file)
@@ -148,6 +153,9 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Prefetch\";\"file\";\"path\";\"create_time\";\"last_update\";\"last_access\";\"count\";\"exec\";\"session_id\";\"depend\";\r\n");
+  #endif
   //check if local or not :)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem!=NULL || !LOCAL_SCAN || WINE_OS)

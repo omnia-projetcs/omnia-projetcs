@@ -10,16 +10,59 @@ void addRegistryServicetoDB(char *file, char *hk, char *key, char*name,
                             DWORD state_id, char*path, char*description, DWORD type_id,
                              char *last_update,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_service_driver (file,hk,key,name,state_id,path,type_id,last_update,session_id,description) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",%lu,\"%s\",%lu,\"%s\",%d,\"%s\");",
-           file,hk,key,name,state_id,path,type_id,last_update,session_id,description);
+           file,hk,key,CheckNameAndDescription(name,MAX_PATH),state_id,path,type_id,last_update,session_id,CheckNameAndDescription(description,MAX_PATH));
 
   //if description too long
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Registry_Service\";\"%s\";\"%s\";\"%s\";\"%s\";\"%lu\";\"%s\";\"%lu\";\"%s\";\"%d\";\"%s\";\r\n",
+         file,hk,key,name,state_id,path,type_id,last_update,session_id,description);
+  #endif
+}
+//------------------------------------------------------------------------------
+char *CheckNameAndDescription(char *name, unsigned int name_size_max)
+{
+ /* if (name != NULL)
+  {
+    if (name[0] == '@')
+    {
+      //get dll path
+      char tmp[MAX_LINE_DBSIZE]="", dll_path[MAX_PATH]="";
+      char *t = tmp;
+      char *s = name+1; //pass '@'
+      while (*s && *s != ',')*t++ = *s++;
+      *t = 0;
+      if (strlen(tmp) > 0)
+      {
+        ExpandEnvironmentStrings(tmp,dll_path,MAX_PATH);
+
+        //get id :
+        if (*s == ',')s++;
+        if (*s == '-')s++;
+
+        //load message
+        HANDLE mhandle = LoadLibraryEx(dll_path, 0, LOAD_LIBRARY_AS_DATAFILE);
+        if (mhandle != NULL)
+        {
+          tmp[0] = 0;
+          if (FormatMessage(FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_FROM_SYSTEM,
+                        mhandle,atoi(s),0,tmp,MAX_LINE_DBSIZE,NULL))
+          {
+            if (tmp[0] != 0)snprintf(name,name_size_max,"%s",tmp);
+          }else printf("FormatMessage : %s [%d] (%s)\n",dll_path,atoi(s),name);
+          FreeLibrary(mhandle);
+        }else printf("mhandle : %s [%d] (%s)\n",dll_path,atoi(s),name);
+      }
+    }
+  }*/
+  return name;
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -181,7 +224,9 @@ DWORD WINAPI Scan_registry_service(LPVOID lParam)
   unsigned int session_id = current_session_id;
   char file[MAX_PATH];
   HK_F_OPEN hks;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Registry_Service\";\"file\";\"hk\";\"key\";\"name\";\"state_id\";\"path\";\"type_id\";\"last_update\";\"session_id\";\"description\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

@@ -8,6 +8,7 @@
 //------------------------------------------------------------------------------
 void addShellBags(char *source, char*key, char*value, char*data, char *sid, char *last_update,unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_shell_bags (source,key,value,data,sid,last_update,session_id) "
@@ -15,6 +16,10 @@ void addShellBags(char *source, char*key, char*value, char*data, char *sid, char
            source,key,value,data,sid,last_update,session_id);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Shell_Bags\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         source,key,value,data,sid,last_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //http://www.williballenthin.com/forensics/shellbags/index.html
@@ -202,6 +207,9 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
   char file[MAX_PATH];
   HK_F_OPEN hks;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Shell_Bags\";\"source\";\"key\";\"value\";\"data\";\"sid\";\"last_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

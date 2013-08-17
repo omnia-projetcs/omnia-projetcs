@@ -456,7 +456,7 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_INFOS));
         ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA));
       }
-      h_Hexa = CreateThread(NULL,0,LoadHexaFile,(LPARAM)file,0,0);
+      h_Hexa = CreateThread(NULL,0,LoadHexaFile,(LPVOID)(LPARAM)file,0,0);
 
       DragFinish(H_DropInfo);
     }break;

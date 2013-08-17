@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addTasktoDB(char *id_ev, char *type, char *data, char*next_run, char *create_date, char*update_date, char *access_date,char*user,char*details, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_tache (id_ev,type,data,next_run,create_date,update_date,access_date,user,details,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            id_ev,type,data,next_run,create_date,update_date,access_date,user,details,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Task\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         id_ev,type,data,next_run,create_date,update_date,access_date,user,details,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void JobCheck(unsigned int session_id, sqlite3 *db, char *file)
@@ -165,6 +170,9 @@ DWORD WINAPI Scan_task(LPVOID lParam)
   unsigned int session_id = current_session_id;
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Task\";\"id_ev\";\"type\";\"data\";\"next_run\";\"create_date\";\"update_date\";\"access_date\";\"user\";\"details\";\"session_id\";\r\n");
+  #endif
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
   if (hitem!=NULL || !LOCAL_SCAN || WINE_OS)
   {

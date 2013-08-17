@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addEnvtoDB(char *source, char *env, char *user, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_env (source,string,user,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",%d);",
            source,env,user,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"ARP\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         source,env,user,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 void EnumEnv(HK_F_OPEN *hks, unsigned int session_id, sqlite3 *db, char *path)
@@ -42,6 +47,9 @@ DWORD WINAPI Scan_env(LPVOID lParam)
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
 
   //check if local or not :)
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"ENV\";\"source\";\"string\";\"user\";\"session_id\";\r\n");
+  #endif // CMD_LINE_ONLY_NO_DB
   if (!LOCAL_SCAN)
   {
     //get in registry files

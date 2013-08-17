@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addCAntivirustoDB(char *path, char *name, char *editor, char *engine, char *url_update, char*bdd, char*last_update,char*enable, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_antivirus (path,name,editor,engine,bdd,url_update,last_update,enable,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            path,name,editor,engine,bdd,url_update,last_update,enable,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"ANTIVIRUS\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+           path,name,editor,engine,bdd,url_update,last_update,enable,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -1056,6 +1061,9 @@ DWORD WINAPI Scan_antivirus(LPVOID lParam)
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL  || !LOCAL_SCAN) //files
   {
+    #ifdef CMD_LINE_ONLY_NO_DB
+    printf("\"ANTIVIRUS\";\"path\";\"name\";\"editor\";\"engine\";\"bdd\";\"url_update\";\"last_update\";\"enable\";\"session_id\"\r\n");
+    #endif
     while(hitem!=NULL)
     {
       file[0] = 0;
@@ -1071,7 +1079,14 @@ DWORD WINAPI Scan_antivirus(LPVOID lParam)
       }
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }
-  }else Scan_antivirus_local(db, session_id);
+  }else
+  {
+    #ifdef CMD_LINE_ONLY_NO_DB
+    printf("\"ANTIVIRUS\";\"path\";\"name\";\"editor\";\"engine\";\"bdd\";\"url_update\";\"last_update\";\"enable\";\"session_id\";\r\n");
+    #endif
+
+    Scan_antivirus_local(db, session_id);
+  }
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

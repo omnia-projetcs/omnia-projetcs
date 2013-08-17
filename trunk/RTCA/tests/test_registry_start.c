@@ -9,6 +9,7 @@
 void addRegistryStarttoDB(char *file, char *hk, char *key,
                char *value, char *data, char *last_parent_key_update, DWORD session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   if (strlen(value) == 0 && strlen(data) == 0)return;
 
   char request[REQUEST_MAX_SIZE];
@@ -17,6 +18,10 @@ void addRegistryStarttoDB(char *file, char *hk, char *key,
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%lu);",
            file,hk,key,value,data,last_parent_key_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Start\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,value,data,last_parent_key_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -205,6 +210,9 @@ DWORD WINAPI Scan_registry_start(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO fcri;
   fcri.type = SQLITE_REGISTRY_TYPE_RUN;
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Start\";\"file\";\"hk\";\"key\";\"value\";\"data\";\"last_parent_key_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

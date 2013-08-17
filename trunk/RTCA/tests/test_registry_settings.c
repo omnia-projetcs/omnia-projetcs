@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addRegistrySettingstoDB(char *file, char *hk, char *key, char*value, char *data, char*type_id, char*description_id, char *parent_key_update, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_registry_settings (file,hk,key,value,data,type_id,description_id,parent_key_update,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%s,%s,\"%s\",%d);",
            file,hk,key,value,data,type_id,description_id,parent_key_update,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Registry_Settings\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,value,data,type_id,description_id,parent_key_update,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -542,6 +547,9 @@ DWORD WINAPI Scan_registry_setting(LPVOID lParam)
   //init
   char file[MAX_PATH];
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Registry_Settings\";\"file\";\"hk\";\"key\";\"value\";\"data\";\"type_id\";\"description_id\";\"parent_key_update\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

@@ -45,7 +45,7 @@ BOOL dd_partition(char drive_letter, char *save_file)
             snprintf(progress,MAX_PATH,"%d%% (%lu mo) %c:\\ -> %s",(pos/total_size_to_cp)*100,pos/1048510,drive_letter,save_file);
             SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
 
-          }while (pos < total_size_to_cp && cr > 0 && cp > 0);
+          }while (pos < total_size_to_cp && cr > 0 && cp > 0 && backup_dd);
 
           if (pos == total_size_to_cp) ret = TRUE;
         }
@@ -54,6 +54,7 @@ BOOL dd_partition(char drive_letter, char *save_file)
     }
     CloseHandle(hf_save);
   }
+  backup_dd = FALSE;
   return ret;
 }
 //------------------------------------------------------------------------------
@@ -129,6 +130,38 @@ void dd_mbr()
     CloseHandle(hf_save);
   }
 }
+
+//------------------------------------------------------------------------------
+void DDConsole(char *path_disk, DWORD sz, char *save_file)
+{
+  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+  if (hf_save != INVALID_HANDLE_VALUE)
+  {
+    HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+    if (hdrive != INVALID_HANDLE_VALUE)
+    {
+      DWORD buffer_size, pos = 0;
+      if (sz != 0)buffer_size = sz;
+      else buffer_size = DBM;
+
+      char buffer[DBM];
+      DWORD cr=0, cp = 0;
+      BOOL ret_r, ret_w;
+
+      do
+      {
+        cr=0;cp=0;
+        ret_r = ReadFile(hdrive, buffer, buffer_size,&cr,0);
+        ret_w = WriteFile(hf_save,buffer,buffer_size,&cp,0);
+
+        pos+=buffer_size;
+        printf("%lu mo %s -> %s",pos/1048510,path_disk,save_file);
+      }while (ret_r && ret_w && cp > 0 && sz != 0);
+    }
+    CloseHandle(hdrive);
+    CloseHandle(hf_save);
+  }
+}
 //------------------------------------------------------------------------------
 DWORD WINAPI BackupDrive(LPVOID lParam)
 {
@@ -147,6 +180,7 @@ DWORD WINAPI BackupDrive(LPVOID lParam)
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
+    backup_dd = !backup_dd;
     if (dd_partition(letter, file))
     {
       snprintf(tmp,MAX_PATH,"Drive imagine %c:\\ saved to : %s",letter,file);
@@ -162,7 +196,6 @@ DWORD WINAPI BackupDrive(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD WINAPI BackupDisk(LPVOID lParam)
 {
-  char id = lParam;
   char letter = lParam;
   char file[MAX_PATH]="", tmp[MAX_PATH]="";
   OPENFILENAME ofn;
@@ -178,8 +211,8 @@ DWORD WINAPI BackupDisk(LPVOID lParam)
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
-    char pathdisk[19]="\\\\.\\PhysicalDrive0";
-    pathdisk[18] = id;
+    char pathdisk[18]="\\\\.\\PhysicalDrive0";
+    pathdisk[17] = letter;
 
     if (dd_disk(pathdisk, file))
     {
@@ -1103,6 +1136,235 @@ void CopyRegistryUSERToZIP(void *hz, char*local_path,char*computername,HANDLE My
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "E:\\Users\\*.*", "E:\\Users");
 }
 //------------------------------------------------------------------------------
+void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDLE MyhFile)
+{
+  HKEY CleTmp   = 0;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\",&CleTmp)==ERROR_SUCCESS)
+  {
+    DWORD i, nbSubKey=0, key_size;
+    DWORD copiee;
+    char tmp_key[MAX_PATH], tmp_key_path[MAX_PATH], tmp_path2[MAX_PATH], tmp_path_dst[MAX_PATH],user[MAX_PATH];
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      //get subkey
+      for(i=0;i<nbSubKey;i++)
+      {
+        key_size    = MAX_PATH;
+        tmp_key[0]  = 0;
+        user[0]     = 0;
+        if (RegEnumKeyEx (CleTmp,i,user,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          //generate the key path
+          snprintf(tmp_key_path,MAX_PATH,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%s\\",user);
+
+          //get profil path
+          if (ReadValue(HKEY_LOCAL_MACHINE,tmp_key_path,"ProfileImagePath",tmp_key, MAX_PATH))
+          {
+            //verify the path if %systemdrive%
+            ReplaceEnv("SYSTEMDRIVE",tmp_key,MAX_PATH);
+
+          //---------------
+          //firefox
+            //search profil directory
+            snprintf(tmp_key_path,MAX_PATH,"%s\\Application Data\\Mozilla\\Firefox\\Profiles\\*.default",tmp_key);
+            WIN32_FIND_DATA wfd0;
+            HANDLE hfic = FindFirstFile(tmp_key_path, &wfd0);
+            if (hfic != INVALID_HANDLE_VALUE)
+            {
+              if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+              {
+                //path to search
+                snprintf(tmp_key_path,MAX_PATH,"%s\\Application Data\\Mozilla\\Firefox\\Profiles\\%s\\*.sqlite",tmp_key,wfd0.cFileName);
+
+                WIN32_FIND_DATA wfd;
+                HANDLE hfic2 = FindFirstFile(tmp_key_path, &wfd);
+                if (hfic2 != INVALID_HANDLE_VALUE)
+                {
+                  do
+                  {
+                    if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){}else
+                    {
+                      if(wfd.cFileName[0] == '.' && (wfd.cFileName[1] == 0 || wfd.cFileName[1] == '.')){}
+                      else
+                      {
+                        //test all files
+                        snprintf(tmp_path2,MAX_PATH,"%s\\Application Data\\Mozilla\\Firefox\\Profiles\\%s\\%s",tmp_key,wfd0.cFileName,wfd.cFileName);
+                        snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\Firefox\\%s_%s_%s",computername,user,wfd0.cFileName,wfd.cFileName);
+
+                        //add file
+                        addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+                        if (MyhFile != INVALID_HANDLE_VALUE)
+                        {
+                          WriteFile(MyhFile,tmp_path2,strlen(tmp_path2),&copiee,0);
+                          SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path2);
+                          WriteFile(MyhFile,"\r\n",2,&copiee,0);
+                        }
+                      }
+                    }
+                  }while(FindNextFile (hfic2,&wfd) && start_scan);
+                }
+              }
+            }
+            //---------------
+            //chrome
+            //search file in this path
+            WIN32_FIND_DATA wfd;
+            snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Application Data\\Google\\Chrome\\User Data\\Default\\*.*",tmp_key);
+            hfic = FindFirstFile(tmp_key_path, &wfd);
+            if (hfic != INVALID_HANDLE_VALUE)
+            {
+              do
+              {
+                if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){}else
+                {
+                  if(wfd.cFileName[0] == '.' && (wfd.cFileName[1] == 0 || wfd.cFileName[1] == '.')){}
+                  else
+                  {
+                    //test all files
+                    snprintf(tmp_path2,MAX_PATH,"%s\\Local Settings\\Application Data\\Google\\Chrome\\User Data\\Default\\%s",tmp_key,wfd.cFileName);
+                    snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\Chrome\\%s_%s",computername,user,wfd.cFileName);
+
+                    //add file
+                    addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+                    if (MyhFile != INVALID_HANDLE_VALUE)
+                    {
+                      WriteFile(MyhFile,tmp_path2,strlen(tmp_path2),&copiee,0);
+                      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path2);
+                      WriteFile(MyhFile,"\r\n",2,&copiee,0);
+                    }
+                  }
+                }
+              }while(FindNextFile (hfic,&wfd));
+            }
+            //---------------
+            //IE
+            snprintf(tmp_key_path,MAX_PATH,"%s\\Cookies\\index.dat",tmp_key);
+            if (tmp_key_path)
+            {
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_index.dat",computername,user);
+              //add file
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+              if (MyhFile != INVALID_HANDLE_VALUE)
+              {
+                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                WriteFile(MyhFile,"\r\n",2,&copiee,0);
+              }
+            }
+
+            //other
+            snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\Low\\index.dat",tmp_key);
+            if (tmp_key_path)
+            {
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_Low_index.dat",computername,user);
+              //add file
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+              if (MyhFile != INVALID_HANDLE_VALUE)
+              {
+                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                WriteFile(MyhFile,"\r\n",2,&copiee,0);
+              }
+            }
+            snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\PrivacIE\\index.dat",tmp_key);
+            if (tmp_key_path)
+            {
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_PrivacIE_index.dat",computername,user);
+              //add file
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+              if (MyhFile != INVALID_HANDLE_VALUE)
+              {
+                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                WriteFile(MyhFile,"\r\n",2,&copiee,0);
+              }
+            }
+            snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Internet Explorer\\DOMStore\\index.dat",tmp_key);
+            if (tmp_key_path)
+            {
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_DOMStore_index.dat",computername,user);
+              //add file
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+              if (MyhFile != INVALID_HANDLE_VALUE)
+              {
+                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                WriteFile(MyhFile,"\r\n",2,&copiee,0);
+              }
+            }
+            snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Feeds Cache\\index.dat",tmp_key);
+            if (tmp_key_path)
+            {
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Feeds_Cache_index.dat",computername,user);
+              //add file
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+              if (MyhFile != INVALID_HANDLE_VALUE)
+              {
+                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                WriteFile(MyhFile,"\r\n",2,&copiee,0);
+              }
+            }
+
+            //search other files cache
+            snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
+            HANDLE hfic2 = FindFirstFile(tmp_key_path, &wfd0);
+            if (hfic2 != INVALID_HANDLE_VALUE)
+            {
+              do
+              {
+                if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                {
+                  if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
+
+                  snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
+                  if (tmp_key_path)
+                  {
+                    snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_%s_Feeds_Cache_index.dat",computername,user,wfd0.cFileName);
+                    //add file
+                    addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+                    if (MyhFile != INVALID_HANDLE_VALUE)
+                    {
+                      WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                      WriteFile(MyhFile,"\r\n",2,&copiee,0);
+                    }
+                  }
+
+                  //get file and tests it
+                  WIN32_FIND_DATA wfd1;
+                  snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\*.*",tmp_key,wfd0.cFileName);
+                  HANDLE hfic3 = FindFirstFile(tmp_key_path, &wfd1);
+                  if (hfic3 == INVALID_HANDLE_VALUE)continue;
+                  do
+                  {
+                    if (wfd1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                    {
+                      if(wfd1.cFileName[0] == '.' && (wfd1.cFileName[1] == 0 || wfd1.cFileName[1] == '.'))continue;
+
+                      snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_%s_%s_index.dat",computername,user,wfd0.cFileName,wfd1.cFileName);
+
+                      //add file
+                      addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+                      if (MyhFile != INVALID_HANDLE_VALUE)
+                      {
+                        WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+                        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+                        WriteFile(MyhFile,"\r\n",2,&copiee,0);
+                      }
+                    }
+                  }while(FindNextFile (hfic3,&wfd1) && start_scan);
+                }
+              }while(FindNextFile (hfic2,&wfd0));
+            }
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+}
+//------------------------------------------------------------------------------
 void SaveALL(char*filetosave, char *computername)
 {
   void *hz;
@@ -1153,6 +1415,9 @@ void SaveALL(char*filetosave, char *computername)
     //registry
     CopyRegistryToZIP(hz,local_path,computername,MyhFile);
     CopyRegistryUSERToZIP(hz,local_path,computername,MyhFile);
+
+    //navigator
+    CopyNavigatorHistoryToZIP(hz,local_path,computername,MyhFile);
 
     //list of files
     CloseHandle(MyhFile);

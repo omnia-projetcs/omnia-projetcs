@@ -12,6 +12,7 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
                     char *ip_dst, char *port_dst, char *state,
                     char *hidden,char *parent_process, char *parent_pid, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_process (process,pid,path,cmd,owner,"
@@ -19,6 +20,10 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Process\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
@@ -392,6 +397,9 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     return 0;
   }
 
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Process\";\"rid\";\"sid\";\"start_date\";\"protocol\";\"ip_src\";\"port_src\";\"ip_dst\";\"port_dst\";\"state\";\"hidden\";\"parent_process\";\"parent_pid\";\"session_id\";\r\n");
+  #endif
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
   unsigned int session_id = current_session_id;

@@ -9,6 +9,7 @@
 void addClipboardtoDB(char *format, unsigned int code, char*description, char *data, char *user,
                   unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE+4];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_clipboard (format,code,description,user,session_id,data) "
@@ -18,6 +19,10 @@ void addClipboardtoDB(char *format, unsigned int code, char*description, char *d
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Clipboard\";\"%s\";\"%05d\";\"%s\";\"%s\";\"%d\";\"%s\";\r\n",
+         format,code,description,user,session_id,data);
+  #endif
 }
 //------------------------------------------------------------------------------
 void DatatoHexa(BYTE *data, DWORD data_size, char *str, DWORD str_size)
@@ -112,6 +117,9 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
     if (nb_items > 0)
     {
       unsigned int uFormat = EnumClipboardFormats(0);
+      #ifdef CMD_LINE_ONLY_NO_DB
+      printf("\"Clipboard\";\"format\";\"code\";\"description\";\"user\";\"session_id\";\"data\";\r\n");
+      #endif // CMD_LINE_ONLY_NO_DB
       while (uFormat && start_scan && GetLastError() == ERROR_SUCCESS && --nb_items>0)
       {
         //check if ok

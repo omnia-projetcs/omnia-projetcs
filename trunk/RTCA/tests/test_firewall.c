@@ -8,12 +8,17 @@
 //------------------------------------------------------------------------------
 void addRegistryFirewalltoDB(char *file, char *hk,char *key,char *application,char *rule, unsigned int session_id, sqlite3 *db)
 {
+  #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_firewall (file,hk,key,application,rule,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,application,rule,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
+  #else
+  printf("\"Firewall\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         file,hk,key,application,rule,session_id);
+  #endif
 }
 //------------------------------------------------------------------------------
 //local function part !!!
@@ -83,7 +88,9 @@ DWORD WINAPI Scan_firewall(LPVOID lParam)
 
   char file[MAX_PATH];
   HK_F_OPEN hks;
-
+  #ifdef CMD_LINE_ONLY_NO_DB
+  printf("\"Firewall\";\"file\";\"hk\";\"key\";\"application\";\"rule\";\"session_id\";\r\n");
+  #endif
   //files or local
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage((HWND)htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);

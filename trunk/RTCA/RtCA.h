@@ -6,10 +6,11 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //******************************************************************************
-//#define _WIN64_VERSION_        1       //Enable for 64bit OS Compilation
+#define _WIN64_VERSION_        1       //Enable for 64bit OS Compilation
 //#define VISUAL_STUDIO          1       //Enable for visual studio compilation
 //debug mode dev test
 //#define DEV_DEBUG_MODE         1
+//#define CMD_LINE_ONLY_NO_DB    1       // define RtCA on only command line tool (much function with no db)
 //******************************************************************************
 #define _WIN32_WINNT			     0x0501  //fonctionne au minimum sous Windows 2000
 #define _WIN32_IE              0x0501  //fonctionne avec ie5 min pour utilisation de LVS_EX_FULLROWSELECT
@@ -178,7 +179,7 @@ HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 WNDPROC wndproc_hdbclk_info;
 
-HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa;
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa, h_proxy;
 BOOL disable_m_context, disable_p_context, enable_magic;
 
 
@@ -339,6 +340,23 @@ DWORD last_bt;
 #define DLG_HEXA_CHK_HEXA           9106
 #define DLG_HEXA_LV_INFOS           9107
 #define DLG_HEXA_LV_HEXA            9108
+
+#define DLG_PROXY                   9200
+BOOL use_proxy_advanced_settings;
+BOOL use_other_proxy;
+char proxy_ch_auth[DEFAULT_TMP_SIZE];
+char proxy_ch_user[DEFAULT_TMP_SIZE];
+char proxy_ch_password[DEFAULT_TMP_SIZE];
+
+#define PROXY_ST_PROXY              9201
+#define PROXY_CHK_USE               9202
+#define PROXY_CHK_AUTOCONF          9203
+#define PROXY_ST_USER               9204
+#define PROXY_ST_PASSWORD           9205
+#define PROXY_ED_USER               9206
+#define PROXY_ED_PASSWORD           9207
+#define PROXY_ED_PROXY              9208
+#define PROXY_BT_OK                 9209
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -366,6 +384,7 @@ BOOL B_SCREENSHOT;
 BOOL B_SCREENSHOT_START;
 NOTIFYICONDATA TrayIcon;
 HHOOK HHook; // Handle du hook global
+#define BT_PROXY                10028
 
 #define IDM_TOOLS_CP_REGISTRY   10100
 #define IDM_TOOLS_CP_AUDIT      10101
@@ -447,8 +466,10 @@ BOOL SELECT_SESSION, SELECT_TEST;
 #define POPUP_LSTV_EMPTY_FILE                 12999
 BOOL AVIRUSTTAL,VIRUSTTAL;
 HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
-#define NB_VIRUTOTAL_THREADS                    100
+
 #define NB_VIRUTOTAL_THREADS_REF                  8
+#define NB_VIRUTOTAL_THREADS                      NB_VIRUTOTAL_THREADS_REF//100
+#define NB_VIRUTOTAL_ERROR_MAX                    5
 #define COLUMN_SHA256                            17
 #define COLUMN_PATH                               0
 #define COLUMN_FILE                               1
@@ -671,6 +692,7 @@ typedef struct
 //for sort in lstv
 BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
 BOOL TRI_STATE_ALL, TRI_STATE_LOG, TRI_STATE_CRITICAL, TRI_STATE_FILTER, TRI_SQLITE_ED;
+BOOL backup_dd;
 int column_tri;
 
 typedef struct SORT_ST
@@ -681,7 +703,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         96
+#define NB_COMPONENT_STRING         97
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -773,6 +795,8 @@ typedef struct SORT_ST
 #define TXT_MSG_RIGHT_ADMIN_ATTENTION   94
 
 #define TXT_GRP_CONF                    95
+#define TXT_ADD_DB                      96
+
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
@@ -1104,6 +1128,8 @@ void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
+void ConsoleDirectory_sha256deep(char *tmp_path);
+void DDConsole(char *path_disk, DWORD sz, char *save_file);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);
@@ -1141,6 +1167,7 @@ DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk
                          unsigned int index, char *value, unsigned int value_size, char *data, DWORD *data_size);
 void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db);
 void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE hlv, HANDLE htv);
+void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max);
 
 //process
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size);
@@ -1153,6 +1180,7 @@ BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char
 void TraiterEventlogFileEvt(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_id);
 void TraiterEventlogFileEvtx(char *eventfile, sqlite3 *db, unsigned int session_id);
+char *CheckNameAndDescription(char *name, unsigned int name_size_max);
 
 //reg file explorer
 void InitDlgRegfile();
@@ -1179,6 +1207,8 @@ BOOL CALLBACK DialogProc_date(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_proxy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 DWORD WINAPI ImpEcran(LPVOID lParam);
 
 //subclass
