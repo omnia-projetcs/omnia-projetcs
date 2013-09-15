@@ -1,0 +1,3 @@
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"ProductName";"";"STRING";"*";
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"SystemRoot";"WINDOWS";"STRING";"?";
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"toto";"";"STRING";"*";

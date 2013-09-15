@@ -1,0 +1,3 @@
+IO.SYS
+WINDOWS\explorer.exe
+WINDOWS\toot.zc

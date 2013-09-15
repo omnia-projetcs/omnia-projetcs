@@ -1,0 +1,43 @@
+//----------------------------------------------------------------
+// Project              : Network Scanner
+// Author               : Hanteville Nicolas
+// Licence              : GPLv3
+//----------------------------------------------------------------
+#include "resources.h"
+//----------------------------------------------------------------
+ICON_APP            ICON DISCARDABLE "NS.ico"
+//----------------------------------------------------------------
+DLG_NS DIALOGEX 6,6,479,299
+CAPTION TITLE
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x10CF0800
+BEGIN
+  CONTROL "Domain"                        ,ED_NET_DOMAIN    ,"Edit"           ,0x50010080,4   ,2  ,60 ,13,0x00000200
+  CONTROL "Login"                         ,ED_NET_LOGIN     ,"Edit"           ,0x50010080,66  ,2  ,82 ,13,0x00000200
+  CONTROL "Password"                      ,ED_NET_PASSWORD  ,"Edit"           ,0x500100A0,66  ,17 ,82 ,13,0x00000200
+
+  CONTROL "Current session"               ,CHK_NULL_SESSION ,"Button"         ,0x50012003,4 ,17 ,62 ,13
+  CONTROL "Check All"                     ,CHK_ALL_TEST     ,"Button"         ,0x50010000,4 ,32 ,60 ,13
+
+  CONTROL "Perimeter"                     ,GRP_PERIMETER    ,"Button"         ,0x50000007,178,0  ,210,33
+  CONTROL "192.168.100.100"               ,IP1              ,"SysIPAddress32" ,0x50010000,188,11 ,60 ,13
+  CONTROL ">"                             ,BT_IP_CP         ,"Button"         ,0x50010000,252,11 ,8  ,13
+  CONTROL "192.168.100.254"               ,IP2              ,"SysIPAddress32" ,0x50010000,264,11 ,60 ,13
+  CONTROL "Load file"                     ,CHK_LOAD_IP_FILE ,"Button"         ,0x50010003,330,7  ,54 ,9
+  CONTROL "Save"                          ,BT_SAVE          ,"Button"         ,0x50010000,330,18 ,46 ,11
+
+  CONTROL "Start"                         ,BT_START         ,"Button"         ,0x50010000,390,1  ,88 ,32
+
+  CONTROL ""                              ,CB_infos         ,"ListBox"        ,0x50300141,114,241,364,56,0x00000200
+  CONTROL ""                              ,LV_results       ,"SysListView32"  ,0x10000000|0x4081008D,114,35,364,203,0x00000200
+  CONTROL ""                              ,CB_tests         ,"ListBox"        ,0x50010149| WS_VSCROLL| WS_TABSTOP,2,55,110,262,0x00000200
+
+  CONTROL ""                              ,CB_IP            ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+
+  CONTROL ""                              ,CB_T_REGISTRY    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_T_SERVICES    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_T_SOFTWARE    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_T_USB         ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_T_FILES       ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+END
+//----------------------------------------------------------------
