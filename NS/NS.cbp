@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="NS" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="default">
+				<Option output="NS" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O3" />
+				</Compiler>
+			</Target>
+		</Build>
+		<Linker>
+			<Add library="ws2_32" />
+			<Add library="comctl32" />
+			<Add library="iphlpapi" />
+			<Add library="netapi32" />
+			<Add library="ole32" />
+			<Add library="mpr" />
+			<Add library="dnsapi" />
+		</Linker>
+		<Unit filename="crypt/md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="crypt/md5.h" />
+		<Unit filename="crypt/sha2.cpp" />
+		<Unit filename="crypt/sha2.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="proc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="resources.h" />
+		<Unit filename="resources.rc">
+			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="scan.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/arp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/dns.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/icmp.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/netBIOS.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/registry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
