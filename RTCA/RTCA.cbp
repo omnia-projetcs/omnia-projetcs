@@ -65,6 +65,9 @@
 		<Unit filename="crypt/rc4_skey.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="crypt/rev_mdp.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="crypt/sha2.cpp" />
 		<Unit filename="crypt/sha2.h" />
 		<Unit filename="crypt/windows_users_hashs_registry.c">

@@ -1,289 +1,19 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Release" />
-	<File name="tests\test_log_files_evt.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2757" topLine="61" />
-		</Cursor>
-	</File>
-	<File name="tests\test_env.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3237" topLine="61" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_userassist.c" open="0" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="20634" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="configuration\gui_conf.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1888" topLine="23" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_users.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="907" topLine="42" />
-		</Cursor>
-	</File>
-	<File name="configuration\init.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="11561" topLine="363" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_state.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="8554" topLine="223" />
-		</Cursor>
-	</File>
-	<File name="tests\test_route.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3632" topLine="91" />
-		</Cursor>
-	</File>
-	<File name="tests\test_ldap.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="8475" topLine="293" />
-		</Cursor>
-	</File>
-	<File name="tests\test_network.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5763" topLine="207" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_clean.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="463" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tests\test_antivirus.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="54468" topLine="1072" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_hexa.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tests\test_android.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3312" topLine="66" />
-		</Cursor>
-	</File>
-	<File name="tests\test_firefox.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="6446" topLine="180" />
-		</Cursor>
-	</File>
-	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="6469" topLine="153" />
-		</Cursor>
-	</File>
-	<File name="Registry.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4704" topLine="96" />
-		</Cursor>
-	</File>
-	<File name="suivie.txt" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="2" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1068" topLine="18" />
-		</Cursor>
-	</File>
-	<File name="crypt\sha2.h" open="0" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_registry.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4719" topLine="99" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_mru.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="25603" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="crypt\windows_users_hashs_registry.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5656" topLine="165" />
-		</Cursor>
-	</File>
 	<File name="tests\test_registry_start.c" open="0" top="0" tabpos="26" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="8120" topLine="197" />
 		</Cursor>
 	</File>
-	<File name="export.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_prefetch.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="10282" topLine="254" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_path.c" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="9592" topLine="226" />
-		</Cursor>
-	</File>
-	<File name="files\LiteZip.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="62182" topLine="1830" />
-		</Cursor>
-	</File>
-	<File name="tests\test_clipboard.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="9967" topLine="237" />
+			<Cursor1 position="8486" topLine="180" />
 		</Cursor>
 	</File>
 	<File name="tools\tools_virustotal.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="13249" topLine="351" />
-		</Cursor>
-	</File>
-	<File name="tests\test_share.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="5631" topLine="117" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_deleted_keys.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2176" topLine="33" />
-		</Cursor>
-	</File>
-	<File name="files\proc_files.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="564" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_copy.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="47856" topLine="1224" />
-		</Cursor>
-	</File>
-	<File name="files\proc_registry_files.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="12469" topLine="314" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_memory.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2482" topLine="39" />
-		</Cursor>
-	</File>
-	<File name="configuration\proxy.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3371" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tests\test_file.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="20504" topLine="435" />
-		</Cursor>
-	</File>
-	<File name="tests\test_process.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13749" topLine="248" />
-		</Cursor>
-	</File>
-	<File name="import.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4535" topLine="139" />
-		</Cursor>
-	</File>
-	<File name="tests\test_log_files_evtx.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4457" topLine="193" />
-		</Cursor>
-	</File>
-	<File name="tests\test_ie.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="12343" topLine="319" />
-		</Cursor>
-	</File>
-	<File name="sqlite\sqlite3.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="15369" topLine="343" />
-		</Cursor>
-	</File>
-	<File name="main.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="86199" topLine="1779" />
-		</Cursor>
-	</File>
-	<File name="tests\test_arp.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="585" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tests\test_pipe.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1869" topLine="45" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_service.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1688" topLine="24" />
-		</Cursor>
-	</File>
-	<File name="RtCA.rc" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="15340" topLine="221" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_settings.c" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="713" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="proc.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="11872" topLine="311" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_shellbags.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1476" topLine="29" />
-		</Cursor>
-	</File>
-	<File name="tests\test_dns.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3095" topLine="60" />
-		</Cursor>
-	</File>
-	<File name="proc_cmd.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1071" topLine="25" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_software.c" open="0" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1267" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_sqlite_ed.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2721" topLine="66" />
-		</Cursor>
-	</File>
-	<File name="proc_gui.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13726" topLine="358" />
-		</Cursor>
-	</File>
-	<File name="tests\test_registry_update.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13183" topLine="262" />
-		</Cursor>
-	</File>
-	<File name="RtCA.h" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="521" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="proc_registry.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2943" topLine="89" />
+			<Cursor1 position="908" topLine="3" />
 		</Cursor>
 	</File>
 	<File name="tests\test_task.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
@@ -291,9 +21,44 @@
 			<Cursor1 position="8464" topLine="200" />
 		</Cursor>
 	</File>
-	<File name="tests\test_chrome.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_registry_password.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="5476" topLine="125" />
+			<Cursor1 position="7397" topLine="175" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_update.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13183" topLine="262" />
+		</Cursor>
+	</File>
+	<File name="proc_gui.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="376" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\test_arp.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="585" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_network.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="52815" topLine="1282" />
+		</Cursor>
+	</File>
+	<File name="proc_registry.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2856" topLine="74" />
+		</Cursor>
+	</File>
+	<File name="tests\test_ldap.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8475" topLine="293" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_registry.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="18695" topLine="413" />
 		</Cursor>
 	</File>
 	<File name="tests\test_firewall.c" open="0" top="0" tabpos="13" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -306,24 +71,9 @@
 			<Cursor1 position="19495" topLine="347" />
 		</Cursor>
 	</File>
-	<File name="tests\test_log.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="Registry.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3012" topLine="46" />
-		</Cursor>
-	</File>
-	<File name="sqlite\sqlite3.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1264867" topLine="34385" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_date.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4235" topLine="99" />
-		</Cursor>
-	</File>
-	<File name="tests\test_disk.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="995" topLine="2" />
+			<Cursor1 position="1316" topLine="18" />
 		</Cursor>
 	</File>
 	<File name="sqlite\interface.h" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -331,34 +81,24 @@
 			<Cursor1 position="2149" topLine="32" />
 		</Cursor>
 	</File>
-	<File name="tests\test_registry_password.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools\tools_clean.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="7397" topLine="175" />
+			<Cursor1 position="463" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="tests\test_prefetch.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_registry_userassist.c" open="0" top="0" tabpos="25" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="8486" topLine="180" />
+			<Cursor1 position="20634" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="sqlite\load_save.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_registry_service.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1058" topLine="27" />
+			<Cursor1 position="4797" topLine="113" />
 		</Cursor>
 	</File>
-	<File name="tests\test_file_lnk.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tools\tools_screenshot.c" open="0" top="0" tabpos="16" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="13721" topLine="315" />
-		</Cursor>
-	</File>
-	<File name="tools\tools_network.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="44539" topLine="1084" />
-		</Cursor>
-	</File>
-	<File name="tests\test_guide.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13006" topLine="266" />
+			<Cursor1 position="3969" topLine="116" />
 		</Cursor>
 	</File>
 	<File name="crypt\des.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -366,14 +106,29 @@
 			<Cursor1 position="13269" topLine="490" />
 		</Cursor>
 	</File>
-	<File name="tools\tools_process.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_clipboard.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="40498" topLine="917" />
+			<Cursor1 position="9967" topLine="237" />
 		</Cursor>
 	</File>
-	<File name="tests\scan.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_registry_path.c" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="13314" topLine="138" />
+			<Cursor1 position="9592" topLine="226" />
+		</Cursor>
+	</File>
+	<File name="sqlite\load_save.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1058" topLine="27" />
+		</Cursor>
+	</File>
+	<File name="tests\test_network.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5763" topLine="207" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_usb.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5819" topLine="126" />
 		</Cursor>
 	</File>
 	<File name="crypt\md5.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -381,14 +136,283 @@
 			<Cursor1 position="0" topLine="347" />
 		</Cursor>
 	</File>
+	<File name="RtCA.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="595" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="suivie.txt" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="2" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="194" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_copy.c" open="0" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1959" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\test_disk.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="995" topLine="2" />
+		</Cursor>
+	</File>
+	<File name="tests\test_log.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2798" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\test_env.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3237" topLine="61" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_deleted_keys.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2176" topLine="33" />
+		</Cursor>
+	</File>
+	<File name="sqlite\sqlite3.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1264839" topLine="34385" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_software.c" open="0" top="0" tabpos="21" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3081" topLine="54" />
+		</Cursor>
+	</File>
+	<File name="tests\test_log_files.c" open="0" top="0" tabpos="17" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="575" topLine="3" />
+		</Cursor>
+	</File>
+	<File name="crypt\sha2.h" open="0" top="0" tabpos="20" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2539" topLine="74" />
+		</Cursor>
+	</File>
+	<File name="crypt\rev_mdp.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1196" topLine="22" />
+		</Cursor>
+	</File>
+	<File name="tests\test_log_files_evt.c" open="0" top="0" tabpos="18" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3747" topLine="101" />
+		</Cursor>
+	</File>
+	<File name="tests\scan.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13314" topLine="138" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_sqlite_ed.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="14939" topLine="348" />
+		</Cursor>
+	</File>
+	<File name="crypt\windows_users_hashs_registry.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5656" topLine="165" />
+		</Cursor>
+	</File>
+	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="20504" topLine="508" />
+		</Cursor>
+	</File>
+	<File name="configuration\gui_conf.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="21861" topLine="443" />
+		</Cursor>
+	</File>
+	<File name="export.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="19753" topLine="249" />
+		</Cursor>
+		<Folding>
+			<Collapse line="9" />
+			<Collapse line="107" />
+			<Collapse line="255" />
+		</Folding>
+	</File>
+	<File name="tests\test_registry_shellbags.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1476" topLine="29" />
+		</Cursor>
+	</File>
+	<File name="configuration\proxy.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="489" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\test_firefox.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6446" topLine="180" />
+		</Cursor>
+	</File>
+	<File name="RtCA.rc" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="21592" topLine="350" />
+		</Cursor>
+	</File>
+	<File name="tests\test_guide.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13006" topLine="266" />
+		</Cursor>
+	</File>
+	<File name="files\LiteZip.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="46945" topLine="1413" />
+		</Cursor>
+	</File>
+	<File name="tests\test_log_files_evtx.c" open="0" top="0" tabpos="19" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="10224" topLine="299" />
+		</Cursor>
+	</File>
+	<File name="tests\test_ie.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="12343" topLine="319" />
+		</Cursor>
+	</File>
+	<File name="tests\test_process.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13749" topLine="248" />
+		</Cursor>
+	</File>
+	<File name="tests\test_route.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3632" topLine="91" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_date.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4235" topLine="99" />
+		</Cursor>
+	</File>
+	<File name="files\proc_files.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8745" topLine="191" />
+		</Cursor>
+	</File>
 	<File name="tools\tools_registry_recovery.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="10361" topLine="270" />
 		</Cursor>
 	</File>
-	<File name="tests\test_registry_usb.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\test_file.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="15796" topLine="353" />
+			<Cursor1 position="25546" topLine="574" />
+		</Cursor>
+	</File>
+	<File name="tests\test_android.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3312" topLine="66" />
+		</Cursor>
+	</File>
+	<File name="files\proc_registry_files.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="24814" topLine="636" />
+		</Cursor>
+	</File>
+	<File name="sqlite\sqlite3.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="15369" topLine="343" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_state.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="57947" topLine="1319" />
+		</Cursor>
+	</File>
+	<File name="tests\test_share.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5631" topLine="117" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_users.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="907" topLine="42" />
+		</Cursor>
+	</File>
+	<File name="import.c" open="0" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7097" topLine="206" />
+		</Cursor>
+	</File>
+	<File name="tests\test_dns.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1828" topLine="27" />
+		</Cursor>
+	</File>
+	<File name="tests\test_registry_mru.c" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="36457" topLine="848" />
+		</Cursor>
+	</File>
+	<File name="tests\test_chrome.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6087" topLine="125" />
+		</Cursor>
+	</File>
+	<File name="tests\test_antivirus.c" open="0" top="0" tabpos="11" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="54468" topLine="1072" />
+		</Cursor>
+	</File>
+	<File name="main.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="45167" topLine="920" />
+		</Cursor>
+		<Folding>
+			<Collapse line="994" />
+			<Collapse line="1270" />
+		</Folding>
+	</File>
+	<File name="tests\test_registry_settings.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="377" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="proc.c" open="0" top="0" tabpos="10" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5455" topLine="127" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_memory.c" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2482" topLine="39" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_process.c" open="0" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="46256" topLine="1045" />
+		</Cursor>
+	</File>
+	<File name="proc_cmd.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1071" topLine="25" />
+		</Cursor>
+	</File>
+	<File name="configuration\init.c" open="0" top="0" tabpos="15" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="8524" topLine="256" />
+		</Cursor>
+	</File>
+	<File name="tests\test_pipe.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1869" topLine="45" />
+		</Cursor>
+	</File>
+	<File name="tests\test_file_lnk.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4965" topLine="105" />
+		</Cursor>
+	</File>
+	<File name="tools\tools_hexa.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

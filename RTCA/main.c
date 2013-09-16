@@ -748,7 +748,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_H_00+i,MF_BYCOMMAND);
 
                 //view popup
-                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(dwPos), HIWORD(dwPos), hwnd, NULL);
+                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
                 DestroyMenu(hmenu);
               }
               disable_m_context = TRUE;
@@ -771,7 +771,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             {
               ModifyMenu(hmenu,POPUP_FILE_IMPORT_FILE,MF_BYCOMMAND|MF_STRING,POPUP_FILE_IMPORT_FILE,cps[TXT_LOAD_FILE].c);
 
-              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
               DestroyMenu(hmenu);
             }
           }
@@ -921,7 +921,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
             }
           }
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -966,23 +966,21 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       case MY_WM_NOTIFYICON:
         if (lParam == WM_LBUTTONUP || lParam == WM_RBUTTONUP)
         {
-         POINT pos;
-         HMENU hmenu,hmenu2;
-          //on affiche le popup
-          if (GetCursorPos(&pos)!=0)
+          HMENU hmenu,hmenu2;
+          if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(MY_POPUP_SCREENSHOT)))!= NULL)
           {
-            if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(MY_POPUP_SCREENSHOT)))!= NULL)
+            if ((hmenu2 = GetSubMenu(hmenu, 0))!=0)
             {
-              if ((hmenu2 = GetSubMenu(hmenu, 0))!=0)
-              {
-                //EnableMenuItem(hmenu2,MSG_SCREENSHOT_WINDOW,MF_BYCOMMAND|MF_GRAYED);
+              //EnableMenuItem(hmenu2,MSG_SCREENSHOT_WINDOW,MF_BYCOMMAND|MF_GRAYED);
 
-                SetForegroundWindow(hwnd);
-                TrackPopupMenuEx(hmenu2, 0, pos.x, pos.y,hwnd, NULL);
-                DestroyMenu(hmenu2);
-              }
-              DestroyMenu(hmenu);
+              SetForegroundWindow(hwnd);
+
+              //for multiple screen
+              TrackPopupMenuEx(hmenu2, 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+
+              DestroyMenu(hmenu2);
             }
+            DestroyMenu(hmenu);
           }
         }
       break;

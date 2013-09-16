@@ -294,7 +294,7 @@ void sha256_hash(const unsigned char data[], unsigned long len, sha256_ctx ctx[1
     {
         memcpy(((unsigned char*)ctx->wbuf) + pos, sp, space);
         sp += space; len -= space; space = SHA256_BLOCK_SIZE; pos = 0;
-        bsw_32(ctx->wbuf, SHA256_BLOCK_SIZE >> 2);
+        bsw_32(ctx->wbuf, (SHA256_BLOCK_SIZE >> 2));
         sha256_compile(ctx);
     }
 
@@ -316,7 +316,7 @@ static sha2_32t  b1[4] =
 void sha256_end(unsigned char hval[], sha256_ctx ctx[1])
 {   sha2_32t    i = (sha2_32t)(ctx->count[0] & SHA256_MASK);
 
-    bsw_32(ctx->wbuf, (i + 3) >> 2);
+    bsw_32(ctx->wbuf, ((i + 3) >> 2));
     /* bytes in the buffer are now in an order in which references  */
     /* to 32-bit words will put bytes with lower addresses into the */
     /* top of 32 bit words on BOTH big and little endian machines   */
@@ -485,7 +485,7 @@ void sha512_hash(const unsigned char data[], unsigned long len, sha512_ctx ctx[1
     {
         memcpy(((unsigned char*)ctx->wbuf) + pos, sp, space);
         sp += space; len -= space; space = SHA512_BLOCK_SIZE; pos = 0;
-        bsw_64(ctx->wbuf, SHA512_BLOCK_SIZE >> 3);
+        bsw_64(ctx->wbuf, (SHA512_BLOCK_SIZE >> 3));
         sha512_compile(ctx);
     }
 
@@ -513,7 +513,7 @@ static sha2_64t  b2[8] =
 static void sha_end(unsigned char hval[], sha512_ctx ctx[1], const unsigned int hlen)
 {   sha2_32t    i = (sha2_32t)(ctx->count[0] & SHA512_MASK);
 
-    bsw_64(ctx->wbuf, (i + 7) >> 3);
+    bsw_64(ctx->wbuf, ((i + 7) >> 3));
 
     /* bytes in the buffer are now in an order in which references  */
     /* to 64-bit words will put bytes with lower addresses into the */

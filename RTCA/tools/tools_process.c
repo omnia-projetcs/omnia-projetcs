@@ -988,7 +988,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
 
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -1049,7 +1049,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_H_00+i,MF_BYCOMMAND);
 
               //view popup
-              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(dwPos), HIWORD(dwPos), hwnd, NULL);
+              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos),hwnd, NULL);
               DestroyMenu(hmenu);
             }
             disable_p_context = TRUE;
