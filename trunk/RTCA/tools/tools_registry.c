@@ -406,7 +406,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_TV_REGISTRY)))!= NULL)
         {
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }else if ((HWND)wParam == GetDlgItem(hwnd,LV_VIEW))
@@ -414,7 +414,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_REGISTRY)))!= NULL)
         {
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, LOWORD(lParam), HIWORD(lParam), hwnd, NULL);
+          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }

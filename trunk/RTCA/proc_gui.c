@@ -63,7 +63,7 @@ DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
 {
   DWORD i, j, nb_item = ListView_GetItemCount(hlv);
   char tmp[MAX_LINE_SIZE];
-  for (i=start_id+1;i<nb_item;i++)
+  for (i=start_id;i<nb_item;i++)
   {
     for (j=0;j<nb_col;j++)
     {
@@ -80,18 +80,18 @@ DWORD LVSearch(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
         ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
 
         //on quitte
-        return i;
+        return i+1;
       }
     }
   }
-  return -1;
+  return 0;
 }
 //------------------------------------------------------------------------------
 DWORD LVSearchNoCass(HANDLE hlv, unsigned short nb_col, char *search, DWORD start_id)
 {
   DWORD i, j, nb_item = ListView_GetItemCount(hlv);
   char tmp[MAX_LINE_SIZE];
-  for (i=start_id+1;i<nb_item;i++)
+  for (i=start_id;i<nb_item;i++)
   {
     for (j=0;j<nb_col;j++)
     {
@@ -108,11 +108,11 @@ DWORD LVSearchNoCass(HANDLE hlv, unsigned short nb_col, char *search, DWORD star
         ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
 
         //on quitte
-        return i;
+        return i+1;
       }
     }
   }
-  return -1;
+  return 0;
 }
 //------------------------------------------------------------------------------
 void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)

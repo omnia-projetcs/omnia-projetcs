@@ -79,7 +79,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
                     snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
                                                    "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
                     sqlite3_exec(db_scan,request, NULL, NULL, NULL);
-                    SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+                    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
                   }
 
            //next
@@ -93,7 +93,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
         free(res);
       }
     }
-    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : https://easylist-downloads.adblockplus.org/malwaredomains_full.txt");
+    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"OK : https://easylist-downloads.adblockplus.org/malwaredomains_full.txt");
   }
   //---------------------------
   //http://malc0de.com/bl/BOOT
@@ -129,7 +129,6 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
         if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
         {
-          DWORD sz = strlen(res);
           if (strlen(res)>323)//bypass 323 first caracts
           {
             //working with file and update
@@ -152,7 +151,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
                   snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
                                                  "VALUES(\"%s\",\"http://malc0de.com/bl/BOOT\");",domain);
                   sqlite3_exec(db_scan,request, NULL, NULL, NULL);
-                  SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
                 }
 
                 //next line
@@ -165,7 +164,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
         free(res);
       }
     }
-    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : http://malc0de.com/bl/BOOT");
+    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"OK : http://malc0de.com/bl/BOOT");
   }
   //---------------------------
   //http://www.malwaredomainlist.com/hostslist/hosts.txt
@@ -218,7 +217,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
                 snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
                                                "VALUES(\"%s\",\"http://www.malwaredomainlist.com/hostslist/hosts.txt\");",domain);
                 sqlite3_exec(db_scan,request, NULL, NULL, NULL);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, domain);
+                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
               }
 
               //next datas
@@ -231,12 +230,12 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
         free(res);
       }
     }
-    SendMessage(hstatus_bar,SB_SETTEXT,1, "OK : http://www.malwaredomainlist.com/hostslist/hosts.txt");
+    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"OK : http://www.malwaredomainlist.com/hostslist/hosts.txt");
   }
   //---------------------------
   InternetCloseHandle(M_connexion);
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_END].c);
-  SendMessage(hstatus_bar,SB_SETTEXT,1, "");
+  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"");
   update_thread_start = 0;
   return 0;
 }

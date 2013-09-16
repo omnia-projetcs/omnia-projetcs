@@ -6,7 +6,7 @@
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 //******************************************************************************
-#define _WIN64_VERSION_        1       //Enable for 64bit OS Compilation
+//#define _WIN64_VERSION_        1       //Enable for 64bit OS Compilation
 //#define VISUAL_STUDIO          1       //Enable for visual studio compilation
 //debug mode dev test
 //#define DEV_DEBUG_MODE         1
@@ -55,6 +55,7 @@
 #include <stdlib.h>
 #include <Winsock2.h>           //gestion socket (avant windows.h car existe la version 1 dans windows.h)
 #include <windows.h>
+#include <Windowsx.h>
 #include "version.h"            //for version tracking
 #include <commctrl.h>           //componants
 #include <shlobj.h>             //browser
@@ -357,6 +358,7 @@ char proxy_ch_password[DEFAULT_TMP_SIZE];
 #define PROXY_ED_PASSWORD           9207
 #define PROXY_ED_PROXY              9208
 #define PROXY_BT_OK                 9209
+#define PROXY_CHK_SAVE              9210
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -1034,6 +1036,11 @@ void addLogtoDB(char *event, char *indx, char *log_id,
                 char *send_date, char *write_date,
                 char *source, char *description, char *user, char *rid, char *sid,
                 char *state, char *critical, unsigned int session_id, sqlite3 *db);
+void addFiletoDB(char *path, char *file, char *extension,
+                  char *Create_time, char *Modify_time, char *Access_Time,char *Size,
+                  char *Owner, char *RID, char *sid, char *ACL,
+                  char *Hidden, char *System, char *Archive, char *Encrypted, char *Tempory,
+                  char *ADS, char *SAH256, char *VirusTotal, char *Description, unsigned int session_id, sqlite3 *db);
 void GetColumnInfo(unsigned int id);
 
 //save function
@@ -1085,6 +1092,11 @@ BOOL isWine();
 //cmd function
 int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName);
 void AddNewSession(BOOL local_only, sqlite3 *db);
+
+//mdp_save in ini file
+#define MDP_TEST        "zoo218745963zooTO"
+char *chr(char *data,char* password);
+char *dechr(char *data,unsigned int data_size,char* password);
 
 //gui interfaces
 void redimColumn(HANDLE f,int lv,int column,unsigned int col_size);

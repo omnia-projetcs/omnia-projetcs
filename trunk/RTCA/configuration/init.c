@@ -197,6 +197,25 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
     GetPrivateProfileString("CONF","DEFAULT_LANG_ID","1",default_lang_id,DEFAULT_TMP_SIZE,path);
     current_lang_id = atoi(default_lang_id);
 
+    if (IsDlgButtonChecked(h_proxy,PROXY_CHK_SAVE)==BST_CHECKED)
+    {
+      //if login and mdp
+      char tmp[DEFAULT_TMP_SIZE]="";
+      GetPrivateProfileString("PROXY","PROXY_URL","",tmp,DEFAULT_TMP_SIZE,path);
+      if (tmp[0] != 0)SetWindowText(GetDlgItem((HWND)h_proxy,PROXY_ED_PROXY),tmp);
+
+      tmp[0] = 0;
+      GetPrivateProfileString("PROXY","PROXY_LOGIN","",tmp,DEFAULT_TMP_SIZE,path);
+      if (tmp[0] != 0)SetWindowText(GetDlgItem((HWND)h_proxy,PROXY_ED_USER),tmp);
+
+      tmp[0] = 0;
+      GetPrivateProfileString("PROXY","PROXY_PASSWORD","",tmp,DEFAULT_TMP_SIZE,path);
+      if (tmp[0] != 0)
+      {
+        //simple XOR function
+        SetWindowText(GetDlgItem((HWND)h_proxy,PROXY_ED_PASSWORD),dechr(tmp,strlen(tmp),MDP_TEST));
+      }
+    }
     SendMessage(hCombo_lang, CB_SETCURSEL,current_lang_id-1,0);
   }
 
@@ -550,6 +569,28 @@ void EndGUIConfig(HANDLE hwnd)
   //set value
   char default_lang_id[DEFAULT_TMP_SIZE];
   WritePrivateProfileString("CONF","DEFAULT_LANG_ID",itoa(current_lang_id,default_lang_id,10),path);
+
+  //login+mdp and proxy
+  char tmp[DEFAULT_TMP_SIZE]="";
+  if (GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_PROXY)) > 0)
+  {
+    GetWindowText(GetDlgItem(h_proxy,PROXY_ED_PROXY),tmp,DEFAULT_TMP_SIZE);
+    WritePrivateProfileString("PROXY","PROXY_URL",tmp,path);
+  }
+
+  tmp[0] = 0;
+  if (GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_USER)) > 0)
+  {
+    GetWindowText(GetDlgItem(h_proxy,PROXY_ED_USER),tmp,DEFAULT_TMP_SIZE);
+    WritePrivateProfileString("PROXY","PROXY_LOGIN",tmp,path);
+  }
+
+  tmp[0] = 0;
+  if (GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_PASSWORD)) > 0)
+  {
+    GetWindowText(GetDlgItem(h_proxy,PROXY_ED_PASSWORD),tmp,DEFAULT_TMP_SIZE);
+    WritePrivateProfileString("PROXY","PROXY_PASSWORD",chr(tmp,MDP_TEST),path);
+  }
 
   CloseWindow(hwnd);
   PostQuitMessage(0);

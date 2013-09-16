@@ -27,18 +27,22 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
 //------------------------------------------------------------------------------
 int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName)
 {
-  if (strlen(malware_check) > 0)strncat(malware_check,"\r\n",MAX_PATH);
-  strncat(malware_check,argv[0],MAX_PATH);
-  strncat(malware_check,"\0",MAX_PATH);
+  if(malware_check[0] == 0 )snprintf(malware_check,MAX_PATH,"%s",argv[0]);
   return 0;
 }
 //------------------------------------------------------------------------------
 void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size)
 {
   malware_check[0] = 0;
-  char request[MAX_LINE_SIZE];
   char *c = name;
 
+  //if > 2 caracts
+  if (*c ==0)return;
+  if (*(c+1) ==0)return;
+  if (*(c+2) ==0)return;
+  if (*(c+3) ==0)return;
+
+  char request[MAX_LINE_SIZE];
   //get only last 2 parts xxx.xxx
   while (*c++);
   while (*c != name[0] && *c != '.')c--; //fisrt

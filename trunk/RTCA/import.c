@@ -223,7 +223,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
   }
 
   char msg[MAX_PATH];
-  snprintf(msg,MAX_PATH,"Load file done !!! (%lu items)",ListView_GetItemCount(hlstv));
+  snprintf(msg,MAX_PATH,"Load file done !!! (%u items)",ListView_GetItemCount(hlstv));
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)msg);
   return 0;
 }

@@ -234,15 +234,19 @@ CAPTION "Proxy settings"
 FONT 8,"MS Sans Serif",0,0
 STYLE 0x00C80800
 BEGIN
-  CONTROL "http://proxy:8080"                         ,PROXY_ED_PROXY,"Edit",0x58010004,32,25,130,13,0x00000200
   CONTROL "Use advanced proxy settings"               ,PROXY_CHK_USE,"Button",0x50010003,2,1,110,9
-  CONTROL "Proxy:"                                    ,PROXY_ST_PROXY,"Static",0x50000000,2,27,26,9
   CONTROL "Proxy auto settings"                       ,PROXY_CHK_AUTOCONF,"Button",0x58010003,2,12,110,9
-  CONTROL "User:"                                     ,PROXY_ST_USER,"Static",0x50000000,2,46,34,9
-  CONTROL "Password:"                                 ,PROXY_ST_PASSWORD,"Static",0x50000000,2,60,34,9
-  CONTROL ""                                          ,PROXY_ED_USER,"Edit",0x58010004,40,44,122,13,0x00000200
-  CONTROL ""                                          ,PROXY_ED_PASSWORD,"Edit",0x58010024,40,59,122,13,0x00000200
+  CONTROL "Save proxy settings"                       ,PROXY_CHK_SAVE,"Button",0x50010003,2,24,110,9
   CONTROL "OK"                                        ,PROXY_BT_OK,"Button",0x50010000,116,1,48,20
+
+  CONTROL "Proxy:"                                    ,PROXY_ST_PROXY,"Static",0x50000000,2,36,26,9
+  CONTROL "http://proxy:8080"                         ,PROXY_ED_PROXY,"Edit",0x58010004,32,34,130,13,0x00000200
+
+  CONTROL "User:"                                     ,PROXY_ST_USER,"Static",0x50000000,2,50,34,9
+  CONTROL ""                                          ,PROXY_ED_USER,"Edit",0x58010004,40,48,122,13,0x00000200
+
+  CONTROL "Password:"                                 ,PROXY_ST_PASSWORD,"Static",0x50000000,2,63,34,9
+  CONTROL ""                                          ,PROXY_ED_PASSWORD,"Edit",0x580100A0,40,61,122,13,0x00000200
 END
 //------------------------------------------------------------------------------
 MY_MENU MENU
