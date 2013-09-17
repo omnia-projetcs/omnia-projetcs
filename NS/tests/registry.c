@@ -666,6 +666,13 @@ BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
   #endif
   if (RemoteRegistryNetConnexion(iitem, name, ip, config)) return TRUE;
   else if (RemoteRegistryImpersonateConnexion(iitem, name, ip, config)) return TRUE;
+  else
+  {
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_REG,"CONNEXION FAIL!");
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SERVICE,"CONNEXION FAIL!");
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SOFTWARE,"CONNEXION FAIL!");
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_USB,"CONNEXION FAIL!");
+  }
   //else if (RemoteRegistrySimpleConnexion(iitem, name, ip, config)) return TRUE;
   return FALSE;
 }
