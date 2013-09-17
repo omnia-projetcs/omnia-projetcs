@@ -99,11 +99,14 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"NetBIOS");
         WaitForSingleObject(hs_netbios,0);
-
         char domain[MAX_PATH] = "";
         char os[MAX_PATH]     = "";
-        if (dns[0] == 0) Netbios_OS(ip, os, dns, domain, MAX_PATH);
-        else Netbios_OS(ip, os, NULL, domain, MAX_PATH);
+
+        if (scan_start)
+        {
+          if (dns[0] == 0) Netbios_OS(ip, os, dns, domain, MAX_PATH);
+          else Netbios_OS(ip, os, NULL, domain, MAX_PATH);
+        }
 
         if (os[0] != 0)
         {
@@ -123,39 +126,48 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         }
 
         //NULL session
-        if(Netbios_NULLSession(ip))
+        if (scan_start)
         {
-          strncat(cfg,"NULL Session: Enable\r\n\0",MAX_PATH);
-          //ReversSID (only administrator + guest + defaults account test)
-          if(TestReversSID(ip,"invité"))            strncat(cfg,"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_PATH);
-          else if(TestReversSID(ip,"guest"))        strncat(cfg,"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_PATH);
-          else if(TestReversSID(ip,"HelpAssistant"))strncat(cfg,"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_PATH);
-          else if(TestReversSID(ip,"ASPNET"))       strncat(cfg,"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_PATH);
-          else if(TestReversSID(ip,"administrateur"))strncat(cfg,"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_PATH);
-          else if(TestReversSID(ip,"administrator"))strncat(cfg,"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_PATH);
-          netBIOS = TRUE;
+          if(Netbios_NULLSession(ip))
+          {
+            strncat(cfg,"NULL Session: Enable\r\n\0",MAX_PATH);
+            //ReversSID (only administrator + guest + defaults account test)
+            if(TestReversSID(ip,"invité"))            strncat(cfg,"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_PATH);
+            else if(TestReversSID(ip,"guest"))        strncat(cfg,"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_PATH);
+            else if(TestReversSID(ip,"HelpAssistant"))strncat(cfg,"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_PATH);
+            else if(TestReversSID(ip,"ASPNET"))       strncat(cfg,"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_PATH);
+            else if(TestReversSID(ip,"administrateur"))strncat(cfg,"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_PATH);
+            else if(TestReversSID(ip,"administrator"))strncat(cfg,"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_PATH);
+            netBIOS = TRUE;
+          }
         }
 
-        wchar_t server[MAX_PATH];
-        char c_time[MAX_PATH]="";
-        snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-        mbstowcs(server, tmp, MAX_PATH);
-        Netbios_Time(server, c_time, MAX_PATH);
-        if (c_time[0] != 0)
+        if (scan_start)
         {
-          snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
-          strncat(cfg,tmp,MAX_PATH);
-          netBIOS = TRUE;
-        }
+          wchar_t server[MAX_PATH];
+          char c_time[MAX_PATH]="";
+          snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+          mbstowcs(server, tmp, MAX_PATH);
+          Netbios_Time(server, c_time, MAX_PATH);
+          if (c_time[0] != 0)
+          {
+            snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
+            strncat(cfg,tmp,MAX_PATH);
+            netBIOS = TRUE;
+          }
 
-        //Share
-        char shares[MAX_PATH]="";
-        Netbios_Share(server, shares, MAX_PATH);
-        if (shares[0] != 0)
-        {
-          snprintf(tmp,MAX_PATH,"Share:\r\n%s\0",shares);
-          strncat(cfg,tmp,MAX_PATH);
-          netBIOS = TRUE;
+          //Share
+          if (scan_start)
+          {
+            char shares[MAX_PATH]="";
+            Netbios_Share(server, shares, MAX_PATH);
+            if (shares[0] != 0)
+            {
+              snprintf(tmp,MAX_PATH,"Share:\r\n%s\0",shares);
+              strncat(cfg,tmp,MAX_PATH);
+              netBIOS = TRUE;
+            }
+          }
         }
 
         if (cfg[0] != 0)
@@ -174,6 +186,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     if((exist || netBIOS) && scan_start)
     {
       //registry
+      BOOL remote_con = FALSE;
       if (config.check_registry || config.check_services || config.check_software || config.check_USB)
       {
         #ifdef DEBUG_MODE
@@ -181,7 +194,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"Registry");
         WaitForSingleObject(hs_registry,0);
-        RemoteConnexionScan(iitem, dns, ip, config);
+        remote_con = RemoteConnexionScan(iitem, dns, ip, config);
         ReleaseSemaphore(hs_registry,1,NULL);
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","registry:END",ip);
@@ -191,16 +204,23 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       //files
       if (config.check_files && scan_start)
       {
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","files:BEGIN",ip);
-        #endif
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"Files");
-        WaitForSingleObject(hs_file,0);
-        RemoteConnexionFilesScan(iitem, dns, ip, config);
-        ReleaseSemaphore(hs_file,1,NULL);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","files:END",ip);
-        #endif
+
+        if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
+            (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
+        {
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","files:BEGIN",ip);
+          #endif
+
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"Files");
+          WaitForSingleObject(hs_file,0);
+          RemoteConnexionFilesScan(iitem, dns, ip, config);
+          ReleaseSemaphore(hs_file,1,NULL);
+
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","files:END",ip);
+          #endif
+        }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
       }
 
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"OK");
@@ -316,7 +336,7 @@ DWORD WINAPI scan(LPVOID lParam)
     CreateThread(NULL,0,ScanIp,(PVOID)i,0,0);
 
     //tracking
-    snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,i,nb_i);
+    snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,i+1,nb_i);
     SetWindowText(h_main,test_title);
   }
 

@@ -20,7 +20,7 @@
 
 #include "crypt/md5.h"
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.1 15/09/2013"
+#define TITLE                                       "NS v0.2 17/09/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -177,9 +177,9 @@ HANDLE h_log;
 
 //Threads
 #define NB_MAX_DISCO_THREADS                        100
-#define NB_MAX_NETBIOS_THREADS                      1
-#define NB_MAX_FILE_THREADS                         1
-#define NB_MAX_REGISTRY_THREADS                     1
+#define NB_MAX_NETBIOS_THREADS                      5
+#define NB_MAX_FILE_THREADS                         5
+#define NB_MAX_REGISTRY_THREADS                     5
 #define NB_MAX_THREAD                               1000
 
 CRITICAL_SECTION Sync;

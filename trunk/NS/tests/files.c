@@ -97,8 +97,8 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
   NetRes.lpProvider   = "";
   NetRes.lpRemoteName	= remote_name;
 
-  if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_PROMPT)==NO_ERROR)
-  //if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_TEMPORARY)==NO_ERROR)
+  //if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_PROMPT)==NO_ERROR)
+  if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_TEMPORARY)==NO_ERROR)
   {
     snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
     AddMsg(h_main,"INFORMATION",msg,"");
@@ -202,6 +202,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
         }
       }
       UserDisConnect(htoken);
+      return TRUE;
     }else
     {
       #ifdef DEBUG_MODE
@@ -223,6 +224,7 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
   {
     RemoteAuthenticationFilesScan(iitem, ip, "D$", config);
     return TRUE;
-  }
+  }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION FAIL!");
+
   return FALSE;
 }
