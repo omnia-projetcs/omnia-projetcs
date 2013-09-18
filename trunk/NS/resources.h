@@ -19,6 +19,13 @@
 #include <iphlpapi.h>
 
 #include "crypt/md5.h"
+
+#define _WIN32_DCOM
+
+#include "WbemCli.h"
+#include "wbemprov.h"
+#include "wbemtran.h"
+#include <objbase.h>
 //----------------------------------------------------------------
 #define TITLE                                       "NS v0.2 17/09/2013"
 #define ICON_APP                                    100
