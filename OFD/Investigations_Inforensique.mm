@@ -720,8 +720,7 @@
       <font color="#ff0000" face="Courier New"><i>dd if=/dev/sda of=/tmp/sda.raw bs=4096 conv=noerror,sync</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1352458753912" ID="ID_126099341" MODIFIED="1373188592308">
 <richcontent TYPE="NODE"><html>
@@ -748,8 +747,7 @@
       <font color="#ff0000" face="Courier New"><i>dc3dd.exe if=\\.\C: of=E:\C_image.raw hash=sha1</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1373188440960" ID="ID_1862261958" MODIFIED="1373188628940">
 <richcontent TYPE="NODE"><html>
@@ -767,8 +765,7 @@
       <font face="Courier New" color="#ff0000"><i>.\Invoke-NinjaCopy.ps1 -path c:\windows\system32\config\system -localdestination c:\system -verbose -computername mamachine</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358506608380" ID="ID_117208008" MODIFIED="1358506714120">
 <richcontent TYPE="NODE"><html>
@@ -6881,7 +6878,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1373188410665" POSITION="right">
+<node CREATED="1356689314642" ID="ID_1477008027" MODIFIED="1375035016781" POSITION="right">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6918,25 +6915,28 @@
       <a href="http://computer-forensics.sans.org/community/downloads">http://computer-forensics.sans.org/community/downloads</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://grandstreamdreams.blogspot.fr/">http://grandstreamdreams.blogspot.fr/</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://grandstreamdreams.blogspot.fr/">http://grandstreamdreams.blogspot.fr/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://journeyintoir.blogspot.fr/">http://journeyintoir.blogspot.fr/</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://journeyintoir.blogspot.fr/">http://journeyintoir.blogspot.fr/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://dfstream.blogspot.fr/">http://dfstream.blogspot.fr/ </a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://dfstream.blogspot.fr/">http://dfstream.blogspot.fr/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://opensecuritytraining.info/Training.html">http://opensecuritytraining.info/Training.html </a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://opensecuritytraining.info/Training.html">http://opensecuritytraining.info/Training.html </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://opensecuritytraining.info/Training.html">http://clymb3r.wordpress.com/2013/06/13/using-powershell-to-copy-ntds-dit-registry-hives-bypass-sacls-dacls-file-locks/</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://opensecuritytraining.info/Training.html">http://clymb3r.wordpress.com/2013/06/13/using-powershell-to-copy-ntds-dit-registry-hives-bypass-sacls-dacls-file-locks/</a>
     </p>
     <p>
       
     </p>
     <p>
       Ressources logiciels :
+    </p>
+    <p>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://forensic-proof.com/tools">http://forensic-proof.com/tools</a>
     </p>
     <p>
       <a href="http://www.mitec.cz/">http://www.mitec.cz</a>
@@ -7002,19 +7002,19 @@
       <a href="http://code.google.com/p/winforensicaanalysis/downloads/list">http://code.google.com/p/winforensicaanalysis/downloads/list</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.tarasco.org/security/tools.html">http://www.tarasco.org/security/tools.html</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.tarasco.org/security/tools.html">http://www.tarasco.org/security/tools.html</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.osforensics.com/">http://www.osforensics.com/ </a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.osforensics.com/">http://www.osforensics.com/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://download.savannah.gnu.org/releases/mobiusft/">http://download.savannah.gnu.org/releases/mobiusft/ </a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://download.savannah.gnu.org/releases/mobiusft/">http://download.savannah.gnu.org/releases/mobiusft/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://code.google.com/p/omnia-projetcs/">http://code.google.com/p/omnia-projetcs/ </a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://code.google.com/p/omnia-projetcs/">http://code.google.com/p/omnia-projetcs/ </a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html">http://contagiodump.blogspot.fr/2013/04/collection-of-pcap-files-from-malware.html</a>
     </p>
     <p>
       
@@ -7023,10 +7023,10 @@
       Statistiques :
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="http://www.mandiant.com/resources/m-trends/">http://www.mandiant.com/resources/m-trends/</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.mandiant.com/resources/m-trends/">http://www.mandiant.com/resources/m-trends/</a>
     </p>
     <p>
-      <a content="text/html; charset=utf-8" http-equiv="content-type" href="https://www.virustotal.com/statistics/">https://www.virustotal.com/statistics/</a>
+      <a http-equiv="content-type" content="text/html; charset=utf-8" href="https://www.virustotal.com/statistics/">https://www.virustotal.com/statistics/</a>
     </p>
   </body>
 </html>
