@@ -164,7 +164,6 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
             if(!strcmp(wfd.cFileName,"IECompatCache") ||
                !strcmp(wfd.cFileName,"IETldCache"))continue;
           }
-
           snprintf(path_tmp_next,MAX_PATH,"%s\\%s",path,wfd.cFileName);
           //if Cookies different ID
           if (!strcmp(wfd.cFileName,"Cookies"))SearchAndWorkIEFiles(path_tmp_next, file, 3, session_id, db, recursif, IEexclusions);
@@ -179,7 +178,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
           ReadDATFile(path_tmp_next, id, session_id, db);
         }
       }
-    }while(FindNextFile (hfic,&wfd)!= 0 && start_scan);
+    }while(FindNextFile (hfic,&wfd) && start_scan);
   }
 }
 #ifndef _WIN64_VERSION_
@@ -294,6 +293,8 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
               ReadDATFile(tmp_key_path, 3, session_id, db);
 
               //other
+              snprintf(tmp_key_path,MAX_PATH,"%s\\PrivacIE\\index.dat",tmp_key);
+              ReadDATFile(tmp_key_path, 15, session_id, db);
               snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\Low\\index.dat",tmp_key);
               ReadDATFile(tmp_key_path, 15, session_id, db);
               snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\PrivacIE\\index.dat",tmp_key);
@@ -303,10 +304,49 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
               snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Feeds Cache\\index.dat",tmp_key);
               ReadDATFile(tmp_key_path, 15, session_id, db);
 
-              //search other files cache
+              //search for 7/8/2008/2012
               WIN32_FIND_DATA wfd0;
-              snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
+              snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Windows\\History\\*.*",tmp_key);
               HANDLE hfic = FindFirstFile(tmp_key_path, &wfd0);
+
+              if (hfic != INVALID_HANDLE_VALUE)
+              {
+                char tmp_path[MAX_PATH],tmp_path2[MAX_PATH];
+                do
+                {
+                  if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                  {
+                    if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
+
+                    sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+                    snprintf(tmp_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Windows\\History\\%s\\index.dat",tmp_key,wfd0.cFileName);
+                    ReadDATFile(tmp_path, 15, session_id, db);
+                    sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+                    //get file and tests it
+                    WIN32_FIND_DATA wfd1;
+                    snprintf(tmp_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Windows\\History\\%s\\*.*",tmp_key,wfd0.cFileName);
+                    HANDLE hfic2 = FindFirstFile(tmp_path, &wfd1);
+                    if (hfic2 == INVALID_HANDLE_VALUE)continue;
+                    do
+                    {
+                      if (wfd1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                      {
+                        if(wfd1.cFileName[0] == '.' && (wfd1.cFileName[1] == 0 || wfd1.cFileName[1] == '.'))continue;
+
+                        sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+                        snprintf(tmp_path2,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Windows\\History\\%s\\%s\\index.dat",tmp_key,wfd0.cFileName,wfd1.cFileName);
+                        ReadDATFile(tmp_path2, 15, session_id, db);
+                        sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+                      }
+                    }while(FindNextFile (hfic,&wfd1) && start_scan);
+                  }
+                }while(FindNextFile (hfic,&wfd0));
+              }
+
+              //search other files cache in XP/2003
+              snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\*.*",tmp_key);
+              hfic = FindFirstFile(tmp_key_path, &wfd0);
+
               if (hfic != INVALID_HANDLE_VALUE)
               {
                 char tmp_path[MAX_PATH],tmp_path2[MAX_PATH];

@@ -80,19 +80,19 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 sqlite3_exec(db_scan,"VACUUM;", NULL, NULL, NULL);//compact database
               break;
               //-------------------------------------------------
-              case IDM_LOAD_SESSION_FILE:
+              case IDM_LOAD_SESSION_FILE: //backup
               {
-                char file[MAX_PATH]="";
+                char file[MAX_PATH] = "";
                 OPENFILENAME ofn;
                 ZeroMemory(&ofn, sizeof(OPENFILENAME));
-                ofn.lStructSize = sizeof(OPENFILENAME);
-                ofn.hwndOwner = h_main;
-                ofn.lpstrFile = file;
-                ofn.nMaxFile = MAX_PATH;
-                ofn.lpstrFilter ="*.sqlite \0*.sqlite\0*.* \0*.*\0";
-                ofn.nFilterIndex = 1;
-                ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".sqlite\0";
+                ofn.lStructSize     = sizeof(OPENFILENAME);
+                ofn.hwndOwner       = h_main;
+                ofn.lpstrFile       = file;
+                ofn.nMaxFile        = MAX_PATH;
+                ofn.lpstrFilter     = "*.sqlite \0*.sqlite\0*.* \0*.*\0";
+                ofn.nFilterIndex    = 1;
+                ofn.Flags           = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+                ofn.lpstrDefExt     = ".sqlite\0";
 
                 if (GetOpenFileName(&ofn)==TRUE)
                 {
@@ -464,15 +464,15 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   OPENFILENAME ofn;
                   ZeroMemory(&ofn, sizeof(OPENFILENAME));
 
-                  ofn.lStructSize = sizeof(OPENFILENAME);
-                  ofn.hwndOwner = h_conf;
-                  ofn.lpstrFile = files;
-                  ofn.nMaxFile = MAX_PATH;
-                  ofn.lpstrFilter = "*.sqlite \0*.sqlite\0"
-                                    "*.* \0*.*\0";
-                  ofn.nFilterIndex = 1;
-                  ofn.Flags = OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
-                  ofn.lpstrDefExt ="*.sqlite";
+                  ofn.lStructSize   = sizeof(OPENFILENAME);
+                  ofn.hwndOwner     = h_conf;
+                  ofn.lpstrFile     = files;
+                  ofn.nMaxFile      = MAX_PATH;
+                  ofn.lpstrFilter   = "*.sqlite \0*.sqlite\0"
+                                      "*.* \0*.*\0";
+                  ofn.nFilterIndex  = 1;
+                  ofn.Flags         = OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
+                  ofn.lpstrDefExt   = "*.sqlite";
                   if (GetOpenFileName(&ofn)==TRUE)
                   {
                     strncpy(SQLITE_LOCAL_BDD,files,MAX_PATH);
@@ -481,7 +481,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   }
                 }
               break;
-
             }
             //tools
 

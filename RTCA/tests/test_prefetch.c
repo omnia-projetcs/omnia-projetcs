@@ -61,7 +61,7 @@ void PfCheck(unsigned int session_id, sqlite3 *db, char *file)
   if (hfile != INVALID_HANDLE_VALUE)
   {
     DWORD sz_prefetch_file = GetFileSize(hfile,NULL);
-    if ( sz_prefetch_file!= INVALID_FILE_SIZE && sz_prefetch_file > HDR_PREFETCH_SIZE-5)
+    if ( sz_prefetch_file!= INVALID_FILE_SIZE && sz_prefetch_file > sizeof(HDR_PREFETCH))
     {
       char CreationTime[DATE_SIZE_MAX]="",LastWriteTime[DATE_SIZE_MAX]="",LastAccessTime[DATE_SIZE_MAX]="";
       DWORD count = 0, copiee;
@@ -106,40 +106,44 @@ void PfCheck(unsigned int session_id, sqlite3 *db, char *file)
         ok_path_application = FALSE;
         b = buffer+pf->secC_off;                  //start of datas
         e = buffer+pf->secC_off+pf->secC_size;    //end of datas
-        do
-        {
-          snprintf(path_application,MAX_PATH,"%S",b);
-          if (ContientNoCass(path_application,application_name))
-          {
-            ok_path_application = TRUE;
-            break;
-          }else
-          {
-            b = b + (strlen(path_application)+1)*2;
-          }
-        }while (b<e);
-
-        if (!ok_path_application)path_application[0] = 0;
-
-        //depend
-        b = buffer+pf->secC_off;                  //start of datas
-        e = buffer+pf->secC_off+pf->secC_size;    //end of datas
         DWORD size_depend = (e-b);
-        depend = (char*)malloc(size_depend+2);
-        if (depend != NULL)
+        if (size_depend <= sz_prefetch_file)
         {
-          depend[0] = 0;
-          do
+          while (b<e)
           {
-            snprintf(path_depend,MAX_PATH,"%S\r\n",b);
-            strncat(depend,path_depend,size_depend);
-            b = b + (strlen(path_depend)-1)*2;
-          }while (b<e);
-          strncat(depend,"\0",size_depend);
-          addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, depend, path_application,session_id, db);
-          free(depend);
-        }else addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, "", path_application,session_id, db);
-        free(buffer);
+            snprintf(path_application,MAX_PATH,"%S",b);
+            if (ContientNoCass(path_application,application_name))
+            {
+              ok_path_application = TRUE;
+              break;
+            }else
+            {
+              b = b + (strlen(path_application)+1)*2;
+            }
+          };
+
+          if (!ok_path_application)path_application[0] = 0;
+
+          //depend
+          b = buffer+pf->secC_off;                  //start of datas
+          e = buffer+pf->secC_off+pf->secC_size;    //end of datas
+          depend = (char*)malloc(size_depend+2);
+          if (depend != NULL)
+          {
+            depend[0] = 0;
+            while (b<e)
+            {
+              snprintf(path_depend,MAX_PATH,"%S\r\n",b);
+              snprintf(depend+strlen(depend),size_depend-strlen(depend),"%s",path_depend);
+              //strncat(depend,path_depend,size_depend);
+              b = b + (strlen(path_depend)-1)*2;
+            };
+            strncat(depend,"\0",size_depend);
+            addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, depend, path_application,session_id, db);
+            free(depend);
+          }else addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, "", path_application,session_id, db);
+          free(buffer);
+        }
       }
     }
     CloseHandle(hfile);
