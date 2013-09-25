@@ -136,7 +136,7 @@ void filetime2dosdatetime(const FILETIME ft, WORD *dosdate,WORD *dostime)
 	// date: bits 0-4 are day of month 1-31. Bits 5-8 are month 1..12. Bits 9-15 are year-1980
 	// time: bits 0-4 are seconds/2, bits 5-10 are minute 0..59. Bits 11-15 are hour 0..23
 	SYSTEMTIME st;
-	
+
 	FileTimeToSystemTime(&ft, &st);
 	*dosdate = (WORD)(((st.wYear-1980) & 0x7f) << 9);
 	*dosdate |= (WORD)((st.wMonth&0xf) << 5);
@@ -150,7 +150,7 @@ lutime_t filetime2timet(const FILETIME ft)
 {
 	LONGLONG i;
 
-	i = *(LONGLONG*)&ft; 
+	i = *(LONGLONG*)&ft;
 	return (lutime_t)((i - 116444736000000000)/10000000);
 }
 
@@ -158,7 +158,7 @@ void getNow(lutime_t *pft, WORD *dosdate, WORD *dostime)
 {
 	SYSTEMTIME	st;
 	FILETIME	ft;
-	
+
 	GetLocalTime(&st);
 	SystemTimeToFileTime(&st, &ft);
 	filetime2dosdatetime(ft, dosdate, dostime);
@@ -467,7 +467,7 @@ void gen_bitlen(register TSTATE *state, TREE_DESC *desc)
 		n = state->ts.heap[h];
 		bits = tree[tree[n].dl.dad].dl.len + 1;
 		if (bits > max_length)
-		{	
+		{
 			bits = max_length;
 			++overflow;
 		}
@@ -907,7 +907,7 @@ out:
 
 
 /********************* set_file_type() ********************
- * Sets the file type to ASCII or BINARY, using a crude 
+ * Sets the file type to ASCII or BINARY, using a crude
  * approximation: binary if more than 20% of the bytes are
  * <= 6 or >= 128, ascii otherwise.
  *
@@ -923,7 +923,7 @@ void set_file_type(register TSTATE *state)
 	unsigned	bin_freq;
 
 	n = ascii_freq = bin_freq = 0;
-	
+
 	while (n < 7)        bin_freq += state->ts.dyn_ltree[n++].fc.freq;
 	while (n < 128)    ascii_freq += state->ts.dyn_ltree[n++].fc.freq;
 	while (n < LITERALS) bin_freq += state->ts.dyn_ltree[n++].fc.freq;
@@ -948,7 +948,7 @@ void flush_block(register TSTATE *state, char *buf, ULG stored_len, DWORD eof)
 	ULG		opt_lenb, static_lenb;	// opt_len and static_len in bytes
 	int		max_blindex;			// index of last bit length code of non zero freq
 
-	state->ts.flag_buf[state->ts.last_flags] = state->ts.flags; // Save the flags for the last 8 items 
+	state->ts.flag_buf[state->ts.last_flags] = state->ts.flags; // Save the flags for the last 8 items
 
 	// Check if the file is ascii or binary
 	if (*state->ts.file_type == (USH)UNKNOWN) set_file_type(state);
@@ -1038,7 +1038,7 @@ upd:	state->ts.cmpr_bytelen += state->ts.cmpr_len_bits >> 3;
 
 /********************* ct_tally() **********************
  * Saves the match info and tallies the frequency counts.
- * 
+ *
  * RETURNS: TRUE if the current block must be flushed.
  */
 
@@ -1072,7 +1072,7 @@ unsigned char ct_tally(register TSTATE *state, int dist, int lc)
 		state->ts.flags = 0, state->ts.flag_bit = 1;
 	}
 
-	// Try to guess if it is profitable to stop the current block here 
+	// Try to guess if it is profitable to stop the current block here
 	if (state->level > 2 && (state->ts.last_lit & 0xfff) == 0)
 	{
 		DWORD	dcode;
@@ -1513,7 +1513,7 @@ int longest_match(register TSTATE *state, unsigned cur_match)
 /*#ifndef NDEBUG
 		Assert(state,scan <= state->ds.window+(unsigned)(state->ds.window_size - 1), "wild scan");
 #endif*/
-		
+
 		len = MAX_MATCH - (int)(strend - scan);
 		scan = strend - MAX_MATCH;
 
@@ -1722,7 +1722,7 @@ void deflate_fast(register TSTATE *state)
 		// for the next match, plus MIN_MATCH bytes to insert the
 		// string following the next match
 		if (state->ds.lookahead < MIN_LOOKAHEAD)
-		{	
+		{
 			fill_window(state);
 			if (state->tzip->lasterr)
 bad:			return(state->tzip->lasterr);
@@ -2155,7 +2155,7 @@ static void writeDestShort(TZIP *tzip, DWORD data)
 		else
 		{
 			DWORD	written;
-					
+
 			if (!WriteFile(tzip->destination, &bytes[0], 2, &written, 0) || written != 2)
 				tzip->lasterr = ZR_WRITE;
 		}
@@ -2347,7 +2347,7 @@ bad:		return(0);
  */
 
 static DWORD closeSource(register TZIP *tzip)
-{ 
+{
 	register DWORD	ret;
 
 	ret = ZR_OK;
@@ -2414,7 +2414,7 @@ skip:	state->level = 8;
 //		state->seekable = tzip->flags & TZIP_SRCCANSEEK ? 1 : 0;
 
 //		state->ds.window_size =
-		state->ts.last_lit = state->ts.last_dist = state->ts.last_flags = 
+		state->ts.last_lit = state->ts.last_dist = state->ts.last_flags =
 		state->bs.out_offset = state->bs.bi_buf = state->bs.bi_valid = 0;
 /*#ifndef NDEBUG
 		state->bs.bits_sent = 0;
@@ -2534,7 +2534,7 @@ DWORD addSrc(register TZIP *tzip, const void *destname, const void *src, DWORD l
 	IZTIMES			times;
 
 	if (IsBadReadPtr(tzip, 1)) goto badargs;
-	
+
 	// Can't add any more if the app did a ZipGetMemory
 	if (tzip->flags & TZIP_DONECENTRALDIR) return(ZR_ENDED);
 
@@ -2709,7 +2709,7 @@ badargs:
 	{
 		// If password encryption, then every tzip->isize and tzip->csize is 12 bytes bigger
 		if (tzip->password)
-		{	
+		{
 			passex = 12;
 			zfi->flg = 9;	// 8 + 1 = 'password-encrypted', with extra header
 		}
@@ -2794,7 +2794,7 @@ badout2:
 
 		// No more encryption below
 		tzip->flags &= ~TZIP_ENCRYPT;
-		
+
 		// Done with the source, so close it
 		closeSource(tzip);
 
@@ -3104,7 +3104,7 @@ DWORD WINAPI ZipClose(HZIP tzip)
 		{
 			// Make sure he passed a non-zero length
 			if (!len)
-			{	
+			{
 				result = ZR_MEMSIZE;
 				goto freeit;
 			}
@@ -3142,7 +3142,7 @@ freeit:		ZipClose((HZIP)tzip);
 done:
 	// Return TZIP * to the caller
 	*zipHandle = (HZIP)tzip;
-	
+
 	// Return error code to caller
 	return(result);
 }
@@ -3293,7 +3293,7 @@ DWORD WINAPI ZipOptions(HZIP tzip, DWORD flags)
  * Automatically called by Win32 when the DLL is loaded or
  * unloaded.
  */
-
+/*
 BOOL WINAPI DllMain(HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 {
 	// Save the module handle. It will be the same for all instances of the DLL
@@ -3323,6 +3323,6 @@ BOOL WINAPI DllMain(HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 //		case DLL_PROCESS_DETACH:
 	}
 
-	/* Success */
+	/* Success *//*
 	return(1);
-}
+}*/

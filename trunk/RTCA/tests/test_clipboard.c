@@ -310,7 +310,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
                 strncpy(format,"CF_LOCALE",DEFAULT_TMP_SIZE);
                 if (description[0]==0)strncpy(description,"Text Locale Identifier",DEFAULT_TMP_SIZE);
                 //datas
-                snprintf(data,MAX_LINE_SIZE,"0x%X",GlobalLock(hMem));
+                snprintf(data,MAX_LINE_SIZE,"0x%X",(unsigned int)GlobalLock(hMem));
                 GlobalUnlock(hMem);
                 addClipboardtoDB(format, uFormat, description, data, user, session_id, db);
               break;
@@ -366,7 +366,7 @@ DWORD WINAPI Scan_clipboard(LPVOID lParam)
                 strncpy(format,"UNKNOW",DEFAULT_TMP_SIZE);
                 if (description[0]==0)strncpy(description,"Rich Text Format",DEFAULT_TMP_SIZE);
                 //datas
-                snprintf(data,MAX_LINE_SIZE,"%s",GlobalLock(hMem));
+                snprintf(data,MAX_LINE_SIZE,"%s",(char*)GlobalLock(hMem));
                 convertStringToSQL(data, MAX_LINE_SIZE);
                 GlobalUnlock(hMem);
                 addClipboardtoDB(format, uFormat, description, data, user, session_id, db);

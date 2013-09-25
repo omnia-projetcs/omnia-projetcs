@@ -1239,71 +1239,59 @@ void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDL
             //---------------
             //IE
             snprintf(tmp_key_path,MAX_PATH,"%s\\Cookies\\index.dat",tmp_key);
-            if (tmp_key_path)
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_index.dat",computername,user);
+            //add file
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
             {
-              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_index.dat",computername,user);
-              //add file
-              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
-              if (MyhFile != INVALID_HANDLE_VALUE)
-              {
-                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
-                WriteFile(MyhFile,"\r\n",2,&copiee,0);
-              }
+              WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
             }
 
             //other
             snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\Low\\index.dat",tmp_key);
-            if (tmp_key_path)
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_Low_index.dat",computername,user);
+            //add file
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
             {
-              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_Low_index.dat",computername,user);
-              //add file
-              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
-              if (MyhFile != INVALID_HANDLE_VALUE)
-              {
-                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
-                WriteFile(MyhFile,"\r\n",2,&copiee,0);
-              }
+              WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
             }
+
             snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\PrivacIE\\index.dat",tmp_key);
-            if (tmp_key_path)
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_PrivacIE_index.dat",computername,user);
+            //add file
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
             {
-              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_PrivacIE_index.dat",computername,user);
-              //add file
-              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
-              if (MyhFile != INVALID_HANDLE_VALUE)
-              {
-                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
-                WriteFile(MyhFile,"\r\n",2,&copiee,0);
-              }
+              WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
             }
+
             snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Internet Explorer\\DOMStore\\index.dat",tmp_key);
-            if (tmp_key_path)
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_DOMStore_index.dat",computername,user);
+            //add file
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
             {
-              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_DOMStore_index.dat",computername,user);
-              //add file
-              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
-              if (MyhFile != INVALID_HANDLE_VALUE)
-              {
-                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
-                WriteFile(MyhFile,"\r\n",2,&copiee,0);
-              }
+              WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
             }
+
             snprintf(tmp_key_path,MAX_PATH,"%s\\AppData\\Local\\Microsoft\\Feeds Cache\\index.dat",tmp_key);
-            if (tmp_key_path)
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Feeds_Cache_index.dat",computername,user);
+            //add file
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
             {
-              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Feeds_Cache_index.dat",computername,user);
-              //add file
-              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_key_path,0, 2);
-              if (MyhFile != INVALID_HANDLE_VALUE)
-              {
-                WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
-                SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
-                WriteFile(MyhFile,"\r\n",2,&copiee,0);
-              }
+              WriteFile(MyhFile,tmp_key_path,strlen(tmp_key_path),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_key_path);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
             }
 
             //search other files cache

@@ -143,7 +143,7 @@ BOOL HaveAdminRight()
     TokenMandatoryPolicy,
     TokenLogonSid,
     MaxTokenInfoClass
-  } TOKEN_MY_INFORMATION_CLASS;
+  }TOKEN_MY_INFORMATION_CLASS;
 
   typedef enum  {
     TokenElevationTypeDefault  = 1,
