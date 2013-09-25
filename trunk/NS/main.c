@@ -70,8 +70,8 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ofn.lpstrDefExt    = ".csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
-                if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, "INFORMATION","Recorded data",file);
-                else AddMsg(hwnd, "ERROR","No data saved!","");
+                if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file);
+                else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved!",(char*)"");
               }
             }
             break;
@@ -94,7 +94,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
 
                 SetWindowText(GetDlgItem(hwnd,BT_START),"Stop");
-                AddMsg(hwnd, "INFORMATION","Start scan","");
+                AddMsg(hwnd, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
                 h_thread_scan = CreateThread(NULL,0,scan,0,0,0);
               }else EnableWindow(GetDlgItem(hwnd,BT_START),FALSE);
             break;

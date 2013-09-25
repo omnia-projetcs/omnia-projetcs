@@ -247,6 +247,8 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey)
 BOOL LSBExist(DWORD lsb, char *st)
 {
   char buffer[LINE_SIZE];
+  if (st == NULL) return FALSE;
+  if (st[0] == 0) return FALSE;
   DWORD i, nb_i = SendDlgItemMessage(h_main,lsb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
   for (i=0;i<nb_i;i++)
   {
@@ -486,19 +488,11 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
   }
 }
 //----------------------------------------------------------------
-BOOL NetConnexionAuthenticate(char *ip, char*remote_name)
+BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
 {
   char user_netbios[LINE_SIZE] = "";
-  char mdp_netbios[LINE_SIZE] = "";
-
-  if (SendDlgItemMessage(h_main,CHK_NULL_SESSION, BM_GETCHECK,(WPARAM) 0, (LPARAM)0) == FALSE)
-  {
-    //récupération du login
-    GetWindowText(GetDlgItem(h_main,ED_NET_LOGIN),user_netbios,LINE_SIZE);
-
-    //récupération du mot de passe
-    GetWindowText(GetDlgItem(h_main,ED_NET_PASSWORD),mdp_netbios,LINE_SIZE);
-  }
+  if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
+  else snprintf(user_netbios,LINE_SIZE,"%s",config.login);
 
   char tmp_connect[LINE_SIZE];
   remote_name[0] = 0;
@@ -510,7 +504,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name)
   NetRes.lpLocalName  = "";
   NetRes.lpProvider   = "";
   NetRes.lpRemoteName	= remote_name;
-  if (WNetAddConnection2(&NetRes,mdp_netbios,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+  if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
   {
     char msg[LINE_SIZE];
     snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
@@ -551,7 +545,7 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
 {
   BOOL ret            = FALSE;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
-  BOOL connect = NetConnexionAuthenticate(ip, remote_name);
+  BOOL connect = NetConnexionAuthenticate(ip, remote_name,config);
 
   //if(NetConnexionAuthenticate(ip, remote_name))
   //{

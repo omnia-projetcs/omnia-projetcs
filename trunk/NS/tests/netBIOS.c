@@ -17,7 +17,7 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
 
   //lecture des informations NETBIOS
   WKSTA_INFO_100 *mybuff;
-  NET_API_STATUS res = NetWkstaGetInfo(serveur, 100,(PVOID)&mybuff);
+  NET_API_STATUS res = NetWkstaGetInfo(serveur, 100,(BYTE**)&mybuff);
 
   //OS
   if((res == ERROR_SUCCESS || res == ERROR_MORE_DATA) && mybuff)
@@ -90,7 +90,7 @@ BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
   TIME_OF_DAY_INFO *timep;
   BOOL ret = FALSE;
 
-  if (NetRemoteTOD(server,(PVOID)&timep) == NERR_Success)
+  if (NetRemoteTOD(server,(BYTE**)&timep) == NERR_Success)
   {
     if (timep)
     {
@@ -143,6 +143,6 @@ BOOL TestReversSID(char *ip, char* user)
   DWORD sz_Sid    = MAX_PATH;
   DWORD sz_domain = MAX_PATH;
 
-  if (LookupAccountName(ip,user, (PSID)Sid, &sz_Sid,domain, &sz_domain,&peUse))return TRUE;
+  if (LookupAccountName((LPSTR)ip,(LPSTR)user, (PSID)Sid, &sz_Sid,(LPSTR)domain, &sz_domain,&peUse))return TRUE;
   else return FALSE;
 }

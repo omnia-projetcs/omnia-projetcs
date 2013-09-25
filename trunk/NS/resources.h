@@ -3,6 +3,13 @@
 // Author               : Hanteville Nicolas
 // Licence              : GPLv3
 //----------------------------------------------------------------
+/*
+A faire :
+  - ajouter tests services + processus WMI
+  - pour service registre + logiciels + usb ajouter lastupdate
+  - GetWMITests : plante
+  - relifter le code pour lisibilité !!!
+*/
 //----------------------------------------------------------------
 #define _WIN32_WINNT			0x0501  //>= windows 2000
 #define _WIN32_IE         0x0501  // IE5 min
@@ -17,6 +24,7 @@
 #include <lm.h>
 #include <Winnetwk.h>
 #include <iphlpapi.h>
+#include <math.h>
 
 #include "crypt/md5.h"
 
@@ -26,6 +34,9 @@
 #include "wbemprov.h"
 #include "wbemtran.h"
 #include <objbase.h>
+
+#ifndef RESOURCES
+#define RESOURCES
 //----------------------------------------------------------------
 #define TITLE                                       "NS v0.2 17/09/2013"
 #define ICON_APP                                    100
@@ -95,11 +106,11 @@ typedef unsigned char md5_byte_t; /* 8-bit byte */
 typedef unsigned int md5_word_t; /* 32-bit word */
 
 /* Define the state of the MD5 Algorithm. */
-typedef struct md5_state_s {
-    md5_word_t count[2];        /* message length in bits, lsw first */
-    md5_word_t abcd[4];         /* digest buffer */
-    md5_byte_t buf[64];         /* accumulate block */
-} md5_state_t;
+/*typedef struct md5_state_s {
+    md5_word_t count[2];
+    md5_word_t abcd[4];
+    md5_byte_t buf[64];
+} md5_state_t;*/
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -234,18 +245,20 @@ BOOL (WINAPI *pIcmpCloseHandle)(HANDLE);
 DWORD (WINAPI *pIcmpSendEcho) (HANDLE,DWORD,LPVOID,WORD, PIPINFO,    LPVOID,DWORD,DWORD);
 DWORD (WINAPI *pIcmpSendEcho2) (HANDLE,HANDLE,PIO_APC_ROUTINE,PVOID,IPAddr,LPVOID,WORD,PIP_OPTION_INFORMATION,LPVOID,DWORD,DWORD);
 //----------------------------------------------------------------
-
+#endif
+/*
 //GUI
 void init(HWND hwnd);
 
 //LSTV
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state);
-BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
+BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD item);
 
 //LSB
 void AddMsg(HWND hwnd, char *type, char *txt, char *info);
+BOOL LSBExist(DWORD lsb, char *st);
 
 //string
 unsigned long int Contient(char*data,char*chaine);
@@ -254,8 +267,28 @@ void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, 
 //Import
 void load_file_list(DWORD lsb, char *file);
 
+//tests
+void md5_init(md5_state_t *pms);
+void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
+void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+void addIPInterval(char *ip_src, char *ip_dst);
+HANDLE UserConnect(char *ip,SCANNE_ST config);
+void UserDisConnect(HANDLE htoken);
+int Ping(char *ip);
+BOOL ResDNS(char *ip, char *name, unsigned int sz_max);
+BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
+BOOL Netbios_NULLSession(char *ip);
+BOOL TestReversSID(char *ip, char* user);
+BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
+BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max);
+
+BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config);
+
+
+
 //threads
 DWORD WINAPI load_file_ip(LPVOID lParam);
 DWORD WINAPI ScanIp(LPVOID lParam);
 DWORD WINAPI scan(LPVOID lParam);
 
+*/

@@ -13,6 +13,11 @@
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
+				<Linker>
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="WbemUuid" />
+				</Linker>
 			</Target>
 		</Build>
 		<Linker>
@@ -24,42 +29,13 @@
 			<Add library="mpr" />
 			<Add library="dnsapi" />
 		</Linker>
-		<Unit filename="crypt/md5.c">
-			<Option compilerVar="CC" />
-		</Unit>
 		<Unit filename="crypt/md5.h" />
 		<Unit filename="crypt/sha2.cpp" />
 		<Unit filename="crypt/sha2.h" />
-		<Unit filename="main.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="proc.c">
-			<Option compilerVar="CC" />
-		</Unit>
+		<Unit filename="main.cpp" />
 		<Unit filename="resources.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />
-		</Unit>
-		<Unit filename="scan.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/arp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/dns.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/files.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/icmp.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/netBIOS.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="tests/registry.c">
-			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
 			<code_completion />
