@@ -72,12 +72,12 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:BEGIN",ip);
         #endif
-        if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"DNS");
+        if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"DNS");
         if(ResDNS(ip, dns, MAX_PATH))
         {
           if (!exist)
           {
-            iitem = AddLSTVItem(ip, dns, "Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            iitem = AddLSTVItem(ip, dns, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             dnsok = TRUE;
           }else
           {
@@ -97,7 +97,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
         #endif
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"NetBIOS");
+        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
         WaitForSingleObject(hs_netbios,0);
         char domain[MAX_PATH] = "";
         char os[MAX_PATH]     = "";
@@ -183,6 +183,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       ReleaseSemaphore(hs_disco,1,NULL);
     }
 
+    if (exist&& scan_start) GetWMITests(iitem, ip, config);
+
+/*
     if((exist || netBIOS) && scan_start)
     {
       //registry
@@ -205,26 +208,26 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       if (config.check_files && scan_start)
       {
 
-        if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
-            (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
-        {
+        //if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
+        //    (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
+        //{
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","files:BEGIN",ip);
           #endif
 
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"Files");
           WaitForSingleObject(hs_file,0);
-          RemoteConnexionFilesScan(iitem, dns, ip, config);
+          if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION FAIL!");
           ReleaseSemaphore(hs_file,1,NULL);
 
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","files:END",ip);
           #endif
-        }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
+        //}else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
       }
 
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"OK");
-    }
+    }*/
     #ifdef DEBUG_MODE
     AddMsg(h_main,"DEBUG","SCAN:END",ip);
     #endif
@@ -265,7 +268,7 @@ DWORD WINAPI scan(LPVOID lParam)
 
   char tmp[MAX_PATH];
   snprintf(tmp,LINE_SIZE,"Loaded %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-  AddMsg(h_main,"INFORMATION",tmp,"");
+  AddMsg(h_main,(char*)"INFORMATION",tmp,(char*)"");
 
   //load config
   unsigned int ref = 0;
@@ -289,11 +292,11 @@ DWORD WINAPI scan(LPVOID lParam)
   config.check_USB          = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
 
   //load files
-  if (config.check_files)     load_file_list(CB_T_FILES,     DEFAULT_LIST_FILES);
-  if (config.check_registry)  load_file_list(CB_T_REGISTRY,  DEFAULT_LIST_REGISTRY);
-  if (config.check_services)  load_file_list(CB_T_SERVICES,  DEFAULT_LIST_SERVICES);
-  if (config.check_software)  load_file_list(CB_T_SOFTWARE,  DEFAULT_LIST_SOFTWARE);
-  if (config.check_USB)       load_file_list(CB_T_USB,       DEFAULT_LIST_USB);
+  if (config.check_files)     load_file_list(CB_T_FILES,     (char*)DEFAULT_LIST_FILES);
+  if (config.check_registry)  load_file_list(CB_T_REGISTRY,  (char*)DEFAULT_LIST_REGISTRY);
+  if (config.check_services)  load_file_list(CB_T_SERVICES,  (char*)DEFAULT_LIST_SERVICES);
+  if (config.check_software)  load_file_list(CB_T_SOFTWARE,  (char*)DEFAULT_LIST_SOFTWARE);
+  if (config.check_USB)       load_file_list(CB_T_USB,       (char*)DEFAULT_LIST_USB);
 
   if (IsDlgButtonChecked(h_main,CHK_NULL_SESSION)!=BST_CHECKED)
   {
@@ -341,7 +344,7 @@ DWORD WINAPI scan(LPVOID lParam)
   }
 
   //wait
-  AddMsg(h_main,"INFORMATION","Start waiting threads.","");
+  AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
   for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
   /*for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
   WaitForSingleObject(hs_netbios,INFINITE);
@@ -349,7 +352,7 @@ DWORD WINAPI scan(LPVOID lParam)
   WaitForSingleObject(hs_registry,INFINITE);*/
 
   WSACleanup();
-  AddMsg(h_main,"INFORMATION","End of scan!","");
+  AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
 
   //close
   CloseHandle(hs_threads);

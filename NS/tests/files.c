@@ -151,7 +151,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
     return TRUE;
   }else
   {
-    HANDLE htoken = UserConnect(ip,config);
+    HANDLE htoken = (HANDLE)UserConnect(ip,config);
     if (htoken != NULL)
     {
       snprintf(msg,LINE_SIZE,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.domain,config.login);

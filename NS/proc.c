@@ -26,37 +26,37 @@ void init(HWND hwnd)
 
   //IP + DNS
   lvc.cx = 110;
-  lvc.pszText = "IP";
+  lvc.pszText = (LPSTR)"IP";
   ListView_InsertColumn(hlv, COL_IP, &lvc);
   lvc.cx = 110;
-  lvc.pszText = "DNS";
+  lvc.pszText = (LPSTR)"DNS";
   ListView_InsertColumn(hlv, COL_DNS, &lvc);
   lvc.cx = 150;
-  lvc.pszText = "TTL/OS";
+  lvc.pszText = (LPSTR)"TTL/OS";
   ListView_InsertColumn(hlv, COL_TTL, &lvc);
 
   lvc.cx = 150;
-  lvc.pszText = "Config";
+  lvc.pszText = (LPSTR)"Config";
   ListView_InsertColumn(hlv, COL_CONFIG, &lvc);
 
   lvc.cx = 100;
-  lvc.pszText = "Files";
+  lvc.pszText = (LPSTR)"Files";
   ListView_InsertColumn(hlv, COL_FILES, &lvc);
   lvc.cx = 100;
-  lvc.pszText = "Registry";
+  lvc.pszText = (LPSTR)"Registry";
   ListView_InsertColumn(hlv, COL_REG, &lvc);
   lvc.cx = 100;
-  lvc.pszText = "Services";
+  lvc.pszText = (LPSTR)"Services";
   ListView_InsertColumn(hlv, COL_SERVICE, &lvc);
   lvc.cx = 100;
-  lvc.pszText = "Software";
+  lvc.pszText = (LPSTR)"Software";
   ListView_InsertColumn(hlv, COL_SOFTWARE, &lvc);
   lvc.cx = 100;
-  lvc.pszText = "USB";
+  lvc.pszText = (LPSTR)"USB";
   ListView_InsertColumn(hlv, COL_USB, &lvc);
   //State
   lvc.cx = 50;
-  lvc.pszText = "State";
+  lvc.pszText = (LPSTR)"State";
   ListView_InsertColumn(hlv, COL_STATE, &lvc);
   SendMessage(hlv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP);
 
@@ -177,7 +177,7 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
 //------------------------------------------------------------------------------
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
 {
-  HANDLE hlstv  = GetDlgItem(h_main,LV_results);
+  HWND hlstv  = GetDlgItem(h_main,LV_results);
   char buffer[MAX_LINE_SIZE] = "";
   ListView_GetItemText(hlstv,iitem,column,buffer,MAX_LINE_SIZE);
   if (buffer[0] != 0)
@@ -195,11 +195,11 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
 DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state)
 {
   LVITEM lvi;
-  HANDLE hlstv  = GetDlgItem(h_main,LV_results);
+  HWND hlstv  = GetDlgItem(h_main,LV_results);
   lvi.mask      = LVIF_TEXT|LVIF_PARAM;
   lvi.iSubItem  = 0;
   lvi.lParam    = LVM_SORTITEMS;
-  lvi.pszText   = "";
+  lvi.pszText   = (LPSTR)"";
   EnterCriticalSection(&Sync);
   lvi.iItem     = ListView_GetItemCount(hlstv);
   DWORD itemPos = ListView_InsertItem(hlstv, &lvi);
@@ -230,7 +230,7 @@ void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, 
   }
 }
 //------------------------------------------------------------------------------
-BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
+BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
 {
   //get item count
   unsigned long int nb_items = ListView_GetItemCount(hlv);
@@ -386,7 +386,7 @@ void addIPInterval(char *ip_src, char *ip_dst)
   BYTE L11,L12,L13,L14,L21,L22,L23,L24;
 
   //get ip1
-  char tmp[4]="\0\0\0\0";
+  char tmp[5]="\0\0\0\0";
   char *d = tmp;
   char *s = ip_src;
 
@@ -542,13 +542,13 @@ void addIPInterval(char *ip_src, char *ip_dst)
     {
       char msg[MAX_PATH];
       snprintf(msg,MAX_PATH,"%s->%s",ip_src,ip_dst);
-      AddMsg(h_main,"ERROR","Invalid interval",msg);
+      AddMsg(h_main,(char*)"ERROR",(char*)"Invalid interval",msg);
     }
   }else
   {
     char msg[MAX_PATH];
     snprintf(msg,MAX_PATH,"%s->%s",ip_src,ip_dst);
-    AddMsg(h_main,"ERROR","Invalid interval",msg);
+    AddMsg(h_main,(char*)"ERROR",(char*)"Invalid interval",msg);
   }
 }
 //------------------------------------------------------------------------------
@@ -589,7 +589,7 @@ void addIPTest(char *ip_format)
       //get interval type : /24 -> /0
       DWORD ip_tmp, interval  = pow(2, 32-atoi(s))-2;
       BYTE L11,L12,L13,L14;
-      char tmp[4]="\0\0\0\0";
+      char tmp[5]="\0\0\0\0";
 
       char *d = tmp;
       char *s = ip1;
@@ -675,7 +675,7 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
       {
         DWORD copiee =0;
         ReadFile(hfile, buffer, size,&copiee,0);
-        if (size != copiee)AddMsg(h_main, "ERROR","In loading file",file);
+        if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
 
         //line by line
         char tmp[MAX_PATH];
@@ -695,7 +695,7 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
         }
 
         snprintf(tmp,LINE_SIZE,"Loaded file with %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-        AddMsg(h_main,"INFORMATION",tmp,file);
+        AddMsg(h_main,(char*)"INFORMATION",tmp,file);
         free(buffer);
       }
     }
@@ -722,7 +722,7 @@ void load_file_list(DWORD lsb, char *file)
     {
       DWORD copiee =0;
       ReadFile(hfile, buffer, size,&copiee,0);
-      if (size != copiee)AddMsg(h_main, "ERROR","In loading file",file);
+      if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
 
       //line by line
       char tmp[MAX_PATH];
@@ -743,7 +743,7 @@ void load_file_list(DWORD lsb, char *file)
 
       //message
       snprintf(tmp,LINE_SIZE,"Loaded file with %lu item(s)",SendDlgItemMessage(h_main,lsb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-      AddMsg(h_main,"INFORMATION",tmp,file);
+      AddMsg(h_main,(char*)"INFORMATION",tmp,file);
       free(buffer);
     }
     CloseHandle(hfile);
