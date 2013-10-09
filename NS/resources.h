@@ -38,7 +38,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2 17/09/2013"
+#define TITLE                                       "NS v0.2.1 09/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
