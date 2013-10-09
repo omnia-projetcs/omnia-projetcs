@@ -17,6 +17,7 @@
 					<Add library="ole32" />
 					<Add library="oleaut32" />
 					<Add library="WbemUuid" />
+					<Add library="Comdlg32" />
 				</Linker>
 			</Target>
 		</Build>
