@@ -33,7 +33,9 @@
 		<Unit filename="crypt/md5.h" />
 		<Unit filename="crypt/sha2.cpp" />
 		<Unit filename="crypt/sha2.h" />
-		<Unit filename="main.cpp" />
+		<Unit filename="main.cpp">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="resources.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />

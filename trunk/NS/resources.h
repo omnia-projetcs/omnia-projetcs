@@ -15,6 +15,7 @@ A faire :
 #define _WIN32_IE         0x0501  // IE5 min
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
+//#define DEBUG_SIMPLE                                1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -38,7 +39,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.1 09/10/2013"
+#define TITLE                                       "NS v0.2.2 17/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
