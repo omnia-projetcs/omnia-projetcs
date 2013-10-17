@@ -911,6 +911,14 @@ void addIPTest(char *ip_format)
 {
   if (ip_format == NULL) return;
   unsigned int size = strlen(ip_format);
+  if (size < 2)return;
+
+  //check if name or ip
+  if (ip_format[0]> '9' || ip_format[0]< '0' || ((ip_format[1]> '9' || ip_format[1]< '0') && ip_format[1] != '.'))
+  {
+    SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
+    return;
+  }
 
   //search if '-'
   char *c = ip_format;
@@ -2561,10 +2569,12 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
   return FALSE;
 }
 //----------------------------------------------------------------
+DWORD nb_test_ip,nb_i;
+//----------------------------------------------------------------
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
-  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_os[MAX_PATH]="", cfg[MAX_PATH]="";
+  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_os[MAX_PATH]="", cfg[MAX_PATH]="",test_title[MAX_PATH];
   DWORD iitem = 0;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
 
@@ -2573,12 +2583,55 @@ DWORD WINAPI ScanIp(LPVOID lParam)
   if (ip[0]!=0)
   {
     #ifdef DEBUG_MODE
+    AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_threads",ip);
     AddMsg(h_main,"DEBUG","SCAN:BEGIN",ip);
     #endif
     //check if exist + NetBIOS
     if (config.disco_arp||config.disco_icmp||config.disco_dns||config.disco_netbios)
     {
-      WaitForSingleObject(hs_disco,0);
+      #ifndef DEBUG_SIMPLE
+      WaitForSingleObject(hs_disco,INFINITE);
+      #endif
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_disco",ip);
+      #endif
+
+      if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))
+      {
+        //resolution inverse
+        strncpy(dns,ip,MAX_PATH);
+
+        struct in_addr **a;
+        struct hostent *host;
+
+        if (host=gethostbyname(ip))
+        {
+          a = (struct in_addr **)host->h_addr_list;
+          snprintf(ip,16,"%s",inet_ntoa(**a));
+          exist = TRUE;
+
+          iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        }else
+        {
+          #ifndef DEBUG_SIMPLE
+          ReleaseSemaphore(hs_disco,1,NULL);
+          #endif
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_disco",ip);
+          #endif
+          //#ifndef DEBUG_SIMPLE
+          ReleaseSemaphore(hs_threads,1,NULL);
+          //#endif
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_threads",ip);
+          #endif
+
+          //tracking
+          snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+          SetWindowText(h_main,test_title);
+          return 0;
+        }
+      }
 
       //ICMP
       int ttl = -1;
@@ -2590,13 +2643,18 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         ttl = Ping(ip);
         if (ttl > -1)
         {
-          exist = TRUE;
-
           if (ttl <= MACH_LINUX)snprintf(ttl_os,MAX_PATH,"TTL:%d (Linux?)",ttl);
           else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Windows?)",ttl);
           else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Router?)",ttl);
 
-          iitem = AddLSTVItem(ip, NULL, ttl_os, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          if (!exist)
+          {
+            iitem = AddLSTVItem(ip, NULL, ttl_os, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          }else
+          {
+            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_os);
+            exist = TRUE;
+          }
         }
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","ICMP:END",ip);
@@ -2623,7 +2681,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }*/
 
       //DNS
-      if (config.disco_dns && scan_start)
+      if (config.disco_dns && scan_start && dns[0] == 0)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:BEGIN",ip);
@@ -2654,7 +2712,13 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
-        WaitForSingleObject(hs_netbios,0);
+        #ifndef DEBUG_SIMPLE
+        WaitForSingleObject(hs_netbios,INFINITE);
+        #endif
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_netbios",ip);
+        #endif
+
         char domain[MAX_PATH] = "";
         char os[MAX_PATH]     = "";
 
@@ -2730,13 +2794,17 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_CONFIG,cfg);
         }
-
+        #ifndef DEBUG_SIMPLE
         ReleaseSemaphore(hs_netbios,1,NULL);
+        #endif
         #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_netbios",ip);
         AddMsg(h_main,"DEBUG","NetBIOS:END",ip);
         #endif
       }
+      #ifndef DEBUG_SIMPLE
       ReleaseSemaphore(hs_disco,1,NULL);
+      #endif
     }
 
     //if (exist&& scan_start) GetWMITests(iitem, ip, config);
@@ -2751,10 +2819,18 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
-        WaitForSingleObject(hs_registry,0);
-        remote_con = RemoteConnexionScan(iitem, dns, ip, config);
-        ReleaseSemaphore(hs_registry,1,NULL);
+        #ifndef DEBUG_SIMPLE
+        WaitForSingleObject(hs_registry,INFINITE);
+        #endif
         #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
+        #endif
+        remote_con = RemoteConnexionScan(iitem, dns, ip, config);
+        #ifndef DEBUG_SIMPLE
+        ReleaseSemaphore(hs_registry,1,NULL);
+        #endif
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
         AddMsg(h_main,"DEBUG","registry:END",ip);
         #endif
       }
@@ -2771,11 +2847,19 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           #endif
 
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-          WaitForSingleObject(hs_file,0);
-          if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
-          ReleaseSemaphore(hs_file,1,NULL);
-
+          #ifndef DEBUG_SIMPLE
+          WaitForSingleObject(hs_file,INFINITE);
+          #endif
           #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
+          #endif
+
+          if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
+          #ifndef DEBUG_SIMPLE
+          ReleaseSemaphore(hs_file,1,NULL);
+          #endif
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
           AddMsg(h_main,"DEBUG","files:END",ip);
           #endif
         //}else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
@@ -2786,8 +2870,18 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     #ifdef DEBUG_MODE
     AddMsg(h_main,"DEBUG","SCAN:END",ip);
     #endif
-  }
-  ReleaseSemaphore(hs_threads,1,NULL);
+  }else AddMsg(h_main,"ERROR","IP=","NULL");
+
+  //#ifndef DEBUG_SIMPLE
+    ReleaseSemaphore(hs_threads,1,NULL);
+  //#endif
+  #ifdef DEBUG_MODE
+  AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_threads",ip);
+  #endif
+
+  //tracking
+  snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+  SetWindowText(h_main,test_title);
   return 0;
 }
 //----------------------------------------------------------------
@@ -2873,34 +2967,41 @@ DWORD WINAPI scan(LPVOID lParam)
 
   //---------------------------------------------
   //scan_start
-  DWORD i, nb_i = SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
-  char ip_test[MAX_PATH], test_title[MAX_PATH];
+  DWORD i;
+  nb_i = SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+  char ip_test[MAX_PATH];
 
   //threads
+  #ifndef DEBUG_SIMPLE
   hs_threads  = CreateSemaphore(NULL,NB_MAX_THREAD,NB_MAX_THREAD,NULL);
   hs_disco    = CreateSemaphore(NULL,NB_MAX_DISCO_THREADS,NB_MAX_DISCO_THREADS,NULL);
   hs_netbios  = CreateSemaphore(NULL,NB_MAX_NETBIOS_THREADS,NB_MAX_NETBIOS_THREADS,NULL);
   hs_file     = CreateSemaphore(NULL,NB_MAX_FILE_THREADS,NB_MAX_FILE_THREADS,NULL);
   hs_registry = CreateSemaphore(NULL,NB_MAX_REGISTRY_THREADS,NB_MAX_REGISTRY_THREADS,NULL);
+  #endif
 
   //wsa init
   WSADATA WSAData;
   WSAStartup(0x02, &WSAData );
+  nb_test_ip = 0;
 
   for (i=0;(i<nb_i) && scan_start;i++)
   {
-    WaitForSingleObject(hs_threads,0);
-    //ScanIp(i);
+    #ifdef DEBUG_SIMPLE
+    ScanIp((LPVOID)i);
+    #else
+    WaitForSingleObject(hs_threads,INFINITE);
     CreateThread(NULL,0,ScanIp,(PVOID)i,0,0);
-
-    //tracking
-    snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,i+1,nb_i);
-    SetWindowText(h_main,test_title);
+    #endif
   }
 
   //wait
+  //#ifndef DEBUG_SIMPLE
   AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
-  for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
+  while (nb_test_ip < nb_i && scan_start)_sleep(100);
+  //#endif
+
+  //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
   /*for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
   WaitForSingleObject(hs_netbios,INFINITE);
   WaitForSingleObject(hs_file,INFINITE);
@@ -2910,11 +3011,13 @@ DWORD WINAPI scan(LPVOID lParam)
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
 
   //close
+  #ifndef DEBUG_SIMPLE
   CloseHandle(hs_threads);
   CloseHandle(hs_disco);
   CloseHandle(hs_netbios);
   CloseHandle(hs_file);
   CloseHandle(hs_registry);
+  #endif
 
   //---------------------------------------------
   //init
