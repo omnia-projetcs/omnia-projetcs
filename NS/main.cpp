@@ -2627,7 +2627,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           #endif
 
           //tracking
+          EnterCriticalSection(&Sync);
           snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+          LeaveCriticalSection(&Sync);
           SetWindowText(h_main,test_title);
           return 0;
         }
@@ -2880,7 +2882,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
   #endif
 
   //tracking
+  EnterCriticalSection(&Sync);
   snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+  LeaveCriticalSection(&Sync);
   SetWindowText(h_main,test_title);
   return 0;
 }
@@ -2984,6 +2988,7 @@ DWORD WINAPI scan(LPVOID lParam)
   WSADATA WSAData;
   WSAStartup(0x02, &WSAData );
   nb_test_ip = 0;
+  InitializeCriticalSection(&Sync);
 
   for (i=0;(i<nb_i) && scan_start;i++)
   {
@@ -2999,6 +3004,7 @@ DWORD WINAPI scan(LPVOID lParam)
   //#ifndef DEBUG_SIMPLE
   AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
   while (nb_test_ip < nb_i && scan_start)_sleep(100);
+  DeleteCriticalSection(&Sync);
   //#endif
 
   //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
