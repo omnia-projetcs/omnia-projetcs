@@ -9,9 +9,18 @@ A faire :
   - pour service registre + logiciels + usb ajouter lastupdate
   - GetWMITests : plante
   - relifter le code pour lisibilité !!!
+  - ajouter un chargement avec plusieurs comptes (dans un fichier par exemple)
+
+	REM NS :
+	  - revoir les connexions : WNetAddConnection2 (bugguées) a vérifier pour connexion locale + connexion domain
+
+		- bug connexion ajouter WMI
+		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
+		- ajouter POPUP
+		- ajouter check SSH
 */
 //----------------------------------------------------------------
-#define _WIN32_WINNT			0x0501  //>= windows 2000
+//#define _WIN32_WINNT			0x0501  //>= windows 2000
 #define _WIN32_IE         0x0501  // IE5 min
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
@@ -39,7 +48,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.3 18/10/2013"
+#define TITLE                                       "NS v0.2.5 20/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -92,15 +101,16 @@ A faire :
 #define COL_IP                                      0
 #define COL_DNS                                     1
 #define COL_TTL                                     2
-#define COL_CONFIG                                  3
-#define COL_FILES                                   4
-#define COL_REG                                     5
-#define COL_SERVICE                                 6
-#define COL_SOFTWARE                                7
-#define COL_USB                                     8
-#define COL_STATE                                   9
+#define COL_OS                                      3
+#define COL_CONFIG                                  4
+#define COL_FILES                                   5
+#define COL_REG                                     6
+#define COL_SERVICE                                 7
+#define COL_SOFTWARE                                8
+#define COL_USB                                     9
+#define COL_STATE                                   10
 
-#define NB_COLUMN                                   10
+#define NB_COLUMN                                   11
 //----------------------------------------------------------------
 //MD5
 typedef unsigned char md5_byte_t; /* 8-bit byte */
@@ -196,10 +206,10 @@ HANDLE h_log;
 
 //Threads
 #define NB_MAX_DISCO_THREADS                        100
-#define NB_MAX_NETBIOS_THREADS                      5
+#define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
-#define NB_MAX_THREAD                               1000
+#define NB_MAX_THREAD                               10000
 
 CRITICAL_SECTION Sync;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry;
@@ -253,7 +263,7 @@ void init(HWND hwnd);
 
 //LSTV
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
-DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state);
+DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state);
 BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD item);
 

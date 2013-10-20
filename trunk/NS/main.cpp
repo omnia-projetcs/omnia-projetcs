@@ -386,9 +386,12 @@ void init(HWND hwnd)
   lvc.cx = 110;
   lvc.pszText = (LPSTR)"DNS";
   ListView_InsertColumn(hlv, COL_DNS, &lvc);
-  lvc.cx = 150;
-  lvc.pszText = (LPSTR)"TTL/OS";
+  lvc.cx = 90;
+  lvc.pszText = (LPSTR)"TTL";
   ListView_InsertColumn(hlv, COL_TTL, &lvc);
+  lvc.cx = 90;
+  lvc.pszText = (LPSTR)"OS";
+  ListView_InsertColumn(hlv, COL_OS, &lvc);
 
   lvc.cx = 150;
   lvc.pszText = (LPSTR)"Config";
@@ -547,7 +550,7 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
   ListView_SetItemText(hlstv,iitem,column,buffer);
 }
 //----------------------------------------------------------------
-DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state)
+DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state)
 {
   LVITEM lvi;
   HWND hlstv  = GetDlgItem(h_main,LV_results);
@@ -563,6 +566,7 @@ DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *config, char *files, cha
   if(ip!=NULL)      ListView_SetItemText(hlstv,itemPos,COL_IP,ip);
   if(dns!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_DNS,dns);
   if(ttl!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_TTL,ttl);
+  if(os!=NULL)      ListView_SetItemText(hlstv,itemPos,COL_OS,os);
   if(config!=NULL)  ListView_SetItemText(hlstv,itemPos,COL_CONFIG,config);
   if(files!=NULL)   ListView_SetItemText(hlstv,itemPos,COL_FILES,files);
   if(registry!=NULL)ListView_SetItemText(hlstv,itemPos,COL_REG,registry);
@@ -1990,9 +1994,12 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
     DWORD i,nbSubKey = 0;
+    FILETIME LastWriteTime;// dernière mise a jour ou creation de la cle
+    SYSTEMTIME SysTime;
+
     if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
-      char key[LINE_SIZE],key_path[LINE_SIZE],name[LINE_SIZE],msg[LINE_SIZE],ImagePath[LINE_SIZE];
+      char key[LINE_SIZE],key_path[LINE_SIZE],name[LINE_SIZE],msg[LINE_SIZE],ImagePath[LINE_SIZE],lastWriteDate[MAX_PATH];
       DWORD key_size;
 
       for (i=0;i<nbSubKey && scan_start;i++)
@@ -2001,7 +2008,7 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
         key_size  = LINE_SIZE;
         key[0]    = 0;
 
-        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
         {
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","registry:RegistrySoftwareScan:RegEnumKeyEx2=OK",ip);
@@ -2012,19 +2019,23 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SOFTWARE, key))
             {
+              if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
+                snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+              else lastWriteDate[0] = 0;
+
               if (ReadValue(hkey,key_path,(char*)"installlocation",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else if (ReadValue(hkey,key_path,(char*)"InstallSource",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sInstallSource=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sInstallSource=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else if (ReadValue(hkey,key_path,(char*)"UninstallString",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sUninstallString=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sUninstallString=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
@@ -2034,19 +2045,23 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
               }
             }else if (LSBExist(CB_T_SOFTWARE, name))
             {
+              if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
+                snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+              else lastWriteDate[0] = 0;
+
               if (ReadValue(hkey,key_path,(char*)"installlocation",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,name);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else if (ReadValue(hkey,key_path,(char*)"InstallSource",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sInstallSource=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sInstallSource=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,name);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else if (ReadValue(hkey,key_path,(char*)"UninstallString",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sUninstallString=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sUninstallString=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,name);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
@@ -2059,9 +2074,13 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SOFTWARE, key))
             {
+              if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
+                snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+              else lastWriteDate[0] = 0;
+
               if (ReadValue(hkey,key_path,(char*)"installlocation",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\%sinstalllocation=%s %s",ip,key_path,ImagePath,lastWriteDate);
                 AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
@@ -2089,6 +2108,8 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
     {
       char key[LINE_SIZE],key2[LINE_SIZE],key_path[LINE_SIZE],key_path2[LINE_SIZE],msg[LINE_SIZE];
       DWORD key_size, key_size2;
+      FILETIME LastWriteTime0,LastWriteTime;// dernière mise a jour ou creation de la cle
+      SYSTEMTIME SysTime;
 
       for (i=0;i<nbSubKey && scan_start;i++)
       {
@@ -2096,7 +2117,7 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
         key_size  = LINE_SIZE;
         key[0]    = 0;
 
-        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,&LastWriteTime0)==ERROR_SUCCESS)
         {
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","registry:RegistryUSBScan:RegEnumKeyEx=OK",ip);
@@ -2111,17 +2132,25 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
             {
               key_size2 = LINE_SIZE;
               key2[0]   = 0;
-              if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,0)==ERROR_SUCCESS)
+              if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
               {
                 snprintf(key_path2,LINE_SIZE,"%s%s",key_path,key2);
                 if (LSBExist(CB_T_USB, key))
                 {
-                  snprintf(msg,LINE_SIZE,"%s\\%s%s",ip,key_path,key);
+                  if (FileTimeToSystemTime(&LastWriteTime0, &SysTime) != 0)
+                    snprintf(msg,LINE_SIZE,"%s\\%s%s (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path,key,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                  else
+                    snprintf(msg,LINE_SIZE,"%s\\%s%s",ip,key_path,key);
+
                   AddMsg(h_main,(char*)"FOUND (USB)",msg,key);
                   AddLSTVUpdateItem(msg, COL_USB, iitem);
                 }else if (LSBExist(CB_T_USB, key2))
                 {
-                  snprintf(msg,LINE_SIZE,"%s\\%s%s",ip,key_path,key2);
+                  if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
+                    snprintf(msg,LINE_SIZE,"%s\\%s%s (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path,key,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                  else
+                    snprintf(msg,LINE_SIZE,"%s\\%s%s",ip,key_path,key);
+
                   AddMsg(h_main,(char*)"FOUND (USB)",msg,key2);
                   AddLSTVUpdateItem(msg, COL_USB, iitem);
                 }
@@ -2432,13 +2461,13 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
 
   NETRESOURCE NetRes  = {0};
   NetRes.dwScope      = RESOURCE_GLOBALNET;
-  NetRes.dwType	      = RESOURCETYPE_ANY;
+  NetRes.dwType	      = RESOURCETYPE_ANY;//RESOURCETYPE_DISK;
   NetRes.lpLocalName  = (LPSTR)"";
   NetRes.lpProvider   = (LPSTR)"";
   NetRes.lpRemoteName	= remote_name;
 
   if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_PROMPT)==NO_ERROR)
-  //if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_TEMPORARY)==NO_ERROR)
+  //if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,0/*CONNECT_TEMPORARY*/)==NO_ERROR)
   {
     snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
     AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
@@ -2574,7 +2603,7 @@ DWORD nb_test_ip,nb_i;
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
-  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_os[MAX_PATH]="", cfg[MAX_PATH]="",test_title[MAX_PATH];
+  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_PATH]="",test_title[MAX_PATH];
   DWORD iitem = 0;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
 
@@ -2610,9 +2639,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           snprintf(ip,16,"%s",inet_ntoa(**a));
           exist = TRUE;
 
-          iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         }else
         {
+          iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
+
           #ifndef DEBUG_SIMPLE
           ReleaseSemaphore(hs_disco,1,NULL);
           #endif
@@ -2645,17 +2676,25 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         ttl = Ping(ip);
         if (ttl > -1)
         {
-          if (ttl <= MACH_LINUX)snprintf(ttl_os,MAX_PATH,"TTL:%d (Linux?)",ttl);
+          snprintf(ttl_s,MAX_PATH,"TTL:%d",ttl);
+
+          /*if (ttl <= MACH_LINUX)snprintf(ttl_os,MAX_PATH,"TTL:%d (Linux?)",ttl);
           else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Windows?)",ttl);
-          else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Router?)",ttl);
+          else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Router?)",ttl);*/
 
           if (!exist)
           {
-            iitem = AddLSTVItem(ip, NULL, ttl_os, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Windows",NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Router",NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            exist = TRUE;
           }else
           {
-            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_os);
-            exist = TRUE;
+            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_s);
+
+            if (ttl <= MACH_LINUX)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,(LPSTR)"Linux")
+            else if (ttl <= MACH_WINDOWS)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,(LPSTR)"Windows")
+            else if (ttl <= MACH_WINDOWS)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,(LPSTR)"Router")
           }
         }
         #ifdef DEBUG_MODE
@@ -2673,7 +2712,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           snprintf(ip_mac,MAX_PATH,"%s [%s]",ip,mac);
           if (!exist)
           {
-            iitem = AddLSTVItem(ip_mac, NULL, "Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            iitem = AddLSTVItem(ip_mac, NULL, NULL, "Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
           }else
           {
             ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_IP,ip_mac);
@@ -2693,7 +2732,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           if (!exist)
           {
-            iitem = AddLSTVItem(ip, dns, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            iitem = AddLSTVItem(ip, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             dnsok = TRUE;
           }else
           {
@@ -2707,8 +2746,12 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
       }
 
+      #ifndef DEBUG_SIMPLE
+      ReleaseSemaphore(hs_disco,1,NULL);
+      #endif
+
       //NetBIOS
-      if ((exist || dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
+      if (exist && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
@@ -2732,10 +2775,12 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 
         if (os[0] != 0)
         {
-          if (ttl > -1)snprintf(ttl_os,MAX_PATH,"TTL:%d (%s)",ttl,os);
-          else snprintf(ttl_os,MAX_PATH,"Firewall (%s)",os);
+          if (ttl > -1)snprintf(ttl_s,MAX_PATH,"TTL:%d",ttl);
+          else snprintf(os,MAX_PATH,"Firewall");
 
-          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_os);
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_s);
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os);
+
           netBIOS = TRUE;
         }
 
@@ -2764,7 +2809,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           }
         }
 
-        if (scan_start)
+        if (scan_start && netBIOS)
         {
           wchar_t server[MAX_PATH];
           char c_time[MAX_PATH]="";
@@ -2804,12 +2849,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","NetBIOS:END",ip);
         #endif
       }
-      #ifndef DEBUG_SIMPLE
-      ReleaseSemaphore(hs_disco,1,NULL);
-      #endif
     }
-
-    //if (exist&& scan_start) GetWMITests(iitem, ip, config);
 
     if((exist || netBIOS) && scan_start)
     {
@@ -2867,25 +2907,35 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         //}else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
       }
 
-      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
+      /*if (!netBIOS)
+      {
+        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"WMI");
+        if (GetWMITests(iitem, ip, config))netBIOS = TRUE;
+      }*/
     }
     #ifdef DEBUG_MODE
     AddMsg(h_main,"DEBUG","SCAN:END",ip);
     #endif
-  }else AddMsg(h_main,"ERROR","IP=","NULL");
+
+    if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
+  }
 
   //#ifndef DEBUG_SIMPLE
-    ReleaseSemaphore(hs_threads,1,NULL);
-  //#endif
-  #ifdef DEBUG_MODE
-  AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_threads",ip);
-  #endif
+  ReleaseSemaphore(hs_threads,1,NULL);
 
   //tracking
-  EnterCriticalSection(&Sync);
-  snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
-  LeaveCriticalSection(&Sync);
-  SetWindowText(h_main,test_title);
+  if (scan_start)
+  {
+    //#endif
+    #ifdef DEBUG_MODE
+    AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_threads",ip);
+    #endif
+
+    EnterCriticalSection(&Sync);
+    snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+    LeaveCriticalSection(&Sync);
+    SetWindowText(h_main,test_title);
+  }
   return 0;
 }
 //----------------------------------------------------------------
@@ -3003,21 +3053,21 @@ DWORD WINAPI scan(LPVOID lParam)
   //wait
   //#ifndef DEBUG_SIMPLE
   AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
-  while (nb_test_ip < nb_i && scan_start)_sleep(100);
-  DeleteCriticalSection(&Sync);
+  while (nb_test_ip < nb_i && scan_start)Sleep(100);
   //#endif
 
   //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
-  /*for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
+  for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
   WaitForSingleObject(hs_netbios,INFINITE);
   WaitForSingleObject(hs_file,INFINITE);
-  WaitForSingleObject(hs_registry,INFINITE);*/
+  WaitForSingleObject(hs_registry,INFINITE);
 
   WSACleanup();
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
 
   //close
   #ifndef DEBUG_SIMPLE
+  DeleteCriticalSection(&Sync);
   CloseHandle(hs_threads);
   CloseHandle(hs_disco);
   CloseHandle(hs_netbios);
@@ -3051,6 +3101,7 @@ DWORD WINAPI scan(LPVOID lParam)
 
   SetWindowText(GetDlgItem(h_main,BT_START),"Start");
   SetWindowText(h_main,TITLE);
+  return 0;
 }
 //----------------------------------------------------------------
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -3208,6 +3259,15 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 strncat(msg,tmp,MAX_LINE_SIZE);
                 tmp[0] = 0;
               }
+
+              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_OS,tmp,MAX_LINE_SIZE);
+              if (tmp[0] != 0)
+              {
+                strncat(msg," ",MAX_LINE_SIZE);
+                strncat(msg,tmp,MAX_LINE_SIZE);
+                tmp[0] = 0;
+              }
+
             }
 
             ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_CONFIG,tmp,MAX_LINE_SIZE);
