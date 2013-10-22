@@ -1072,7 +1072,132 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
   EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
   return 0;
 }
+//------------------------------------------------------------------------------
+DWORD WINAPI load_file_accounts(LPVOID lParam)
+{
+  //disable GUI
+  EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
+  EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
+  EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
+  EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),FALSE);
+  EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
 
+  //"domain";"login";"mdp";\n ou \r\n
+  config.nb_accounts = 0;
+
+  //load file
+  char file[LINE_SIZE]="";
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize   = sizeof(OPENFILENAME);
+  ofn.hwndOwner     = h_main;
+  ofn.lpstrFile     = file;
+  ofn.nMaxFile      = LINE_SIZE;
+  ofn.lpstrFilter   = "*.csv \0*.csv\0*.* \0*.*\0";
+  ofn.nFilterIndex  = 1;
+  ofn.Flags         = OFN_FILEMUSTEXIST|OFN_OVERWRITEPROMPT|OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
+  ofn.lpstrDefExt   = "*.*";
+  if (GetOpenFileName(&ofn)==TRUE)
+  {
+    //load file
+    HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+    if (hfile != INVALID_HANDLE_VALUE)
+    {
+      DWORD size      = GetFileSize(hfile,NULL);
+      char *buffer    = (char *) malloc(size+1);
+      if (buffer != NULL)
+      {
+        DWORD copiee =0;
+        ReadFile(hfile, buffer, size,&copiee,0);
+        if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
+
+        //line by line
+        char tmp[MAX_PATH],bf[MAX_PATH];
+        char *s = buffer, *d = tmp, *c;
+        while (*s)
+        {
+          tmp[0] = 0;
+          d      = tmp;
+          while(*s /*&& (d-tmp < MAX_PATH)*/ && (*s != '\r') && (*s != '\n'))*d++ = *s++;
+          while(*s && ((*s == '\n') || (*s == '\r')))s++;
+          *d = 0;
+
+          if (tmp[0] != 0)
+          {
+            //check if a good line
+            d = tmp;
+            if (*d == '"')
+            {
+              //get domain
+              d++; //pass '"'
+              bf[0] = 0;
+              c = bf;
+              while(*d && (*d != '"'))*c++ = *d++;
+              *c = 0;
+              strncpy(config.accounts[config.nb_accounts].domain,bf,MAX_PATH);
+
+              if (*(d+2) == '"')
+              {
+                //get login
+                d = d+3; //pass '";"'
+                bf[0] = 0;
+                c = bf;
+                while(*d && (*d != '"'))*c++ = *d++;
+                *c = 0;
+                strncpy(config.accounts[config.nb_accounts].login,bf,MAX_PATH);
+
+                if (*(d+2) == '"')
+                {
+                  //get password
+                  d = d+3; //pass '";"'
+                  bf[0] = 0;
+                  c = bf;
+                  while(*d && (*d != '"'))*c++ = *d++;
+                  *c = 0;
+                  strncpy(config.accounts[config.nb_accounts].mdp,bf,MAX_PATH);
+
+                  if (config.accounts[config.nb_accounts].domain[0] != 0)
+                    snprintf(bf,MAX_PATH,"%s\\%s",config.accounts[config.nb_accounts].domain,config.accounts[config.nb_accounts].login);
+                  else
+                    snprintf(bf,MAX_PATH,"(local account)\\%s",config.accounts[config.nb_accounts].login);
+
+                  AddMsg(h_main, (char*)"INFORMATION",(char*)"Loading account",bf);
+
+                  //next
+                  if (config.nb_accounts+1 == MAX_ACCOUNTS)break;
+                  else config.nb_accounts++;
+                }
+              }
+            }
+          }
+        }
+
+        snprintf(tmp,LINE_SIZE,"Loaded file with %lu accounts",config.nb_accounts);
+        AddMsg(h_main,(char*)"INFORMATION",tmp,file);
+        free(buffer);
+      }
+    }
+    CloseHandle(hfile);
+  }
+  //reinit GUI
+  EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
+
+  if (config.nb_accounts == 0)
+  {
+    CheckDlgButton(h_main,BT_LOAD_MDP_FILES,BST_UNCHECKED);
+    if (IsDlgButtonChecked(h_main,CHK_NULL_SESSION)==BST_CHECKED)
+    {
+      EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),TRUE);
+    }else
+    {
+      EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),TRUE);
+      EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),TRUE);
+      EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),TRUE);
+      EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),TRUE);
+    }
+  }
+  return 0;
+}
 //------------------------------------------------------------------------------
 void load_file_list(DWORD lsb, char *file)
 {
@@ -2168,32 +2293,69 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
 {
   char user_netbios[LINE_SIZE] = "";
-  if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
-  else snprintf(user_netbios,LINE_SIZE,"%s",config.login);
-
   char tmp_connect[LINE_SIZE];
-  remote_name[0] = 0;
-  snprintf(tmp_connect,LINE_SIZE,"\\\\%s\\ipc$",ip);
 
-  NETRESOURCE NetRes;
-  NetRes.dwScope      = RESOURCE_GLOBALNET;
-  NetRes.dwType	      = RESOURCETYPE_ANY;
-  NetRes.lpLocalName  = (LPSTR)"";
-  NetRes.lpProvider   = (LPSTR)"";
-  NetRes.lpRemoteName	= remote_name;
-  if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+  if (config.nb_accounts == 0)
   {
-    char msg[LINE_SIZE];
-    snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
-    AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+    if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
+    else snprintf(user_netbios,LINE_SIZE,"%s",config.login);
 
-    return TRUE;//CONNECT_UPDATE_PROFILE
+    remote_name[0] = 0;
+    snprintf(tmp_connect,LINE_SIZE,"\\\\%s\\ipc$",ip);
+
+    NETRESOURCE NetRes;
+    NetRes.dwScope      = RESOURCE_GLOBALNET;
+    NetRes.dwType	      = RESOURCETYPE_ANY;
+    NetRes.lpLocalName  = (LPSTR)"";
+    NetRes.lpProvider   = (LPSTR)"";
+    NetRes.lpRemoteName	= remote_name;
+    if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+    {
+      char msg[LINE_SIZE];
+      snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
+      AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+      return TRUE;//CONNECT_UPDATE_PROFILE
+    }else
+    {
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+      #endif
+      return FALSE;
+    }
   }else
   {
-    #ifdef DEBUG_MODE
-    AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
-    #endif
-    return FALSE;
+    unsigned int i;
+    for (i=0; i<config.nb_accounts ;i++)
+    {
+      user_netbios[0] = 0;
+      if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
+      else snprintf(user_netbios,LINE_SIZE,"%s",config.accounts[i].login);
+
+      remote_name[0] = 0;
+      snprintf(tmp_connect,LINE_SIZE,"\\\\%s\\ipc$",ip);
+
+      NETRESOURCE NetRes;
+      NetRes.dwScope      = RESOURCE_GLOBALNET;
+      NetRes.dwType	      = RESOURCETYPE_ANY;
+      NetRes.lpLocalName  = (LPSTR)"";
+      NetRes.lpProvider   = (LPSTR)"";
+      NetRes.lpRemoteName	= remote_name;
+      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+      {
+        char msg[LINE_SIZE];
+        snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
+        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+        return TRUE;//CONNECT_UPDATE_PROFILE
+      }else
+      {
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+        #endif
+        return FALSE;
+      }
+    }
   }
 
   //for close : WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
@@ -2203,14 +2365,46 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
 HANDLE UserConnect(char *ip,SCANNE_ST config)
 {
   HANDLE htoken = NULL;
-  if (LogonUser(config.login, config.domain, config.mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+  if (config.nb_accounts == 0)
   {
-    ImpersonateLoggedOnUser(htoken);
-    #ifdef DEBUG_MODE
-    if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
-    #endif
-    return htoken;
-  }else return FALSE;
+    if (LogonUser(config.login, config.domain, config.mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+    {
+      ImpersonateLoggedOnUser(htoken);
+      if (htoken != 0)
+      {
+        char msg[MAX_PATH];
+        snprintf(msg,MAX_PATH,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.domain,config.login);
+        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+      }
+      #ifdef DEBUG_MODE
+      if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
+      #endif
+      return htoken;
+    }
+  }else
+  {
+    unsigned int i;
+    for (i=0; i<config.nb_accounts ;i++)
+    {
+      htoken = NULL;
+      if (LogonUser(config.accounts[i].login, config.accounts[i].domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+      {
+        ImpersonateLoggedOnUser(htoken);
+        if (htoken != 0)
+        {
+          char msg[MAX_PATH];
+          snprintf(msg,MAX_PATH,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.accounts[i].domain,config.accounts[i].login);
+          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+        }
+
+        #ifdef DEBUG_MODE
+        if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
+        #endif
+        return htoken;
+      }
+    }
+  }
+  return FALSE;
 }
 //----------------------------------------------------------------
 void UserDisConnect(HANDLE htoken)
@@ -2224,41 +2418,35 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
   BOOL connect = NetConnexionAuthenticate(ip, remote_name,config);
 
-  //if(NetConnexionAuthenticate(ip, remote_name))
-  //{
-    //net
-    HKEY hkey;
-    snprintf(tmp,MAX_PATH,"\\\\%s",name);
-    if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
+  //net
+  HKEY hkey;
+  snprintf(tmp,MAX_PATH,"\\\\%s",name);
+  if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
+  {
+    if (!connect)
     {
-      if (connect)
-      {
-        snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-      }else
-      {
-        snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with NULL session account.",ip);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-      }
-
-      #ifdef DEBUG_MODE
-      AddMsg(h_main,"DEBUG","registry:RemoteRegistryNetConnexion:RegConnectRegistry=OK",ip);
-      #endif
-      //work
-      if (config.check_registry && scan_start)RegistryScan(iitem,ip,hkey);
-      if (config.check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
-      if (config.check_software && scan_start)
-      {
-        RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-        RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-      }
-      if (config.check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
-
-      RegCloseKey(hkey);
-      ret = TRUE;
+      snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with NULL session account.",ip);
+      AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
     }
-    if(connect)WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-  //}
+
+    #ifdef DEBUG_MODE
+    AddMsg(h_main,"DEBUG","registry:RemoteRegistryNetConnexion:RegConnectRegistry=OK",ip);
+    #endif
+    //work
+    if (config.check_registry && scan_start)RegistryScan(iitem,ip,hkey);
+    if (config.check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
+    if (config.check_software && scan_start)
+    {
+      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
+      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
+    }
+    if (config.check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+
+    RegCloseKey(hkey);
+    ret = TRUE;
+  }
+  if(connect)WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+
   return ret;
 }
 //----------------------------------------------------------------
@@ -2268,10 +2456,6 @@ BOOL RemoteRegistryImpersonateConnexion(DWORD iitem, char *name, char *ip, SCANN
   HANDLE htoken = UserConnect(ip,config);
   if (htoken != NULL)
   {
-    char msg[LINE_SIZE];
-    snprintf(msg,LINE_SIZE,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.domain,config.login);
-    AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-
     HKEY hkey;
     char tmp[MAX_PATH] = "";
     snprintf(tmp,MAX_PATH,"\\\\%s",name);
@@ -2459,71 +2643,30 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
   char remote_name[LINE_SIZE], msg[LINE_SIZE];
   snprintf(remote_name,LINE_SIZE,"\\\\%s\\%s",ip,remote_share);
 
-  NETRESOURCE NetRes  = {0};
-  NetRes.dwScope      = RESOURCE_GLOBALNET;
-  NetRes.dwType	      = RESOURCETYPE_ANY;//RESOURCETYPE_DISK;
-  NetRes.lpLocalName  = (LPSTR)"";
-  NetRes.lpProvider   = (LPSTR)"";
-  NetRes.lpRemoteName	= remote_name;
-
-  if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,CONNECT_PROMPT)==NO_ERROR)
-  //if (WNetAddConnection2(&NetRes,config.mdp,config.mdp,0/*CONNECT_TEMPORARY*/)==NO_ERROR)
+  if (config.nb_accounts == 0)
   {
-    snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
-    AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+    NETRESOURCE NetRes  = {0};
+    NetRes.dwScope      = RESOURCE_GLOBALNET;
+    NetRes.dwType	      = RESOURCETYPE_ANY;
+    NetRes.lpLocalName  = (LPSTR)"";
+    NetRes.lpProvider   = (LPSTR)"";
+    NetRes.lpRemoteName	= remote_name;
 
-    //check file
-    char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
-    DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
-    for (i=0;i<nb_i && scan_start;i++)
+  //begin - test !!!
+    char tmp_login[MAX_PATH];
+    if (config.domain[0] != 0)
     {
-      if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
-      {
-        snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","File:check",tmp_path);
-        #endif
-        HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-        if (hfile != INVALID_HANDLE_VALUE)
-        {
-            //MD5
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-            FileToMd5(hfile, s_md5);
-            CloseHandle(hfile);
-
-            //SHA256
-            hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
-            {
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-              FileToSHA256(hfile, s_sha);
-              CloseHandle(hfile);
-            }
-
-            if (s_sha[0] != 0 && s_md5[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-            }else if (s_md5[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-            }else if (s_sha[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-            }
-
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
-            AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
-        }
-      }
+      snprintf(tmp_login,MAX_PATH,"%s\\%s",config.domain,config.login);
+    }else
+    {
+      strncpy(tmp_login,config.login,MAX_PATH);
+      //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
     }
-    WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-    return TRUE;
-  }else
-  {
-    HANDLE htoken = (HANDLE)UserConnect(ip,config);
-    if (htoken != NULL)
+  //end - test !!!
+
+    if (WNetAddConnection2(&NetRes,config.mdp,config.login,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.domain,config.login);
+      snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
 
       //check file
@@ -2540,45 +2683,232 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
           HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
           if (hfile != INVALID_HANDLE_VALUE)
           {
-            //MD5
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-            FileToMd5(hfile, s_md5);
-            CloseHandle(hfile);
-
-            //SHA256
-            hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
-            {
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-              FileToSHA256(hfile, s_sha);
+              //MD5
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+              FileToMd5(hfile, s_md5);
               CloseHandle(hfile);
-            }
 
-            if (s_sha[0] != 0 && s_md5[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-            }else if (s_md5[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-            }else if (s_sha[0] != 0)
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-            }
+              //SHA256
+              hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+              if (hfile != INVALID_HANDLE_VALUE)
+              {
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                FileToSHA256(hfile, s_sha);
+                CloseHandle(hfile);
+              }
 
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
-            AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+              if (s_sha[0] != 0 && s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+              }else if (s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+              }else if (s_sha[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+              }
+
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+              AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
           }
         }
       }
-      UserDisConnect(htoken);
+      WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
       return TRUE;
     }else
     {
-      #ifdef DEBUG_MODE
-      AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
-      #endif
+      HANDLE htoken = (HANDLE)UserConnect(ip,config);
+      if (htoken != NULL)
+      {
+        //check file
+        char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
+        DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+        for (i=0;i<nb_i && scan_start;i++)
+        {
+          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
+          {
+            snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","File:check",tmp_path);
+            #endif
+            HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+            if (hfile != INVALID_HANDLE_VALUE)
+            {
+              //MD5
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+              FileToMd5(hfile, s_md5);
+              CloseHandle(hfile);
+
+              //SHA256
+              hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+              if (hfile != INVALID_HANDLE_VALUE)
+              {
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                FileToSHA256(hfile, s_sha);
+                CloseHandle(hfile);
+              }
+
+              if (s_sha[0] != 0 && s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+              }else if (s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+              }else if (s_sha[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+              }
+
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+              AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+            }
+          }
+        }
+        UserDisConnect(htoken);
+        return TRUE;
+      }else
+      {
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
+        #endif
+      }
+    }
+  }else
+  {
+    unsigned int i;
+    for (i=0; i<config.nb_accounts ;i++)
+    {
+      NETRESOURCE NetRes  = {0};
+      NetRes.dwScope      = RESOURCE_GLOBALNET;
+      NetRes.dwType	      = RESOURCETYPE_ANY;
+      NetRes.lpLocalName  = (LPSTR)"";
+      NetRes.lpProvider   = (LPSTR)"";
+      NetRes.lpRemoteName	= remote_name;
+
+    //begin - test !!!
+      char tmp_login[MAX_PATH];
+      if (config.accounts[i].domain[0] != 0)
+      {
+        snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
+      }else
+      {
+        strncpy(tmp_login,config.accounts[i].login,MAX_PATH);
+        //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
+      }
+    //end - test !!!
+
+      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,config.accounts[i].login,CONNECT_PROMPT)==NO_ERROR)
+      {
+        snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.accounts[i].login);
+        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+        //check file
+        char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
+        DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+        for (i=0;i<nb_i && scan_start;i++)
+        {
+          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
+          {
+            snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","File:check",tmp_path);
+            #endif
+            HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+            if (hfile != INVALID_HANDLE_VALUE)
+            {
+                //MD5
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+                FileToMd5(hfile, s_md5);
+                CloseHandle(hfile);
+
+                //SHA256
+                hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
+
+                if (s_sha[0] != 0 && s_md5[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+                }else if (s_md5[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+                }else if (s_sha[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+                }
+
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+                AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+            }
+          }
+        }
+        WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+        return TRUE;
+      }else
+      {
+        HANDLE htoken = (HANDLE)UserConnect(ip,config);
+        if (htoken != NULL)
+        {
+          //check file
+          char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
+          DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+          for (i=0;i<nb_i && scan_start;i++)
+          {
+            if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
+            {
+              snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
+              #ifdef DEBUG_MODE
+              AddMsg(h_main,"DEBUG","File:check",tmp_path);
+              #endif
+              HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+              if (hfile != INVALID_HANDLE_VALUE)
+              {
+                //MD5
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+                FileToMd5(hfile, s_md5);
+                CloseHandle(hfile);
+
+                //SHA256
+                hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
+
+                if (s_sha[0] != 0 && s_md5[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+                }else if (s_md5[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+                }else if (s_sha[0] != 0)
+                {
+                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+                }
+
+                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+                AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+              }
+            }
+          }
+          UserDisConnect(htoken);
+          return TRUE;
+        }else
+        {
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
+          #endif
+        }
+      }
     }
   }
+
   return FALSE;
 }
 //----------------------------------------------------------------
@@ -2678,10 +3008,6 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           snprintf(ttl_s,MAX_PATH,"TTL:%d",ttl);
 
-          /*if (ttl <= MACH_LINUX)snprintf(ttl_os,MAX_PATH,"TTL:%d (Linux?)",ttl);
-          else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Windows?)",ttl);
-          else if (ttl <= MACH_WINDOWS)snprintf(ttl_os,MAX_PATH,"TTL:%d (Router?)",ttl);*/
-
           if (!exist)
           {
             if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -2733,13 +3059,13 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           if (!exist)
           {
             iitem = AddLSTVItem(ip, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            dnsok = TRUE;
           }else
           {
             ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
-            exist = TRUE;
-            dnsok = TRUE;
           }
+
+          exist = TRUE;
+          dnsok = TRUE;
         }
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:END",ip);
@@ -3207,12 +3533,33 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               SendDlgItemMessage(hwnd,CB_tests,LB_SETSEL,(WPARAM)FALSE,(LPARAM)3);
             }
             break;
-              //------------------------------
+            //------------------------------
             case BT_IP_CP:
             {
               DWORD LIp1=0;
               SendMessage(GetDlgItem(hwnd,IP1),IPM_GETADDRESS, 0 ,(LPARAM) &LIp1);
               SendMessage(GetDlgItem(hwnd,IP2),IPM_SETADDRESS, 0 ,(LPARAM) MAKEIPADDRESS(LIp1 >> 24,(LIp1 >> 16) & 0xFF,(LIp1 >> 8) & 0xFF,254));
+            }
+            break;
+            //------------------------------
+            case BT_LOAD_MDP_FILES:
+            {
+              //load file with format csv :
+              //"domain";"login";"mdp";\n ou \r\n
+              if (IsDlgButtonChecked(hwnd,LOWORD(wParam))==BST_CHECKED)CreateThread(NULL,0,load_file_accounts,0,0,0);
+              else
+              {
+                if (IsDlgButtonChecked(hwnd,CHK_NULL_SESSION)==BST_CHECKED)
+                {
+                  EnableWindow(GetDlgItem(hwnd,CHK_NULL_SESSION),TRUE);
+                }else
+                {
+                  EnableWindow(GetDlgItem(hwnd,ED_NET_DOMAIN),TRUE);
+                  EnableWindow(GetDlgItem(hwnd,ED_NET_LOGIN),TRUE);
+                  EnableWindow(GetDlgItem(hwnd,ED_NET_PASSWORD),TRUE);
+                  EnableWindow(GetDlgItem(hwnd,CHK_NULL_SESSION),TRUE);
+                }
+              }
             }
             break;
           }

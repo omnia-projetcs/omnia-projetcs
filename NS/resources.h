@@ -6,18 +6,30 @@
 /*
 A faire :
   - ajouter tests services + processus WMI
-  - pour service registre + logiciels + usb ajouter lastupdate
   - GetWMITests : plante
   - relifter le code pour lisibilité !!!
-  - ajouter un chargement avec plusieurs comptes (dans un fichier par exemple)
 
 	REM NS :
-	  - revoir les connexions : WNetAddConnection2 (bugguées) a vérifier pour connexion locale + connexion domain
+		- bug connexion ajouter WMI + activation des services en cas d'abscence
 
-		- bug connexion ajouter WMI
 		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
 		- ajouter POPUP
 		- ajouter check SSH
+*/
+/*
+LogonUser("NETWORK SERVICE", "NT AUTHORITY", NULL, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, &hToken );
+ImpersonateLoggedOnUser(hToken);
+NETRESOURCE nr;
+nr.dwScope = RESOURCE_GLOBALNET;
+nr.dwType = RESOURCETYPE_DISK;
+nr.dwUsage = RESOURCEUSAGE_CONNECTABLE;
+nr.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
+nr.lpRemoteName = "\\\\SomeCopmuter\\C$";
+nr.lpLocalName = "Z:";
+WNetAddConnection2(&nr, "password", "Administrator", 0);
+
+?
+WNetAddConnection2(&nr, "password", "SomeComputer\\Username", 0);
 */
 //----------------------------------------------------------------
 //#define _WIN32_WINNT			0x0501  //>= windows 2000
@@ -48,7 +60,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.5 20/10/2013"
+#define TITLE                                       "NS v0.2.6 22/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -73,6 +85,7 @@ A faire :
 #define ED_NET_DOMAIN                               1004
 #define CHK_NULL_SESSION                            1005
 #define CHK_ALL_TEST                                1006
+#define BT_LOAD_MDP_FILES                           1007
 
 #define GRP_PERIMETER                               1015
 #define IP1                                         1016
@@ -159,6 +172,14 @@ typedef struct rg_st
   unsigned short data_type;
 }RG_ST;
 //----------------------------------------------------------------
+#define MAX_ACCOUNTS 256
+typedef struct accounts_st
+{
+  char domain[MAX_PATH];
+  char login[MAX_PATH];
+  char mdp[MAX_PATH];
+}ACCOUNTS_ST;
+
 typedef struct scanne_st
 {
   BOOL disco_arp;
@@ -179,6 +200,9 @@ typedef struct scanne_st
   BOOL check_services;
   BOOL check_software;
   BOOL check_USB;
+
+  unsigned int nb_accounts;
+  ACCOUNTS_ST accounts[MAX_ACCOUNTS];
 
   //use or not local account
   BOOL local_account;

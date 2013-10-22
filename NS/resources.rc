@@ -19,6 +19,8 @@ BEGIN
   CONTROL "Current session"               ,CHK_NULL_SESSION ,"Button"         ,0x50012003,4 ,17 ,62 ,13
   CONTROL "Check All"                     ,CHK_ALL_TEST     ,"Button"         ,0x50010000,4 ,32 ,60 ,13
 
+  CONTROL "Load accounts"                 ,BT_LOAD_MDP_FILES,"Button"         ,0x50012003,67 ,32 ,65 ,13
+
   CONTROL "Perimeter"                     ,GRP_PERIMETER    ,"Button"         ,0x50000007,178,0  ,210,33
   CONTROL "192.168.100.100"               ,IP1              ,"SysIPAddress32" ,0x50010000,188,11 ,60 ,13
   CONTROL ">"                             ,BT_IP_CP         ,"Button"         ,0x50010000,252,11 ,8  ,13
