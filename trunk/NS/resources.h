@@ -11,7 +11,6 @@ A faire :
 
 	REM NS :
 		- bug connexion ajouter WMI + activation des services en cas d'abscence
-
 		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
 		- ajouter POPUP
 		- ajouter check SSH
@@ -30,6 +29,28 @@ WNetAddConnection2(&nr, "password", "Administrator", 0);
 
 ?
 WNetAddConnection2(&nr, "password", "SomeComputer\\Username", 0);
+
+
+NETRESOURCE NetRes  = {0};
+      NetRes.dwScope      = RESOURCE_GLOBALNET;
+      NetRes.dwType	      = RESOURCETYPE_ANY;
+      NetRes.lpLocalName  = (LPSTR)"";
+      NetRes.lpProvider   = (LPSTR)"";
+      NetRes.lpRemoteName	= remote_name;
+
+    //begin - test !!!
+      char tmp_login[MAX_PATH];
+      if (config.accounts[i].domain[0] != 0)
+      {
+        snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
+      }else
+      {
+        strncpy(tmp_login,config.accounts[i].login,MAX_PATH);
+        //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
+      }
+    //end - test !!!
+
+      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,config.accounts[i].login,CONNECT_PROMPT)==NO_ERROR)
 */
 //----------------------------------------------------------------
 //#define _WIN32_WINNT			0x0501  //>= windows 2000
@@ -60,7 +81,7 @@ WNetAddConnection2(&nr, "password", "SomeComputer\\Username", 0);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.6 22/10/2013"
+#define TITLE                                       "NS v0.2.7 23/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"

@@ -365,6 +365,7 @@ void init(HWND hwnd)
   h_main            = hwnd;
   scan_start        = FALSE;
   tri_order         = FALSE;
+  config.nb_accounts= 0;
 
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
 
@@ -2020,18 +2021,18 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey)
     }
   }
 }
-//----------------------------------------------------------------
-BOOL LSBExist(DWORD lsb, char *st)
+//------------------------------------------------------------------------------
+BOOL LSBExist(DWORD lsb, char *sst)
 {
   char buffer[LINE_SIZE];
-  if (st == NULL) return FALSE;
-  if (st[0] == 0) return FALSE;
+  if (sst == NULL) return FALSE;
+  if (sst[0] == 0) return FALSE;
   DWORD i, nb_i = SendDlgItemMessage(h_main,lsb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
   for (i=0;i<nb_i;i++)
   {
     if (SendDlgItemMessage(h_main,lsb,LB_GETTEXT,(WPARAM)i,(LPARAM)buffer))
     {
-      if (!strcmp(buffer,st))return TRUE;
+      if (!strcmp(charToLowChar(buffer),charToLowChar(sst)))return TRUE;
     }
   }
   return FALSE;
@@ -2367,7 +2368,13 @@ HANDLE UserConnect(char *ip,SCANNE_ST config)
   HANDLE htoken = NULL;
   if (config.nb_accounts == 0)
   {
-    if (LogonUser(config.login, config.domain, config.mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+    char domain[MAX_PATH];
+    if (config.domain[0] == 0)
+    {
+      strncpy(domain,".\0",MAX_PATH);
+    }else strncpy(domain,config.domain,MAX_PATH);
+
+    if (LogonUser(config.login, domain, config.mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
     {
       ImpersonateLoggedOnUser(htoken);
       if (htoken != 0)
@@ -2380,14 +2387,40 @@ HANDLE UserConnect(char *ip,SCANNE_ST config)
       if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
       #endif
       return htoken;
-    }
+    }/*else
+    {
+      htoken = NULL;
+      if (LogonUser("NETWORK SERVICE", "NT AUTHORITY", NULL, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, &htoken))
+      {
+        ImpersonateLoggedOnUser(hToken);
+        if (htoken != 0)
+        {
+          NETRESOURCE NetRes  = {0};
+          NetRes.dwScope      = RESOURCE_GLOBALNET;
+          NetRes.dwType	      = RESOURCETYPE_ANY;
+          NetRes.lpLocalName  = (LPSTR)"";
+          NetRes.lpProvider   = (LPSTR)"";
+          NetRes.lpRemoteName	= remote_name;
+
+
+          return htoken;
+        }
+      }
+    }*/
   }else
   {
     unsigned int i;
+    char domain[MAX_PATH];
     for (i=0; i<config.nb_accounts ;i++)
     {
       htoken = NULL;
-      if (LogonUser(config.accounts[i].login, config.accounts[i].domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+
+      if (config.accounts[i].domain[0] == 0)
+      {
+        strncpy(domain,".\0",MAX_PATH);
+      }else strncpy(domain,config.accounts[i].domain,MAX_PATH);
+
+      if (LogonUser(config.accounts[i].login, domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
       {
         ImpersonateLoggedOnUser(htoken);
         if (htoken != 0)
@@ -2680,11 +2713,14 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","File:check",tmp_path);
           #endif
-          HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-          if (hfile != INVALID_HANDLE_VALUE)
+          HANDLE hfile;
+          if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
           {
-              //MD5
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+            //MD5
+            hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+            if (hfile != INVALID_HANDLE_VALUE)
+            {
+              //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
               FileToMd5(hfile, s_md5);
               CloseHandle(hfile);
 
@@ -2692,24 +2728,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
                 FileToSHA256(hfile, s_sha);
                 CloseHandle(hfile);
               }
+            }
 
-              if (s_sha[0] != 0 && s_md5[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-              }else if (s_md5[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-              }else if (s_sha[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-              }
+            if (s_sha[0] != 0 && s_md5[0] != 0)
+            {
+              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+            }else if (s_md5[0] != 0)
+            {
+              snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+            }else if (s_sha[0] != 0)
+            {
+              snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+            }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
-              AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+            AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
           }
         }
       }
@@ -2731,21 +2768,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
             #ifdef DEBUG_MODE
             AddMsg(h_main,"DEBUG","File:check",tmp_path);
             #endif
-            HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
+            HANDLE hfile;
+            if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
             {
               //MD5
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-              FileToMd5(hfile, s_md5);
-              CloseHandle(hfile);
-
-              //SHA256
               hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-                FileToSHA256(hfile, s_sha);
+                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+                FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
+
+                //SHA256
+                hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
               }
 
               if (s_sha[0] != 0 && s_md5[0] != 0)
@@ -2757,7 +2798,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               }else if (s_sha[0] != 0)
               {
                 snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-              }
+              }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
               AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
               AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
@@ -2813,11 +2854,14 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
             #ifdef DEBUG_MODE
             AddMsg(h_main,"DEBUG","File:check",tmp_path);
             #endif
-            HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
+            HANDLE hfile;
+            if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
             {
-                //MD5
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+              //MD5
+              hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+              if (hfile != INVALID_HANDLE_VALUE)
+              {
+                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
                 FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
 
@@ -2825,24 +2869,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
                 if (hfile != INVALID_HANDLE_VALUE)
                 {
-                  AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
                   FileToSHA256(hfile, s_sha);
                   CloseHandle(hfile);
                 }
+              }
 
-                if (s_sha[0] != 0 && s_md5[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-                }else if (s_md5[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-                }else if (s_sha[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-                }
+              if (s_sha[0] != 0 && s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
+              }else if (s_md5[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
+              }else if (s_sha[0] != 0)
+              {
+                snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
+              }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
-                AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+              AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
             }
           }
         }
@@ -2864,21 +2909,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               #ifdef DEBUG_MODE
               AddMsg(h_main,"DEBUG","File:check",tmp_path);
               #endif
-              HANDLE hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-              if (hfile != INVALID_HANDLE_VALUE)
+              HANDLE hfile;
+              if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
               {
                 //MD5
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-                FileToMd5(hfile, s_md5);
-                CloseHandle(hfile);
-
-                //SHA256
                 hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
                 if (hfile != INVALID_HANDLE_VALUE)
                 {
-                  AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-                  FileToSHA256(hfile, s_sha);
+                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
+                  FileToMd5(hfile, s_md5);
                   CloseHandle(hfile);
+
+                  //SHA256
+                  hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
+                    FileToSHA256(hfile, s_sha);
+                    CloseHandle(hfile);
+                  }
                 }
 
                 if (s_sha[0] != 0 && s_md5[0] != 0)
@@ -2890,7 +2939,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 }else if (s_sha[0] != 0)
                 {
                   snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-                }
+                }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
                 AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
                 AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
