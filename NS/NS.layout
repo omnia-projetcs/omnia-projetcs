@@ -1,14 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
-	<File name="resources.rc" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="1190" topLine="5" />
 		</Cursor>
 	</File>
+	<File name="crypt\md5.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4633" topLine="84" />
+		</Cursor>
+	</File>
+	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="6469" topLine="157" />
+		</Cursor>
+	</File>
+	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="273" topLine="0" />
+		</Cursor>
+	</File>
 	<File name="main.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="81312" topLine="535" />
+			<Cursor1 position="110797" topLine="719" />
 		</Cursor>
 		<Folding>
 			<Collapse line="363" />
@@ -44,33 +59,18 @@
 			<Collapse line="2041" />
 			<Collapse line="2116" />
 			<Collapse line="2226" />
-			<Collapse line="2448" />
-			<Collapse line="2486" />
-			<Collapse line="2518" />
-			<Collapse line="2551" />
-			<Collapse line="2575" />
-			<Collapse line="2594" />
-			<Collapse line="2632" />
-			<Collapse line="2964" />
-			<Collapse line="2982" />
-			<Collapse line="3317" />
-			<Collapse line="3482" />
-			<Collapse line="3747" />
+			<Collapse line="2294" />
+			<Collapse line="2362" />
+			<Collapse line="2439" />
+			<Collapse line="2444" />
+			<Collapse line="2482" />
+			<Collapse line="2514" />
+			<Collapse line="2532" />
+			<Collapse line="2570" />
+			<Collapse line="2611" />
+			<Collapse line="3220" />
+			<Collapse line="3378" />
+			<Collapse line="3643" />
 		</Folding>
-	</File>
-	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="397" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="6469" topLine="157" />
-		</Cursor>
-	</File>
-	<File name="crypt\md5.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4633" topLine="84" />
-		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
