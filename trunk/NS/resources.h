@@ -10,6 +10,8 @@ A faire :
   - relifter le code pour lisibilité !!!
 
 	REM NS :
+    - tri 1er colonne
+    - bug netbios + registre + file = trop long a tester !!!
 		- bug connexion ajouter WMI + activation des services en cas d'abscence
 		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
 		- ajouter POPUP
@@ -57,7 +59,6 @@ NETRESOURCE NetRes  = {0};
 #define _WIN32_IE         0x0501  // IE5 min
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
-//#define DEBUG_SIMPLE                                1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -81,7 +82,7 @@ NETRESOURCE NetRes  = {0};
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.7 23/10/2013"
+#define TITLE                                       "NS v0.2.8 24/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -96,7 +97,7 @@ NETRESOURCE NetRes  = {0};
 #define SHA256_SIZE                                 65
 #define DATE_SIZE                                   26
 
-#define ICMP_TIMEOUT                                8000
+#define ICMP_TIMEOUT                                6000
 #define DIXM                                        10*1024*1024    //10mo
 //----------------------------------------------------------------
 #define DLG_NS                                      1000
@@ -203,7 +204,7 @@ typedef struct accounts_st
 
 typedef struct scanne_st
 {
-  BOOL disco_arp;
+  //BOOL disco_arp;
   BOOL disco_icmp;
   BOOL disco_dns;
   BOOL disco_netbios;
@@ -254,7 +255,7 @@ HANDLE h_log;
 #define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
-#define NB_MAX_THREAD                               10000
+#define NB_MAX_THREAD                               1000
 
 CRITICAL_SECTION Sync;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry;

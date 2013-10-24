@@ -2294,16 +2294,13 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
 {
   char user_netbios[LINE_SIZE] = "";
-  char tmp_connect[LINE_SIZE];
 
   if (config.nb_accounts == 0)
   {
     if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
     else snprintf(user_netbios,LINE_SIZE,"%s",config.login);
 
-    remote_name[0] = 0;
-    snprintf(tmp_connect,LINE_SIZE,"\\\\%s\\ipc$",ip);
-
+    snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
     NETRESOURCE NetRes;
     NetRes.dwScope      = RESOURCE_GLOBALNET;
     NetRes.dwType	      = RESOURCETYPE_ANY;
@@ -2333,8 +2330,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
       if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
       else snprintf(user_netbios,LINE_SIZE,"%s",config.accounts[i].login);
 
-      remote_name[0] = 0;
-      snprintf(tmp_connect,LINE_SIZE,"\\\\%s\\ipc$",ip);
+      snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
 
       NETRESOURCE NetRes;
       NetRes.dwScope      = RESOURCE_GLOBALNET;
@@ -2515,63 +2511,6 @@ BOOL RemoteRegistryImpersonateConnexion(DWORD iitem, char *name, char *ip, SCANN
   return ret;
 }
 //----------------------------------------------------------------
-BOOL RemoteRegistrySimpleConnexion(DWORD iitem, char *name, char *ip, SCANNE_ST config)
-{
-  BOOL ret            = FALSE;
-  HKEY hkey;
-  char tmp[MAX_PATH]  = "";
-  snprintf(tmp,MAX_PATH,"\\\\%s",name);
-
-  if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
-  {
-    char msg[LINE_SIZE];
-    snprintf(msg,LINE_SIZE,"Login (direct User) in %s IP with NULL session account.",ip);
-    AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-
-    #ifdef DEBUG_MODE
-    AddMsg(h_main,"DEBUG","registry:RemoteRegistrySimpleConnexion:RegConnectRegistry=OK",ip);
-    #endif
-    //work
-    if (config.check_registry && scan_start)RegistryScan(iitem,ip,hkey);
-    if (config.check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
-    if (config.check_software && scan_start)
-    {
-      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-    }
-    if (config.check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
-
-    RegCloseKey(hkey);
-    ret = TRUE;
-  }
-  return ret;
-}
-//----------------------------------------------------------------
-//http://msdn.microsoft.com/library/default.asp?url=/library/en-us/iphlp/iphlp/sendarp.asp
-BOOL __cdecl ARP(char * ip,char *mac_dst)
-{
-    //variables
-    IPAddr  ipAddr;
-    ULONG   pulMac[2];
-    ULONG   ulLen;
-
-    //transformation pour traitement de l'adresse ip
-    ipAddr = inet_addr(ip);
-
-    //init
-    memset (pulMac, 0xff, sizeof (pulMac));
-    ulLen = 6;
-
-    //on récupère l'adresse mac ici si possible (si après un routage type internet = impossible)
-    if (SendARP (ipAddr, 0, pulMac, &ulLen)==NO_ERROR)
-    {
-      PBYTE pbHexMac = (PBYTE) pulMac;
-      snprintf (mac_dst,18,"%02X:%02X:%02X:%02X:%02X:%02X",pbHexMac[0],pbHexMac[1],pbHexMac[2],pbHexMac[3],pbHexMac[4],pbHexMac[5],pbHexMac[6]);
-      return 1;
-    }
-    return 0;
-}
-//----------------------------------------------------------------
 BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
 {
   #ifdef DEBUG_MODE
@@ -2586,7 +2525,6 @@ BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SOFTWARE,(LPSTR)"CONNEXION FAIL!");
     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_USB,(LPSTR)"CONNEXION FAIL!");
   }
-  //else if (RemoteRegistrySimpleConnexion(iitem, name, ip, config)) return TRUE;
   return FALSE;
 }
 
@@ -2745,7 +2683,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
             }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+            AddMsg(h_main,(char*)"FOUND (File:WNetAddConnection2)",tmp_path,(char*)"");
             AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
           }
         }
@@ -2800,7 +2738,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
               }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+              AddMsg(h_main,(char*)"FOUND (File:UserConnect)",tmp_path,(char*)"");
               AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
             }
           }
@@ -2886,7 +2824,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
               }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+              AddMsg(h_main,(char*)"FOUND (File:WNetAddConnection2)",tmp_path,(char*)"");
               AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
             }
           }
@@ -2941,7 +2879,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                   snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
                 }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-                AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
+                AddMsg(h_main,(char*)"FOUND (File:UserConnect)",tmp_path,(char*)"");
                 AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
               }
             }
@@ -2957,7 +2895,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       }
     }
   }
-
   return FALSE;
 }
 //----------------------------------------------------------------
@@ -2970,7 +2907,11 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
 
   if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"C$", config))
   {
-    RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config);
+    if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config))
+    {
+      if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config))
+        return TRUE;
+    }
     return TRUE;
   }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
 
@@ -2984,6 +2925,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
   DWORD index = (DWORD)lParam;
   char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_PATH]="",test_title[MAX_PATH];
   DWORD iitem = 0;
+  int ttl = -1;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
 
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -2995,11 +2937,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     AddMsg(h_main,"DEBUG","SCAN:BEGIN",ip);
     #endif
     //check if exist + NetBIOS
-    if (config.disco_arp||config.disco_icmp||config.disco_dns||config.disco_netbios)
+    if (config.disco_icmp||config.disco_dns||config.disco_netbios)
     {
-      #ifndef DEBUG_SIMPLE
       WaitForSingleObject(hs_disco,INFINITE);
-      #endif
       #ifdef DEBUG_MODE
       AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_disco",ip);
       #endif
@@ -3022,17 +2962,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         }else
         {
           iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
-
-          #ifndef DEBUG_SIMPLE
           ReleaseSemaphore(hs_disco,1,NULL);
-          #endif
+          ReleaseSemaphore(hs_threads,1,NULL);
+
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_disco",ip);
-          #endif
-          //#ifndef DEBUG_SIMPLE
-          ReleaseSemaphore(hs_threads,1,NULL);
-          //#endif
-          #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_threads",ip);
           #endif
 
@@ -3046,7 +2980,6 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //ICMP
-      int ttl = -1;
       if (config.disco_icmp && scan_start)
       {
         #ifdef DEBUG_MODE
@@ -3077,25 +3010,6 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
       }
 
-      //ARP
-      /*if (config.disco_arp)
-      {
-        if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,"ARP");
-        char mac[18]="";
-        if (ARP(ip,mac))
-        {
-          snprintf(ip_mac,MAX_PATH,"%s [%s]",ip,mac);
-          if (!exist)
-          {
-            iitem = AddLSTVItem(ip_mac, NULL, NULL, "Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-          }else
-          {
-            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_IP,ip_mac);
-            exist = TRUE;
-          }
-        }
-      }*/
-
       //DNS
       if (config.disco_dns && scan_start && dns[0] == 0)
       {
@@ -3120,10 +3034,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","DNS:END",ip);
         #endif
       }
-
-      #ifndef DEBUG_SIMPLE
       ReleaseSemaphore(hs_disco,1,NULL);
-      #endif
 
       //NetBIOS
       if (exist && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
@@ -3132,12 +3043,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
-        #ifndef DEBUG_SIMPLE
         WaitForSingleObject(hs_netbios,INFINITE);
-        #endif
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_netbios",ip);
-        #endif
 
         char domain[MAX_PATH] = "";
         char os[MAX_PATH]     = "";
@@ -3155,7 +3061,6 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_s);
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os);
-
           netBIOS = TRUE;
         }
 
@@ -3180,34 +3085,34 @@ DWORD WINAPI ScanIp(LPVOID lParam)
             else if(TestReversSID(ip,(char*)"ASPNET"))       strncat(cfg,(char*)"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_PATH);
             else if(TestReversSID(ip,(char*)"administrateur"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_PATH);
             else if(TestReversSID(ip,(char*)"administrator"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_PATH);
-            netBIOS = TRUE;
-          }
-        }
+            netBIOS     = TRUE;
 
-        if (scan_start && netBIOS)
-        {
-          wchar_t server[MAX_PATH];
-          char c_time[MAX_PATH]="";
-          snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-          mbstowcs(server, tmp, MAX_PATH);
-          Netbios_Time(server, c_time, MAX_PATH);
-          if (c_time[0] != 0)
-          {
-            snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
-            strncat(cfg,tmp,MAX_PATH);
-            netBIOS = TRUE;
-          }
-
-          //Share
-          if (scan_start)
-          {
-            char shares[MAX_PATH]="";
-            Netbios_Share(server, shares, MAX_PATH);
-            if (shares[0] != 0)
+            if (scan_start)
             {
-              snprintf(tmp,MAX_PATH,"Share:\r\n%s\0",shares);
-              strncat(cfg,tmp,MAX_PATH);
-              netBIOS = TRUE;
+              wchar_t server[MAX_PATH];
+              char c_time[MAX_PATH]="";
+              snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+              mbstowcs(server, tmp, MAX_PATH);
+              Netbios_Time(server, c_time, MAX_PATH);
+              if (c_time[0] != 0)
+              {
+                snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
+                strncat(cfg,tmp,MAX_PATH);
+                netBIOS = TRUE;
+              }
+
+              //Share
+              if (scan_start)
+              {
+                char shares[MAX_PATH]="";
+                Netbios_Share(server, shares, MAX_PATH);
+                if (shares[0] != 0)
+                {
+                  snprintf(tmp,MAX_PATH,"Share:\r\n%s\0",shares);
+                  strncat(cfg,tmp,MAX_PATH);
+                  netBIOS = TRUE;
+                }
+              }
             }
           }
         }
@@ -3216,9 +3121,8 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_CONFIG,cfg);
         }
-        #ifndef DEBUG_SIMPLE
         ReleaseSemaphore(hs_netbios,1,NULL);
-        #endif
+
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_netbios",ip);
         AddMsg(h_main,"DEBUG","NetBIOS:END",ip);
@@ -3226,26 +3130,22 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
     }
 
-    if((exist || netBIOS) && scan_start)
+    if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64)) && (scan_start && exist))
     {
       //registry
-      BOOL remote_con = FALSE;
+      BOOL regisyty_remote = FALSE;
       if (config.check_registry || config.check_services || config.check_software || config.check_USB)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
-        #ifndef DEBUG_SIMPLE
         WaitForSingleObject(hs_registry,INFINITE);
-        #endif
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
         #endif
-        remote_con = RemoteConnexionScan(iitem, dns, ip, config);
-        #ifndef DEBUG_SIMPLE
+        regisyty_remote = RemoteConnexionScan(iitem, dns, ip, config);
         ReleaseSemaphore(hs_registry,1,NULL);
-        #endif
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
         AddMsg(h_main,"DEBUG","registry:END",ip);
@@ -3253,49 +3153,52 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //files
+      BOOL file_remote = FALSE;
       if (config.check_files && scan_start)
       {
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","files:BEGIN",ip);
+        #endif
 
-        //if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
-        //    (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
-        //{
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","files:BEGIN",ip);
-          #endif
+        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
+        WaitForSingleObject(hs_file,INFINITE);
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
+        #endif
 
-          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-          #ifndef DEBUG_SIMPLE
-          WaitForSingleObject(hs_file,INFINITE);
-          #endif
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
-          #endif
-
-          if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
-          #ifndef DEBUG_SIMPLE
-          ReleaseSemaphore(hs_file,1,NULL);
-          #endif
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
-          AddMsg(h_main,"DEBUG","files:END",ip);
-          #endif
-        //}else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,"CONNEXION DENY!");
+        if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!")
+        else file_remote = TRUE;
+        ReleaseSemaphore(hs_file,1,NULL);
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
+        AddMsg(h_main,"DEBUG","files:END",ip);
+        #endif
       }
 
-      /*if (!netBIOS)
+      if (!file_remote || !regisyty_remote)
       {
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"WMI");
-        if (GetWMITests(iitem, ip, config))netBIOS = TRUE;
-      }*/
+        //GetWMITests(iitem, ip, config);
+
+
+        //
+
+      }
+    }else if(exist)
+    {
+        if (config.check_files)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"NOT TESTED!");
+        if (config.check_registry)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_REG,(LPSTR)"NOT TESTED!");
+        if (config.check_services)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SERVICE,(LPSTR)"NOT TESTED!");
+        if (config.check_software)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SOFTWARE,(LPSTR)"NOT TESTED!");
+        if (config.check_USB)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_USB,(LPSTR)"NOT TESTED!");
     }
+
     #ifdef DEBUG_MODE
     AddMsg(h_main,"DEBUG","SCAN:END",ip);
     #endif
 
     if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
   }
-
-  //#ifndef DEBUG_SIMPLE
   ReleaseSemaphore(hs_threads,1,NULL);
 
   //tracking
@@ -3350,7 +3253,7 @@ DWORD WINAPI scan(LPVOID lParam)
 
   //load config
   unsigned int ref = 0;
-  config.disco_arp          = 0;//SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)0,(LPARAM)NULL);
+  //config.disco_arp          = 0;//SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)0,(LPARAM)NULL);
   config.disco_icmp         = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.disco_dns          = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.disco_netbios      = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
@@ -3417,38 +3320,31 @@ DWORD WINAPI scan(LPVOID lParam)
 
   for (i=0;(i<nb_i) && scan_start;i++)
   {
-    #ifdef DEBUG_SIMPLE
-    ScanIp((LPVOID)i);
-    #else
+    //ScanIp((LPVOID)i);
     WaitForSingleObject(hs_threads,INFINITE);
     CreateThread(NULL,0,ScanIp,(PVOID)i,0,0);
-    #endif
   }
 
   //wait
-  //#ifndef DEBUG_SIMPLE
   AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
-  while (nb_test_ip < nb_i && scan_start)Sleep(100);
-  //#endif
+  while (nb_test_ip < i && scan_start)Sleep(100);
 
-  //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
+  /*for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
   for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
   WaitForSingleObject(hs_netbios,INFINITE);
   WaitForSingleObject(hs_file,INFINITE);
-  WaitForSingleObject(hs_registry,INFINITE);
+  WaitForSingleObject(hs_registry,INFINITE);*/
 
   WSACleanup();
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
 
   //close
-  #ifndef DEBUG_SIMPLE
   DeleteCriticalSection(&Sync);
   CloseHandle(hs_threads);
   CloseHandle(hs_disco);
   CloseHandle(hs_netbios);
   CloseHandle(hs_file);
   CloseHandle(hs_registry);
-  #endif
 
   //---------------------------------------------
   //init
