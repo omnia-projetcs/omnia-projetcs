@@ -5,12 +5,20 @@
 //----------------------------------------------------------------
 /*
 A faire :
+  - plantage lors du démarrage sous windows64 (bug sémaphore/threads ?)
   - ajouter tests services + processus WMI
   - GetWMITests : plante
   - relifter le code pour lisibilité !!!
+  - connexion IPc$ fonctionne mais après les accès bugs !!!
+  - plante en cas de test ciblant la mahcine locale !
 
 	REM NS :
     - tri 1er colonne
+    - ajouter un champ de recherche
+    - capacité de chargement d'ancien scanne avec reprise de scanne (par contre uni-thread?)
+    - revoir le double cick afficher une fenetre ou le texte est sélectionnable !
+    - ajouter status bar avec nb items +  états des semaphore par catégorie pris/libérés pour chaque
+    - ajouter une fonction rescanne des machines non testés (ou avec un fail)
     - bug netbios + registre + file = trop long a tester !!!
 		- bug connexion ajouter WMI + activation des services en cas d'abscence
 		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
@@ -18,41 +26,9 @@ A faire :
 		- ajouter check SSH
 */
 /*
-LogonUser("NETWORK SERVICE", "NT AUTHORITY", NULL, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, &hToken );
-ImpersonateLoggedOnUser(hToken);
-NETRESOURCE nr;
-nr.dwScope = RESOURCE_GLOBALNET;
-nr.dwType = RESOURCETYPE_DISK;
-nr.dwUsage = RESOURCEUSAGE_CONNECTABLE;
-nr.dwDisplayType = RESOURCEDISPLAYTYPE_SHARE;
-nr.lpRemoteName = "\\\\SomeCopmuter\\C$";
-nr.lpLocalName = "Z:";
-WNetAddConnection2(&nr, "password", "Administrator", 0);
-
-?
-WNetAddConnection2(&nr, "password", "SomeComputer\\Username", 0);
-
-
-NETRESOURCE NetRes  = {0};
-      NetRes.dwScope      = RESOURCE_GLOBALNET;
-      NetRes.dwType	      = RESOURCETYPE_ANY;
-      NetRes.lpLocalName  = (LPSTR)"";
-      NetRes.lpProvider   = (LPSTR)"";
-      NetRes.lpRemoteName	= remote_name;
-
-    //begin - test !!!
-      char tmp_login[MAX_PATH];
-      if (config.accounts[i].domain[0] != 0)
-      {
-        snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
-      }else
-      {
-        strncpy(tmp_login,config.accounts[i].login,MAX_PATH);
-        //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
-      }
-    //end - test !!!
-
-      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,config.accounts[i].login,CONNECT_PROMPT)==NO_ERROR)
+help : ?
+http://stackoverflow.com/questions/5067240/user-logged-into-remote-machine
+http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 */
 //----------------------------------------------------------------
 //#define _WIN32_WINNT			0x0501  //>= windows 2000
@@ -82,7 +58,7 @@ NETRESOURCE NetRes  = {0};
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.8 24/10/2013"
+#define TITLE                                       "NS v0.2.9 27/10/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -146,17 +122,6 @@ NETRESOURCE NetRes  = {0};
 #define COL_STATE                                   10
 
 #define NB_COLUMN                                   11
-//----------------------------------------------------------------
-//MD5
-typedef unsigned char md5_byte_t; /* 8-bit byte */
-typedef unsigned int md5_word_t; /* 32-bit word */
-
-/* Define the state of the MD5 Algorithm. */
-/*typedef struct md5_state_s {
-    md5_word_t count[2];
-    md5_word_t abcd[4];
-    md5_byte_t buf[64];
-} md5_state_t;*/
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -329,7 +294,7 @@ void md5_init(md5_state_t *pms);
 void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
 void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 void addIPInterval(char *ip_src, char *ip_dst);
-HANDLE UserConnect(char *ip,SCANNE_ST config);
+HANDLE UserConnect(char *ip,SCANNE_ST config, char*desc);
 void UserDisConnect(HANDLE htoken);
 int Ping(char *ip);
 BOOL ResDNS(char *ip, char *name, unsigned int sz_max);

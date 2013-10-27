@@ -92,11 +92,11 @@
 #define T62 /* 0xbd3af235 */ (T_MASK ^ 0x42c50dca)
 #define T63    0x2ad7d2bb
 #define T64 /* 0xeb86d391 */ (T_MASK ^ 0x14792c6e)
-typedef struct md5_state_s {
+/*typedef struct md5_state_s {
     md5_word_t count[2];
     md5_word_t abcd[4];
     md5_byte_t buf[64];
-} md5_state_t;
+} md5_state_t;*/
 
 void md5_process(md5_state_t *pms, const md5_byte_t *data /*[64]*/)
 {
@@ -1304,7 +1304,7 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
   if (FAILED(hres))return FALSE;
 
   if(FAILED(CoInitializeSecurity( NULL,-1,NULL,NULL,
-     RPC_C_AUTHN_LEVEL_DEFAULT,RPC_C_IMP_LEVEL_IMPERSONATE,NULL,EOAC_NONE,NULL)))
+     RPC_C_AUTHN_LEVEL_DEFAULT,RPC_C_IMP_LEVEL_IDENTIFY/*RPC_C_IMP_LEVEL_IMPERSONATE*/,NULL,EOAC_NONE,NULL)))
   {
     CoUninitialize();
     return FALSE;
@@ -1316,7 +1316,6 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
   if(FAILED(CoCreateInstance(CLSID_WbemLocator,NULL,CLSCTX_INPROC_SERVER,
      IID_IWbemLocator, (LPVOID *) &pLoc)))
   {
-    pLoc->Release();
     CoUninitialize();
     return FALSE;
   };
@@ -1333,7 +1332,13 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
   {
     snprintf(tmp,MAX_LINE_SIZE,"%s\\%s",config.domain,config.login);
     MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)tmp,(int)-1,(LPWSTR)user,(int)MAX_LINE_SIZE);
-  }else MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)config.login,(int)-1,(LPWSTR)user,(int)MAX_LINE_SIZE);
+  }else
+  {
+    //snprintf(tmp,MAX_LINE_SIZE,"%s\\%s",ip,config.login);
+    //MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)tmp,(int)-1,(LPWSTR)user,(int)MAX_LINE_SIZE);
+
+    MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)config.login,(int)-1,(LPWSTR)user,(int)MAX_LINE_SIZE);
+  }
 
   //password
   WCHAR wpassword[MAX_LINE_SIZE];
@@ -1355,7 +1360,6 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
           0,                    //context
           &pSvc)))
   {
-    if(pSvc!=NULL)pSvc->Release();
     if(pLoc!=NULL)pLoc->Release();
     CoUninitialize();
     return FALSE;
@@ -1414,6 +1418,10 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
   //get datas !!!
   IEnumWbemClassObject* pEnumerator;
 
+  char msg[LINE_SIZE];
+  snprintf(msg,LINE_SIZE,"Login (ScanReg:1WMI) in %s IP with %S (defined) account.",ip,user);
+  AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+/*
   //services
   if (config.check_services)
   {
@@ -1590,7 +1598,7 @@ BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
       }
       pEnumerator->Release();
     }
-  }
+  }*/
 
   //clean
   if (pSvc != NULL)pSvc->Release();
@@ -2298,7 +2306,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
   if (config.nb_accounts == 0)
   {
     if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
-    else snprintf(user_netbios,LINE_SIZE,"%s",config.login);
+    else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.login);
 
     snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
     NETRESOURCE NetRes;
@@ -2310,7 +2318,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
     if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
     {
       char msg[LINE_SIZE];
-      snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
+      snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (defined) account.",ip,user_netbios);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
 
       return TRUE;//CONNECT_UPDATE_PROFILE
@@ -2328,7 +2336,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
     {
       user_netbios[0] = 0;
       if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
-      else snprintf(user_netbios,LINE_SIZE,"%s",config.accounts[i].login);
+      else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.accounts[i].login);
 
       snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
 
@@ -2341,7 +2349,7 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
       if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
       {
         char msg[LINE_SIZE];
-        snprintf(msg,LINE_SIZE,"Login in %s IP with %s account.",ip,user_netbios);
+        snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (%02d) account.",ip,user_netbios,i);
         AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
 
         return TRUE;//CONNECT_UPDATE_PROFILE
@@ -2359,70 +2367,127 @@ BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
   return FALSE;
 }
 //----------------------------------------------------------------
-HANDLE UserConnect(char *ip,SCANNE_ST config)
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config)
+{
+  HANDLE htoken = NULL;
+  char user_netbios[LINE_SIZE] = "";
+  if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*/9, /*LOGON32_PROVIDER_WINNT50*/3, &htoken))
+  {
+    if (htoken != 0)
+    {
+      ImpersonateLoggedOnUser(htoken);
+      if (htoken != 0)
+      {
+        if (config.nb_accounts == 0)
+        {
+          if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
+          else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.login);
+
+          snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+          NETRESOURCE NetRes;
+          NetRes.dwScope      = RESOURCE_GLOBALNET;
+          NetRes.dwType	      = RESOURCETYPE_ANY;
+          NetRes.lpLocalName  = (LPSTR)"";
+          NetRes.lpProvider   = (LPSTR)"";
+          NetRes.lpRemoteName	= remote_name;
+          if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+          {
+            char msg[LINE_SIZE];
+            snprintf(msg,LINE_SIZE,"Login (ScanReg:NET*) in %s IP with %s (defined) account.",ip,user_netbios);
+            AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+          }else
+          {
+            CloseHandle(htoken);
+            htoken = FALSE;
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+            #endif
+          }
+        }else
+        {
+          unsigned int i;
+          for (i=0; i<config.nb_accounts ;i++)
+          {
+            if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
+            else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.accounts[i].login);
+
+            snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+            NETRESOURCE NetRes;
+            NetRes.dwScope      = RESOURCE_GLOBALNET;
+            NetRes.dwType	      = RESOURCETYPE_ANY;
+            NetRes.lpLocalName  = (LPSTR)"";
+            NetRes.lpProvider   = (LPSTR)"";
+            NetRes.lpRemoteName	= remote_name;
+            if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+            {
+              char msg[LINE_SIZE];
+              snprintf(msg,LINE_SIZE,"Login (ScanReg:NET*) in %s IP with %s (defined) account.",ip,user_netbios);
+              AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+              return htoken;
+            }else
+            {
+              CloseHandle(htoken);
+              htoken = FALSE;
+              #ifdef DEBUG_MODE
+              AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+              #endif
+            }
+          }
+        }
+      }
+    }
+  }
+  return htoken;
+}
+//----------------------------------------------------------------
+HANDLE UserConnect(char *ip,SCANNE_ST config, char*desc)
 {
   HANDLE htoken = NULL;
   if (config.nb_accounts == 0)
   {
-    char domain[MAX_PATH];
+    char login[MAX_PATH];
     if (config.domain[0] == 0)
     {
-      strncpy(domain,".\0",MAX_PATH);
-    }else strncpy(domain,config.domain,MAX_PATH);
+      snprintf(login,MAX_PATH,"%s@%s",config.local_account,ip);
+    }else strncpy(login,config.login,MAX_PATH);
 
-    if (LogonUser(config.login, domain, config.mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+    if (LogonUser(login, config.domain, config.mdp, LOGON32_LOGON_NETWORK/*LOGON32_LOGON_INTERACTIVE*/, LOGON32_PROVIDER_DEFAULT, &htoken))
     {
       ImpersonateLoggedOnUser(htoken);
       if (htoken != 0)
       {
         char msg[MAX_PATH];
-        snprintf(msg,MAX_PATH,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.domain,config.login);
+        if (config.domain[0] == 0)snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s (defined) account.",desc,ip,config.login);
+        else snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s\\%s (defined) account.",desc,ip,config.domain,config.login);
+
         AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
       }
       #ifdef DEBUG_MODE
       if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
       #endif
       return htoken;
-    }/*else
-    {
-      htoken = NULL;
-      if (LogonUser("NETWORK SERVICE", "NT AUTHORITY", NULL, LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, &htoken))
-      {
-        ImpersonateLoggedOnUser(hToken);
-        if (htoken != 0)
-        {
-          NETRESOURCE NetRes  = {0};
-          NetRes.dwScope      = RESOURCE_GLOBALNET;
-          NetRes.dwType	      = RESOURCETYPE_ANY;
-          NetRes.lpLocalName  = (LPSTR)"";
-          NetRes.lpProvider   = (LPSTR)"";
-          NetRes.lpRemoteName	= remote_name;
-
-
-          return htoken;
-        }
-      }
-    }*/
+    }
   }else
   {
     unsigned int i;
-    char domain[MAX_PATH];
+    char login[MAX_PATH];
     for (i=0; i<config.nb_accounts ;i++)
     {
       htoken = NULL;
 
       if (config.accounts[i].domain[0] == 0)
       {
-        strncpy(domain,".\0",MAX_PATH);
-      }else strncpy(domain,config.accounts[i].domain,MAX_PATH);
+        snprintf(login,MAX_PATH,"%s@%s",config.accounts[i].login,ip);
+      }else strncpy(login,config.accounts[i].login,MAX_PATH);
 
-      if (LogonUser(config.accounts[i].login, domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
+      if (LogonUser(login, config.accounts[i].domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
       {
         ImpersonateLoggedOnUser(htoken);
         if (htoken != 0)
         {
           char msg[MAX_PATH];
-          snprintf(msg,MAX_PATH,"Login (LogonUser) in %s IP with %s\\%s account.",ip,config.accounts[i].domain,config.accounts[i].login);
+          if (config.accounts[i].domain[0] == 0)snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s (%02d) account.",desc,ip,config.accounts[i].login,i);
+          else snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s\\%s (%02d) account.",desc,ip,config.accounts[i].domain,config.accounts[i].login,i);
           AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
         }
 
@@ -2445,7 +2510,8 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
 {
   BOOL ret            = FALSE;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
-  BOOL connect = NetConnexionAuthenticate(ip, remote_name,config);
+  //BOOL connect = NetConnexionAuthenticate(ip, remote_name,config);
+  HANDLE connect = NetConnexionAuthenticateTest(ip, remote_name,config);
 
   //net
   HKEY hkey;
@@ -2454,7 +2520,7 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
   {
     if (!connect)
     {
-      snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with NULL session account.",ip);
+      snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with NULL session account.",ip);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
     }
 
@@ -2474,7 +2540,11 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
     RegCloseKey(hkey);
     ret = TRUE;
   }
-  if(connect)WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+  if(connect)
+  {
+    WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+    CloseHandle(connect);
+  }
 
   return ret;
 }
@@ -2482,7 +2552,7 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
 BOOL RemoteRegistryImpersonateConnexion(DWORD iitem, char *name, char *ip, SCANNE_ST config)
 {
   BOOL ret            = FALSE;
-  HANDLE htoken = UserConnect(ip,config);
+  HANDLE htoken = UserConnect(ip,config,(char*)"ResScan");
   if (htoken != NULL)
   {
     HKEY hkey;
@@ -2517,7 +2587,7 @@ BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);
   #endif
   if (RemoteRegistryNetConnexion(iitem, name, ip, config)) return TRUE;
-  else if (RemoteRegistryImpersonateConnexion(iitem, name, ip, config)) return TRUE;
+  //else if (RemoteRegistryImpersonateConnexion(iitem, name, ip, config)) return TRUE;
   else
   {
     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_REG,(LPSTR)"CONNEXION FAIL!");
@@ -2527,7 +2597,6 @@ BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
   }
   return FALSE;
 }
-
 //----------------------------------------------------------------
 void FileToMd5(HANDLE Hfic, char *md5)
 {
@@ -2606,7 +2675,6 @@ void FileToSHA256(HANDLE Hfic, char *csha256)
     HeapFree(GetProcessHeap(), 0,buffer);
   }
 }
-
 //----------------------------------------------------------------            //MD5
 BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config)
 {
@@ -2623,21 +2691,18 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
     NetRes.lpProvider   = (LPSTR)"";
     NetRes.lpRemoteName	= remote_name;
 
-  //begin - test !!!
     char tmp_login[MAX_PATH];
     if (config.domain[0] != 0)
     {
       snprintf(tmp_login,MAX_PATH,"%s\\%s",config.domain,config.login);
     }else
     {
-      strncpy(tmp_login,config.login,MAX_PATH);
-      //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
+      snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
     }
-  //end - test !!!
 
     if (WNetAddConnection2(&NetRes,config.mdp,config.login,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.login);
+      snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s (defined) account.",ip,config.login);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
 
       //check file
@@ -2690,9 +2755,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       }
       WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
       return TRUE;
-    }else
+    }/*else
     {
-      HANDLE htoken = (HANDLE)UserConnect(ip,config);
+      HANDLE htoken = (HANDLE)UserConnect(ip,config,"FilesScan");
       if (htoken != NULL)
       {
         //check file
@@ -2751,7 +2816,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
         AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
         #endif
       }
-    }
+    }*/
   }else
   {
     unsigned int i;
@@ -2764,21 +2829,17 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       NetRes.lpProvider   = (LPSTR)"";
       NetRes.lpRemoteName	= remote_name;
 
-    //begin - test !!!
       char tmp_login[MAX_PATH];
       if (config.accounts[i].domain[0] != 0)
       {
         snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
       }else
       {
-        strncpy(tmp_login,config.accounts[i].login,MAX_PATH);
-        //snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
+        snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.accounts[i].login);
       }
-    //end - test !!!
-
-      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,config.accounts[i].login,CONNECT_PROMPT)==NO_ERROR)
+      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
-        snprintf(msg,LINE_SIZE,"Login (NET) in %s IP with %s account.",ip,config.accounts[i].login);
+        snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s (%02d) account.",ip,config.accounts[i].login,i);
         AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
 
         //check file
@@ -2831,9 +2892,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
         }
         WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
         return TRUE;
-      }else
+      }/*else
       {
-        HANDLE htoken = (HANDLE)UserConnect(ip,config);
+        HANDLE htoken = (HANDLE)UserConnect(ip,config,"FilesScan");
         if (htoken != NULL)
         {
           //check file
@@ -2892,7 +2953,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
           AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
           #endif
         }
-      }
+      }*/
     }
   }
   return FALSE;
@@ -2957,6 +3018,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           a = (struct in_addr **)host->h_addr_list;
           snprintf(ip,16,"%s",inet_ntoa(**a));
           exist = TRUE;
+          dnsok = TRUE;
 
           iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         }else
@@ -3130,7 +3192,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
     }
 
-    if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64)) && (scan_start && exist))
+    if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64) || (dnsok && ttl < 1)) && (scan_start && exist))
     {
       //registry
       BOOL regisyty_remote = FALSE;
@@ -3175,14 +3237,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
       }
 
-      if (!file_remote || !regisyty_remote)
+      if ((!file_remote || !regisyty_remote) && dnsok)
       {
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"WMI");
-        //GetWMITests(iitem, ip, config);
-
-
-        //
-
+        //GetWMITests(iitem, dns/*ip*/, config);
       }
     }else if(exist)
     {
@@ -3240,11 +3298,23 @@ DWORD WINAPI scan(LPVOID lParam)
     L23 = (LIp2 >> 8) & 0xFF;
     L24 = LIp2 & 0xFF;
 
-    char sip1[IP_SIZE]="",sip2[IP_SIZE]="";
-    snprintf(sip1,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
-    snprintf(sip2,IP_SIZE,"%d.%d.%d.%d",L21,L22,L23,L24);
-
-    addIPInterval(sip1, sip2);
+    if ((L21 | L22 | L23 | L24) == 0)
+    {
+      char sip1[IP_SIZE];
+      snprintf(sip1,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
+      addIPTest(sip1);
+    }else if ((L11 | L12 | L13 | L14) == 0)
+    {
+      char sip2[IP_SIZE];
+      snprintf(sip2,IP_SIZE,"%d.%d.%d.%d",L21,L22,L23,L24);
+      addIPTest(sip2);
+    }else
+    {
+      char sip1[IP_SIZE],sip2[IP_SIZE];
+      snprintf(sip1,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
+      snprintf(sip2,IP_SIZE,"%d.%d.%d.%d",L21,L22,L23,L24);
+      addIPInterval(sip1, sip2);
+    }
   }
 
   char tmp[MAX_PATH];
@@ -3363,6 +3433,7 @@ DWORD WINAPI scan(LPVOID lParam)
     EnableWindow(GetDlgItem(h_main,IP2),TRUE);
   }
 
+  EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
   EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),TRUE);
   EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),TRUE);
   EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
@@ -3461,6 +3532,8 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 EnableWindow(GetDlgItem(hwnd,CHK_LOAD_IP_FILE),FALSE);
                 EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
                 EnableWindow(GetDlgItem(hwnd,CB_tests),FALSE);
+                EnableWindow(GetDlgItem(hwnd,BT_LOAD_MDP_FILES),FALSE);
+
                 ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
 
                 SetWindowText(GetDlgItem(hwnd,BT_START),"Stop");

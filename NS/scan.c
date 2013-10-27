@@ -208,9 +208,15 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       if (config.check_files && scan_start)
       {
 
+<<<<<<< .mine
+        /*if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
+            (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
+        {*/
+=======
         //if ((remote_con && (config.check_registry || config.check_services || config.check_software || config.check_USB)) ||
         //    (!(config.check_registry || config.check_services || config.check_software || config.check_USB) && !remote_con))
         //{
+>>>>>>> .r174
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","files:BEGIN",ip);
           #endif
