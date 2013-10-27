@@ -51,7 +51,8 @@
   1999-05-03 lpd Original version.
  */
 //------------------------------------------------------------------------------
-#include "../resources.h"
+//#include "../resources.h"
+#include "md5.h"
 //------------------------------------------------------------------------------
 #undef BYTE_ORDER	/* 1 = big-endian, -1 = little-endian, 0 = unknown */
 #ifdef ARCH_IS_BIG_ENDIAN
@@ -163,7 +164,7 @@ static void md5_process(md5_state_t *pms, const md5_byte_t *data /*[64]*/)
 		X = (const md5_word_t *)data;
 	    } else {
 		/* not aligned */
-		memcpy(xbuf, data, 64);
+		memcpy(xbuf,data, 64);
 		X = xbuf;
 	    }
 	}

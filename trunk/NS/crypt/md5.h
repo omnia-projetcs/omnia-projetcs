@@ -60,7 +60,6 @@
 #define HEADER_MD5_H
 
 //#include "e_os2.h"
-
 #ifdef  __cplusplus
 extern "C" {
 #endif
@@ -95,6 +94,15 @@ extern "C" {
 #define MD5_CBLOCK	64
 #define MD5_LBLOCK	(MD5_CBLOCK/4)
 #define MD5_DIGEST_LENGTH 16
+
+typedef unsigned char md5_byte_t; /* 8-bit byte */
+typedef unsigned int md5_word_t; /* 32-bit word */
+
+typedef struct md5_state_s {
+    md5_word_t count[2];
+    md5_word_t abcd[4];
+    md5_byte_t buf[64];
+} md5_state_t;
 
 typedef struct MD5state_st
 	{
