@@ -360,6 +360,8 @@ void md5_finish(md5_state_t *pms, md5_byte_t digest[16])
 //******************************************************************************
 #include "resources.h"
 //----------------------------------------------------------------
+DWORD nb_test_ip,nb_i,nb_files,nb_registry;
+//----------------------------------------------------------------
 void init(HWND hwnd)
 {
   h_main            = hwnd;
@@ -424,6 +426,8 @@ void init(HWND hwnd)
   SetFilePointer(h_log,0,0,FILE_END);
   DWORD copiee = 0;
   WriteFile(h_log,"----------------\r\n",18,&copiee,0);
+  WriteFile(h_log,TITLE,strlen(TITLE),&copiee,0);
+  WriteFile(h_log,"\r\n",2,&copiee,0);
 
   //insert test
   //SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:ARP");
@@ -518,17 +522,20 @@ void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort)
 //----------------------------------------------------------------
 void AddMsg(HWND hwnd, char *type, char *txt, char *info)
 {
-  char msg[MAX_PATH],date[DATE_SIZE];
+  //read actual time
   time_t dateEtHMs;
   time(&dateEtHMs);
-  DWORD copiee = 0;
+  struct tm *today = localtime(&dateEtHMs);
 
-  snprintf(date,20,"%s",(char *)ctime(&dateEtHMs));
-  if (info != NULL) snprintf(msg,MAX_PATH,"[%s] %s - %s %s",date+11,type,txt,info);
-  else snprintf(msg,MAX_PATH,"[%s] %s - %s",date+11,type,txt);
+  char msg[MAX_PATH],date[DATE_SIZE];
+  strftime(date, DATE_SIZE,"%Y/%m/%d-%H:%M:%S",today);
+  if (info != NULL) snprintf(msg,MAX_PATH,"[%s] %s - %s %s",date,type,txt,info);
+  else snprintf(msg,MAX_PATH,"[%s] %s - %s",date,type,txt);
+
   SendDlgItemMessage(hwnd,CB_infos,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)msg);
   if (h_log != INVALID_HANDLE_VALUE)
   {
+    DWORD copiee = 0;
     strncat(msg,"\r\n\0",MAX_PATH);
     WriteFile(h_log,msg,strlen(msg),&copiee,0);
   }
@@ -1276,24 +1283,6 @@ void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
   ListView_SetItemText(hlstv,iitem,column,buffer);
 }
 //----------------------------------------------------------------
-void mAddMsg(HWND hwnd, char *type, char *txt, char *info)
-{
-  char msg[MAX_PATH],date[DATE_SIZE];
-  time_t dateEtHMs;
-  time(&dateEtHMs);
-  DWORD copiee = 0;
-
-  snprintf(date,20,"%s",(char *)ctime(&dateEtHMs));
-  if (info != NULL) snprintf(msg,MAX_PATH,"[%s] %s - %s %s",date+11,type,txt,info);
-  else snprintf(msg,MAX_PATH,"[%s] %s - %s",date+11,type,txt);
-  SendDlgItemMessage(hwnd,CB_infos,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)msg);
-  if (h_log != INVALID_HANDLE_VALUE)
-  {
-    strncat(msg,"\r\n\0",MAX_PATH);
-    WriteFile(h_log,msg,strlen(msg),&copiee,0);
-  }
-}
-//----------------------------------------------------------------
 //http://msdn.microsoft.com/en-us/library/aa394558%28v=vs.85%29.aspx
 BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config)
 {
@@ -1910,6 +1899,18 @@ BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st)
   return TRUE;
 }
 //----------------------------------------------------------------
+void RegistryOS(DWORD iitem,HKEY hkey)
+{
+  char ch_datas[LINE_SIZE]="";
+  if (ReadValue(hkey,(char*)"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\",(char*)"ProductName",ch_datas, LINE_SIZE))
+  {
+    if (ch_datas[0] != 0)
+    {
+      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,ch_datas);
+    }
+  }
+}
+//----------------------------------------------------------------
 void RegistryScan(DWORD iitem,char *ip, HKEY hkey)
 {
   //get datas to check
@@ -2082,7 +2083,8 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Service)",key_path,key);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
             }else if (LSBExist(CB_T_SERVICES, name))
@@ -2094,7 +2096,8 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Service)",key_path,name);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Service)",msg,name);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
             }
@@ -2109,7 +2112,8 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Service)",key_path,key);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
             }
@@ -2174,7 +2178,8 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Software)",key_path,key);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SOFTWARE, iitem);
               }
             }else if (LSBExist(CB_T_SOFTWARE, name))
@@ -2200,7 +2205,8 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Software)",key_path,name);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Software)",msg,name);
                 AddLSTVUpdateItem(key_path, COL_SOFTWARE, iitem);
               }
             }
@@ -2219,7 +2225,8 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
                 AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
               }else
               {
-                AddMsg(h_main,(char*)"FOUND (Software)",key_path,key);
+                snprintf(msg,LINE_SIZE,"%s\\%s",ip,key_path);
+                AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SOFTWARE, iitem);
               }
             }
@@ -2299,77 +2306,10 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
   }
 }
 //----------------------------------------------------------------
-BOOL NetConnexionAuthenticate(char *ip, char*remote_name, SCANNE_ST config)
-{
-  char user_netbios[LINE_SIZE] = "";
-
-  if (config.nb_accounts == 0)
-  {
-    if (config.domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.domain,config.login);
-    else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.login);
-
-    snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
-    NETRESOURCE NetRes;
-    NetRes.dwScope      = RESOURCE_GLOBALNET;
-    NetRes.dwType	      = RESOURCETYPE_ANY;
-    NetRes.lpLocalName  = (LPSTR)"";
-    NetRes.lpProvider   = (LPSTR)"";
-    NetRes.lpRemoteName	= remote_name;
-    if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
-    {
-      char msg[LINE_SIZE];
-      snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (defined) account.",ip,user_netbios);
-      AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-
-      return TRUE;//CONNECT_UPDATE_PROFILE
-    }else
-    {
-      #ifdef DEBUG_MODE
-      AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
-      #endif
-      return FALSE;
-    }
-  }else
-  {
-    unsigned int i;
-    for (i=0; i<config.nb_accounts ;i++)
-    {
-      user_netbios[0] = 0;
-      if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
-      else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.accounts[i].login);
-
-      snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
-
-      NETRESOURCE NetRes;
-      NetRes.dwScope      = RESOURCE_GLOBALNET;
-      NetRes.dwType	      = RESOURCETYPE_ANY;
-      NetRes.lpLocalName  = (LPSTR)"";
-      NetRes.lpProvider   = (LPSTR)"";
-      NetRes.lpRemoteName	= remote_name;
-      if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
-      {
-        char msg[LINE_SIZE];
-        snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (%02d) account.",ip,user_netbios,i);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-
-        return TRUE;//CONNECT_UPDATE_PROFILE
-      }else
-      {
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
-        #endif
-        return FALSE;
-      }
-    }
-  }
-
-  //for close : WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-  return FALSE;
-}
-//----------------------------------------------------------------
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config)
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem)
 {
   HANDLE htoken = NULL;
+  char msg[LINE_SIZE];
   char user_netbios[LINE_SIZE] = "";
   if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*/9, /*LOGON32_PROVIDER_WINNT50*/3, &htoken))
   {
@@ -2392,9 +2332,11 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
           NetRes.lpRemoteName	= remote_name;
           if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
           {
-            char msg[LINE_SIZE];
-            snprintf(msg,LINE_SIZE,"Login (ScanReg:NET*) in %s IP with %s (defined) account.",ip,user_netbios);
+            snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (defined) account.",ip,user_netbios);
             AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+            snprintf(msg,LINE_SIZE,"(ScanReg:NET) Login with %s account.",user_netbios);
+            AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
           }else
           {
             CloseHandle(htoken);
@@ -2414,15 +2356,17 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
             snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
             NETRESOURCE NetRes;
             NetRes.dwScope      = RESOURCE_GLOBALNET;
-            NetRes.dwType	      = RESOURCETYPE_ANY;
+            NetRes.dwType	    = RESOURCETYPE_ANY;
             NetRes.lpLocalName  = (LPSTR)"";
             NetRes.lpProvider   = (LPSTR)"";
             NetRes.lpRemoteName	= remote_name;
             if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
             {
-              char msg[LINE_SIZE];
-              snprintf(msg,LINE_SIZE,"Login (ScanReg:NET*) in %s IP with %s (defined) account.",ip,user_netbios);
+              snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (%02d) account.",ip,user_netbios,i);
               AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+              snprintf(msg,LINE_SIZE,"(ScanReg:NET) Login with %s (%02d) account.",user_netbios,i);
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
               return htoken;
             }else
             {
@@ -2440,67 +2384,6 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
   return htoken;
 }
 //----------------------------------------------------------------
-HANDLE UserConnect(char *ip,SCANNE_ST config, char*desc)
-{
-  HANDLE htoken = NULL;
-  if (config.nb_accounts == 0)
-  {
-    char login[MAX_PATH];
-    if (config.domain[0] == 0)
-    {
-      snprintf(login,MAX_PATH,"%s@%s",config.local_account,ip);
-    }else strncpy(login,config.login,MAX_PATH);
-
-    if (LogonUser(login, config.domain, config.mdp, LOGON32_LOGON_NETWORK/*LOGON32_LOGON_INTERACTIVE*/, LOGON32_PROVIDER_DEFAULT, &htoken))
-    {
-      ImpersonateLoggedOnUser(htoken);
-      if (htoken != 0)
-      {
-        char msg[MAX_PATH];
-        if (config.domain[0] == 0)snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s (defined) account.",desc,ip,config.login);
-        else snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s\\%s (defined) account.",desc,ip,config.domain,config.login);
-
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-      }
-      #ifdef DEBUG_MODE
-      if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
-      #endif
-      return htoken;
-    }
-  }else
-  {
-    unsigned int i;
-    char login[MAX_PATH];
-    for (i=0; i<config.nb_accounts ;i++)
-    {
-      htoken = NULL;
-
-      if (config.accounts[i].domain[0] == 0)
-      {
-        snprintf(login,MAX_PATH,"%s@%s",config.accounts[i].login,ip);
-      }else strncpy(login,config.accounts[i].login,MAX_PATH);
-
-      if (LogonUser(login, config.accounts[i].domain, config.accounts[i].mdp, LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, &htoken))
-      {
-        ImpersonateLoggedOnUser(htoken);
-        if (htoken != 0)
-        {
-          char msg[MAX_PATH];
-          if (config.accounts[i].domain[0] == 0)snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s (%02d) account.",desc,ip,config.accounts[i].login,i);
-          else snprintf(msg,MAX_PATH,"Login (%s:LogonUser) in %s IP with %s\\%s (%02d) account.",desc,ip,config.accounts[i].domain,config.accounts[i].login,i);
-          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-        }
-
-        #ifdef DEBUG_MODE
-        if (htoken == 0)AddMsg(h_main,"DEBUG","registry:Authent:UserConnect=FAIL",ip);
-        #endif
-        return htoken;
-      }
-    }
-  }
-  return FALSE;
-}
-//----------------------------------------------------------------
 void UserDisConnect(HANDLE htoken)
 {
   CloseHandle(htoken);
@@ -2509,16 +2392,26 @@ void UserDisConnect(HANDLE htoken)
 BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config)
 {
   BOOL ret            = FALSE;
+  HANDLE connect      = FALSE;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
-  //BOOL connect = NetConnexionAuthenticate(ip, remote_name,config);
-  HANDLE connect = NetConnexionAuthenticateTest(ip, remote_name,config);
+
+  //current user use
+  if (!config.local_account)
+  {
+    connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem);
+  }
 
   //net
   HKEY hkey;
-  snprintf(tmp,MAX_PATH,"\\\\%s",name);
+  //snprintf(tmp,MAX_PATH,"\\\\%s",name);
+  snprintf(tmp,MAX_PATH,"\\\\%s",ip);
   if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
   {
-    if (!connect)
+    if (config.local_account)
+    {
+      snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with current session account.",ip);
+      AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+    }else if (!connect)
     {
       snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with NULL session account.",ip);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
@@ -2527,6 +2420,10 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
     #ifdef DEBUG_MODE
     AddMsg(h_main,"DEBUG","registry:RemoteRegistryNetConnexion:RegConnectRegistry=OK",ip);
     #endif
+
+    //get Exact OS !!!
+    RegistryOS(iitem,hkey);
+
     //work
     if (config.check_registry && scan_start)RegistryScan(iitem,ip,hkey);
     if (config.check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
@@ -2549,51 +2446,18 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
   return ret;
 }
 //----------------------------------------------------------------
-BOOL RemoteRegistryImpersonateConnexion(DWORD iitem, char *name, char *ip, SCANNE_ST config)
-{
-  BOOL ret            = FALSE;
-  HANDLE htoken = UserConnect(ip,config,(char*)"ResScan");
-  if (htoken != NULL)
-  {
-    HKEY hkey;
-    char tmp[MAX_PATH] = "";
-    snprintf(tmp,MAX_PATH,"\\\\%s",name);
-    if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
-    {
-      #ifdef DEBUG_MODE
-      AddMsg(h_main,"DEBUG","registry:RemoteRegistryImpersonateConnexion:RegConnectRegistry=OK",ip);
-      #endif
-      //work
-      if (config.check_registry && scan_start)RegistryScan(iitem,ip,hkey);
-      if (config.check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
-      if (config.check_software && scan_start)
-      {
-        RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-        RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
-      }
-      if (config.check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
-
-      RegCloseKey(hkey);
-      ret = TRUE;
-    }
-    UserDisConnect(htoken);
-  }
-  return ret;
-}
-//----------------------------------------------------------------
 BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);
   #endif
   if (RemoteRegistryNetConnexion(iitem, name, ip, config)) return TRUE;
-  //else if (RemoteRegistryImpersonateConnexion(iitem, name, ip, config)) return TRUE;
   else
   {
-    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_REG,(LPSTR)"CONNEXION FAIL!");
-    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SERVICE,(LPSTR)"CONNEXION FAIL!");
-    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SOFTWARE,(LPSTR)"CONNEXION FAIL!");
-    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_USB,(LPSTR)"CONNEXION FAIL!");
+    AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);
+    AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SERVICE,iitem);
+    AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SOFTWARE,iitem);
+    AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_USB,iitem);
   }
   return FALSE;
 }
@@ -2691,19 +2555,22 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
     NetRes.lpProvider   = (LPSTR)"";
     NetRes.lpRemoteName	= remote_name;
 
-    char tmp_login[MAX_PATH];
+    char tmp_login[MAX_PATH]="";
     if (config.domain[0] != 0)
     {
       snprintf(tmp_login,MAX_PATH,"%s\\%s",config.domain,config.login);
     }else
     {
-      snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
+      if (!config.local_account)snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
     }
 
-    if (WNetAddConnection2(&NetRes,config.mdp,config.login,CONNECT_PROMPT)==NO_ERROR)
+    if (WNetAddConnection2(&NetRes,config.mdp,tmp_login/*config.login*/,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s (defined) account.",ip,config.login);
+      snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s account.",ip,tmp_login);
       AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+      snprintf(msg,LINE_SIZE,"(FilesScan:NET) Login with %s account.",tmp_login);
+      AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
       //check file
       char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
@@ -2723,7 +2590,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
             hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
             if (hfile != INVALID_HANDLE_VALUE)
             {
-              //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
               FileToMd5(hfile, s_md5);
               CloseHandle(hfile);
 
@@ -2731,7 +2597,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
                 FileToSHA256(hfile, s_sha);
                 CloseHandle(hfile);
               }
@@ -2748,75 +2613,14 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
             }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-            AddMsg(h_main,(char*)"FOUND (File:WNetAddConnection2)",tmp_path,(char*)"");
+            AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
             AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
           }
         }
       }
       WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
       return TRUE;
-    }/*else
-    {
-      HANDLE htoken = (HANDLE)UserConnect(ip,config,"FilesScan");
-      if (htoken != NULL)
-      {
-        //check file
-        char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
-        DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
-        for (i=0;i<nb_i && scan_start;i++)
-        {
-          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
-          {
-            snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
-            #ifdef DEBUG_MODE
-            AddMsg(h_main,"DEBUG","File:check",tmp_path);
-            #endif
-            HANDLE hfile;
-            if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
-            {
-              //MD5
-              hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-              if (hfile != INVALID_HANDLE_VALUE)
-              {
-                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-                FileToMd5(hfile, s_md5);
-                CloseHandle(hfile);
-
-                //SHA256
-                hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-                if (hfile != INVALID_HANDLE_VALUE)
-                {
-                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-                  FileToSHA256(hfile, s_sha);
-                  CloseHandle(hfile);
-                }
-              }
-
-              if (s_sha[0] != 0 && s_md5[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-              }else if (s_md5[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-              }else if (s_sha[0] != 0)
-              {
-                snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-              }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
-
-              AddMsg(h_main,(char*)"FOUND (File:UserConnect)",tmp_path,(char*)"");
-              AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
-            }
-          }
-        }
-        UserDisConnect(htoken);
-        return TRUE;
-      }else
-      {
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
-        #endif
-      }
-    }*/
+    }
   }else
   {
     unsigned int i;
@@ -2839,8 +2643,11 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       }
       if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
-        snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s (%02d) account.",ip,config.accounts[i].login,i);
+        snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s IP with %s (%02d) account.",ip,tmp_login,i);
         AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"(FilesScan:NET) Login with %s (%02d) account.",tmp_login,i);
+        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
         //check file
         char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
@@ -2860,7 +2667,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
               hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
                 FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
 
@@ -2868,7 +2674,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
                 if (hfile != INVALID_HANDLE_VALUE)
                 {
-                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
                   FileToSHA256(hfile, s_sha);
                   CloseHandle(hfile);
                 }
@@ -2885,75 +2690,14 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
                 snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
               }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
 
-              AddMsg(h_main,(char*)"FOUND (File:WNetAddConnection2)",tmp_path,(char*)"");
+              AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"");
               AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
             }
           }
         }
         WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
         return TRUE;
-      }/*else
-      {
-        HANDLE htoken = (HANDLE)UserConnect(ip,config,"FilesScan");
-        if (htoken != NULL)
-        {
-          //check file
-          char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
-          DWORD i, nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
-          for (i=0;i<nb_i && scan_start;i++)
-          {
-            if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
-            {
-              snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
-              #ifdef DEBUG_MODE
-              AddMsg(h_main,"DEBUG","File:check",tmp_path);
-              #endif
-              HANDLE hfile;
-              if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
-              {
-                //MD5
-                hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-                if (hfile != INVALID_HANDLE_VALUE)
-                {
-                  //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK MD5");
-                  FileToMd5(hfile, s_md5);
-                  CloseHandle(hfile);
-
-                  //SHA256
-                  hfile = CreateFile(tmp_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-                  if (hfile != INVALID_HANDLE_VALUE)
-                  {
-                    //AddMsg(h_main,(char*)"FOUND (File)",tmp_path,(char*)"CHECK SHA256");
-                    FileToSHA256(hfile, s_sha);
-                    CloseHandle(hfile);
-                  }
-                }
-
-                if (s_sha[0] != 0 && s_md5[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;SHA256;%s",remote_name,file,s_md5,s_sha);
-                }else if (s_md5[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;MD5;%s;;",remote_name,file,s_md5);
-                }else if (s_sha[0] != 0)
-                {
-                  snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;SHA256;%s",remote_name,file,s_sha);
-                }else snprintf(tmp_path,LINE_SIZE,"%s\\%s;;;;",remote_name,file);
-
-                AddMsg(h_main,(char*)"FOUND (File:UserConnect)",tmp_path,(char*)"");
-                AddLSTVUpdateItem(tmp_path, COL_FILES, iitem);
-              }
-            }
-          }
-          UserDisConnect(htoken);
-          return TRUE;
-        }else
-        {
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan:UserConnect=FAIL",ip);
-          #endif
-        }
-      }*/
+      }
     }
   }
   return FALSE;
@@ -2968,24 +2712,21 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
 
   if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"C$", config))
   {
-    if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config))
-    {
-      if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config))
-        return TRUE;
-    }
+    nb_files++;
+    RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config);
+    RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config);
+
     return TRUE;
   }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
 
   return FALSE;
 }
 //----------------------------------------------------------------
-DWORD nb_test_ip,nb_i;
-//----------------------------------------------------------------
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
-  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_PATH]="",test_title[MAX_PATH];
-  DWORD iitem = 0;
+  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
+  long long int iitem = -1;
   int ttl = -1;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
 
@@ -3084,12 +2825,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           if (!exist)
           {
             iitem = AddLSTVItem(ip, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            exist = TRUE;
           }else
           {
             ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
           }
-
-          exist = TRUE;
           dnsok = TRUE;
         }
         #ifdef DEBUG_MODE
@@ -3099,7 +2839,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       ReleaseSemaphore(hs_disco,1,NULL);
 
       //NetBIOS
-      if (exist && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
+      if (exist && (iitem > -1) && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
@@ -3130,7 +2870,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         if (domain[0] != 0)
         {
           snprintf(tmp,MAX_PATH,"Domain: %s\r\n\0",domain);
-          strncat(cfg,tmp,MAX_PATH);
+          strncat(cfg,tmp,MAX_LINE_SIZE);
           netBIOS = TRUE;
         }
 
@@ -3139,14 +2879,14 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           if(Netbios_NULLSession(ip))
           {
-            strncat(cfg,"NULL Session: Enable\r\n\0",MAX_PATH);
+            strncat(cfg,"NULL Session: Enable\r\n\0",MAX_LINE_SIZE);
             //ReversSID (only administrator + guest + defaults account test)
-            if(TestReversSID(ip,(char*)"invité"))            strncat(cfg,(char*)"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_PATH);
-            else if(TestReversSID(ip,(char*)"guest"))        strncat(cfg,(char*)"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_PATH);
-            else if(TestReversSID(ip,(char*)"HelpAssistant"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_PATH);
-            else if(TestReversSID(ip,(char*)"ASPNET"))       strncat(cfg,(char*)"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_PATH);
-            else if(TestReversSID(ip,(char*)"administrateur"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_PATH);
-            else if(TestReversSID(ip,(char*)"administrator"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_PATH);
+            if(TestReversSID(ip,(char*)"invité"))            strncat(cfg,(char*)"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"guest"))        strncat(cfg,(char*)"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"HelpAssistant"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"ASPNET"))       strncat(cfg,(char*)"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"administrateur"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"administrator"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_LINE_SIZE);
             netBIOS     = TRUE;
 
             if (scan_start)
@@ -3159,7 +2899,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
               if (c_time[0] != 0)
               {
                 snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
-                strncat(cfg,tmp,MAX_PATH);
+                strncat(cfg,tmp,MAX_LINE_SIZE);
                 netBIOS = TRUE;
               }
 
@@ -3171,7 +2911,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
                 if (shares[0] != 0)
                 {
                   snprintf(tmp,MAX_PATH,"Share:\r\n%s\0",shares);
-                  strncat(cfg,tmp,MAX_PATH);
+                  strncat(cfg,tmp,MAX_LINE_SIZE);
                   netBIOS = TRUE;
                 }
               }
@@ -3190,72 +2930,73 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","NetBIOS:END",ip);
         #endif
       }
+
+      if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64) || (dnsok && ttl < 1)) && scan_start && exist)
+      {
+        //registry
+        BOOL regisyty_remote = FALSE;
+        if (config.check_registry || config.check_services || config.check_software || config.check_USB)
+        {
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
+          #endif
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
+          WaitForSingleObject(hs_registry,INFINITE);
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
+          #endif
+          regisyty_remote = RemoteConnexionScan(iitem, dns, ip, config);
+          if (regisyty_remote)nb_registry++;
+          ReleaseSemaphore(hs_registry,1,NULL);
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
+          AddMsg(h_main,"DEBUG","registry:END",ip);
+          #endif
+        }
+
+        //files
+        BOOL file_remote = FALSE;
+        if (config.check_files && scan_start)
+        {
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","files:BEGIN",ip);
+          #endif
+
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
+          WaitForSingleObject(hs_file,INFINITE);
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
+          #endif
+
+          file_remote = RemoteConnexionFilesScan(iitem, dns, ip, config);
+          ReleaseSemaphore(hs_file,1,NULL);
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
+          AddMsg(h_main,"DEBUG","files:END",ip);
+          #endif
+        }
+
+        if ((!file_remote || !regisyty_remote) && dnsok)
+        {
+          /*printf("test WMI : %s\n",ip);
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"WMI");
+          GetWMITests(iitem, dns/*ip*//*, config);*/
+        }
+      }else if(exist)
+      {
+        if (config.check_files)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_FILES, iitem);
+        if (config.check_registry)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_REG, iitem);
+        if (config.check_services)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_SERVICE, iitem);
+        if (config.check_software)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_SOFTWARE, iitem);
+        if (config.check_USB)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_USB, iitem);
+      }
+
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","SCAN:END",ip);
+      #endif
+
+      if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
     }
-
-    if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64) || (dnsok && ttl < 1)) && (scan_start && exist))
-    {
-      //registry
-      BOOL regisyty_remote = FALSE;
-      if (config.check_registry || config.check_services || config.check_software || config.check_USB)
-      {
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
-        #endif
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
-        WaitForSingleObject(hs_registry,INFINITE);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
-        #endif
-        regisyty_remote = RemoteConnexionScan(iitem, dns, ip, config);
-        ReleaseSemaphore(hs_registry,1,NULL);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
-        AddMsg(h_main,"DEBUG","registry:END",ip);
-        #endif
-      }
-
-      //files
-      BOOL file_remote = FALSE;
-      if (config.check_files && scan_start)
-      {
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","files:BEGIN",ip);
-        #endif
-
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-        WaitForSingleObject(hs_file,INFINITE);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
-        #endif
-
-        if (!RemoteConnexionFilesScan(iitem, dns, ip, config))ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!")
-        else file_remote = TRUE;
-        ReleaseSemaphore(hs_file,1,NULL);
-        #ifdef DEBUG_MODE
-        AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
-        AddMsg(h_main,"DEBUG","files:END",ip);
-        #endif
-      }
-
-      if ((!file_remote || !regisyty_remote) && dnsok)
-      {
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"WMI");
-        //GetWMITests(iitem, dns/*ip*/, config);
-      }
-    }else if(exist)
-    {
-        if (config.check_files)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"NOT TESTED!");
-        if (config.check_registry)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_REG,(LPSTR)"NOT TESTED!");
-        if (config.check_services)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SERVICE,(LPSTR)"NOT TESTED!");
-        if (config.check_software)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SOFTWARE,(LPSTR)"NOT TESTED!");
-        if (config.check_USB)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_USB,(LPSTR)"NOT TESTED!");
-    }
-
-    #ifdef DEBUG_MODE
-    AddMsg(h_main,"DEBUG","SCAN:END",ip);
-    #endif
-
-    if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
   }
   ReleaseSemaphore(hs_threads,1,NULL);
 
@@ -3322,7 +3063,10 @@ DWORD WINAPI scan(LPVOID lParam)
   AddMsg(h_main,(char*)"INFORMATION",tmp,(char*)"");
 
   //load config
-  unsigned int ref = 0;
+  unsigned int ref  = 0;
+  nb_files          = 0;
+  nb_registry       = 0;
+
   //config.disco_arp          = 0;//SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)0,(LPARAM)NULL);
   config.disco_icmp         = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.disco_dns          = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
@@ -3355,10 +3099,6 @@ DWORD WINAPI scan(LPVOID lParam)
     GetWindowText(GetDlgItem(h_main,ED_NET_LOGIN),config.login,MAX_PATH);
     GetWindowText(GetDlgItem(h_main,ED_NET_PASSWORD),config.mdp,MAX_PATH);
     GetWindowText(GetDlgItem(h_main,ED_NET_DOMAIN),config.domain,MAX_PATH);
-
-    /*AddMsg(h_main,"AUTHENT","get config.login",config.login);
-    AddMsg(h_main,"AUTHENT","get config.mdp",config.mdp);
-    AddMsg(h_main,"AUTHENT","get config.domain",config.domain);*/
   }else
   {
     config.local_account = TRUE;
@@ -3407,7 +3147,12 @@ DWORD WINAPI scan(LPVOID lParam)
 
   WSACleanup();
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
-
+  snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i);
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  snprintf(tmp,MAX_PATH,"Remote file authentication OK : %lu/%lu",nb_files,nb_i);
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  snprintf(tmp,MAX_PATH,"Remote registry authentication OK : %lu/%lu",nb_registry,nb_i);
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
   //close
   DeleteCriticalSection(&Sync);
   CloseHandle(hs_threads);

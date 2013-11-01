@@ -5,24 +5,20 @@
 //----------------------------------------------------------------
 /*
 A faire :
+  - chargementd'un csv possible !! (même plusieurs ?)
   - plantage lors du démarrage sous windows64 (bug sémaphore/threads ?)
   - ajouter tests services + processus WMI
   - GetWMITests : plante
   - relifter le code pour lisibilité !!!
-  - connexion IPc$ fonctionne mais après les accès bugs !!!
-  - plante en cas de test ciblant la mahcine locale !
+  - bug du nombre d'ip
 
 	REM NS :
     - tri 1er colonne
     - ajouter un champ de recherche
-    - capacité de chargement d'ancien scanne avec reprise de scanne (par contre uni-thread?)
     - revoir le double cick afficher une fenetre ou le texte est sélectionnable !
     - ajouter status bar avec nb items +  états des semaphore par catégorie pris/libérés pour chaque
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
-    - bug netbios + registre + file = trop long a tester !!!
 		- bug connexion ajouter WMI + activation des services en cas d'abscence
-		- augmenter le nombre de thread (choix possible dans fichier ini pour les perfs)
-		- ajouter POPUP
 		- ajouter check SSH
 */
 /*
@@ -58,7 +54,7 @@ http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.2.9 27/10/2013"
+#define TITLE                                       "NS v0.3.1 01/11/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
