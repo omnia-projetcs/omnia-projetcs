@@ -1,3 +1,4 @@
-"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"ProductName";"";"STRING";"*";
-"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"SystemRoot";"WINDOWS";"STRING";"?";
-"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"toto";"";"STRING";"*";
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"ProductName";"";"STRING";"OS version";"*";
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"SystemRoot";"WINDOWS";"STRING";"Root path Windows";"?";
+"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"toto";"";"STRING";"not";"*";
+".DEFAULT\Environment\";"TEMP";"";"STRING";"Temp default directory in HKEY_USERS";"*";

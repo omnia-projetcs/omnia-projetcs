@@ -4,27 +4,25 @@
 // Licence              : GPLv3
 //----------------------------------------------------------------
 /*
+#BUG NS :
+	- ajouter check si service registry distant est activé sinon l'activer et le désactiver en partant (WMI)!
+  - bug de fin de scanne (il attend encore alors que le scanne devrait être terminé !!!
+  - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas
+  - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
+
+
 A faire :
+  - ajouter l possibiliter d'écrire des clés de registre !!! + vérification d'écriture en lisant la valeur après
+  - pouvoir énumérer des sous-clés et sous valeur en registre
   - chargementd'un csv possible !! (même plusieurs ?)
-  - plantage lors du démarrage sous windows64 (bug sémaphore/threads ?)
   - ajouter tests services + processus WMI
   - GetWMITests : plante
   - relifter le code pour lisibilité !!!
-  - bug du nombre d'ip
 
 	REM NS :
-    - tri 1er colonne
-    - ajouter un champ de recherche
-    - revoir le double cick afficher une fenetre ou le texte est sélectionnable !
-    - ajouter status bar avec nb items +  états des semaphore par catégorie pris/libérés pour chaque
+    - revoir le double click afficher une fenetre ou le texte est sélectionnable !
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
-		- bug connexion ajouter WMI + activation des services en cas d'abscence
 		- ajouter check SSH
-*/
-/*
-help : ?
-http://stackoverflow.com/questions/5067240/user-logged-into-remote-machine
-http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 */
 //----------------------------------------------------------------
 //#define _WIN32_WINNT			0x0501  //>= windows 2000
@@ -54,7 +52,7 @@ http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.3.1 01/11/2013"
+#define TITLE                                       "NS v0.3.9 30/11/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -101,8 +99,8 @@ http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 
 #define BT_START                                    1035
 //----------------------------------------------------------------
-#define SAVE_TYPE_CSV                               1
-#define SAVE_TYPE_XML                               2
+#define SAVE_TYPE_XML                               1
+#define SAVE_TYPE_CSV                               2
 #define SAVE_TYPE_HTML                              3
 //----------------------------------------------------------------
 #define COL_IP                                      0
@@ -110,14 +108,16 @@ http://code.google.com/p/wmi-delphi-code-creator/wiki/MSCPPDevelopers
 #define COL_TTL                                     2
 #define COL_OS                                      3
 #define COL_CONFIG                                  4
-#define COL_FILES                                   5
-#define COL_REG                                     6
-#define COL_SERVICE                                 7
-#define COL_SOFTWARE                                8
-#define COL_USB                                     9
-#define COL_STATE                                   10
+#define COL_SHARE                                   5
+#define COL_POLICY                                  6
+#define COL_FILES                                   7
+#define COL_REG                                     8
+#define COL_SERVICE                                 9
+#define COL_SOFTWARE                                10
+#define COL_USB                                     11
+#define COL_STATE                                   12
 
-#define NB_COLUMN                                   11
+#define NB_COLUMN                                   13
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -135,6 +135,8 @@ typedef struct reg_line_st
   //format data
   BOOL data_dword;    //dword
   BOOL data_string;   //string
+
+  char description[LINE_SIZE];
 
   //check
   BOOL check_equal;   // =
@@ -169,6 +171,7 @@ typedef struct scanne_st
   BOOL disco_icmp;
   BOOL disco_dns;
   BOOL disco_netbios;
+  BOOL disco_netbios_policy;
 
   BOOL config_service;
   BOOL config_user;
@@ -212,11 +215,11 @@ HANDLE h_log;
 #define MACH_ROUTEUR                                256
 
 //Threads
-#define NB_MAX_DISCO_THREADS                        100
+#define NB_MAX_DISCO_THREADS                        300
 #define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
-#define NB_MAX_THREAD                               1000
+#define NB_MAX_THREAD                               300
 
 CRITICAL_SECTION Sync;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry;
