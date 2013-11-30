@@ -1,69 +1,67 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
-	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="262" topLine="4" />
-		</Cursor>
-	</File>
-	<File name="crypt\sha2.cpp" open="1" top="0" tabpos="12" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="6760" topLine="157" />
+			<Cursor1 position="6469" topLine="157" />
 		</Cursor>
 	</File>
 	<File name="main.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="61863" topLine="438" />
+			<Cursor1 position="71341" topLine="697" />
 		</Cursor>
 		<Folding>
+			<Collapse line="281" />
+			<Collapse line="290" />
+			<Collapse line="328" />
 			<Collapse line="365" />
-			<Collapse line="471" />
-			<Collapse line="490" />
-			<Collapse line="500" />
-			<Collapse line="513" />
-			<Collapse line="523" />
-			<Collapse line="544" />
-			<Collapse line="561" />
-			<Collapse line="589" />
-			<Collapse line="600" />
-			<Collapse line="749" />
-			<Collapse line="922" />
-			<Collapse line="1017" />
-			<Collapse line="1084" />
-			<Collapse line="1210" />
-			<Collapse line="1253" />
-			<Collapse line="1269" />
-			<Collapse line="1287" />
-			<Collapse line="1599" />
-			<Collapse line="1627" />
-			<Collapse line="1642" />
-			<Collapse line="1704" />
-			<Collapse line="1721" />
-			<Collapse line="1738" />
-			<Collapse line="1769" />
-			<Collapse line="1783" />
-			<Collapse line="1813" />
-			<Collapse line="1902" />
-			<Collapse line="1914" />
-			<Collapse line="2034" />
-			<Collapse line="2050" />
-			<Collapse line="2128" />
-			<Collapse line="2241" />
-			<Collapse line="2309" />
-			<Collapse line="2387" />
-			<Collapse line="2392" />
-			<Collapse line="2449" />
-			<Collapse line="2465" />
-			<Collapse line="2503" />
-			<Collapse line="2543" />
-			<Collapse line="2706" />
-			<Collapse line="3194" />
-			<Collapse line="3461" />
+			<Collapse line="472" />
+			<Collapse line="491" />
+			<Collapse line="501" />
+			<Collapse line="514" />
+			<Collapse line="524" />
+			<Collapse line="545" />
+			<Collapse line="562" />
+			<Collapse line="590" />
+			<Collapse line="601" />
+			<Collapse line="751" />
+			<Collapse line="924" />
+			<Collapse line="933" />
+			<Collapse line="1030" />
+			<Collapse line="1099" />
+			<Collapse line="1225" />
+			<Collapse line="1275" />
+			<Collapse line="1291" />
+			<Collapse line="1308" />
+			<Collapse line="1336" />
+			<Collapse line="1351" />
+			<Collapse line="1413" />
+			<Collapse line="1430" />
+			<Collapse line="1447" />
+			<Collapse line="1478" />
+			<Collapse line="1492" />
+			<Collapse line="1543" />
+			<Collapse line="1841" />
+			<Collapse line="1919" />
+			<Collapse line="2100" />
+			<Collapse line="2267" />
+			<Collapse line="2295" />
+			<Collapse line="2665" />
+			<Collapse line="2703" />
+			<Collapse line="2743" />
+			<Collapse line="2934" />
+			<Collapse line="3442" />
+			<Collapse line="3709" />
 		</Folding>
 	</File>
-	<File name="resources.rc" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2162" topLine="16" />
+			<Cursor1 position="311" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2162" topLine="0" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
