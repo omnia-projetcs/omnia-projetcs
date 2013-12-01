@@ -12,7 +12,6 @@
   - revoir fonctionnement sous Wine !!!
 
 A faire :
-  - ajouter l possibiliter d'écrire des clés de registre !!! + vérification d'écriture en lisant la valeur après
   - pouvoir énumérer des sous-clés et sous valeur en registre
   - chargementd'un csv possible !! (même plusieurs ?)
   - ajouter tests services + processus WMI
@@ -23,6 +22,12 @@ A faire :
     - revoir le double click afficher une fenetre ou le texte est sélectionnable !
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
 		- ajouter check SSH
+
+
+NEWS NS V0.4 :
+  - you can now modify a registry key on the remote computers
+  - add registry check for <>*?=!
+
 */
 //----------------------------------------------------------------
 //#define _WIN32_WINNT			0x0501  //>= windows 2000
@@ -52,7 +57,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.3.9 30/11/2013"
+#define TITLE                                       "NS v0.4.0 01/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -60,6 +65,7 @@ A faire :
 #define DEFAULT_LIST_SERVICES                       "conf_services.txt"
 #define DEFAULT_LIST_SOFTWARE                       "conf_softwares.txt"
 #define DEFAULT_LIST_USB                            "conf_USB.txt"
+#define DEFAULT_LIST_REGISTRY_W                     "conf_registry_write.csv"
 //----------------------------------------------------------------
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
@@ -96,6 +102,7 @@ A faire :
 #define CB_T_SOFTWARE                               1043
 #define CB_T_USB                                    1044
 #define CB_T_FILES                                  1045
+#define CB_T_REGISTRY_W                             1046
 
 #define BT_START                                    1035
 //----------------------------------------------------------------
@@ -186,6 +193,8 @@ typedef struct scanne_st
   BOOL check_services;
   BOOL check_software;
   BOOL check_USB;
+
+  BOOL write_key;
 
   unsigned int nb_accounts;
   ACCOUNTS_ST accounts[MAX_ACCOUNTS];
