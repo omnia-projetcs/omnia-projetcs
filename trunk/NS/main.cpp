@@ -3559,6 +3559,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 EnableWindow(GetDlgItem(hwnd,BT_LOAD_MDP_FILES),FALSE);
 
                 ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
+                SendDlgItemMessage(hwnd,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
                 SetWindowText(GetDlgItem(hwnd,BT_START),"Stop");
                 AddMsg(hwnd, (char*)"INFORMATION",(char*)"Start scan",(char*)"");

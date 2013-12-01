@@ -9,7 +9,7 @@
   - bug de fin de scanne (il attend encore alors que le scanne devrait être terminé !!!
   - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas
   - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
-
+  - revoir fonctionnement sous Wine !!!
 
 A faire :
   - ajouter l possibiliter d'écrire des clés de registre !!! + vérification d'écriture en lisant la valeur après
