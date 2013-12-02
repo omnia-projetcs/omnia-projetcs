@@ -5,32 +5,20 @@
 //----------------------------------------------------------------
 /*
 #BUG NS :
-	- ajouter check si service registry distant est activé sinon l'activer et le désactiver en partant (WMI)!
-  - bug de fin de scanne (il attend encore alors que le scanne devrait être terminé !!!
-  - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas
+  - ajoute pour l'écriture un élément de compliance (permet d'affecter la valeure en fonction du résultat avec prise en compte de la fonction *?<>
+  - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas la suite
   - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
   - revoir fonctionnement sous Wine !!!
 
 A faire :
   - pouvoir énumérer des sous-clés et sous valeur en registre
   - chargementd'un csv possible !! (même plusieurs ?)
-  - ajouter tests services + processus WMI
-  - GetWMITests : plante
-  - relifter le code pour lisibilité !!!
 
 	REM NS :
     - revoir le double click afficher une fenetre ou le texte est sélectionnable !
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
-		- ajouter check SSH
-
-
-NEWS NS V0.4 :
-  - you can now modify a registry key on the remote computers
-  - add registry check for <>*?=!
-
 */
 //----------------------------------------------------------------
-//#define _WIN32_WINNT			0x0501  //>= windows 2000
 #define _WIN32_IE         0x0501  // IE5 min
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
@@ -45,19 +33,19 @@ NEWS NS V0.4 :
 #include <iphlpapi.h>
 #include <math.h>
 
+#include "crypt/sha2.h"
 #include "crypt/md5.h"
 
-#define _WIN32_DCOM
+#include <libssh2.h>
 
-#include "WbemCli.h"
-#include "wbemprov.h"
-#include "wbemtran.h"
-#include <objbase.h>
+#pragma comment(lib, "ole32.lib")
+#pragma comment(lib, "oleaut32.lib")
+#pragma comment(lib, "comdlg32.lib")
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.0 01/12/2013"
+#define TITLE                                       "NS v0.4.2 02/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -66,6 +54,7 @@ NEWS NS V0.4 :
 #define DEFAULT_LIST_SOFTWARE                       "conf_softwares.txt"
 #define DEFAULT_LIST_USB                            "conf_USB.txt"
 #define DEFAULT_LIST_REGISTRY_W                     "conf_registry_write.csv"
+#define DEFAULT_LIST_SSH                            "conf_ssh.txt"
 //----------------------------------------------------------------
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
@@ -103,6 +92,7 @@ NEWS NS V0.4 :
 #define CB_T_USB                                    1044
 #define CB_T_FILES                                  1045
 #define CB_T_REGISTRY_W                             1046
+#define CB_T_SSH                                    1047
 
 #define BT_START                                    1035
 //----------------------------------------------------------------
@@ -122,9 +112,10 @@ NEWS NS V0.4 :
 #define COL_SERVICE                                 9
 #define COL_SOFTWARE                                10
 #define COL_USB                                     11
-#define COL_STATE                                   12
+#define COL_SSH                                     12
+#define COL_STATE                                   13
 
-#define NB_COLUMN                                   13
+#define NB_COLUMN                                   14
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -195,6 +186,7 @@ typedef struct scanne_st
   BOOL check_USB;
 
   BOOL write_key;
+  BOOL check_ssh;
 
   unsigned int nb_accounts;
   ACCOUNTS_ST accounts[MAX_ACCOUNTS];
@@ -228,10 +220,11 @@ HANDLE h_log;
 #define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
+#define NB_MAX_SSH_THREADS                          20
 #define NB_MAX_THREAD                               300
 
 CRITICAL_SECTION Sync;
-HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry;
+HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh;
 SCANNE_ST config;
 //----------------------------------------------------------------
 //ICMP
@@ -275,50 +268,76 @@ BOOL (WINAPI *pIcmpCloseHandle)(HANDLE);
 DWORD (WINAPI *pIcmpSendEcho) (HANDLE,DWORD,LPVOID,WORD, PIPINFO,    LPVOID,DWORD,DWORD);
 DWORD (WINAPI *pIcmpSendEcho2) (HANDLE,HANDLE,PIO_APC_ROUTINE,PVOID,IPAddr,LPVOID,WORD,PIP_OPTION_INFORMATION,LPVOID,DWORD,DWORD);
 //----------------------------------------------------------------
-#endif
-/*
+DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows;
+//----------------------------------------------------------------
 //GUI
 void init(HWND hwnd);
-
-//LSTV
-void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
-DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *files, char *registry, char *Services, char *software, char *USB, char *state);
-BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
-void AddLSTVUpdateItem(char *add, DWORD column, DWORD item);
-
-//LSB
 void AddMsg(HWND hwnd, char *type, char *txt, char *info);
-BOOL LSBExist(DWORD lsb, char *st);
+void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
+DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
+void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
+int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
+BOOL LSBExist(DWORD lsb, char *sst);
+void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
+BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
 
 //string
-unsigned long int Contient(char*data,char*chaine);
+char *charToLowChar(char *src);
+unsigned long int Contient(const char*data, const char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 
-//Import
-void load_file_list(DWORD lsb, char *file);
+//export
+BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
 
-//tests
-void md5_init(md5_state_t *pms);
-void md5_append(md5_state_t *pms, const md5_byte_t *data, int nbytes);
-void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
+//load files configuration
+DWORD WINAPI load_file_ip(LPVOID lParam);
+DWORD load_file_list(DWORD lsb, char *file);
+DWORD WINAPI load_file_accounts(LPVOID lParam);
+DWORD WINAPI scan(LPVOID lParam);
+
+//IP
+void addIPTest(char *ip_format);
 void addIPInterval(char *ip_src, char *ip_dst);
-HANDLE UserConnect(char *ip,SCANNE_ST config, char*desc);
-void UserDisConnect(HANDLE htoken);
+BOOL verifieName(char *name);
+
+//Disco
 int Ping(char *ip);
 BOOL ResDNS(char *ip, char *name, unsigned int sz_max);
-BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
+
+//Netbios
 BOOL Netbios_NULLSession(char *ip);
 BOOL TestReversSID(char *ip, char* user);
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
 BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max);
+BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
+BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
-BOOL GetWMITests(DWORD iitem, char *ip, SCANNE_ST config);
+//Registry
+BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st);
+BOOL RegistryOS(DWORD iitem,HKEY hkey);
+void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey);
+DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size);
+void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey);
+BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS);
+BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS);
 
+//File
+void FileToMd5(HANDLE Hfic, char *md5);
+void FileToSHA256(HANDLE Hfic, char *csha256);
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config);
+BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config);
 
+//SSH
+void ssh_exec(DWORD iitem,char *ip, char*login, char*mdp);
 
-//threads
-DWORD WINAPI load_file_ip(LPVOID lParam);
+//Scan
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);
 DWORD WINAPI ScanIp(LPVOID lParam);
-DWORD WINAPI scan(LPVOID lParam);
+#endif
+//----------------------------------------------------------------
 
-*/
+

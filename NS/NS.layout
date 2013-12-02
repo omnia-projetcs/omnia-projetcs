@@ -1,67 +1,68 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
+	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3264" topLine="18" />
+		</Cursor>
+	</File>
+	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1052" topLine="3" />
+		</Cursor>
+	</File>
 	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
 			<Cursor1 position="6469" topLine="157" />
 		</Cursor>
 	</File>
-	<File name="main.cpp" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="main.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="71341" topLine="697" />
+			<Cursor1 position="46661" topLine="799" />
 		</Cursor>
 		<Folding>
-			<Collapse line="281" />
-			<Collapse line="290" />
-			<Collapse line="328" />
-			<Collapse line="365" />
-			<Collapse line="472" />
-			<Collapse line="491" />
-			<Collapse line="501" />
-			<Collapse line="514" />
-			<Collapse line="524" />
-			<Collapse line="545" />
-			<Collapse line="562" />
-			<Collapse line="590" />
-			<Collapse line="601" />
-			<Collapse line="751" />
-			<Collapse line="924" />
-			<Collapse line="933" />
-			<Collapse line="1030" />
-			<Collapse line="1099" />
-			<Collapse line="1225" />
-			<Collapse line="1275" />
-			<Collapse line="1291" />
-			<Collapse line="1308" />
-			<Collapse line="1336" />
-			<Collapse line="1351" />
-			<Collapse line="1413" />
-			<Collapse line="1430" />
-			<Collapse line="1447" />
-			<Collapse line="1478" />
-			<Collapse line="1492" />
-			<Collapse line="1543" />
-			<Collapse line="1841" />
-			<Collapse line="1919" />
-			<Collapse line="2100" />
-			<Collapse line="2267" />
-			<Collapse line="2295" />
-			<Collapse line="2665" />
-			<Collapse line="2703" />
-			<Collapse line="2743" />
-			<Collapse line="2934" />
-			<Collapse line="3442" />
-			<Collapse line="3709" />
+			<Collapse line="9" />
+			<Collapse line="157" />
+			<Collapse line="170" />
+			<Collapse line="180" />
+			<Collapse line="201" />
+			<Collapse line="218" />
+			<Collapse line="248" />
+			<Collapse line="259" />
+			<Collapse line="409" />
+			<Collapse line="1366" />
+			<Collapse line="1551" />
+			<Collapse line="1846" />
 		</Folding>
 	</File>
-	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="crypt\md5.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="311" topLine="0" />
+			<Cursor1 position="10755" topLine="261" />
 		</Cursor>
 	</File>
-	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\Files.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2162" topLine="0" />
+			<Cursor1 position="11564" topLine="267" />
+		</Cursor>
+	</File>
+	<File name="tests\Registry.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="22440" topLine="535" />
+		</Cursor>
+	</File>
+	<File name="tests\NetBIOS.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="353" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\disco.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="453" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\ssh.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="965" topLine="13" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>
