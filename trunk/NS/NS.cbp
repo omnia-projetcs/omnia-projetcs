@@ -16,8 +16,8 @@
 				<Linker>
 					<Add library="ole32" />
 					<Add library="oleaut32" />
-					<Add library="WbemUuid" />
 					<Add library="Comdlg32" />
+					<Add library="libssh2" />
 				</Linker>
 			</Target>
 		</Build>
@@ -30,14 +30,32 @@
 			<Add library="mpr" />
 			<Add library="dnsapi" />
 		</Linker>
+		<Unit filename="crypt/md5.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="crypt/sha2.cpp" />
 		<Unit filename="crypt/sha2.h" />
-		<Unit filename="main.cpp">
+		<Unit filename="main.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="resources.h" />
 		<Unit filename="resources.rc">
 			<Option compilerVar="WINDRES" />
+		</Unit>
+		<Unit filename="tests/Files.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/NetBIOS.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/Registry.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/disco.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tests/ssh.c">
+			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>
 			<code_completion />
