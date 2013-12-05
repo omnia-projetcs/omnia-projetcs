@@ -7,6 +7,7 @@
 #BUG NS :
   * mettre à jour la documentation
   * ajoute pour l'écriture un élément de compliance (permet d'affecter la valeure en fonction du résultat avec prise en compte de la fonction *?<>
+                                                        et en cas de non réussite de lecture/écriture il faut créer le path
 
   - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas la suite
   - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
@@ -17,8 +18,6 @@ A faire :
   - chargementd'un csv possible !! (même plusieurs ?)
 
 	REM NS :
-    - revoir le double click afficher une fenetre ou le texte est sélectionnable !
-    - ajouter l'affichage d'information direct dans les logs aussi pour copier coller (ou direct en presse papier)
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
 */
 //----------------------------------------------------------------
@@ -28,6 +27,7 @@ A faire :
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
+#include <Windowsx.h> //for LSB macro
 #include <commctrl.h>
 #include <stdio.h>
 #include <time.h>
@@ -48,7 +48,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.2 02/12/2013"
+#define TITLE                                       "NS v0.4.3 05/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -210,8 +210,9 @@ BOOL scan_start, tri_order;
 HANDLE h_thread_scan;
 
 HINSTANCE hinst;
-HWND h_main;
+HWND h_main, hdbclk_info;
 HANDLE h_log;
+WNDPROC wndproc_hdbclk_info;
 //----------------------------------------------------------------
 //scan
 #define MACH_LINUX                                  64
@@ -223,7 +224,7 @@ HANDLE h_log;
 #define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
-#define NB_MAX_SSH_THREADS                          20
+#define NB_MAX_SSH_THREADS                          1
 #define NB_MAX_THREAD                               300
 
 CRITICAL_SECTION Sync;
@@ -284,10 +285,9 @@ BOOL LSBExist(DWORD lsb, char *sst);
 void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-
 //string
 char *charToLowChar(char *src);
-unsigned long int Contient(const char*data, const char*chaine);
+unsigned long int Contient(char*data, char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 
 //export

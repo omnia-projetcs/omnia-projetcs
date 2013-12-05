@@ -162,10 +162,10 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
     if (pUmI_0 != NULL)
     {
       ret0 = TRUE;
-      snprintf(tmp_pUmI_0,MAX_PATH,"min_passwd_len:%d\n"
-                                   "max_passwd_age:%d(days)\n"
-                                   "min_passwd_age:%d(days)\n"
-                                   "passord_history:%d\n"
+      snprintf(tmp_pUmI_0,MAX_PATH,"min_passwd_len:%d\r\n"
+                                   "max_passwd_age:%d(days)\r\n"
+                                   "min_passwd_age:%d(days)\r\n"
+                                   "passord_history:%d\r\n"
                                    //"force_logoff:%d(s)\n"
                                   ,pUmI_0->usrmod0_min_passwd_len
                                   ,pUmI_0->usrmod0_max_passwd_age/86400
@@ -181,8 +181,8 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
     if (pUmI_3 != NULL)
     {
       ret1 = TRUE;
-      snprintf(tmp_pUmI_3,MAX_PATH,"lockout_duration_before_auto_unlock:%d(s)\n"
-                                   "wait_time_to_reset_fail_logon_count:%d(s)\n"
+      snprintf(tmp_pUmI_3,MAX_PATH,"lockout_duration_before_auto_unlock:%d(s)\r\n"
+                                   "wait_time_to_reset_fail_logon_count:%d(s)\r\n"
                                    "bad_password_count_to_lock_account:%d"
                                   ,pUmI_3->usrmod3_lockout_duration
                                   ,pUmI_3->usrmod3_lockout_observation_window

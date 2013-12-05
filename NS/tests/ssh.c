@@ -57,9 +57,10 @@ void ssh_exec(DWORD iitem,char *ip, char*username, char*password)
                       {
                         snprintf(msg,0x4000,"[%s\\%s]\r\n",ip,cmd);
                         AddLSTVUpdateItem(msg, COL_SSH, iitem);
+                        snprintf(msg,0x4000,"[%s\\%s]",ip,cmd);
                         while(rc){
                           buffer[rc] = 0;
-                          AddMsg(h_main,(char*)"FOUND (SSH)",cmd,buffer);
+                          AddMsg(h_main,(char*)"FOUND (SSH)",msg,buffer);
                           AddLSTVUpdateItem(buffer, COL_SSH, iitem);
                           rc = libssh2_channel_read(channel, buffer, sizeof(buffer));
                         }

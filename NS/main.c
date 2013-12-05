@@ -5,6 +5,15 @@
 //----------------------------------------------------------------
 //http://msdn.microsoft.com/en-us/library/aa390422%28v=vs.85%29.aspx
 #include "resources.h"
+//------------------------------------------------------------------------------
+//subclass of hdbclk_info
+//------------------------------------------------------------------------------
+LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+  if (uMsg == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
+  else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
+  return 0;
+}
 //----------------------------------------------------------------
 void init(HWND hwnd)
 {
@@ -14,6 +23,21 @@ void init(HWND hwnd)
   config.nb_accounts= 0;
 
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+  //edit for dblck view
+  hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+                         GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                         GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
+                         h_main, NULL, hinst, NULL);
+
+  SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
+  SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+#ifdef _WIN64_VERSION_
+  wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+#else
+  wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
+#endif
 
   CheckDlgButton(hwnd,CHK_NULL_SESSION,BST_CHECKED);
   EnableWindow(GetDlgItem(hwnd,ED_NET_LOGIN),FALSE);
@@ -125,7 +149,7 @@ void init(HWND hwnd)
   }
 }
 //------------------------------------------------------------------------------
-unsigned long int Contient(const char*data, const char*chaine)
+unsigned long int Contient(char*data, char*chaine)
 {
   unsigned long int i=0;
   char *d = data;
@@ -1569,6 +1593,21 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     {
       switch (HIWORD(wParam))
       {
+        case LBN_DBLCLK:
+          switch(LOWORD(wParam))
+          {
+            case CB_infos:
+            {
+              char msg[MAX_LINE_SIZE];
+              if (ListBox_GetText(lParam,ListBox_GetCurSel(lParam),msg))
+              {
+                SetWindowText(hdbclk_info, msg);
+                ShowWindow (hdbclk_info, SW_SHOW);
+              }
+            }
+            break;
+          }
+        break;
         case BN_CLICKED:
           switch(LOWORD(wParam))
           {
@@ -1813,7 +1852,12 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
 
             strncat(msg,"\0",MAX_LINE_SIZE);
-            if (strlen(msg))MessageBox(h_main,msg,"Global View",MB_OK|MB_TOPMOST);
+            if (strlen(msg))
+            {
+              SetWindowText(hdbclk_info, msg);
+              ShowWindow (hdbclk_info, SW_SHOW);
+              //MessageBox(h_main,msg,"Global View",MB_OK|MB_TOPMOST);
+            }
           }
         }
         break;
@@ -1847,5 +1891,6 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 {
     hinst = hInstance;
     InitCommonControls();
+
     return DialogBox(hInstance, MAKEINTRESOURCE(DLG_NS), NULL, (DLGPROC)DlgMain);
 }
