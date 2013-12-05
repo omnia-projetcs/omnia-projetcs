@@ -5,7 +5,9 @@
 //----------------------------------------------------------------
 /*
 #BUG NS :
-  - ajoute pour l'écriture un élément de compliance (permet d'affecter la valeure en fonction du résultat avec prise en compte de la fonction *?<>
+  * mettre à jour la documentation
+  * ajoute pour l'écriture un élément de compliance (permet d'affecter la valeure en fonction du résultat avec prise en compte de la fonction *?<>
+
   - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas la suite
   - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
   - revoir fonctionnement sous Wine !!!
@@ -16,6 +18,7 @@ A faire :
 
 	REM NS :
     - revoir le double click afficher une fenetre ou le texte est sélectionnable !
+    - ajouter l'affichage d'information direct dans les logs aussi pour copier coller (ou direct en presse papier)
     - ajouter une fonction rescanne des machines non testés (ou avec un fail)
 */
 //----------------------------------------------------------------
