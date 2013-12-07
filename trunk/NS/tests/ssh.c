@@ -6,15 +6,17 @@
 #include "../resources.h"
 //----------------------------------------------------------------
 //use libssh2 libraries : http://www.libssh2.org/ and lib http://josefsson.org/gnutls4win/libssh2-1.2.6.zip
-void ssh_exec(DWORD iitem,char *ip, char*username, char*password)
+int ssh_exec(DWORD iitem,char *ip, char*username, char*password)
 {
   //for each command
   char buffer[0x4000],cmd[0x4000], msg[0x4000];
   unsigned int nb = 0;
   int rc;
+  BOOL ret = 0;
   LIBSSH2_SESSION *session;
   LIBSSH2_CHANNEL *channel;
   DWORD i, _nb_i = SendDlgItemMessage(h_main,CB_T_SSH,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+
   for (i=0;i<_nb_i && scan_start;i++)
   {
     cmd[0] = 0;
@@ -55,6 +57,7 @@ void ssh_exec(DWORD iitem,char *ip, char*username, char*password)
                       rc = libssh2_channel_read(channel, buffer, sizeof(buffer));
                       if (rc > 0)
                       {
+                        ret += 1;
                         snprintf(msg,0x4000,"[%s\\%s]\r\n",ip,cmd);
                         AddLSTVUpdateItem(msg, COL_SSH, iitem);
                         snprintf(msg,0x4000,"[%s\\%s]",ip,cmd);
@@ -70,20 +73,162 @@ void ssh_exec(DWORD iitem,char *ip, char*username, char*password)
                     libssh2_channel_close(channel);
                     libssh2_channel_free(channel);
                     channel = NULL;
+                  }else
+                  {
+                    libssh2_session_disconnect(session,NULL);
+                    libssh2_session_free(session);
+                    closesocket(sock);
+                    libssh2_exit();
+                    return -6;
                   }
+                }else
+                {
+                  libssh2_session_disconnect(session,NULL);
+                  libssh2_session_free(session);
+                  closesocket(sock);
+                  libssh2_exit();
+                  return 0;
                 }
+              }else
+              {
+                libssh2_session_disconnect(session,NULL);
+                libssh2_session_free(session);
+                closesocket(sock);
+                libssh2_exit();
+                return -5;
               }
               libssh2_session_disconnect(session,NULL);
               libssh2_session_free(session);
+            }else
+            {
+              closesocket(sock);
+              libssh2_exit();
+              return -4;
             }
+          }else
+          {
+            closesocket(sock);
+            libssh2_exit();
+            return -3;
           }
           closesocket(sock);
+        }else
+        {
+          libssh2_exit();
+          return -2;
         }
         //clean
         libssh2_exit();
-      }
+      }else return -1;
     }
   }
+  return ret;
+}
+//----------------------------------------------------------------
+int ssh_exec_cmd(DWORD iitem,char *ip, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size)
+{
+  //for each command
+  char msg[0x4000];
+  unsigned int nb = 0;
+  int rc;
+  BOOL ret = 0;
+  LIBSSH2_SESSION *session;
+  LIBSSH2_CHANNEL *channel;
+  if (cmd[0] == 0 || cmd[0] == '\r' || cmd[0] == '\n')return 0;
+
+  //init libssh2
+  if (libssh2_init(0)==0)
+  {
+    //connexion
+    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock != INVALID_SOCKET)
+    {
+      //connect
+      struct sockaddr_in sin;
+      sin.sin_family = AF_INET;
+      sin.sin_port = htons(22);
+      sin.sin_addr.s_addr = inet_addr(ip);
+      if (connect(sock, (struct sockaddr*)(&sin),sizeof(struct sockaddr_in)) != SOCKET_ERROR)
+      {
+        //init a session sshv2
+        session = libssh2_session_init();
+        if (session != 0)
+        {
+          //start real session, pass welcome banners...
+          if (!libssh2_session_startup(session, sock))
+          {
+            //authentication
+            if (!libssh2_userauth_password(session, username, password))
+            {
+              if (id_account == -1) snprintf(msg,0x4000,"Login (SSH) in %s IP with %s account.",ip,username,id_account);
+              else snprintf(msg,0x4000,"Login (SSH) in %s IP with %s (%02d) account.",ip,username,id_account);
+              AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+
+              //create a channel for execute
+              if ((channel = libssh2_channel_open_session(session)) != 0)
+              {
+                //send command and read results
+                if (!libssh2_channel_exec(channel, cmd))
+                {
+                  rc = libssh2_channel_read(channel, buffer, buffer_size);
+                  if (rc > 0)
+                  {
+                    ret += 1;
+                  }
+                }
+                //close the channel
+                libssh2_channel_close(channel);
+                libssh2_channel_free(channel);
+                channel = NULL;
+              }else
+              {
+                libssh2_session_disconnect(session,NULL);
+                libssh2_session_free(session);
+                closesocket(sock);
+                libssh2_exit();
+                return -6;
+              }
+            }else
+            {
+              libssh2_session_disconnect(session,NULL);
+              libssh2_session_free(session);
+              closesocket(sock);
+              libssh2_exit();
+              return 0;
+            }
+          }else
+          {
+            libssh2_session_disconnect(session,NULL);
+            libssh2_session_free(session);
+            closesocket(sock);
+            libssh2_exit();
+            return -5;
+          }
+          libssh2_session_disconnect(session,NULL);
+          libssh2_session_free(session);
+        }else
+        {
+          closesocket(sock);
+          libssh2_exit();
+          return -4;
+        }
+      }else
+      {
+        closesocket(sock);
+        libssh2_exit();
+        return -3;
+      }
+      closesocket(sock);
+    }else
+    {
+      libssh2_exit();
+      return -2;
+    }
+    //clean
+    libssh2_exit();
+  }else return -1;
+  return ret;
 }
 //----------------------------------------------------------------
 //use libssh libraries : https://red.libssh.org/projects/libssh/files

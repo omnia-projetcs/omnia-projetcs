@@ -242,7 +242,7 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
 DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
 {
   LVITEM lvi;
-  HWND hlstv  = GetDlgItem(h_main,LV_results);
+  HWND hlstv    = GetDlgItem(h_main,LV_results);
   lvi.mask      = LVIF_TEXT|LVIF_PARAM;
   lvi.iSubItem  = 0;
   lvi.lParam    = LVM_SORTITEMS;
@@ -1343,19 +1343,33 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //SSH
-      if(exist && config.check_ssh)
+      if(exist && config.check_ssh && !config.local_account)
       {
+        char tmp_os[MAX_PATH]="";
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"SSH");
         WaitForSingleObject(hs_ssh,INFINITE);
         if (config.nb_accounts == 0)
         {
-          ssh_exec(iitem,ip,config.login,config.mdp);
+          if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,MAX_PATH) == 1)
+          {
+            if (strlen(tmp_os)<40)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+            ssh_exec(iitem,ip, config.login, config.mdp);
+          }
         }else
         {
           DWORD j = 0;
+          int ret = 0;
           for (j=0;j<config.nb_accounts;j++)
           {
-            ssh_exec(iitem,ip,config.accounts[j].login,config.accounts[j].mdp);
+            //OS rescue
+            tmp_os[0] = 0;
+            ret = ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,MAX_PATH);
+            if (ret == 1)
+            {
+              if (strlen(tmp_os)<40)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+              ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
+              break;
+            }else if (ret < 0)break;
           }
         }
         ReleaseSemaphore(hs_ssh,1,NULL);
@@ -1526,12 +1540,20 @@ DWORD WINAPI scan(LPVOID lParam)
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
   snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i);
   AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
-  snprintf(tmp,MAX_PATH,"Remote file authentication OK : %lu/%lu",nb_files,nb_i);
-  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
-  snprintf(tmp,MAX_PATH,"Remote registry authentication OK : %lu/%lu",nb_registry,nb_i);
-  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
-  snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS : %lu/%lu",nb_windows,nb_i);
-  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+
+  if (config.check_files)
+  {
+    snprintf(tmp,MAX_PATH,"Remote file authentication OK : %lu/%lu",nb_files,nb_i);
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  }
+
+  if (config.check_registry || config.check_services || config.check_software || config.check_USB || config.write_key)
+  {
+    snprintf(tmp,MAX_PATH,"Remote registry authentication OK : %lu/%lu",nb_registry,nb_i);
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+    snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS : %lu/%lu",nb_windows,nb_i);
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  }
 
   //close
   DeleteCriticalSection(&Sync);
@@ -1581,11 +1603,19 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
     //--------------------------------------
     case WM_CLOSE:
     {
-      scan_start = FALSE;
-      DeleteCriticalSection(&Sync);
-      CloseHandle(h_log);
-      FreeLibrary((HMODULE)hndlIcmp);
-      EndDialog(hwnd,0);
+      if (!save_done && (ListView_GetItemCount(GetDlgItem(hwnd,LV_results))>0))
+      {
+        if (MessageBox(h_main,"No data saved, are you really sure to quit?","Quit?",MB_YESNO|MB_ICONQUESTION|MB_TOPMOST) == IDYES)save_done = TRUE;
+      }else save_done = TRUE;
+
+      if (save_done)
+      {
+        scan_start = FALSE;
+        DeleteCriticalSection(&Sync);
+        CloseHandle(h_log);
+        FreeLibrary((HMODULE)hndlIcmp);
+        EndDialog(hwnd,0);
+      }
     }
     break;
     //--------------------------------------
@@ -1599,7 +1629,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             case CB_infos:
             {
               char msg[MAX_LINE_SIZE];
-              if (ListBox_GetText(lParam,ListBox_GetCurSel(lParam),msg))
+              if (ListBox_GetText((HWND)lParam,ListBox_GetCurSel((HWND)lParam),msg))
               {
                 SetWindowText(hdbclk_info, msg);
                 ShowWindow (hdbclk_info, SW_SHOW);

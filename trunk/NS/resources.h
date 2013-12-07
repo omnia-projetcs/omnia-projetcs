@@ -5,20 +5,16 @@
 //----------------------------------------------------------------
 /*
 #BUG NS :
-  * mettre à jour la documentation
-  * ajoute pour l'écriture un élément de compliance (permet d'affecter la valeure en fonction du résultat avec prise en compte de la fonction *?<>
-                                                        et en cas de non réussite de lecture/écriture il faut créer le path
+- ne fonctionne pas sous Linux/Wine (à cause du chargement dynamique de ping)
 
-  - revoir l'authentification afin de vérifier une seule fois l'authentification avec ipc$ et si cette authentification n'est pas OK on ne vérifie pas la suite
-  - lors des tentatives d'authentification dés qu'une réussie on passe le compte à l'autre (registre+files)
-  - revoir fonctionnement sous Wine !!!
-
-A faire :
-  - pouvoir énumérer des sous-clés et sous valeur en registre
-  - chargementd'un csv possible !! (même plusieurs ?)
-
-	REM NS :
-    - ajouter une fonction rescanne des machines non testés (ou avec un fail)
+#A FAIRE :
+* mise à jour de la documentation
+- multithread SSH
+- possibiliter de charger un fichier par défaut avec une liste d'ip + compte + mdp
+- ajouter d'une colonne de test + une de compliance pour l'écriture de clés
+- ajouter la création de path dans la base de registre s'il n'existe pas
+- optimiser l'authentification avec ipc$ et si ok on passe à la suite (pour registre +files)
+- continuer un scanne/recharger un ancien scan à partir d'un csv ! (en vérifiant le OK en fin de ligne)
 */
 //----------------------------------------------------------------
 #define _WIN32_IE         0x0501  // IE5 min
@@ -39,6 +35,8 @@ A faire :
 #include "crypt/sha2.h"
 #include "crypt/md5.h"
 
+//http://code.google.com/p/library-prebuilt-for-windows
+//http://chaosstuff.com/2013/07/07/build-libssh2-on-visual-studio-2010/
 #include <libssh2.h>
 
 #pragma comment(lib, "ole32.lib")
@@ -48,7 +46,7 @@ A faire :
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.3 05/12/2013"
+#define TITLE                                       "NS v0.4.4 07/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -213,6 +211,7 @@ HINSTANCE hinst;
 HWND h_main, hdbclk_info;
 HANDLE h_log;
 WNDPROC wndproc_hdbclk_info;
+BOOL save_done;
 //----------------------------------------------------------------
 //scan
 #define MACH_LINUX                                  64
@@ -335,7 +334,8 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
 BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config);
 
 //SSH
-void ssh_exec(DWORD iitem,char *ip, char*login, char*mdp);
+int ssh_exec(DWORD iitem,char *ip, char*username, char*password);
+int ssh_exec_cmd(DWORD iitem,char *ip, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size);
 
 //Scan
 HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);
