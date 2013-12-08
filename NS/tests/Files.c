@@ -122,6 +122,8 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       SYSTEMTIME SysTimeModification;
       for (i=0;i<_nb_i && scan_start;i++)
       {
+        if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) > LINE_SIZE)continue;
+
         if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
         {
           snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);
@@ -213,6 +215,8 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
         SYSTEMTIME SysTimeModification;
         for (i=0;i<_nb_i && scan_start;i++)
         {
+          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) > LINE_SIZE)continue;
+
           if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)i,(LPARAM)file))
           {
             snprintf(tmp_path,LINE_SIZE,"%s\\%s",remote_name,file);

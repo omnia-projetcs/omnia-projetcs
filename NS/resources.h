@@ -5,15 +5,11 @@
 //----------------------------------------------------------------
 /*
 #BUG NS :
-- ne fonctionne pas sous Linux/Wine (à cause du chargement dynamique de ping)
+- ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping)
 
 #A FAIRE :
-* mise à jour de la documentation
 - multithread SSH
-- possibiliter de charger un fichier par défaut avec une liste d'ip + compte + mdp
-- ajouter d'une colonne de test + une de compliance pour l'écriture de clés
-- ajouter la création de path dans la base de registre s'il n'existe pas
-- optimiser l'authentification avec ipc$ et si ok on passe à la suite (pour registre +files)
+- possibiliter de charger un fichier par défaut avec une liste d'ip + port (ssh)+ compte + mdp
 - continuer un scanne/recharger un ancien scan à partir d'un csv ! (en vérifiant le OK en fin de ligne)
 */
 //----------------------------------------------------------------
@@ -42,11 +38,13 @@
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "comdlg32.lib")
+#pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "ssh2.lib")
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.4 07/12/2013"
+#define TITLE                                       "NS v0.4.6 08/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -59,12 +57,27 @@
 //----------------------------------------------------------------
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
+#define MAX_MSG_SIZE                                0x4000
 #define IP_SIZE                                     16
 #define SHA256_SIZE                                 65
 #define DATE_SIZE                                   26
+#define HK_SIZE_MAX                                 20
 
 #define ICMP_TIMEOUT                                6000
 #define DIXM                                        10*1024*1024    //10mo
+//----------------------------------------------------------------
+//SSH use custom error message
+#define SSH_ERROR_OK            1
+#define SSH_ERROR_LIBINIT       -1
+#define SSH_ERROR_SESSIONINIT   -2
+#define SSH_ERROR_SESSIONSTART  -3
+#define SSH_ERROR_AUTHENT       -4
+#define SSH_ERROR_CHANNEL       -5
+#define SSH_ERROR_CHANNEL_EXEC  -6
+#define SSH_ERROR_CHANNEL_READ  -7
+
+#define SSH_ERROR_SOCKET        -10
+#define SSH_ERROR_CONNECT       -11
 //----------------------------------------------------------------
 #define DLG_NS                                      1000
 #define GRP_DISCO                                   1001
@@ -135,7 +148,8 @@ typedef struct reg_line_st
   BOOL data_dword;    //dword
   BOOL data_string;   //string
 
-  char description[LINE_SIZE];
+  char chkey[LINE_SIZE];
+  char description[LINE_SIZE]; //description or value o check in write mode!
 
   //check
   BOOL check_equal;   // =
@@ -285,6 +299,7 @@ void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //string
+char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
 unsigned long int Contient(char*data, char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
@@ -316,7 +331,7 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
 //Registry
-BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st);
+BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write);
 BOOL RegistryOS(DWORD iitem,HKEY hkey);
 void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey);
 DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size);
@@ -335,7 +350,7 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
 
 //SSH
 int ssh_exec(DWORD iitem,char *ip, char*username, char*password);
-int ssh_exec_cmd(DWORD iitem,char *ip, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size);
+int ssh_exec_cmd(DWORD iitem,char *ip, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK);
 
 //Scan
 HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);

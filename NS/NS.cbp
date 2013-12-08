@@ -18,6 +18,7 @@
 					<Add library="oleaut32" />
 					<Add library="Comdlg32" />
 					<Add library="libssh2" />
+					<Add library="gdi32" />
 				</Linker>
 			</Target>
 		</Build>

@@ -45,7 +45,7 @@ DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
   return data_size_read;
 }
 //----------------------------------------------------------------
-BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st)
+BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write)
 {
   //line format :"SYSTEM\\CurrentControlSet\\Services\\";"value";"data";"format";"check";
   //get path
@@ -82,6 +82,18 @@ BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st)
 
   strncpy(reg_st->description,s+3,LINE_SIZE);
   *s = 0;
+
+  //CHKEY in write mode !
+  if (reg_write)
+  {
+    strncpy(reg_st->chkey,reg_st->description,LINE_SIZE);
+    s = reg_st->chkey;
+    while (*s && *s != '\"' && *(s+1)!= ';')s++;
+    if (*s != '\"')return FALSE;
+
+    strncpy(reg_st->description,s+3,LINE_SIZE);
+    *s = 0;
+  }
 
   //get description
   s = reg_st->description;
@@ -182,13 +194,14 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey)
 
   for (i=0;i<_nb_i && scan_start;i++)
   {
+    if (SendDlgItemMessage(h_main,CB_T_REGISTRY,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) > LINE_SIZE)continue;
     if (SendDlgItemMessage(h_main,CB_T_REGISTRY,LB_GETTEXT,(WPARAM)i,(LPARAM)buffer))
     {
       //for title line add # after the "
       //line format :"SYSTEM\\CurrentControlSet\\Services\\";"value";"data";"format";"check";
       //data format : string/dword
       //check format: =<>!*
-      if (parseLineToReg(buffer,&reg_st))
+      if (parseLineToReg(buffer,&reg_st,FALSE))
       {
         if (RegOpenKey(hkey,reg_st.path,&CleTmp)==ERROR_SUCCESS)
         {
@@ -569,44 +582,162 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey)
 {
   //get datas to check
-  char buffer[LINE_SIZE];
+  char buffer[LINE_SIZE], val_s[LINE_SIZE];
   DWORD i, _nb_i = SendDlgItemMessage(h_main,CB_T_REGISTRY_W,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
 
   REG_LINE_ST reg_st;
   HKEY CleTmp;
   DWORD ddatas;
   char msg[MAX_PATH];
+  DWORD val;
 
   for (i=0;i<_nb_i && scan_start;i++)
   {
+    if (SendDlgItemMessage(h_main,CB_T_REGISTRY_W,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) > LINE_SIZE)continue;
     if (SendDlgItemMessage(h_main,CB_T_REGISTRY_W,LB_GETTEXT,(WPARAM)i,(LPARAM)buffer))
     {
       //format :
-      //"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"toto";"datas";"STRING";"HKLM";"*";
-      if (parseLineToReg(buffer,&reg_st))
+      //"SOFTWARE\Microsoft\Windows NT\CurrentVersion\";"toto";"datas";"STRING";"HKLM";"value to check";"*";
+      if (parseLineToReg(buffer,&reg_st,TRUE))
       {
-        if (!strcmp(chkey, reg_st.description))
+        if (!strcmp(chkey, reg_st.chkey))
         {
-          if (RegOpenKey(hkey,reg_st.path,&CleTmp)==ERROR_SUCCESS)
+          if (RegOpenKey(hkey,reg_st.path,&CleTmp)!=ERROR_SUCCESS)
           {
-            if (reg_st.data_dword)
+            if (RegCreateKeyEx(hkey,reg_st.path,0,NULL,REG_OPTION_NON_VOLATILE,KEY_WRITE ,NULL,&CleTmp,NULL)!=ERROR_SUCCESS)
+              continue;
+          }
+
+          //check value
+          if (reg_st.data_dword)
+          {
+            if (!reg_st.check_no_data && !reg_st.check_no_value)
             {
+              //write value only
               ddatas = atol(reg_st.data);
               if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_DWORD,(BYTE*)&ddatas,sizeof(ddatas)))==ERROR_SUCCESS)
               {
                 snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(DWORD)=%s",ip,chkey,reg_st.path,reg_st.value,reg_st.data);
                 AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+              }else
+              {
+                snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
               }
-            }else if (reg_st.data_string)
+            }else
             {
+              //get value and verify
+              ddatas = atol(reg_st.description);
+              if (ReadValue(hkey,reg_st.path,reg_st.value,&val, sizeof(val)) != 0)
+              {
+                if (reg_st.check_diff && (val != ddatas))
+                {
+                  ddatas = atol(reg_st.data);
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_DWORD,(BYTE*)&ddatas,sizeof(ddatas)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(DWORD)=%s[!=%l:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }else if (reg_st.check_equal && (val == ddatas))
+                {
+                  ddatas = atol(reg_st.data);
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_DWORD,(BYTE*)&ddatas,sizeof(ddatas)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(DWORD)=%s[=%l:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }else if (reg_st.check_inf && (val < ddatas))
+                {
+                  ddatas = atol(reg_st.data);
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_DWORD,(BYTE*)&ddatas,sizeof(ddatas)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(DWORD)=%s[<%l:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }else if (reg_st.check_sup && (val > ddatas))
+                {
+                  ddatas = atol(reg_st.data);
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_DWORD,(BYTE*)&ddatas,sizeof(ddatas)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(DWORD)=%s[>%l:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }
+              }
+            }
+          }else if (reg_st.data_string)
+          {
+            if (!reg_st.check_no_data && !reg_st.check_no_value)
+            {
+              //write value only
               if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_SZ,(BYTE*)(reg_st.data),strlen(reg_st.data)))==ERROR_SUCCESS)
               {
                 snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(STRING)=%s",ip,chkey,reg_st.path,reg_st.value,reg_st.data);
                 AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+              }else
+              {
+                snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+              }
+            }else
+            {
+              //get value and verify
+              if (ReadValue(hkey,reg_st.path,reg_st.value,val_s, sizeof(val_s)) != 0)
+              {
+                if (reg_st.check_diff && strcmp(val_s,reg_st.description)!= 0)
+                {
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_SZ,(BYTE*)(reg_st.data),strlen(reg_st.data)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(STRING)=%s[!=%s:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val_s);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }else if (reg_st.check_equal && !strcmp(val_s,reg_st.description))
+                {
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_SZ,(BYTE*)(reg_st.data),strlen(reg_st.data)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(STRING)=%s[=%s:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val_s);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }else if (reg_st.check_content && Contient(charToLowChar(val_s),charToLowChar(reg_st.description)))
+                {
+                  if ((RegSetValueEx(CleTmp,reg_st.value,0,REG_SZ,(BYTE*)(reg_st.data),strlen(reg_st.data)))==ERROR_SUCCESS)
+                  {
+                    snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s(STRING)=%s[=%s:OK]",ip,chkey,reg_st.path,reg_st.value,reg_st.data,val_s);
+                    AddMsg(h_main,(char*)"WRITE (Registry)",msg,(char*)"");
+                  }else
+                  {
+                    snprintf(msg,LINE_SIZE,"NO RIGHT TO WRITE IN %s\\%s\\%s%s",ip,chkey,reg_st.path,reg_st.value);
+                    AddMsg(h_main,(char*)"WRITE ERROR (Registry)",msg,(char*)"");
+                  }
+                }
               }
             }
-            RegCloseKey(CleTmp);
           }
+          RegCloseKey(CleTmp);
         }
       }
     }

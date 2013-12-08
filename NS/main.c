@@ -177,6 +177,26 @@ char *charToLowChar(char *src)
   }
   return src;
 }
+//------------------------------------------------------------------------------
+char *ConvertLinuxToWindows(char *src, DWORD max_size)
+{
+  char dst[max_size*2];
+  char *s = src;
+  char *d = dst;
+  while (*s)
+  {
+    while (*s && *s !='\n')*d++ = *s++;
+    if (*s == '\n')
+    {
+      *d++ = '\r';
+      *d++ = *s++;
+    }
+  }
+  *d = 0;
+  snprintf(src,max_size,"%s",dst);
+
+  return src;
+}
 //----------------------------------------------------------------
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3)
 {
@@ -208,16 +228,16 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
   time(&dateEtHMs);
   struct tm *today = localtime(&dateEtHMs);
 
-  char msg[MAX_PATH],date[DATE_SIZE];
+  char msg[MAX_MSG_SIZE],date[DATE_SIZE];
   strftime(date, DATE_SIZE,"%Y/%m/%d-%H:%M:%S",today);
-  if (info != NULL) snprintf(msg,MAX_PATH,"[%s] %s - %s %s",date,type,txt,info);
-  else snprintf(msg,MAX_PATH,"[%s] %s - %s",date,type,txt);
+  if (info != NULL) snprintf(msg,MAX_MSG_SIZE,"[%s] %s - %s %s",date,type,txt,info);
+  else snprintf(msg,MAX_MSG_SIZE,"[%s] %s - %s",date,type,txt);
 
   SendDlgItemMessage(hwnd,CB_infos,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)msg);
   if (h_log != INVALID_HANDLE_VALUE)
   {
     DWORD copiee = 0;
-    strncat(msg,"\r\n\0",MAX_PATH);
+    strncat(msg,"\r\n\0",MAX_MSG_SIZE);
     WriteFile(h_log,msg,strlen(msg),&copiee,0);
   }
 }
@@ -225,16 +245,16 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
 {
   HWND hlstv  = GetDlgItem(h_main,LV_results);
-  char buffer[MAX_LINE_SIZE] = "";
-  ListView_GetItemText(hlstv,iitem,column,buffer,MAX_LINE_SIZE);
+  char buffer[MAX_MSG_SIZE] = "";
+  ListView_GetItemText(hlstv,iitem,column,buffer,MAX_MSG_SIZE);
   if (buffer[0] != 0)
   {
-    strncat(buffer,"\r\n",MAX_LINE_SIZE);
-    strncat(buffer,add,MAX_LINE_SIZE);
-    strncat(buffer,"\0",MAX_LINE_SIZE);
+    strncat(buffer,"\r\n",MAX_MSG_SIZE);
+    strncat(buffer,add,MAX_MSG_SIZE);
+    strncat(buffer,"\0",MAX_MSG_SIZE);
   }else
   {
-    strncpy(buffer,add,MAX_LINE_SIZE);
+    strncpy(buffer,add,MAX_MSG_SIZE);
   }
   ListView_SetItemText(hlstv,iitem,column,buffer);
 }
@@ -985,10 +1005,13 @@ BOOL LSBExist(DWORD lsb, char *sst)
   DWORD i, _nb_i = SendDlgItemMessage(h_main,lsb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
   for (i=0;i<_nb_i;i++)
   {
-    if (SendDlgItemMessage(h_main,lsb,LB_GETTEXT,(WPARAM)i,(LPARAM)buffer))
+    if (SendDlgItemMessage(h_main,lsb,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) < LINE_SIZE)
     {
-      if (!strcmp(charToLowChar(buffer),charToLowChar(sst)))return TRUE;
-      //if (!strcmp(buffer,sst))return TRUE;
+      if (SendDlgItemMessage(h_main,lsb,LB_GETTEXT,(WPARAM)i,(LPARAM)buffer))
+      {
+        if (!strcmp(charToLowChar(buffer),charToLowChar(sst)))return TRUE;
+        //if (!strcmp(buffer,sst))return TRUE;
+      }
     }
   }
   return FALSE;
@@ -1078,6 +1101,25 @@ DWORD WINAPI ScanIp(LPVOID lParam)
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
   BOOL windows_OS = FALSE;
 
+  if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
+  {
+    ReleaseSemaphore(hs_threads,1,NULL);
+
+    //tracking
+    if (scan_start)
+    {
+      //#endif
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","LB_GETTEXTLEN ERROR","");
+      #endif
+
+      EnterCriticalSection(&Sync);
+      snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+      LeaveCriticalSection(&Sync);
+      SetWindowText(h_main,test_title);
+    }
+    return 0;
+  }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
 
   if (ip[0]!=0)
@@ -1343,17 +1385,27 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //SSH
-      if(exist && config.check_ssh && !config.local_account)
+      if(exist && config.check_ssh)
       {
-        char tmp_os[MAX_PATH]="";
+        char tmp_os[0x4000]="";
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"SSH");
         WaitForSingleObject(hs_ssh,INFINITE);
         if (config.nb_accounts == 0)
         {
-          if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,MAX_PATH) == 1)
+          if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,0x4000,TRUE) == SSH_ERROR_OK)
           {
-            if (strlen(tmp_os)<40)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-            ssh_exec(iitem,ip, config.login, config.mdp);
+            if (tmp_os[0] != 0)
+            {
+              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+              ssh_exec(iitem,ip, config.login, config.mdp);
+            }else  if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"uname -a"/*"cat /etc/issue | cut -d ' ' -f-2"*/,tmp_os,0x4000,FALSE) == SSH_ERROR_OK)
+            {
+              if (tmp_os[0] != 0)
+              {
+                ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+                ssh_exec(iitem,ip, config.login, config.mdp);
+              }
+            }
           }
         }else
         {
@@ -1363,18 +1415,28 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           {
             //OS rescue
             tmp_os[0] = 0;
-            ret = ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,MAX_PATH);
-            if (ret == 1)
+            ret = ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,0x4000,TRUE);
+            if (ret == SSH_ERROR_OK)
             {
-              if (strlen(tmp_os)<40)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-              ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
-              break;
-            }else if (ret < 0)break;
+              if (tmp_os[0] != 0)
+              {
+                ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+                ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
+                break;
+              }else if (ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,0x4000,FALSE) == SSH_ERROR_OK)
+              {
+                if (tmp_os[0] != 0)
+                {
+                  ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+                  ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
+                  break;
+                }
+              }
+            }else if (ret !=  SSH_ERROR_AUTHENT)break;
           }
         }
         ReleaseSemaphore(hs_ssh,1,NULL);
       }
-
 
       #ifdef DEBUG_MODE
       AddMsg(h_main,"DEBUG","SCAN:END",ip);
