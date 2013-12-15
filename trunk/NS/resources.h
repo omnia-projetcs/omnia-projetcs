@@ -4,18 +4,29 @@
 // Licence              : GPLv3
 //----------------------------------------------------------------
 /*
-#BUG NS :
-- ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping)
+#BUG NS:
+- BUG en cours de scanne !!! plantage !!! (juste en cas de connexion ssh après initialisation (libssh2_session_init), voir si une fonction libssh ou
+                                           la mise à jour de la lib ne corrige pas le problème !) NORMALEMENT CORRIGER, TEST A FAIRE
 
-#A FAIRE :
-- multithread SSH
-- possibiliter de charger un fichier par défaut avec une liste d'ip + port (ssh)+ compte + mdp
-- continuer un scanne/recharger un ancien scan à partir d'un csv ! (en vérifiant le OK en fin de ligne)
+
+#NEXT STEP:
+- multithread SSH (nécessite une revue du code complet + des librairies associées)
+- continuer un scanne après arrêt ! + chargement possible d'ancien csv
+- ajout une fonction d'exécution de commande (déploiement de binnaire) à distance pour les Windows :
+- ajouter popup et possibilité d'arrêter un scanne/test + ouvrire un shell linux/windows ou ouvrire explorateur linux/windows
+- ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping : nécessite la lib + .h)
+
+
+[NS]
+
+
+
 */
 //----------------------------------------------------------------
 #define _WIN32_IE         0x0501  // IE5 min
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
+//#define DEBUG_MODE_SSH                              1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -31,20 +42,23 @@
 #include "crypt/sha2.h"
 #include "crypt/md5.h"
 
-//http://code.google.com/p/library-prebuilt-for-windows
-//http://chaosstuff.com/2013/07/07/build-libssh2-on-visual-studio-2010/
+//http://josefsson.org/gnutls4win/libssh2-1.2.7.zip
+#include <gpg-error.h>
+#include <gcrypt.h>
 #include <libssh2.h>
+#pragma comment(lib, "gcrypt.lib")
+#pragma comment(lib, "gpg-error.lib")
+#pragma comment(lib, "libssh2.dll.lib")
 
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "comdlg32.lib")
 #pragma comment(lib, "gdi32.lib")
-#pragma comment(lib, "ssh2.lib")
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.6 08/12/2013"
+#define TITLE                                       "NS v0.4.10 15/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -58,26 +72,34 @@
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
 #define MAX_MSG_SIZE                                0x4000
+#define MAX_COUNT_MSG                               0X10
 #define IP_SIZE                                     16
 #define SHA256_SIZE                                 65
 #define DATE_SIZE                                   26
 #define HK_SIZE_MAX                                 20
 
-#define ICMP_TIMEOUT                                6000
+#define ICMP_TIMEOUT                                6000    //6 seconds
 #define DIXM                                        10*1024*1024    //10mo
 //----------------------------------------------------------------
 //SSH use custom error message
-#define SSH_ERROR_OK            1
-#define SSH_ERROR_LIBINIT       -1
-#define SSH_ERROR_SESSIONINIT   -2
-#define SSH_ERROR_SESSIONSTART  -3
-#define SSH_ERROR_AUTHENT       -4
-#define SSH_ERROR_CHANNEL       -5
-#define SSH_ERROR_CHANNEL_EXEC  -6
-#define SSH_ERROR_CHANNEL_READ  -7
+#define SSH_DEFAULT_PORT                            22
 
-#define SSH_ERROR_SOCKET        -10
-#define SSH_ERROR_CONNECT       -11
+#define SSH2_SESSION_TIMEOUT                        4000   //4 seconds
+
+#define SSH_ERROR_OK                                1
+#define SSH_ERROR_NOT_TESTED                        0
+
+#define SSH_ERROR_LIBINIT                           -1
+#define SSH_ERROR_SESSIONINIT                       -2
+#define SSH_ERROR_SESSIONSTART                      -3
+#define SSH_ERROR_AUTHENT                           -4
+#define SSH_ERROR_CHANNEL                           -5
+#define SSH_ERROR_CHANNEL_OPEN                      -6
+#define SSH_ERROR_CHANNEL_EXEC                      -7
+#define SSH_ERROR_CHANNEL_READ                      -8
+
+#define SSH_ERROR_SOCKET                            -10
+#define SSH_ERROR_CONNECT                           -11
 //----------------------------------------------------------------
 #define DLG_NS                                      1000
 #define GRP_DISCO                                   1001
@@ -238,10 +260,11 @@ BOOL save_done;
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
 #define NB_MAX_SSH_THREADS                          1
+#define NB_MAX_TCP_TEST_THREADS                     50
 #define NB_MAX_THREAD                               300
 
 CRITICAL_SECTION Sync;
-HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh;
+HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 SCANNE_ST config;
 //----------------------------------------------------------------
 //ICMP
@@ -349,8 +372,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
 BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config);
 
 //SSH
-int ssh_exec(DWORD iitem,char *ip, char*username, char*password);
-int ssh_exec_cmd(DWORD iitem,char *ip, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK);
+BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port);
+int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*password);
+int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK);
 
 //Scan
 HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);

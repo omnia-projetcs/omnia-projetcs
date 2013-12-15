@@ -16,9 +16,13 @@
 				<Linker>
 					<Add library="ole32" />
 					<Add library="oleaut32" />
-					<Add library="Comdlg32" />
-					<Add library="libssh2" />
+					<Add library="comdlg32" />
 					<Add library="gdi32" />
+					<Add library="ws2_32" />
+					<Add library="gcrypt" />
+					<Add library="gpg-error" />
+					<Add library="ssh2.dll" />
+					<Add library="Iphlpapi" />
 				</Linker>
 			</Target>
 		</Build>
@@ -55,7 +59,7 @@
 		<Unit filename="tests/disco.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests/ssh.c">
+		<Unit filename="tests/ssh_v2.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Extensions>

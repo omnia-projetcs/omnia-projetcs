@@ -175,7 +175,7 @@
 	"resources.h"
 	"resources.h"
 
-1379681700 source:z:\svn_omnia\ns\crypt\sha2.cpp
+1386055448 source:z:\svn_omnia\ns\crypt\sha2.cpp
 	<string.h>
 	<stdlib.h>
 	"sha2.h"
@@ -188,13 +188,13 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1379681700 z:\svn_omnia\ns\crypt\sha2.h
+1386055448 z:\svn_omnia\ns\crypt\sha2.h
 	<limits.h>
 
-1386274026 source:z:\svn_omnia\ns\resources.rc
+1386055448 source:z:\svn_omnia\ns\resources.rc
 	"resources.h"
 
-1386502739 z:\svn_omnia\ns\resources.h
+1387116220 z:\svn_omnia\ns\resources.h
 	<Winsock2.h>
 	<windows.h>
 	<Windowsx.h>
@@ -207,9 +207,11 @@
 	<math.h>
 	"crypt/sha2.h"
 	"crypt/md5.h"
+	<gpg-error.h>
+	<gcrypt.h>
 	<libssh2.h>
 
-1382948374 z:\svn_omnia\ns\crypt\md5.h
+1386055448 z:\svn_omnia\ns\crypt\md5.h
 
 1379681700 z:\svn_omnia\ns\wbemcli.h
 	<rpc.h>
@@ -481,24 +483,27 @@
 	"libssh/priv.h"
 	"libssh/string.h"
 
-1385908065 source:z:\svn_omnia\ns\crypt\md5.c
+1386055448 source:z:\svn_omnia\ns\crypt\md5.c
 	"../resources.h"
 
-1386450785 source:z:\svn_omnia\ns\main.c
+1387114551 source:z:\svn_omnia\ns\main.c
 	"resources.h"
 
 1386227324 source:z:\svn_omnia\ns\tests\disco.c
 	"../resources.h"
 
-1386450856 source:z:\svn_omnia\ns\tests\files.c
+1386573310 source:z:\svn_omnia\ns\tests\files.c
 	"../resources.h"
 
-1386273513 source:z:\svn_omnia\ns\tests\netbios.c
+1386313978 source:z:\svn_omnia\ns\tests\netbios.c
 	"../resources.h"
 
-1386502473 source:z:\svn_omnia\ns\tests\registry.c
+1386573310 source:z:\svn_omnia\ns\tests\registry.c
 	"../resources.h"
 
-1386502662 source:z:\svn_omnia\ns\tests\ssh.c
+1387104440 source:z:\svn_omnia\ns\tests\ssh.c
+	"../resources.h"
+
+1387114508 source:z:\svn_omnia\ns\tests\ssh_v2.c
 	"../resources.h"
 
