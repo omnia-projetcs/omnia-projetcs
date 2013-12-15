@@ -183,10 +183,20 @@ char *ConvertLinuxToWindows(char *src, DWORD max_size)
   char dst[max_size*2];
   char *s = src;
   char *d = dst;
-  while (*s)
+  while (*s && ((s-src)<max_size))
   {
-    while (*s && *s !='\n')*d++ = *s++;
-    if (*s == '\n')
+    while (*s && (*s !='\n') && ((s-src)<max_size) && ((d-dst)<max_size*2))
+    {
+      if ((s-src)>=max_size || (d-dst)>=max_size)break;
+      else if (*s > 31 && *s < 127)*d++ = *s++;
+      else
+      {
+        *d++ = ' ';
+        s++;
+      }
+    }
+
+    if (*s == '\n' && ((d-dst+2)<max_size*2))
     {
       *d++ = '\r';
       *d++ = *s++;
@@ -1385,57 +1395,99 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //SSH
-      if(exist && config.check_ssh)
+      if(exist && config.check_ssh && scan_start)
       {
-        char tmp_os[0x4000]="";
+        char tmp_os[MAX_MSG_SIZE]="";
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"SSH");
-        WaitForSingleObject(hs_ssh,INFINITE);
-        if (config.nb_accounts == 0)
+
+        //check if the port is open
+
+        if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT))
         {
-          if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,0x4000,TRUE) == SSH_ERROR_OK)
+          WaitForSingleObject(hs_ssh,INFINITE);
+          if (config.nb_accounts == 0)
           {
-            if (tmp_os[0] != 0)
-            {
-              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-              ssh_exec(iitem,ip, config.login, config.mdp);
-            }else  if (ssh_exec_cmd(iitem,ip, config.login, config.mdp, -1,"uname -a"/*"cat /etc/issue | cut -d ' ' -f-2"*/,tmp_os,0x4000,FALSE) == SSH_ERROR_OK)
+            int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,FALSE);
+            if (ret_ssh == SSH_ERROR_OK)
             {
               if (tmp_os[0] != 0)
               {
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                ssh_exec(iitem,ip, config.login, config.mdp);
-              }
-            }
-          }
-        }else
-        {
-          DWORD j = 0;
-          int ret = 0;
-          for (j=0;j<config.nb_accounts;j++)
-          {
-            //OS rescue
-            tmp_os[0] = 0;
-            ret = ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"cat /etc/issue | cut -d ' ' -f-2",tmp_os,0x4000,TRUE);
-            if (ret == SSH_ERROR_OK)
-            {
-              if (tmp_os[0] != 0)
-              {
-                ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
-                break;
-              }else if (ssh_exec_cmd(iitem,ip, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,0x4000,FALSE) == SSH_ERROR_OK)
+                ssh_exec(iitem,ip, SSH_DEFAULT_PORT, config.login, config.mdp);
+              }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE) == SSH_ERROR_OK)
               {
                 if (tmp_os[0] != 0)
                 {
                   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                  ssh_exec(iitem,ip, config.accounts[j].login, config.accounts[j].mdp);
-                  break;
+                  ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp);
                 }
               }
-            }else if (ret !=  SSH_ERROR_AUTHENT)break;
+            }else
+            {
+              #ifdef DEBUG_MODE_SSH
+              char msg[MAX_LINE_SIZE];
+              snprintf(msg,MAX_LINE_SIZE,"%s:22 account %s (%d)",ip,config.login,ret_ssh);
+              switch(ret_ssh)
+              {
+                case SSH_ERROR_CHANNEL_EXEC:  AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Unable to execute commands!");break;
+                case SSH_ERROR_CHANNEL:       AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Unable to open a channel command execution!");break;
+                case SSH_ERROR_AUTHENT:       AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Wrong account for authentication!");break;
+                case SSH_ERROR_SESSIONSTART:  AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize SSH session!");break;
+                case SSH_ERROR_SESSIONINIT:   AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize SSH session variables!");break;
+                case SSH_ERROR_CONNECT:       AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unabe to connect on port 22!");break;
+                case SSH_ERROR_SOCKET:        AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to create socket!");break;
+                case SSH_ERROR_LIBINIT:       AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize the SSH library!");break;
+              }
+              #endif
+            }
+          }else
+          {
+            DWORD j = 0;
+            int ret_ssh = 0;
+            char msg[MAX_LINE_SIZE];
+            for (j=0;j<config.nb_accounts;j++)
+            {
+              //OS rescue
+              tmp_os[0] = 0;
+              ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,FALSE);
+              if (ret_ssh == SSH_ERROR_OK)
+              {
+                if (tmp_os[0] != 0)
+                {
+                  ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+                  ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
+                  break;
+                }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE) == SSH_ERROR_OK)
+                {
+                  if (tmp_os[0] != 0)
+                  {
+                    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+                    ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
+                    break;
+                  }
+                }
+              }else if (ret_ssh !=  SSH_ERROR_AUTHENT)
+              {
+                #ifdef DEBUG_MODE_SSH
+                snprintf(msg,MAX_LINE_SIZE,"%s:22 account %s(%02d)",ip,config.accounts[j].login,j);
+                switch(ret_ssh)
+                {
+                  //case SSH_ERROR_CHANNEL_EXEC:  AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Unable to execute commands!");break;
+                  case SSH_ERROR_CHANNEL:       AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Unable to open a channel command execution!");break;
+                  //case SSH_ERROR_AUTHENT:       AddMsg(h_main,(char*)"ERROR (SSH)",msg,"Wrong account for authentication!");break;
+                  case SSH_ERROR_SESSIONSTART:  AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize SSH session!");break;
+                  case SSH_ERROR_SESSIONINIT:   AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize SSH session variables!");break;
+                  case SSH_ERROR_CONNECT:       AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unabe to connect on port 22!");break;
+                  case SSH_ERROR_SOCKET:        AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to create socket!");break;
+                  case SSH_ERROR_LIBINIT:       AddMsg(h_main,(char*)"ERROR (SSH)",ip,"Unable to initialize the SSH library!");break;
+                }
+                #endif
+                break;
+              }
+            }
           }
+          ReleaseSemaphore(hs_ssh,1,NULL);
         }
-        ReleaseSemaphore(hs_ssh,1,NULL);
       }
 
       #ifdef DEBUG_MODE
@@ -1567,6 +1619,7 @@ DWORD WINAPI scan(LPVOID lParam)
   hs_netbios  = CreateSemaphore(NULL,NB_MAX_NETBIOS_THREADS,NB_MAX_NETBIOS_THREADS,NULL);
   hs_file     = CreateSemaphore(NULL,NB_MAX_FILE_THREADS,NB_MAX_FILE_THREADS,NULL);
   hs_registry = CreateSemaphore(NULL,NB_MAX_REGISTRY_THREADS,NB_MAX_REGISTRY_THREADS,NULL);
+  hs_tcp      = CreateSemaphore(NULL,NB_MAX_TCP_TEST_THREADS,NB_MAX_TCP_TEST_THREADS,NULL);
   hs_ssh      = CreateSemaphore(NULL,NB_MAX_SSH_THREADS,NB_MAX_SSH_THREADS,NULL);
   #endif
 
@@ -1596,6 +1649,8 @@ DWORD WINAPI scan(LPVOID lParam)
     WaitForSingleObject(hs_netbios,INFINITE);
     WaitForSingleObject(hs_file,INFINITE);
     WaitForSingleObject(hs_registry,INFINITE);
+    WaitForSingleObject(hs_tcp,INFINITE);
+    WaitForSingleObject(hs_ssh,INFINITE);
   }
 
   WSACleanup();
@@ -1624,6 +1679,7 @@ DWORD WINAPI scan(LPVOID lParam)
   CloseHandle(hs_netbios);
   CloseHandle(hs_file);
   CloseHandle(hs_registry);
+  CloseHandle(hs_tcp);
   CloseHandle(hs_ssh);
 
   //---------------------------------------------
@@ -1746,6 +1802,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               {
                 if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file);
                 else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved!",(char*)"");
+                save_done = TRUE;
               }
             }
             break;
