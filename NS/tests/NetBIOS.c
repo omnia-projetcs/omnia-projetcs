@@ -121,14 +121,15 @@ BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max)
 
       for(i=1;i<=er;i++)
       {
-        snprintf(tmp,MAX_PATH,"%S (%S)\r\n",p->shi1_netname,p->shi1_remark);
-        strncat(share,tmp,sz_max);
+        //snprintf(tmp,MAX_PATH,"%S (%S)\r\n",p->shi1_netname,p->shi1_remark);
+        //strncat(share,tmp,sz_max);
+        snprintf(share+strlen(share),sz_max-strlen(share),"%S (%S)\r\n",p->shi1_netname,p->shi1_remark);
         p++;
       }
      NetApiBufferFree(BufPtr);
     }
   }while(res==ERROR_MORE_DATA);
-  strncat(share,"\0",sz_max);
+  //strncat(share,"\0",sz_max);
 
   return ret;
 }

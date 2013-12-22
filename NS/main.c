@@ -181,30 +181,36 @@ char *charToLowChar(char *src)
 char *ConvertLinuxToWindows(char *src, DWORD max_size)
 {
   char dst[max_size*2];
-  char *s = src;
-  char *d = dst;
-  while (*s && ((s-src)<max_size))
+  DWORD i, j;
+  DWORD src_size = strlen(src);
+  DWORD dst_size_max = max_size*2;
+  for (i=0,j=0;i<src_size && j<dst_size_max;i++)
   {
-    while (*s && (*s !='\n') && ((s-src)<max_size) && ((d-dst)<max_size*2))
+    switch(src[i])
     {
-      if ((s-src)>=max_size || (d-dst)>=max_size)break;
-      else if (*s > 31 && *s < 127)*d++ = *s++;
-      else
-      {
-        *d++ = ' ';
-        s++;
-      }
-    }
-
-    if (*s == '\n' && ((d-dst+2)<max_size*2))
-    {
-      *d++ = '\r';
-      *d++ = *s++;
+      case '\n':
+        if (j+1 < dst_size_max && src[i+1] != '\n')
+        {
+          dst[j++] = '\r';
+          dst[j++] = '\n';
+        }
+      break;
+      //case '\t':dst[j++] = ' ';break;
+      case '"':
+        if (j+1 < dst_size_max)
+        {
+          dst[j++] = '\'';
+          dst[j++] = '\'';
+        }
+      break;
+      default:
+        if (src[i] != 0 && src[i] > 31 && src[i] < 127)dst[j++] = src[i];
+        else dst[j++] = ' ';
+      break;
     }
   }
-  *d = 0;
+  dst[j] = 0;
   snprintf(src,max_size,"%s",dst);
-
   return src;
 }
 //----------------------------------------------------------------
@@ -247,7 +253,8 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
   if (h_log != INVALID_HANDLE_VALUE)
   {
     DWORD copiee = 0;
-    strncat(msg,"\r\n\0",MAX_MSG_SIZE);
+    char msg2[MAX_MSG_SIZE];
+    snprintf(msg2,MAX_MSG_SIZE,"%s\r\n", msg);
     WriteFile(h_log,msg,strlen(msg),&copiee,0);
   }
 }
@@ -255,18 +262,16 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
 {
   HWND hlstv  = GetDlgItem(h_main,LV_results);
-  char buffer[MAX_MSG_SIZE] = "";
+  char buffer[MAX_MSG_SIZE] = "", buffer2[MAX_MSG_SIZE]="";
   ListView_GetItemText(hlstv,iitem,column,buffer,MAX_MSG_SIZE);
   if (buffer[0] != 0)
   {
-    strncat(buffer,"\r\n",MAX_MSG_SIZE);
-    strncat(buffer,add,MAX_MSG_SIZE);
-    strncat(buffer,"\0",MAX_MSG_SIZE);
+    snprintf(buffer2,MAX_MSG_SIZE,"%s\r\n%s",buffer,add);
+    ListView_SetItemText(hlstv,iitem,column,buffer2);
   }else
   {
-    strncpy(buffer,add,MAX_MSG_SIZE);
+    ListView_SetItemText(hlstv,iitem,column,add);
   }
-  ListView_SetItemText(hlstv,iitem,column,buffer);
 }
 //----------------------------------------------------------------
 DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
@@ -323,13 +328,13 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
       return FALSE;
     }
 
-    char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+    char lines[MAX_MSG_SIZE_LINE]="", buffer[MAX_MSG_SIZE]="";
     DWORD copiee;
     unsigned long int i=0,j=0;
 
     LVCOLUMN lvc;
     lvc.mask        = LVCF_TEXT;
-    lvc.cchTextMax  = MAX_LINE_SIZE;
+    lvc.cchTextMax  = MAX_MSG_SIZE;
     lvc.pszText     = buffer;
 
     switch(type)
@@ -340,15 +345,15 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
+            snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\"%s\";",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
-          lvc.cchTextMax = MAX_LINE_SIZE;
+          lvc.cchTextMax = MAX_MSG_SIZE;
           lvc.pszText = buffer;
-
         }
-        strncat(lines,"\r\n\0",MAX_LINE_SIZE);
+        //strncat(lines,"\r\n\0",MAX_MSG_SIZE);
+        snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\r\n");
         copiee = 0;
         WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
@@ -359,13 +364,13 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
           for (i=0;i<nb_column;i++)
           {
             buffer[0]=0;
-            ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
+            ListView_GetItemText(hlv,j,i,buffer,MAX_MSG_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
-            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"\";");
+              snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\"%s\";",buffer);
+            }else snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\"\";");
           }
-          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\r\n");
+          snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\r\n");
           copiee = 0;
           WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
@@ -383,7 +388,7 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           lv_line[i].c[0]=0;
           lvc.mask = LVCF_TEXT;
-          lvc.cchTextMax = MAX_LINE_SIZE;
+          lvc.cchTextMax = MAX_MSG_SIZE;
           lvc.pszText = lv_line[i].c;
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           replace_one_char(lv_line[i].c, strlen(lv_line[i].c), ' ', '_');
@@ -397,10 +402,10 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
           {
             copiee = 0;
             buffer[0]=0;
-            ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
+            ListView_GetItemText(hlv,j,i,buffer,MAX_MSG_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(lines,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
+              snprintf(lines,MAX_MSG_SIZE_LINE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
               WriteFile(hfile,lines,strlen(lines),&copiee,0);
             }
           }
@@ -419,16 +424,16 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
         {
           if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
           if (strlen(buffer)>0)
-            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"  <th>%s</th>",buffer);
+            snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"  <th>%s</th>",buffer);
 
           buffer[0]=0;
           lvc.mask = LVCF_TEXT;
-          lvc.cchTextMax = MAX_LINE_SIZE;
+          lvc.cchTextMax = MAX_MSG_SIZE;
           lvc.pszText = buffer;
 
         }
-
-        strncat(lines,"\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
+        snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"\r\n  </tr>\r\n");
+        //strncat(lines,"\r\n  </tr>\r\n\0",MAX_MSG_SIZE);
         copiee = 0;
         WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
@@ -441,13 +446,13 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
           for (i=0;i<nb_column;i++)
           {
             buffer[0]=0;
-            ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
+            ListView_GetItemText(hlv,j,i,buffer,MAX_MSG_SIZE);
             if (buffer != NULL && strlen(buffer)>0)
             {
-              snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
-            }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
+              snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"<td>%s</td>",buffer);
+            }else snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"<td></td>");
           }
-          snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"</tr>\r\n");
+          snprintf(lines+strlen(lines),MAX_MSG_SIZE_LINE-strlen(lines),"</tr>\r\n");
           copiee = 0;
           WriteFile(hfile,lines,strlen(lines),&copiee,0);
         }
@@ -990,23 +995,6 @@ DWORD load_file_list(DWORD lsb, char *file)
   return FALSE;
 }
 //------------------------------------------------------------------------------
-void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
-{
-  HWND hlstv  = GetDlgItem(h_main,LV_results);
-  char buffer[MAX_LINE_SIZE] = "";
-  ListView_GetItemText(hlstv,iitem,column,buffer,MAX_LINE_SIZE);
-  if (buffer[0] != 0)
-  {
-    strncat(buffer,"\r\n",MAX_LINE_SIZE);
-    strncat(buffer,add,MAX_LINE_SIZE);
-    strncat(buffer,"\0",MAX_LINE_SIZE);
-  }else
-  {
-    strncpy(buffer,add,MAX_LINE_SIZE);
-  }
-  ListView_SetItemText(hlstv,iitem,column,buffer);
-}
-//------------------------------------------------------------------------------
 BOOL LSBExist(DWORD lsb, char *sst)
 {
   char buffer[LINE_SIZE];
@@ -1271,8 +1259,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         char tmp[MAX_LINE_SIZE] = "";
         if (domain[0] != 0)
         {
-          snprintf(tmp,MAX_LINE_SIZE,"Domain: %s\r\n\0",domain);
-          strncat(cfg,tmp,MAX_LINE_SIZE);
+          //snprintf(tmp,MAX_LINE_SIZE,"Domain: %s\r\n\0",domain);
+
+          snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Domain: %s\r\n",domain);
+
+          //strncat(cfg,tmp,MAX_LINE_SIZE);
           netBIOS = TRUE;
         }
 
@@ -1281,16 +1272,26 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           if(Netbios_NULLSession(ip))
           {
-            strncat(cfg,"NULL Session: Enable\r\n\0",MAX_LINE_SIZE);
+            snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"NULL Session: Enable\r\n");
+            //strncat(cfg,"NULL Session: Enable\r\n\0",MAX_LINE_SIZE);
             //ReversSID (only administrator + guest + defaults account test)
-            if(TestReversSID(ip,(char*)"invité"))             strncat(cfg,(char*)"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_LINE_SIZE);
+            /*if(TestReversSID(ip,(char*)"invité"))             strncat(cfg,(char*)"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"guest"))         strncat(cfg,(char*)"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"gast"))          strncat(cfg,(char*)"Revers SID: Enable (OK with \"gast\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"invitado"))      strncat(cfg,(char*)"Revers SID: Enable (OK with \"invitado\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"HelpAssistant")) strncat(cfg,(char*)"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"ASPNET"))        strncat(cfg,(char*)"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_LINE_SIZE);
             else if(TestReversSID(ip,(char*)"administrateur"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"administrator")) strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_LINE_SIZE);
+            else if(TestReversSID(ip,(char*)"administrator")) strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_LINE_SIZE);  */
+
+            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invité\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"guest\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"gast\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invitado\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"ASPNET\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrateur\" account)\r\n");
+            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrator\" account)\r\n");
             netBIOS     = TRUE;
 
             if (scan_start)
@@ -1302,16 +1303,18 @@ DWORD WINAPI ScanIp(LPVOID lParam)
               Netbios_Time(server, c_time, MAX_PATH);
               if (c_time[0] != 0)
               {
-                snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
-                strncat(cfg,tmp,MAX_LINE_SIZE);
+                //snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
+                //strncat(cfg,tmp,MAX_LINE_SIZE);
+
+                snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Time: %s\r\n",c_time);
                 netBIOS = TRUE;
               }
 
               //Share
               if (scan_start)
               {
-                char shares[LINE_SIZE]="";
-                Netbios_Share(server, shares, LINE_SIZE);
+                char shares[MAX_LINE_SIZE+1]="";
+                Netbios_Share(server, shares, MAX_LINE_SIZE);
                 if (shares[0] != 0)
                 {
                   AddLSTVUpdateItem(shares, COL_SHARE, iitem);
@@ -1395,31 +1398,31 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //SSH
-      if(exist && config.check_ssh && scan_start)
+      if(exist && (config.check_ssh || config.check_ssh_os) && scan_start)
       {
         char tmp_os[MAX_MSG_SIZE]="";
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"SSH");
 
         //check if the port is open
 
-        if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT))
+        if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
         {
           WaitForSingleObject(hs_ssh,INFINITE);
           if (config.nb_accounts == 0)
           {
-            int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,FALSE);
+            int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,TRUE,TRUE);
             if (ret_ssh == SSH_ERROR_OK)
             {
               if (tmp_os[0] != 0)
               {
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                ssh_exec(iitem,ip, SSH_DEFAULT_PORT, config.login, config.mdp);
-              }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE) == SSH_ERROR_OK)
+                if (config.check_ssh)ssh_exec(iitem,ip, SSH_DEFAULT_PORT, config.login, config.mdp);
+              }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE,FALSE) == SSH_ERROR_OK)
               {
                 if (tmp_os[0] != 0)
                 {
                   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                  ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp);
+                  if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp);
                 }
               }
             }else
@@ -1444,25 +1447,28 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           {
             DWORD j = 0;
             int ret_ssh = 0;
+            BOOL first_msg = TRUE;
+            BOOL msg_auth  = TRUE;
             char msg[MAX_LINE_SIZE];
             for (j=0;j<config.nb_accounts;j++)
             {
               //OS rescue
               tmp_os[0] = 0;
-              ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,FALSE);
+              ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,first_msg,msg_auth);
               if (ret_ssh == SSH_ERROR_OK)
               {
+                msg_auth = FALSE;
                 if (tmp_os[0] != 0)
                 {
                   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                  ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
+                  if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
                   break;
-                }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE) == SSH_ERROR_OK)
+                }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE, FALSE) == SSH_ERROR_OK)
                 {
                   if (tmp_os[0] != 0)
                   {
                     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-                    ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
+                    if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
                     break;
                   }
                 }
@@ -1484,6 +1490,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
                 #endif
                 break;
               }
+              first_msg = FALSE;
             }
           }
           ReleaseSemaphore(hs_ssh,1,NULL);
@@ -1517,6 +1524,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 //----------------------------------------------------------------
 DWORD WINAPI scan(LPVOID lParam)
 {
+  time_t exec_time_start, exec_time_end;
+  time(&exec_time_start);
+
   //load IP
   if (IsDlgButtonChecked(h_main,CHK_LOAD_IP_FILE)!=BST_CHECKED)
   {
@@ -1579,6 +1589,7 @@ DWORD WINAPI scan(LPVOID lParam)
   config.check_software       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.check_USB            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.check_ssh            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
+  config.check_ssh_os         = config.check_ssh;
   ref++;
   config.write_key            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
 
@@ -1654,8 +1665,12 @@ DWORD WINAPI scan(LPVOID lParam)
   }
 
   WSACleanup();
+
+  //calcul run time
+  time(&exec_time_end);
+
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
-  snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i);
+  snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
   AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
 
   if (config.check_files)
@@ -1796,12 +1811,30 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               ofn.nMaxFile       = MAX_PATH;
               ofn.nFilterIndex   = 1;
               ofn.Flags          = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrFilter    = "*.xml \0*.xml\0*.csv \0*.csv\0*.html \0*.html\0";
-              ofn.lpstrDefExt    = ".xml\0";
+              ofn.lpstrFilter    = "*.xml \0*.xml\0*.csv \0*.csv\0*.html \0*.html\0All formats\0*.*\0";
+              ofn.lpstrDefExt    = "\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
-                if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file);
-                else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved!",(char*)"");
+                if (ofn.nFilterIndex == SAVE_TYPE_ALL)
+                {
+                  char file2[MAX_PATH];
+                  snprintf(file2,MAX_PATH,"%s.xml",file);
+                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
+                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+                  snprintf(file2,MAX_PATH,"%s.csv",file);
+                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
+                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+                  snprintf(file2,MAX_PATH,"%s.html",file);
+                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
+                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
+                }else
+                {
+                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file);
+                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file);
+                }
+
                 save_done = TRUE;
               }
             }
@@ -1891,116 +1924,129 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         break;
         case NM_DBLCLK:
         {
-          char msg[MAX_LINE_SIZE]="",tmp[MAX_LINE_SIZE];
+          char msg[MAX_MSG_SIZE+1]="",tmp[MAX_MSG_SIZE+1];
           long int index = SendDlgItemMessage(hwnd,LV_results,LVM_GETNEXTITEM,(WPARAM)-1,(LPARAM)LVNI_FOCUSED);
           if (index != -1)
           {
             tmp[0] = 0;
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_IP,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_IP,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"%s",tmp);
 
               tmp[0] = 0;
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DNS,tmp,MAX_LINE_SIZE);
+              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DNS,tmp,MAX_MSG_SIZE);
               if (tmp[0] != 0)
               {
-                strncat(msg," ",MAX_LINE_SIZE);
-                strncat(msg,tmp,MAX_LINE_SIZE);
+                //strncat(msg," ",MAX_LINE_SIZE);
+                //strncat(msg,tmp,MAX_LINE_SIZE);
+                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
                 tmp[0] = 0;
               }
 
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_TTL,tmp,MAX_LINE_SIZE);
+              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_TTL,tmp,MAX_MSG_SIZE);
               if (tmp[0] != 0)
               {
-                strncat(msg," ",MAX_LINE_SIZE);
-                strncat(msg,tmp,MAX_LINE_SIZE);
+                //strncat(msg," ",MAX_LINE_SIZE);
+                //strncat(msg,tmp,MAX_LINE_SIZE);
+                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
                 tmp[0] = 0;
               }
 
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_OS,tmp,MAX_LINE_SIZE);
+              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_OS,tmp,MAX_MSG_SIZE);
               if (tmp[0] != 0)
               {
-                strncat(msg," ",MAX_LINE_SIZE);
-                strncat(msg,tmp,MAX_LINE_SIZE);
+                //strncat(msg," ",MAX_LINE_SIZE);
+                //strncat(msg,tmp,MAX_LINE_SIZE);
+                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
                 tmp[0] = 0;
               }
 
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_CONFIG,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_CONFIG,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Config]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Config]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Config]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SHARE,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SHARE,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Share]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Share]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Share]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_POLICY,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_POLICY,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Account Policy]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Account Policy]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Account Policy]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_FILES,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_FILES,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Files]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Files]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Files]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_REG,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_REG,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Registry]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Registry]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Registry]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SERVICE,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SERVICE,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Services]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Services]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Services]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SOFTWARE,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SOFTWARE,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[Softwares]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[Softwares]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Softwares]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_USB,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_USB,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[USB]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[USB]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[USB]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SSH,tmp,MAX_LINE_SIZE);
+            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SSH,tmp,MAX_MSG_SIZE);
             if (tmp[0] != 0)
             {
-              strncat(msg,"\r\n\r\n[SSH]\r\n",MAX_LINE_SIZE);
-              strncat(msg,tmp,MAX_LINE_SIZE);
+              //strncat(msg,"\r\n\r\n[SSH]\r\n",MAX_LINE_SIZE);
+              //strncat(msg,tmp,MAX_LINE_SIZE);
+              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[SSH]\r\n%s",tmp);
               tmp[0] = 0;
             }
 
-            strncat(msg,"\0",MAX_LINE_SIZE);
+            //strncat(msg,"\0",MAX_LINE_SIZE);
             if (strlen(msg))
             {
               SetWindowText(hdbclk_info, msg);

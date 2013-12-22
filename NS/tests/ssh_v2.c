@@ -11,9 +11,9 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
   if (!scan_start) return SSH_ERROR_NOT_TESTED;
 
   //for each command
-  char buffer[MAX_MSG_SIZE],cmd[MAX_MSG_SIZE], msg[MAX_MSG_SIZE];
+  char buffer[MAX_MSG_SIZE+1],cmd[MAX_MSG_SIZE+1], msg[MAX_MSG_SIZE+1];
   unsigned int nb = 0;
-  int rc;
+  unsigned int rc;
   BOOL ret = 0;
   LIBSSH2_SESSION *session;
   LIBSSH2_CHANNEL *channel;
@@ -51,10 +51,10 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
         if (session != 0)
         {
           //enable compression if possible
-          libssh2_session_flag(session, LIBSSH2_FLAG_COMPRESS, 1);
+          //libssh2_session_flag(session, LIBSSH2_FLAG_COMPRESS, 1);
 
           //set session timeout, default : is blocking state
-          //libssh2_session_set_timeout(session, SSH2_SESSION_TIMEOUT);
+          libssh2_session_set_timeout(session, SSH2_SESSION_TIMEOUT);
 
           #ifdef DEBUG_MODE_SSH
           AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_init");
@@ -101,16 +101,16 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
 
                       buffer[0] = 0;
                       ret       = SSH_ERROR_OK;
-                      rc        = libssh2_channel_read(channel, buffer, MAX_MSG_SIZE);
-                      if (rc > 0)
+                      rc        = libssh2_channel_read(channel, buffer, MAX_MSG_SIZE)-1;
+                      if (rc > 0 && buffer[0] != 0)
                       {
-                        snprintf(msg,sizeof(msg),"[%s:%d\\%s]\r\n",ip,port,cmd);
+                        snprintf(msg,MAX_MSG_SIZE,"\r\n[%s:%d\\%s]",ip,port,cmd);
                         AddLSTVUpdateItem(msg, COL_SSH, iitem);
                         int z =0;
                         do
                         {
                           if (buffer[0] == 0)break;
-                          if (((unsigned int)(rc-1)) < MAX_MSG_SIZE)buffer[(unsigned int)(rc-1)] = 0;
+                          if (rc < MAX_MSG_SIZE)buffer[rc] = 0;
                           else buffer[MAX_MSG_SIZE-1] = 0;
 
                           ConvertLinuxToWindows(buffer, MAX_MSG_SIZE);
@@ -178,12 +178,12 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
   return ret;
 }
 //----------------------------------------------------------------
-int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK)
+int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth)
 {
   if (!scan_start) return SSH_ERROR_NOT_TESTED;
 
   //for each command
-  char msg[MAX_MSG_SIZE];
+  char msg[MAX_MSG_SIZE+1];
   unsigned int nb = 0;
   int rc;
   BOOL ret = 0;
@@ -236,7 +236,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
             #endif // DEBUG_MODE_SSH
             if (msg_OK)
             {
-              snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
+              snprintf(msg,MAX_MSG_SIZE,"(SSH) Enable on %s:%d",ip,port);
               AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
               AddLSTVUpdateItem(msg, COL_SSH, iitem);
             }
@@ -249,7 +249,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
               AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg);
               #endif // DEBUG_MODE_SSH
 
-              if (msg_OK)
+              if (msg_auth)
               {
                 if (id_account == -1) snprintf(msg,sizeof(msg),"Login (SSH) in %s:%d IP with %s account.",ip,port,username);
                 else snprintf(msg,sizeof(msg),"Login (SSH) in %s:%d  IP with %s (%02d) account.",ip,port,username,id_account);
@@ -342,7 +342,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
   return ret;
 }
 //----------------------------------------------------------------
-BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port)
+BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 {
   if (!scan_start) return FALSE;
 
@@ -375,11 +375,13 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port)
       int nb = select(-1, NULL, &(read), NULL, &(timeout));
       if (nb != 0 && nb!=SOCKET_ERROR)
       {
-        //OK
-        char msg[MAX_PATH];
-        snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-        AddLSTVUpdateItem(msg, COL_SSH, iitem);
+        if (msg_OK)
+        {
+          char msg[MAX_PATH];
+          snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
+          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+          AddLSTVUpdateItem(msg, COL_SSH, iitem);
+        }
 
         FD_CLR(sock, &read);
         closesocket(sock);
@@ -393,10 +395,13 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port)
     {
       if (connect(sock, (struct sockaddr*)(&sin),sizeof(struct sockaddr_in)) != SOCKET_ERROR)
       {
-        char msg[MAX_PATH];
-        snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-        AddLSTVUpdateItem(msg, COL_SSH, iitem);
+        if (msg_OK)
+        {
+          char msg[MAX_PATH];
+          snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
+          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+          AddLSTVUpdateItem(msg, COL_SSH, iitem);
+        }
 
         closesocket(sock);
         ReleaseSemaphore(hs_tcp,1,NULL);
