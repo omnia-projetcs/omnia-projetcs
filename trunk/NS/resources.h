@@ -5,9 +5,7 @@
 //----------------------------------------------------------------
 /*
 #BUG NS:
-- BUG en cours de scanne !!! plantage !!! (juste en cas de connexion ssh après initialisation (libssh2_session_init), voir si une fonction libssh ou
-                                           la mise à jour de la lib ne corrige pas le problème !) NORMALEMENT CORRIGER, TEST A FAIRE
-
+- ajouter le check de partage (si besoin d'un accès pour énumérer le contenu + écrire)
 
 #NEXT STEP:
 - multithread SSH (nécessite une revue du code complet + des librairies associées)
@@ -15,10 +13,15 @@
 - ajout une fonction d'exécution de commande (déploiement de binnaire) à distance pour les Windows :
 - ajouter popup et possibilité d'arrêter un scanne/test + ouvrire un shell linux/windows ou ouvrire explorateur linux/windows
 - ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping : nécessite la lib + .h)
+- ajouter un module spéciale de scanne global pour les tests des bancs programme
 
 
 [NS]
-
+- SSH : review information messages, remove fiew bug, if no SSH test exist, Linux OS is still recovered
+- review CSV file format export (only compatible with libreoffice, Excel is bugged)
+- review XML file format export (compatible Excel)
+- add export in all format : CSV, XML and HTML
+- add global time duration scan
 
 
 */
@@ -42,7 +45,6 @@
 #include "crypt/sha2.h"
 #include "crypt/md5.h"
 
-//http://josefsson.org/gnutls4win/libssh2-1.2.7.zip
 #include <gpg-error.h>
 #include <gcrypt.h>
 #include <libssh2.h>
@@ -58,7 +60,7 @@
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.10 15/12/2013"
+#define TITLE                                       "NS v0.4.12 22/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -72,6 +74,7 @@
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
 #define MAX_MSG_SIZE                                0x4000
+#define MAX_MSG_SIZE_LINE                           0x4100
 #define MAX_COUNT_MSG                               0X10
 #define IP_SIZE                                     16
 #define SHA256_SIZE                                 65
@@ -135,6 +138,7 @@
 #define SAVE_TYPE_XML                               1
 #define SAVE_TYPE_CSV                               2
 #define SAVE_TYPE_HTML                              3
+#define SAVE_TYPE_ALL                               4
 //----------------------------------------------------------------
 #define COL_IP                                      0
 #define COL_DNS                                     1
@@ -224,6 +228,7 @@ typedef struct scanne_st
 
   BOOL write_key;
   BOOL check_ssh;
+  BOOL check_ssh_os;
 
   unsigned int nb_accounts;
   ACCOUNTS_ST accounts[MAX_ACCOUNTS];
@@ -318,7 +323,6 @@ DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 BOOL LSBExist(DWORD lsb, char *sst);
-void mAddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //string
@@ -372,9 +376,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
 BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config);
 
 //SSH
-BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port);
+BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK);
 int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*password);
-int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK);
+int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth);
 
 //Scan
 HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);
