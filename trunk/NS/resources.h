@@ -4,29 +4,28 @@
 // Licence              : GPLv3
 //----------------------------------------------------------------
 /*
-#BUG NS:
-- ajouter le check de partage (si besoin d'un accès pour énumérer le contenu + écrire)
+#PRIORITE NS:
+- intégration complète du SSH dans le code source (plus de DLL)
+
 
 #NEXT STEP:
 - multithread SSH (nécessite une revue du code complet + des librairies associées)
-- continuer un scanne après arrêt ! + chargement possible d'ancien csv
-- ajout une fonction d'exécution de commande (déploiement de binnaire) à distance pour les Windows :
+- continuer un scanne après arrêt/pause possible ! + chargement possible d'ancien csv
+- ajout une fonction d'exécution de commande (déploiement de binnaire) à distance pour les Windows
 - ajouter popup et possibilité d'arrêter un scanne/test + ouvrire un shell linux/windows ou ouvrire explorateur linux/windows
 - ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping : nécessite la lib + .h)
-- ajouter un module spéciale de scanne global pour les tests des bancs programme
-
+- pour test auto :possibilité d'ajouter une autre lstv pour les tests et de mettre juste des OK et NOK ???
+- ajouter remarque possible dans la liste des ip !
 
 [NS]
-- SSH : review information messages, remove fiew bug, if no SSH test exist, Linux OS is still recovered
-- review CSV file format export (only compatible with libreoffice, Excel is bugged)
-- review XML file format export (compatible Excel)
-- add export in all format : CSV, XML and HTML
-- add global time duration scan
 
 
+MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
 //----------------------------------------------------------------
-#define _WIN32_IE         0x0501  // IE5 min
+#define _WIN32_IE                               0x0501  // IE5 min
+
+#define UF_PASSWORD_EXPIRED                     0x800000// bad record for netbios account policy
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
 //#define DEBUG_MODE_SSH                              1
@@ -60,7 +59,7 @@
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.12 22/12/2013"
+#define TITLE                                       "NS v0.4.14 31/12/2013"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -272,6 +271,45 @@ CRITICAL_SECTION Sync;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 SCANNE_ST config;
 //----------------------------------------------------------------
+//AUTO-SCAN
+#define AUTO_SCAN_FILE_INI       "\\NS.ini"
+typedef struct auto_scanne_st
+{
+  //save
+  BOOL save_CSV;
+  BOOL save_XML;
+  BOOL save_HTML;
+
+  //check
+  BOOL M_SEC;
+  BOOL PATCH_UPDATED;
+  BOOL WSUS_WORKS;
+  BOOL MCAFEE_INSTALLED;
+  BOOL MCAFEE_UPDATED;
+  BOOL MCAFEE_SCAN;
+  BOOL PASSWORD_POLICY;
+  BOOL ADMIN_ACCOUNT;
+  BOOL NULL_SESSION;
+  BOOL REVERS_SID;
+  BOOL AUTORUN;
+  BOOL SHARE_ACCESS;
+
+  //check_options
+  char C_ADMIN_ACCOUNT[MAX_PATH];
+  char MSEC_REG_PATH[MAX_PATH];
+  char MSEC_REG_VALUE[MAX_PATH];
+  unsigned int MCAFEE_SCAN_DAYS_INTERVAL;
+  unsigned int MCAFEE_UPDATE_DAYS_INTERVAL;
+  unsigned int PASSWORD_POLICY_MIN_AGE;
+  unsigned int PASSWORD_POLICY_MAX_AGE;
+  unsigned int PASSWORD_POLICY_MIN_LEN;
+  unsigned int PASSWORD_POLICY_LOCKOUT_COUNT;
+  BOOL PASSWORD_POLICY_COMPLEXITY_ENABLE;
+  unsigned int PASSWORD_POLICY_HISTORY;
+}AUTO_SCANNE_ST;
+
+AUTO_SCANNE_ST auto_scan_config;
+//----------------------------------------------------------------
 //ICMP
 typedef struct tagIPINFO
 {
@@ -335,10 +373,13 @@ void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, 
 BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
 
 //load files configuration
+void loadFileIp(char *file);
 DWORD WINAPI load_file_ip(LPVOID lParam);
 DWORD load_file_list(DWORD lsb, char *file);
+void LoadAuthFile(char *file);
 DWORD WINAPI load_file_accounts(LPVOID lParam);
 DWORD WINAPI scan(LPVOID lParam);
+DWORD WINAPI auto_scan(LPVOID lParam);
 
 //IP
 void addIPTest(char *ip_format);
@@ -350,10 +391,10 @@ int Ping(char *ip);
 BOOL ResDNS(char *ip, char *name, unsigned int sz_max);
 
 //Netbios
-BOOL Netbios_NULLSession(char *ip);
+BOOL Netbios_NULLSession(char *ip, char *share);
 BOOL TestReversSID(char *ip, char* user);
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
-BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max);
+BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip);
 BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 

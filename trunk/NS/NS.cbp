@@ -56,6 +56,9 @@
 		<Unit filename="tests/Registry.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tests/auto_scan.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="tests/disco.c">
 			<Option compilerVar="CC" />
 		</Unit>
