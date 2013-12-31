@@ -68,10 +68,10 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
   return ret;
 }
 //----------------------------------------------------------------
-BOOL Netbios_NULLSession(char *ip)
+BOOL Netbios_NULLSession(char *ip, char*share)
 {
   char tmp[MAX_PATH];
-  _snprintf(tmp,MAX_PATH,"\\\\%s\\ipc$",ip);
+  _snprintf(tmp,MAX_PATH,"\\\\%s\\%s",ip,share);
 
   BOOL ret            = FALSE;
   NETRESOURCE NetRes;
@@ -102,13 +102,13 @@ BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
   return ret;
 }
 //----------------------------------------------------------------
-BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max)
+BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip)
 {
   BOOL ret = FALSE;
   NET_API_STATUS res;
   PSHARE_INFO_1 BufPtr,p;
   DWORD i, er=0,tr=0,resume=0;
-  char tmp[MAX_PATH];
+  char tmp[MAX_PATH], tmp_share[MAX_PATH], msg[MAX_PATH];
   share[0] = 0;
 
   do
@@ -121,9 +121,18 @@ BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max)
 
       for(i=1;i<=er;i++)
       {
-        //snprintf(tmp,MAX_PATH,"%S (%S)\r\n",p->shi1_netname,p->shi1_remark);
-        //strncat(share,tmp,sz_max);
-        snprintf(share+strlen(share),sz_max-strlen(share),"%S (%S)\r\n",p->shi1_netname,p->shi1_remark);
+        //check if we can connect in null session
+        snprintf(tmp_share,MAX_PATH,"%S",p->shi1_netname);
+        if (Netbios_NULLSession(ip, tmp_share))
+        {
+          snprintf(msg,MAX_PATH,"\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+        }else
+        {
+          snprintf(msg,MAX_PATH,"\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
+        }
+
+        snprintf(share+strlen(share),sz_max-strlen(share),"%s\r\n",msg);
+        AddMsg(h_main,"INFORMATION","Share",msg);
         p++;
       }
      NetApiBufferFree(BufPtr);

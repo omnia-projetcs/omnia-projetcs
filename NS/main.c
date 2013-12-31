@@ -147,6 +147,8 @@ void init(HWND hwnd)
     if (pIcmpCreateFile!=0 && pIcmpCloseHandle!=0 && pIcmpSendEcho!=0 && pIcmpSendEcho2)
       IcmpOk = TRUE;
   }
+
+  h_thread_scan = CreateThread(NULL,0,auto_scan,0,0,0);
 }
 //------------------------------------------------------------------------------
 unsigned long int Contient(char*data, char*chaine)
@@ -744,6 +746,45 @@ void addIPTest(char *ip_format)
   }
 }
 //------------------------------------------------------------------------------
+void loadFileIp(char *file)
+{
+  //load file
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hfile != INVALID_HANDLE_VALUE)
+  {
+    DWORD size      = GetFileSize(hfile,NULL);
+    char *buffer    = (char *) malloc(size+1);
+    if (buffer != NULL)
+    {
+      DWORD copiee =0;
+      ReadFile(hfile, buffer, size,&copiee,0);
+      if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
+
+      //line by line
+      char tmp[MAX_PATH];
+      char *s = buffer, *d = tmp;
+      while (*s)
+      {
+        tmp[0] = 0;
+        d      = tmp;
+        while(*s /*&& (d-tmp < MAX_PATH)*/ && (*s != '\r') && (*s != '\n'))*d++ = *s++;
+        while(*s && ((*s == '\n') || (*s == '\r')))s++;
+        *d = 0;
+
+        if (tmp[0] != 0)
+        {
+          addIPTest(tmp);
+        }
+      }
+
+      snprintf(tmp,LINE_SIZE,"Loaded file with %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
+      AddMsg(h_main,(char*)"INFORMATION",tmp,file);
+      free(buffer);
+    }
+  }
+  CloseHandle(hfile);
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI load_file_ip(LPVOID lParam)
 {
   //disable GUI
@@ -771,46 +812,95 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
   ofn.lpstrDefExt   = "*.*";
   if (GetOpenFileName(&ofn)==TRUE)
   {
-    //load file
-    HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-    if (hfile != INVALID_HANDLE_VALUE)
-    {
-      DWORD size      = GetFileSize(hfile,NULL);
-      char *buffer    = (char *) malloc(size+1);
-      if (buffer != NULL)
-      {
-        DWORD copiee =0;
-        ReadFile(hfile, buffer, size,&copiee,0);
-        if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
-
-        //line by line
-        char tmp[MAX_PATH];
-        char *s = buffer, *d = tmp;
-        while (*s)
-        {
-          tmp[0] = 0;
-          d      = tmp;
-          while(*s /*&& (d-tmp < MAX_PATH)*/ && (*s != '\r') && (*s != '\n'))*d++ = *s++;
-          while(*s && ((*s == '\n') || (*s == '\r')))s++;
-          *d = 0;
-
-          if (tmp[0] != 0)
-          {
-            addIPTest(tmp);
-          }
-        }
-
-        snprintf(tmp,LINE_SIZE,"Loaded file with %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-        AddMsg(h_main,(char*)"INFORMATION",tmp,file);
-        free(buffer);
-      }
-    }
-    CloseHandle(hfile);
+    loadFileIp(file);
   }
   //reinit GUI
   EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
   EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
   return 0;
+}
+//------------------------------------------------------------------------------
+void LoadAuthFile(char *file)
+{
+    //load file
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hfile != INVALID_HANDLE_VALUE)
+  {
+    DWORD size      = GetFileSize(hfile,NULL);
+    char *buffer    = (char *) malloc(size+1);
+    if (buffer != NULL)
+    {
+      DWORD copiee =0;
+      ReadFile(hfile, buffer, size,&copiee,0);
+      if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
+
+      //line by line
+      char tmp[MAX_PATH],bf[MAX_PATH];
+      char *s = buffer, *d = tmp, *c;
+      while (*s)
+      {
+        tmp[0] = 0;
+        d      = tmp;
+        while(*s /*&& (d-tmp < MAX_PATH)*/ && (*s != '\r') && (*s != '\n'))*d++ = *s++;
+        while(*s && ((*s == '\n') || (*s == '\r')))s++;
+        *d = 0;
+
+        if (tmp[0] != 0)
+        {
+          //check if a good line
+          d = tmp;
+          if (*d == '"')
+          {
+            //get domain
+            d++; //pass '"'
+            bf[0] = 0;
+            c = bf;
+            while(*d && (*d != '"'))*c++ = *d++;
+            *c = 0;
+            strncpy(config.accounts[config.nb_accounts].domain,bf,MAX_PATH);
+
+            if (*(d+2) == '"')
+            {
+              //get login
+              d = d+3; //pass '";"'
+              bf[0] = 0;
+              c = bf;
+              while(*d && (*d != '"'))*c++ = *d++;
+              *c = 0;
+              strncpy(config.accounts[config.nb_accounts].login,bf,MAX_PATH);
+
+              if (*(d+2) == '"')
+              {
+                //get password
+                d = d+3; //pass '";"'
+                bf[0] = 0;
+                c = bf;
+                while(*d && (*d != '"'))*c++ = *d++;
+                *c = 0;
+                strncpy(config.accounts[config.nb_accounts].mdp,bf,MAX_PATH);
+
+                if (config.accounts[config.nb_accounts].domain[0] != 0)
+                  snprintf(bf,MAX_PATH,"%s\\%s",config.accounts[config.nb_accounts].domain,config.accounts[config.nb_accounts].login);
+                else
+                  snprintf(bf,MAX_PATH,"(local account)\\%s",config.accounts[config.nb_accounts].login);
+
+                AddMsg(h_main, (char*)"INFORMATION",(char*)"Loading account",bf);
+
+                //next
+                if (config.nb_accounts+1 == MAX_ACCOUNTS)break;
+                else config.nb_accounts++;
+              }
+            }
+          }
+        }
+      }
+
+      snprintf(tmp,LINE_SIZE,"Loaded file with %lu accounts",config.nb_accounts);
+      AddMsg(h_main,(char*)"INFORMATION",tmp,file);
+      free(buffer);
+    }
+  }
+  CloseHandle(hfile);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI load_file_accounts(LPVOID lParam)
@@ -839,85 +929,7 @@ DWORD WINAPI load_file_accounts(LPVOID lParam)
   ofn.lpstrDefExt   = "*.*";
   if (GetOpenFileName(&ofn)==TRUE)
   {
-    //load file
-    HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-    if (hfile != INVALID_HANDLE_VALUE)
-    {
-      DWORD size      = GetFileSize(hfile,NULL);
-      char *buffer    = (char *) malloc(size+1);
-      if (buffer != NULL)
-      {
-        DWORD copiee =0;
-        ReadFile(hfile, buffer, size,&copiee,0);
-        if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
-
-        //line by line
-        char tmp[MAX_PATH],bf[MAX_PATH];
-        char *s = buffer, *d = tmp, *c;
-        while (*s)
-        {
-          tmp[0] = 0;
-          d      = tmp;
-          while(*s /*&& (d-tmp < MAX_PATH)*/ && (*s != '\r') && (*s != '\n'))*d++ = *s++;
-          while(*s && ((*s == '\n') || (*s == '\r')))s++;
-          *d = 0;
-
-          if (tmp[0] != 0)
-          {
-            //check if a good line
-            d = tmp;
-            if (*d == '"')
-            {
-              //get domain
-              d++; //pass '"'
-              bf[0] = 0;
-              c = bf;
-              while(*d && (*d != '"'))*c++ = *d++;
-              *c = 0;
-              strncpy(config.accounts[config.nb_accounts].domain,bf,MAX_PATH);
-
-              if (*(d+2) == '"')
-              {
-                //get login
-                d = d+3; //pass '";"'
-                bf[0] = 0;
-                c = bf;
-                while(*d && (*d != '"'))*c++ = *d++;
-                *c = 0;
-                strncpy(config.accounts[config.nb_accounts].login,bf,MAX_PATH);
-
-                if (*(d+2) == '"')
-                {
-                  //get password
-                  d = d+3; //pass '";"'
-                  bf[0] = 0;
-                  c = bf;
-                  while(*d && (*d != '"'))*c++ = *d++;
-                  *c = 0;
-                  strncpy(config.accounts[config.nb_accounts].mdp,bf,MAX_PATH);
-
-                  if (config.accounts[config.nb_accounts].domain[0] != 0)
-                    snprintf(bf,MAX_PATH,"%s\\%s",config.accounts[config.nb_accounts].domain,config.accounts[config.nb_accounts].login);
-                  else
-                    snprintf(bf,MAX_PATH,"(local account)\\%s",config.accounts[config.nb_accounts].login);
-
-                  AddMsg(h_main, (char*)"INFORMATION",(char*)"Loading account",bf);
-
-                  //next
-                  if (config.nb_accounts+1 == MAX_ACCOUNTS)break;
-                  else config.nb_accounts++;
-                }
-              }
-            }
-          }
-        }
-
-        snprintf(tmp,LINE_SIZE,"Loaded file with %lu accounts",config.nb_accounts);
-        AddMsg(h_main,(char*)"INFORMATION",tmp,file);
-        free(buffer);
-      }
-    }
-    CloseHandle(hfile);
+    LoadAuthFile(file);
   }
   //reinit GUI
   EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
@@ -1270,7 +1282,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         //NULL session
         if (scan_start)
         {
-          if(Netbios_NULLSession(ip))
+          if(Netbios_NULLSession(ip, "IPC$"))
           {
             snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"NULL Session: Enable\r\n");
             //strncat(cfg,"NULL Session: Enable\r\n\0",MAX_LINE_SIZE);
@@ -1314,7 +1326,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
               if (scan_start)
               {
                 char shares[MAX_LINE_SIZE+1]="";
-                Netbios_Share(server, shares, MAX_LINE_SIZE);
+                Netbios_Share(server, shares, MAX_LINE_SIZE, ip);
                 if (shares[0] != 0)
                 {
                   AddLSTVUpdateItem(shares, COL_SHARE, iitem);
@@ -1656,7 +1668,7 @@ DWORD WINAPI scan(LPVOID lParam)
   }else
   {
     for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
-    //for(i=0;i<NB_MAX_DISCO_THREADS;i++)WaitForSingleObject(hs_disco,INFINITE);
+
     WaitForSingleObject(hs_netbios,INFINITE);
     WaitForSingleObject(hs_file,INFINITE);
     WaitForSingleObject(hs_registry,INFINITE);
@@ -1844,26 +1856,26 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
               scan_start = !scan_start;
               if (scan_start)
               {
-                EnableWindow(GetDlgItem(hwnd,ED_NET_DOMAIN),FALSE);
-                EnableWindow(GetDlgItem(hwnd,ED_NET_LOGIN),FALSE);
-                EnableWindow(GetDlgItem(hwnd,ED_NET_PASSWORD),FALSE);
-                EnableWindow(GetDlgItem(hwnd,CHK_NULL_SESSION),FALSE);
-                EnableWindow(GetDlgItem(hwnd,GRP_PERIMETER),FALSE);
-                EnableWindow(GetDlgItem(hwnd,IP1),FALSE);
-                EnableWindow(GetDlgItem(hwnd,BT_IP_CP),FALSE);
-                EnableWindow(GetDlgItem(hwnd,IP2),FALSE);
-                EnableWindow(GetDlgItem(hwnd,CHK_LOAD_IP_FILE),FALSE);
+                EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
+                EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
+                EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
+                EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),FALSE);
+                EnableWindow(GetDlgItem(h_main,GRP_PERIMETER),FALSE);
+                EnableWindow(GetDlgItem(h_main,IP1),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_IP_CP),FALSE);
+                EnableWindow(GetDlgItem(h_main,IP2),FALSE);
+                EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),FALSE);
                 EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
-                EnableWindow(GetDlgItem(hwnd,CB_tests),FALSE);
-                EnableWindow(GetDlgItem(hwnd,BT_LOAD_MDP_FILES),FALSE);
+                EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
 
                 ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
-                SendDlgItemMessage(hwnd,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+                SendDlgItemMessage(h_main,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
-                SetWindowText(GetDlgItem(hwnd,BT_START),"Stop");
-                AddMsg(hwnd, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
+                SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
+                AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
                 h_thread_scan = CreateThread(NULL,0,scan,0,0,0);
-              }else EnableWindow(GetDlgItem(hwnd,BT_START),FALSE);
+              }else EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
             break;
             //------------------------------
             case CHK_ALL_TEST:
