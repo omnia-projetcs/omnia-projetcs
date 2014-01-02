@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
-	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\NetBIOS.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2034" topLine="14" />
+			<Cursor1 position="4167" topLine="53" />
 		</Cursor>
+		<Folding>
+			<Collapse line="9" />
+		</Folding>
 	</File>
 	<File name="main.c" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor>
@@ -21,41 +24,33 @@
 			<Collapse line="242" />
 		</Folding>
 	</File>
-	<File name="tests\ssh_v2.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.rc" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6884" topLine="238" />
+			<Cursor1 position="2034" topLine="14" />
 		</Cursor>
 	</File>
-	<File name="tests\NetBIOS.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4373" topLine="57" />
-		</Cursor>
-		<Folding>
-			<Collapse line="9" />
-		</Folding>
-	</File>
-	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1041" topLine="12" />
+			<Cursor1 position="6549" topLine="157" />
 		</Cursor>
 	</File>
-	<File name="tests\Files.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.h" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="5158" topLine="163" />
+			<Cursor1 position="1232" topLine="12" />
 		</Cursor>
 	</File>
-	<File name="tests\auto_scan.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="tests\auto_scan.c" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="22435" topLine="146" />
+			<Cursor1 position="29215" topLine="308" />
 		</Cursor>
 		<Folding>
 			<Collapse line="16" />
 			<Collapse line="94" />
 		</Folding>
 	</File>
-	<File name="tests\Registry.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\ssh_v2.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="545" topLine="0" />
+			<Cursor1 position="6884" topLine="238" />
 		</Cursor>
 	</File>
 	<File name="tests\disco.c" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -63,9 +58,14 @@
 			<Cursor1 position="357" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\Registry.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6549" topLine="157" />
+			<Cursor1 position="545" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="tests\Files.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5158" topLine="163" />
 		</Cursor>
 	</File>
 </CodeBlocks_layout_file>

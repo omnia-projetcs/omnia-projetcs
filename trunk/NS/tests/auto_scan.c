@@ -702,11 +702,11 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           }
 
           WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
           break;
         }
       }
-      AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
       ReleaseSemaphore(hs_file,1,NULL);
     }
 

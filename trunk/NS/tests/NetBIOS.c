@@ -125,10 +125,10 @@ BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip)
         snprintf(tmp_share,MAX_PATH,"%S",p->shi1_netname);
         if (Netbios_NULLSession(ip, tmp_share))
         {
-          snprintf(msg,MAX_PATH,"\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+          snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
         }else
         {
-          snprintf(msg,MAX_PATH,"\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
+          snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
         }
 
         snprintf(share+strlen(share),sz_max-strlen(share),"%s\r\n",msg);
