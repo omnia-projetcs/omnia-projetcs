@@ -25,8 +25,15 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
   LPUSER_INFO_1 p1Buf =NULL;
   LPUSER_INFO_2 p2Buf =NULL;
   LPUSER_INFO_3 p3Buf =NULL;
+  NET_API_STATUS net_res;
 
-  if (NetUserGetInfo(serveur,user,1,(LPBYTE*)&p1Buf)==NERR_Success)
+  net_res = NetUserGetInfo(serveur,user,1,(LPBYTE*)&p1Buf);
+  if (net_res == NERR_UserNotFound)
+  {
+    AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Absent)", COL_CONFIG, iitem);
+    AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Absent)");
+    return TRUE;
+  }else if (net_res==NERR_Success)
   {
     if (p1Buf->usri1_flags&UF_ACCOUNTDISABLE)
     {
@@ -48,126 +55,79 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
     return TRUE;
   }else if (NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf)==NERR_Success)
   {
-    if (p2Buf->usri2_flags&UF_ACCOUNTDISABLE)
+    net_res = NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf);
+    if (net_res == NERR_UserNotFound)
     {
-      if (p2Buf->usri2_flags&UF_PASSWORD_EXPIRED)
+      AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Absent)", COL_CONFIG, iitem);
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Absent)");
+      return TRUE;
+    }else if (net_res==NERR_Success)
+    {
+      if (p2Buf->usri2_flags&UF_ACCOUNTDISABLE)
       {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+        if (p2Buf->usri2_flags&UF_PASSWORD_EXPIRED)
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+        }else
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+        }
       }else
       {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
       }
+      NetApiBufferFree(p2Buf);
+      return TRUE;
     }else
     {
-      AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
-    }
-    NetApiBufferFree(p2Buf);
-    return TRUE;
-  }else if (NetUserGetInfo(serveur,user,3,(LPBYTE*)&p3Buf)==NERR_Success)
-  {
-    if (p3Buf->usri3_flags&UF_ACCOUNTDISABLE)
-    {
-      if (p3Buf->usri3_flags&UF_PASSWORD_EXPIRED || p3Buf->usri3_password_expired)
+      net_res = NetUserGetInfo(serveur,user,3,(LPBYTE*)&p3Buf);
+      if (net_res == NERR_UserNotFound)
       {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
-      }else
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Absent)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Absent)");
+        return TRUE;
+      }else if (net_res==NERR_Success)
       {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+        if (p3Buf->usri3_flags&UF_ACCOUNTDISABLE)
+        {
+          if (p3Buf->usri3_flags&UF_PASSWORD_EXPIRED || p3Buf->usri3_password_expired)
+          {
+            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+          }else
+          {
+            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+          }
+        }else
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+        }
+        NetApiBufferFree(p3Buf);
+        return TRUE;
       }
-    }else
-    {
-      AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
     }
-    NetApiBufferFree(p3Buf);
-    return TRUE;
   }
 
   return FALSE;
 }
 //----------------------------------------------------------------
-void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
+void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS, DWORD *id_ok)
 {
-  char remote_name[MAX_PATH], tmp[MAX_PATH];
-  HANDLE connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem);
+  char remote_name[MAX_PATH]="", tmp[MAX_PATH]="";
+  WaitForSingleObject(hs_netbios,INFINITE);
+  HANDLE connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, FALSE, id_ok);
 
-  //account policy
-  if (auto_scan_config.PASSWORD_POLICY && scan_start)
-  {
-    wchar_t server[MAX_PATH];
-    snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-
-    WaitForSingleObject(hs_netbios,INFINITE);
-    mbstowcs(server, tmp, MAX_PATH);
-
-    char tmp_pUmI_0[MAX_PATH]="", tmp_pUmI_3[MAX_PATH]="";
-    USER_MODALS_INFO_0 *pUmI_0 = NULL;
-    USER_MODALS_INFO_3 *pUmI_3 = NULL;
-    if (NERR_Success == NetUserModalsGet(server,0,(LPBYTE *)&pUmI_0))
-    {
-      if (pUmI_0 != NULL)
-      {
-        snprintf(tmp_pUmI_0,MAX_PATH,
-                                     "min_passwd_age:%s(%d days)\r\n"
-                                     "max_passwd_age:%s(%d days)\r\n"
-                                     "min_passwd_len:%s(%d)\r\n"
-                                     "passord_history:%s(%d)\r\n"
-                                    ,(pUmI_0->usrmod0_min_passwd_age/86400)>=auto_scan_config.PASSWORD_POLICY_MIN_AGE?"OK":"NOK",pUmI_0->usrmod0_min_passwd_age/86400
-                                    ,(pUmI_0->usrmod0_max_passwd_age/86400)<=auto_scan_config.PASSWORD_POLICY_MAX_AGE?"OK":"NOK",pUmI_0->usrmod0_max_passwd_age/86400
-                                    ,pUmI_0->usrmod0_min_passwd_len>=auto_scan_config.PASSWORD_POLICY_MIN_LEN?"OK":"NOK",pUmI_0->usrmod0_min_passwd_len
-                                    ,pUmI_0->usrmod0_password_hist_len>=auto_scan_config.PASSWORD_POLICY_HISTORY?"OK":"NOK",pUmI_0->usrmod0_password_hist_len);
-        NetApiBufferFree(pUmI_0);
-        AddLSTVUpdateItem(tmp_pUmI_0, COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_0);
-      }
-    }
-    if (NERR_Success == NetUserModalsGet(server,3,(LPBYTE *)&pUmI_3))
-    {
-      if (pUmI_3 != NULL)
-      {
-        snprintf(tmp_pUmI_3,MAX_PATH,"bad_password_count_to_lock_account:%s(%d)"
-                                    ,pUmI_3->usrmod3_lockout_threshold<=auto_scan_config.PASSWORD_POLICY_LOCKOUT_COUNT?"OK":"NOK",pUmI_3->usrmod3_lockout_threshold);
-        NetApiBufferFree(pUmI_3);
-        AddLSTVUpdateItem(tmp_pUmI_3, COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_3);
-      }
-    }
-    ReleaseSemaphore(hs_netbios,1,NULL);
-  }
-
-  if (auto_scan_config.ADMIN_ACCOUNT && scan_start)
-  {
-    WaitForSingleObject(hs_netbios,INFINITE);
-    if (!Netbios_check_user(iitem, ip, auto_scan_config.C_ADMIN_ACCOUNT))
-    {
-      if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
-      {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available untested)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available untested)");
-      }else
-      {
-        if (connect != FALSE)
-        {
-          AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not available)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not available)");
-        }
-      }
-    }
-    ReleaseSemaphore(hs_netbios,1,NULL);
-  }
-
-  if (connect == FALSE) return;
   HKEY hkey;
   snprintf(tmp,MAX_PATH,"\\\\%s",ip);
   if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS && scan_start)
   {
     DWORD DWORD_tmp=0;
-    char value[MAX_PATH], tmp_value[MAX_PATH]="", msg[MAX_PATH];
+    char value[MAX_PATH], tmp_value[MAX_PATH]="",  msg[MAX_PATH];
 
     //get Exact OS !!!
     if (RegistryOS(iitem,hkey))
@@ -178,7 +138,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
     if (auto_scan_config.PASSWORD_POLICY)
     {
       DWORD_tmp=0;
-      if(ReadValue(hkey,"System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\","RequireStrongKey",&DWORD_tmp, sizeof(DWORD)))
+      if(ReadValue(hkey,"System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\","RequireStrongKey",&DWORD_tmp, sizeof(DWORD)) != 0)
       {
         snprintf(value,MAX_PATH,"%s\\HKLM\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\RequireStrongKey=%d",ip,DWORD_tmp);
 
@@ -197,7 +157,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
     if (auto_scan_config.AUTORUN)
     {
       DWORD_tmp=0;
-      if(ReadValue(hkey,"Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\","NoDriveTypeAutorun",&DWORD_tmp, sizeof(DWORD)))
+      if(ReadValue(hkey,"Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\","NoDriveTypeAutorun",&DWORD_tmp, sizeof(DWORD)) != 0)
       {
         snprintf(value,MAX_PATH,"%s\\HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\NoDriveTypeAutorun=%d",ip,DWORD_tmp);
         if (DWORD_tmp == 0xFF)
@@ -215,16 +175,13 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
     if (auto_scan_config.M_SEC)
     {
       tmp_value[0]=0;
-      if(ReadValue(hkey,auto_scan_config.MSEC_REG_PATH,auto_scan_config.MSEC_REG_VALUE,tmp_value, MAX_PATH))
+      if(ReadValue(hkey,auto_scan_config.MSEC_REG_PATH,auto_scan_config.MSEC_REG_VALUE,tmp_value, MAX_PATH) != 0)
       {
         snprintf(value,MAX_PATH,"%s\\HKLM\\%s%s=%s",ip,auto_scan_config.MSEC_REG_PATH,auto_scan_config.MSEC_REG_VALUE,tmp_value);
-        AddLSTVUpdateItem("MSEC:OK (installed)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"MSEC:OK (installed)",value);
-      }else
-      {
-        snprintf(value,MAX_PATH,"%s\\HKLM\\%s%s",ip,auto_scan_config.MSEC_REG_PATH,auto_scan_config.MSEC_REG_VALUE);
-        AddLSTVUpdateItem("MSEC:NOK (not installed)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"MSEC:NOK (not installed)",value);
+
+        snprintf(tmp,MAX_PATH,"MSEC:OK (installed:%s)",tmp_value);
+        AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Registry)",(char*)tmp,value);
       }
     }
 
@@ -236,7 +193,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
     if (auto_scan_config.MCAFEE_INSTALLED)
     {
       tmp_value[0]=0;
-      if(ReadValue(hkey,"SOFTWARE\\Mcafee\\AVEngine\\","AvDatDate",tmp_value, MAX_PATH))
+      if(ReadValue(hkey,"SOFTWARE\\Mcafee\\AVEngine\\","AvDatDate",tmp_value, MAX_PATH) != 0)
       {
         snprintf(value,MAX_PATH,"%s\\HKLM\\SOFTWARE\\Mcafee\\AVEngine\\AvDatDate=%s",ip,tmp_value);
         AddLSTVUpdateItem("McAfee:OK (installed)", COL_CONFIG, iitem);
@@ -263,11 +220,11 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
         {
           if (today->tm_mday - day <= auto_scan_config.MCAFEE_UPDATE_DAYS_INTERVAL)
           {
-            snprintf(msg,MAX_PATH,"McAfee:OK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:OK (last update:%s)",tmp_value);
 
           }else
           {
-            snprintf(msg,MAX_PATH,"McAfee:NOK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:NOK (last update:%s)",tmp_value);
           }
         }else if (((today->tm_mon+1) - month == 1) && (27-day + today->tm_mday)<= auto_scan_config.MCAFEE_UPDATE_DAYS_INTERVAL)
         {
@@ -285,58 +242,53 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
 
           if ((ref-day + today->tm_mday)<= auto_scan_config.MCAFEE_UPDATE_DAYS_INTERVAL)
           {
-            snprintf(msg,MAX_PATH,"McAfee:OK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:OK (last update:%s)",tmp_value);
 
           }else
           {
-            snprintf(msg,MAX_PATH,"McAfee:NOK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:NOK (last update:%s)",tmp_value);
           }
         }else if (((today->tm_year+1900) - year == 1) && (today->tm_mon == 0 && month == 12))
         {
           if ((31-day + today->tm_mday) <= auto_scan_config.MCAFEE_UPDATE_DAYS_INTERVAL)
           {
-            snprintf(msg,MAX_PATH,"McAfee:OK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:OK (last update:%s)",tmp_value);
 
           }else
           {
-            snprintf(msg,MAX_PATH,"McAfee:NOK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"McAfee:NOK (last update:%s)",tmp_value);
           }
         }else
         {
-          snprintf(msg,MAX_PATH,"McAfee:NOK (last update: %s)",tmp_value);
+          snprintf(msg,MAX_PATH,"McAfee:NOK (last update:%s)",tmp_value);
         }
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
         AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
-      }else
-      {
-        snprintf(value,MAX_PATH,"%s\\HKLM\\SOFTWARE\\Mcafee\\AVEngine\\AvDatDate",ip);
-        AddLSTVUpdateItem("McAfee:NOK (not installed)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"McAfee:NOK (not installed)",value);
       }
     }
 
     if (auto_scan_config.WSUS_WORKS)
     {
       tmp_value[0]=0;
-      if(ReadValue(hkey,"SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\","WUServer",tmp_value, MAX_PATH))
+      if(ReadValue(hkey,"SOFTWARE\\Policies\\Microsoft\\Windows\\WindowsUpdate\\","WUServer",tmp_value, MAX_PATH) != 0)
       {
-        snprintf(msg,MAX_PATH,"WSUS:OK (server: %s)",tmp_value);
+        snprintf(msg,MAX_PATH,"WSUS:OK (server:%s)",tmp_value);
 
         //check if work
         DWORD_tmp=0;
-        if(ReadValue(hkey,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Results\\Detect\\","LastError",&DWORD_tmp, sizeof(DWORD)))
+        if(ReadValue(hkey,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Results\\Detect\\","LastError",&DWORD_tmp, sizeof(DWORD)) != 0)
         {
           if (DWORD_tmp != 0)
           {
-            snprintf(msg,MAX_PATH,"WSUS:NOK (error server: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"WSUS:NOK (error server:%s)",tmp_value);
           }
-        }else snprintf(msg,MAX_PATH,"WSUS:NOK (not used, server: %s)",tmp_value);
+        }else snprintf(msg,MAX_PATH,"WSUS:NOK (not used, server:%s)",tmp_value);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
         AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
 
         //patch update
         tmp_value[0]=0;
-        if(ReadValue(hkey,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Results\\Install\\","LastSuccessTime",tmp_value, MAX_PATH))
+        if(ReadValue(hkey,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\WindowsUpdate\\Auto Update\\Results\\Install\\","LastSuccessTime",tmp_value, MAX_PATH) != 0)
         {
           tmp[0] = tmp_value[0];
           tmp[1] = tmp_value[1];
@@ -359,11 +311,11 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
           {
             if (today->tm_mday - day <= 30)
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update:%s)",tmp_value);
 
             }else
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update:%s)",tmp_value);
             }
           }else if (((today->tm_mon+1) - month == 1) && (27-day + today->tm_mday)<= 30)
           {
@@ -381,33 +333,29 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
 
             if ((ref-day + today->tm_mday)<= 30)
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update:%s)",tmp_value);
 
             }else
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update:%s)",tmp_value);
             }
           }else if (((today->tm_year+1900) - year == 1) && (today->tm_mon == 0 && month == 12))
           {
             if ((31-day + today->tm_mday) <= 30)
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:OK (last update:%s)",tmp_value);
 
             }else
             {
-              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update: %s)",tmp_value);
+              snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update:%s)",tmp_value);
             }
           }else
           {
-            snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update: %s)",tmp_value);
+            snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update:%s)",tmp_value);
           }
-        }else snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (expire)",tmp_value);
+        }else snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (never updated)",tmp_value);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
         AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
-      }else
-      {
-        AddMsg(h_main, (char*)"FOUND (Registry)",ip,"WSUS:NOK (unconfigured)");
-        AddLSTVUpdateItem("WSUS:NOK (unconfigured)", COL_CONFIG, iitem);
       }
     }
     RegCloseKey(hkey);
@@ -418,6 +366,209 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS)
     WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
     CloseHandle(connect);
   }
+  ReleaseSemaphore(hs_netbios,1,NULL);
+}
+//----------------------------------------------------------------
+void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD *id_ok)
+{
+  char remote_name[MAX_PATH], tmp[MAX_PATH];
+  HANDLE connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, TRUE, id_ok);
+
+  //account policy
+  if (auto_scan_config.PASSWORD_POLICY && scan_start)
+  {
+    wchar_t server[MAX_PATH];
+    snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+    mbstowcs(server, tmp, MAX_PATH);
+
+    char tmp_pUmI_0[MAX_PATH]="", tmp_pUmI_3[MAX_PATH]="";
+    USER_MODALS_INFO_0 *pUmI_0 = NULL;
+    USER_MODALS_INFO_3 *pUmI_3 = NULL;
+    if (NERR_Success == NetUserModalsGet(server,0,(LPBYTE *)&pUmI_0))
+    {
+      if (pUmI_0 != NULL)
+      {
+        snprintf(tmp_pUmI_0,MAX_PATH,
+                                     "min_passwd_age:%s(%d days)\r\n"
+                                     "max_passwd_age:%s(%d days)\r\n"
+                                     "min_passwd_len:%s(%d)\r\n"
+                                     "passord_history:%s(%d)"
+                                    ,(pUmI_0->usrmod0_min_passwd_age/86400)>=auto_scan_config.PASSWORD_POLICY_MIN_AGE?"OK":"NOK",pUmI_0->usrmod0_min_passwd_age/86400
+                                    ,(pUmI_0->usrmod0_max_passwd_age/86400)<=auto_scan_config.PASSWORD_POLICY_MAX_AGE?"OK":"NOK",pUmI_0->usrmod0_max_passwd_age/86400
+                                    ,pUmI_0->usrmod0_min_passwd_len>=auto_scan_config.PASSWORD_POLICY_MIN_LEN?"OK":"NOK",pUmI_0->usrmod0_min_passwd_len
+                                    ,pUmI_0->usrmod0_password_hist_len>=auto_scan_config.PASSWORD_POLICY_HISTORY?"OK":"NOK",pUmI_0->usrmod0_password_hist_len);
+        NetApiBufferFree(pUmI_0);
+        AddLSTVUpdateItem(tmp_pUmI_0, COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_0);
+      }
+    }
+    if (NERR_Success == NetUserModalsGet(server,3,(LPBYTE *)&pUmI_3))
+    {
+      if (pUmI_3 != NULL)
+      {
+        snprintf(tmp_pUmI_3,MAX_PATH,"bad_password_count_to_lock_account:%s(%d)"
+                                    ,pUmI_3->usrmod3_lockout_threshold<=auto_scan_config.PASSWORD_POLICY_LOCKOUT_COUNT?"OK":"NOK",pUmI_3->usrmod3_lockout_threshold);
+        NetApiBufferFree(pUmI_3);
+        AddLSTVUpdateItem(tmp_pUmI_3, COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_3);
+      }
+    }
+  }
+
+  if (auto_scan_config.ADMIN_ACCOUNT && scan_start)
+  {
+    if (!strcmp(auto_scan_config.C_ADMIN_ACCOUNT, config.accounts[*id_ok].login))
+    {
+      AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+    }else
+    {
+      if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but bad state or password)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but bad state or password)");
+      }
+    }
+
+    /*if (!Netbios_check_user(iitem, ip, auto_scan_config.C_ADMIN_ACCOUNT))
+    {
+      if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available untested)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available untested)");
+      }else
+      {
+        if (connect != FALSE)
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not available)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not available)");
+        }
+      }
+    }*/
+  }
+
+  if(connect)
+  {
+    WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+    CloseHandle(connect);
+  }
+}
+//----------------------------------------------------------------
+void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, DWORD *id_ok)
+{
+  unsigned int i = 0;
+  char msg[MAX_PATH];
+  char remote_name[LINE_SIZE],tmp_path[LINE_SIZE];
+  char tmp_login[MAX_PATH];
+  snprintf(remote_name,LINE_SIZE,"\\\\%s\\C$",ip);
+
+  if (id_ok != NULL) i = *id_ok;
+
+  WaitForSingleObject(hs_netbios,INFINITE);
+
+  //MCAFEE_UPDATE_DAYS_INTERVAL
+  for (; i<config.nb_accounts && scan_start;i++)
+  {
+    NETRESOURCE NetRes  = {0};
+    NetRes.dwScope      = RESOURCE_GLOBALNET;
+    NetRes.dwType	      = RESOURCETYPE_ANY;
+    NetRes.lpLocalName  = (LPSTR)"";
+    NetRes.lpProvider   = (LPSTR)"";
+    NetRes.lpRemoteName	= remote_name;
+
+    if (config.accounts[i].domain[0] != 0)
+    {
+      snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
+    }else
+    {
+      snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.accounts[i].login);
+    }
+
+    if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
+    {
+      snprintf(msg,LINE_SIZE,"%s with %s (%02d) account.",remote_name,config.accounts[i].login,i);
+      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+      if (id_ok != NULL)*id_ok = i;
+
+      HANDLE hfic;
+      WIN32_FIND_DATA data;
+      FILETIME LocalFileTime;
+      SYSTEMTIME SysTimeModification;
+      snprintf(tmp_path,LINE_SIZE,"%s\\ProgramData\\McAfee\\DesktopProtection\\OnDemandScanLog.txt",remote_name);
+
+      if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
+      {
+        hfic = FindFirstFile(tmp_path, &data);
+        if (hfic != INVALID_HANDLE_VALUE)
+        {
+          AddMsg(h_main,(char*)"DEBUG",(char*)"(EXIST)",tmp_path);
+
+
+          //current time
+          time_t current_time;
+          time(&current_time);
+          struct tm *today = localtime(&current_time);
+
+          FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
+          FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
+
+          if (today->tm_mday - SysTimeModification.wDay >= 0 && (today->tm_mon+1) == SysTimeModification.wMonth && today->tm_year+1900 == SysTimeModification.wYear)
+          {
+            if (today->tm_mday - SysTimeModification.wDay <= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+
+            }else
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+            }
+          }else if (((today->tm_mon+1) - SysTimeModification.wMonth == 1) && (27-SysTimeModification.wDay + today->tm_mday)<= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
+          {
+            //exact calcul
+            unsigned int ref = 31;
+            switch(today->tm_mon+1)
+            {
+              case 2:ref=27;break;
+
+              case 4:
+              case 6:
+              case 9:
+              case 11:ref=30;break;
+            }
+
+            if ((ref-SysTimeModification.wDay + today->tm_mday)<= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+
+            }else
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+            }
+          }else if (((today->tm_year+1900) - SysTimeModification.wYear == 1) && (today->tm_mon == 0 && SysTimeModification.wMonth == 12))
+          {
+            if ((31-SysTimeModification.wDay + today->tm_mday) <= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+
+            }else
+            {
+              snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+            }
+          }else
+          {
+            snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
+          }
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
+        }
+      }
+
+      WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+      break;
+    }
+  }
+  ReleaseSemaphore(hs_netbios,1,NULL);
 }
 //----------------------------------------------------------------
 DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
@@ -425,7 +576,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   DWORD index = (DWORD)lParam;
   BOOL exist = FALSE, dnsok=FALSE;
   DWORD iitem = 0;
-  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
+  char ip[MAX_PATH]="", dsc[MAX_PATH], ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
     ReleaseSemaphore(hs_threads,1,NULL);
@@ -441,6 +592,12 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
+
+  dsc[0] = 0;
+  if (SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) < MAX_PATH)
+  {
+    SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXT, (WPARAM)index,(LPARAM)dsc);
+  }
 
   if (ip[0]!=0 && scan_start)
   {
@@ -458,13 +615,15 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       {
         a = (struct in_addr **)host->h_addr_list;
         snprintf(ip,16,"%s",inet_ntoa(**a));
-        exist = TRUE;
-        dnsok = TRUE;
-
-        iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        if(auto_scan_config.DNS_DISCOVERY)
+        {
+          exist = TRUE;
+          dnsok = TRUE;
+          iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+        }
       }else
       {
-        iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
+        iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
         ReleaseSemaphore(hs_disco,1,NULL);
         ReleaseSemaphore(hs_threads,1,NULL);
 
@@ -487,9 +646,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
         if (!exist)
         {
-          if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-          else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Windows",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-          else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Router",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Windows",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Router",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
           exist = TRUE;
         }else
         {
@@ -503,20 +662,24 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     }
 
     //DNS
-    if (scan_start)
+    if (scan_start && (auto_scan_config.DNS_DISCOVERY || exist))
     {
       if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"DNS");
       if(ResDNS(ip, dns, MAX_PATH))
       {
         if (!exist)
         {
-          iitem = AddLSTVItem(ip, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-          exist = TRUE;
+          if (auto_scan_config.DNS_DISCOVERY)
+          {
+            iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            exist = TRUE;
+            dnsok = TRUE;
+          }
         }else
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
+          dnsok = TRUE;
         }
-        dnsok = TRUE;
       }
     }
 
@@ -525,67 +688,76 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     BOOL windows_OS = FALSE;
     //tests !!!
     char tmp[MAX_LINE_SIZE] = "";
+    DWORD id_ok = 0;
     if (exist && scan_start)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
       WaitForSingleObject(hs_netbios,INFINITE);
 
+      //get OS
+      if (dns[0] == 0 && scan_start)
+      {
+        windows_OS = Netbios_OS(ip, os_s, dns, NULL, MAX_PATH);
+        if (windows_OS)
+        {
+          if (dns[0] != 0) ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
+          if (os_s[0] != 0)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os_s);
+          nb_windows++;
+        }
+      }else
+      {
+        windows_OS = Netbios_OS(ip, os_s, NULL, NULL, MAX_PATH);
+        if (windows_OS)
+        {
+          if (os_s[0] != 0)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os_s);
+          nb_windows++;
+        }
+      }
+
       if (auto_scan_config.NULL_SESSION || auto_scan_config.REVERS_SID)
       {
-        if(Netbios_NULLSession(ip, "IPC$"))
+        BOOL null_session = Netbios_NULLSessionStart(ip, "IPC$");
+        if(null_session)
         {
-          snprintf(cfg,MAX_LINE_SIZE,"NULL Session: Enable\r\n");
+          snprintf(cfg,MAX_LINE_SIZE,"NULL Session:Enable");
+          AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+          AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
+
           if (auto_scan_config.REVERS_SID)
           {
-            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invité\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"guest\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"gast\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invitado\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"ASPNET\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrateur\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrator\" account)\r\n");
-          }
-          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_CONFIG,cfg);
-          AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+            cfg[0] = 0;
 
-          //Share
-          if (scan_start)
-          {
-            wchar_t server[MAX_PATH];
-            snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-            mbstowcs(server, tmp, MAX_PATH);
+            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invité\" account)");
+            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"guest\" account)");
+            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"gast\" account)");
+            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invitado\" account)");
+            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"HelpAssistant\" account)");
+            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"ASPNET\" account)");
+            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrateur\" account)");
+            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrator\" account)");
 
-            char shares[MAX_LINE_SIZE+1]="";
-            Netbios_Share(server, shares, MAX_LINE_SIZE, ip);
-            if (shares[0] != 0)
+            if (cfg[0] != 0)
             {
-              AddLSTVUpdateItem(shares, COL_CONFIG, iitem);
-              AddMsg(h_main, (char*)"FOUND (Config)",ip,shares);
-            }
-          }
-
-          //get OS
-          if (dns[0] == 0 && scan_start)
-          {
-            windows_OS = Netbios_OS(ip, os_s, dns, NULL, MAX_PATH);
-            if (windows_OS)
-            {
-              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
-              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os_s);
-              nb_windows++;
-            }
-          }else
-          {
-            windows_OS = Netbios_OS(ip, os_s, NULL, NULL, MAX_PATH);
-            if (windows_OS)
-            {
-              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,os_s);
-              nb_windows++;
+              AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+              AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
             }
           }
         }
+
+        //Share
+        if (scan_start)
+        {
+          wchar_t server[MAX_PATH];
+          snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+          mbstowcs(server, tmp, MAX_PATH);
+
+          Netbios_Share(server, iitem, COL_CONFIG, MAX_LINE_SIZE, ip, TRUE);
+        }
+
+        if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
       }
+      RemoteConnexionScan_auto_scan(iitem, ip, &id_ok);
+
       ReleaseSemaphore(hs_netbios,1,NULL);
     }
 
@@ -594,7 +766,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       //registry
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
       WaitForSingleObject(hs_registry,INFINITE);
-      RemoteConnexionScan_auto_scan(iitem, ip, windows_OS);
+      RemoteConnexionRegistryScan_auto_scan(iitem, ip, windows_OS, &id_ok);
       ReleaseSemaphore(hs_registry,1,NULL);
     }
 
@@ -603,113 +775,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
       WaitForSingleObject(hs_file,INFINITE);
-      char msg[MAX_PATH];
-      snprintf(msg,MAX_PATH,"McAfee last scan:NOK (no data)");
-
-      //MCAFEE_UPDATE_DAYS_INTERVAL
-      unsigned int i;
-      char remote_name[LINE_SIZE],tmp_path[LINE_SIZE];
-      char tmp_login[MAX_PATH];
-      snprintf(remote_name,LINE_SIZE,"\\\\%s\\C$",ip);
-
-      for (i=0; i<config.nb_accounts && scan_start;i++)
-      {
-        NETRESOURCE NetRes  = {0};
-        NetRes.dwScope      = RESOURCE_GLOBALNET;
-        NetRes.dwType	      = RESOURCETYPE_ANY;
-        NetRes.lpLocalName  = (LPSTR)"";
-        NetRes.lpProvider   = (LPSTR)"";
-        NetRes.lpRemoteName	= remote_name;
-
-        if (config.accounts[i].domain[0] != 0)
-        {
-          snprintf(tmp_login,MAX_PATH,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
-        }else
-        {
-          snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.accounts[i].login);
-        }
-
-        if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
-        {
-          HANDLE hfic;
-          WIN32_FIND_DATA data;
-          FILETIME LocalFileTime;
-          SYSTEMTIME SysTimeModification;
-          snprintf(tmp_path,LINE_SIZE,"%s\\ProgramData\\McAfee\\DesktopProtection\\OnDemandScanLog.txt",remote_name);
-
-          if (GetFileAttributes(tmp_path) != INVALID_FILE_ATTRIBUTES)
-          {
-            hfic = FindFirstFile(tmp_path, &data);
-            if (hfic != INVALID_HANDLE_VALUE)
-            {
-              //current time
-              time_t current_time;
-              time(&current_time);
-              struct tm *today = localtime(&current_time);
-
-              FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-              FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-
-              if (today->tm_mday - SysTimeModification.wDay >= 0 && (today->tm_mon+1) == SysTimeModification.wMonth && today->tm_year+1900 == SysTimeModification.wYear)
-              {
-                if (today->tm_mday - SysTimeModification.wDay <= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-
-                }else
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-                }
-              }else if (((today->tm_mon+1) - SysTimeModification.wMonth == 1) && (27-SysTimeModification.wDay + today->tm_mday)<= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
-              {
-                //exact calcul
-                unsigned int ref = 31;
-                switch(today->tm_mon+1)
-                {
-                  case 2:ref=27;break;
-
-                  case 4:
-                  case 6:
-                  case 9:
-                  case 11:ref=30;break;
-                }
-
-                if ((ref-SysTimeModification.wDay + today->tm_mday)<= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-
-                }else
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-                }
-              }else if (((today->tm_year+1900) - SysTimeModification.wYear == 1) && (today->tm_mon == 0 && SysTimeModification.wMonth == 12))
-              {
-                if ((31-SysTimeModification.wDay + today->tm_mday) <= auto_scan_config.MCAFEE_SCAN_DAYS_INTERVAL)
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:OK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-
-                }else
-                {
-                  snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-                }
-              }else
-              {
-                snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update: %02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
-              }
-              //AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-              //AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
-            }
-          }
-
-          WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
-          break;
-        }
-      }
+      RemoteConnexionScanFiles_auto_scan(iitem, ip, &id_ok);
       ReleaseSemaphore(hs_file,1,NULL);
     }
-
     if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
   }
 
@@ -734,12 +802,39 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   strcat(GetLocalPath(ini_path, LINE_SIZE),AUTO_SCAN_FILE_INI);
   ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
   SendDlgItemMessage(h_main,CB_IP,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+  SendDlgItemMessage(h_main,CB_DSC,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
   SendDlgItemMessage(h_main,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
   char tmp_check[LINE_SIZE]="";
+
+  //specials tests
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","TYPE","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')//DISABLE
+    {
+      EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
+      scan_start = FALSE;
+      return 0;
+    }
+  }else
+  {
+    EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
+    scan_start = FALSE;
+    return 0;
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","DNS_DISCOVERY","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')auto_scan_config.DNS_DISCOVERY = TRUE;
+    else auto_scan_config.DNS_DISCOVERY = FALSE;
+  }else auto_scan_config.DNS_DISCOVERY = TRUE;
+
   if(GetPrivateProfileString("SCAN","IP_FILE","",tmp_check,LINE_SIZE,ini_path))
   {
     //load ips
+    EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
     loadFileIp(tmp_check);
 
     //loads accounts
@@ -839,18 +934,17 @@ DWORD WINAPI auto_scan(LPVOID lParam)
         EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
         EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
 
+        EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
         SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
         AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
         h_thread_scan = CreateThread(NULL,0,scan,0,0,0);
-        return 0;
-      }else if (tmp_check[0] == 'D' || tmp_check[0] == 'd')//DISABLE
-      {
-        scan_start = FALSE;
         return 0;
       }
     }
 
     //disable interface + init
+    EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
+
     EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
     EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
     EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
@@ -1069,7 +1163,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     WSADATA WSAData;
     WSAStartup(0x02, &WSAData );
     nb_test_ip = 0;
-    InitializeCriticalSection(&Sync);
 
     for (i=0;(i<nb_i) && scan_start;i++)
     {
@@ -1100,9 +1193,9 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     time(&exec_time_end);
 
     AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
-    snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
+    snprintf(tmp,MAX_PATH,"Ip view:%lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
-    snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS : %lu/%lu",nb_windows,nb_i);
+    snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS:%lu/%lu",nb_windows,nb_i);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
 
     //close
@@ -1122,7 +1215,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     struct tm *today = localtime(&dateEtHMs);
 
     char date[DATE_SIZE];
-    strftime(date, DATE_SIZE,"%Y/%m/%d-%H:%M:%S",today);
+    strftime(date, DATE_SIZE,"%Y.%m.%d-%H.%M.%S",today);
 
     if (auto_scan_config.save_CSV)
     {
@@ -1145,20 +1238,29 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
     }
 
-    EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),TRUE);
-    EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),TRUE);
-    EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),TRUE);
+    if (IsDlgButtonChecked(h_main,CHK_NULL_SESSION)!=BST_CHECKED)
+    {
+      EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),TRUE);
+      EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),TRUE);
+      EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),TRUE);
+    }
+
+    if (IsDlgButtonChecked(h_main,CHK_LOAD_IP_FILE)!=BST_CHECKED)
+    {
+      EnableWindow(GetDlgItem(h_main,GRP_PERIMETER),TRUE);
+      EnableWindow(GetDlgItem(h_main,IP1),TRUE);
+      EnableWindow(GetDlgItem(h_main,BT_IP_CP),TRUE);
+      EnableWindow(GetDlgItem(h_main,IP2),TRUE);
+    }
+
     EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),TRUE);
-    EnableWindow(GetDlgItem(h_main,GRP_PERIMETER),TRUE);
-    EnableWindow(GetDlgItem(h_main,IP1),TRUE);
-    EnableWindow(GetDlgItem(h_main,BT_IP_CP),TRUE);
-    EnableWindow(GetDlgItem(h_main,IP2),TRUE);
     EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
     EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),TRUE);
     EnableWindow(GetDlgItem(h_main,CB_tests),TRUE);
     EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
     scan_start = FALSE;
 
+    EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
     SetWindowText(GetDlgItem(h_main,BT_START),"Start");
     SetWindowText(h_main,TITLE);
     return 0;

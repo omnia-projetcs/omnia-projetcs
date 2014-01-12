@@ -251,10 +251,21 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
 
               if (msg_auth)
               {
-                if (id_account == -1) snprintf(msg,sizeof(msg),"Login (SSH) in %s:%d IP with %s account.",ip,port,username);
-                else snprintf(msg,sizeof(msg),"Login (SSH) in %s:%d  IP with %s (%02d) account.",ip,port,username,id_account);
-                AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-                AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+                if (id_account == -1)
+                {
+                  snprintf(msg,sizeof(msg),"%s:%d with %s account.",ip,port,username);
+                  AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+
+                  snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s account.",ip,port,username);
+                  AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+                }else
+                {
+                  snprintf(msg,sizeof(msg),"%s:%d with %s (%02d) account.",ip,port,username,id_account);
+                  AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+
+                  snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s (%02d) account.",ip,port,username,id_account);
+                  AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+                }
               }
 
               //create a channel for execute

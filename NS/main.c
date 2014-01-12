@@ -54,6 +54,9 @@ void init(HWND hwnd)
   lvc.cx = 110;
   lvc.pszText = (LPSTR)"IP";
   ListView_InsertColumn(hlv, COL_IP, &lvc);
+  lvc.cx = 20;
+  lvc.pszText = (LPSTR)"DSC";
+  ListView_InsertColumn(hlv, COL_DSC, &lvc);
   lvc.cx = 110;
   lvc.pszText = (LPSTR)"DNS";
   ListView_InsertColumn(hlv, COL_DNS, &lvc);
@@ -107,22 +110,11 @@ void init(HWND hwnd)
   WriteFile(h_log,"\r\n",2,&copiee,0);
 
   //insert test
-  //SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:ARP");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:PING");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:DNS");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:NetBIOS");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"DISCO:Accounts policy");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"------------------------------");
-/*
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:Services");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:Users");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:Software");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:USB");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:Start");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:Revers SID");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CONFIG:RPC");
-  SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"------------------------------");*/
-
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CHECK:Files");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CHECK:Registry");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"CHECK:Services");
@@ -134,6 +126,7 @@ void init(HWND hwnd)
 
   //critical section
   InitializeCriticalSection(&Sync);
+  InitializeCriticalSection(&Sync_item);
 
   //load ICMP functions
   IcmpOk = FALSE;
@@ -148,6 +141,7 @@ void init(HWND hwnd)
       IcmpOk = TRUE;
   }
 
+  auto_scan_config.DNS_DISCOVERY = TRUE;
   h_thread_scan = CreateThread(NULL,0,auto_scan,0,0,0);
 }
 //------------------------------------------------------------------------------
@@ -257,7 +251,7 @@ void AddMsg(HWND hwnd, char *type, char *txt, char *info)
     DWORD copiee = 0;
     char msg2[MAX_MSG_SIZE];
     snprintf(msg2,MAX_MSG_SIZE,"%s\r\n", msg);
-    WriteFile(h_log,msg,strlen(msg),&copiee,0);
+    WriteFile(h_log,msg2,strlen(msg2),&copiee,0);
   }
 }
 //------------------------------------------------------------------------------
@@ -276,7 +270,7 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
   }
 }
 //----------------------------------------------------------------
-DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
+DWORD AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
 {
   LVITEM lvi;
   HWND hlstv    = GetDlgItem(h_main,LV_results);
@@ -284,12 +278,13 @@ DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *
   lvi.iSubItem  = 0;
   lvi.lParam    = LVM_SORTITEMS;
   lvi.pszText   = (LPSTR)"";
-  EnterCriticalSection(&Sync);
+  EnterCriticalSection(&Sync_item);
   lvi.iItem     = ListView_GetItemCount(hlstv);
   DWORD itemPos = ListView_InsertItem(hlstv, &lvi);
-  LeaveCriticalSection(&Sync);
+  LeaveCriticalSection(&Sync_item);
 
   if(ip!=NULL)      ListView_SetItemText(hlstv,itemPos,COL_IP,ip);
+  if(dsc!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_DSC,dsc);
   if(dns!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_DNS,dns);
   if(ttl!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_TTL,ttl);
   if(os!=NULL)      ListView_SetItemText(hlstv,itemPos,COL_OS,os);
@@ -467,7 +462,7 @@ BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column)
   }else return FALSE;
 }
 //------------------------------------------------------------------------------
-void addIPInterval(char *ip_src, char *ip_dst)
+void addIPInterval(char *ip_src, char *ip_dst, char *dsc)
 {
   //load IP interval
   char IpAdd[IP_SIZE];
@@ -622,6 +617,7 @@ void addIPInterval(char *ip_src, char *ip_dst)
             {
               snprintf(IpAdd,IP_SIZE,"%d.%d.%d.%d",a,b,c,d);
               SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)IpAdd);
+              SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
             }
           }
         }
@@ -629,13 +625,13 @@ void addIPInterval(char *ip_src, char *ip_dst)
     }else
     {
       char msg[MAX_PATH];
-      snprintf(msg,MAX_PATH,"%s->%s",ip_src,ip_dst);
+      snprintf(msg,MAX_PATH,"%s->%s (%s)",ip_src,ip_dst,dsc);
       AddMsg(h_main,(char*)"ERROR",(char*)"Invalid interval",msg);
     }
   }else
   {
     char msg[MAX_PATH];
-    snprintf(msg,MAX_PATH,"%s->%s",ip_src,ip_dst);
+    snprintf(msg,MAX_PATH,"%s->%s (%s)",ip_src,ip_dst,dsc);
     AddMsg(h_main,(char*)"ERROR",(char*)"Invalid interval",msg);
   }
 }
@@ -649,7 +645,7 @@ BOOL verifieName(char *name)
   else return FALSE;
 }
 //------------------------------------------------------------------------------
-void addIPTest(char *ip_format)
+void addIPTest(char *ip_format, char*dsc)
 {
   if (ip_format == NULL) return;
   unsigned int size = strlen(ip_format);
@@ -660,7 +656,7 @@ void addIPTest(char *ip_format)
   {
     if (verifieName(ip_format))
       SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
-
+      SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
     return;
   }
 
@@ -670,6 +666,7 @@ void addIPTest(char *ip_format)
   if (*c == 0)//ip
   {
     SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
+    SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
   }else if (*c == '-')//ip-ip
   {
     char ip1[MAX_PATH];
@@ -680,7 +677,7 @@ void addIPTest(char *ip_format)
     {
       s++;
       *i1 = 0;
-      addIPInterval(ip1, s);
+      addIPInterval(ip1, s, dsc);
     }
   }else if (*c == '/')//ip/24
   {
@@ -741,7 +738,30 @@ void addIPTest(char *ip_format)
       L14 = ip_tmp & 0xFF;
 
       snprintf(ip2,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
-      addIPInterval(ip1, ip2);
+      addIPInterval(ip1, ip2, dsc);
+    }
+  }
+}
+//------------------------------------------------------------------------------
+void getIPFromLine(char *ligne, char *ip, unsigned int ip_sz_max, char *dsc, unsigned int dsc_sz_max)
+{
+  ip[0]  = 0;
+  dsc[0] = 0;
+
+  if (*ligne)
+  {
+    //cpy and pass "
+    snprintf(ip,ip_sz_max,"%s",ligne+1);
+    char *c = ip;
+    while (*c && *c != '"')c++;
+
+    if (*c != '"')ip[0]  = 0;
+    else
+    {
+      *c = 0;
+      //pass ";" and the last ";
+      snprintf(dsc,dsc_sz_max,"%s",c+3);
+      dsc[(unsigned int)(strlen(dsc)-2)]=0;
     }
   }
 }
@@ -760,6 +780,8 @@ void loadFileIp(char *file)
       ReadFile(hfile, buffer, size,&copiee,0);
       if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
 
+      char ip[MAX_PATH], dsc[MAX_PATH];
+
       //line by line
       char tmp[MAX_PATH];
       char *s = buffer, *d = tmp;
@@ -773,7 +795,11 @@ void loadFileIp(char *file)
 
         if (tmp[0] != 0)
         {
-          addIPTest(tmp);
+          if (tmp[0] == '"')
+          {
+            getIPFromLine(tmp, ip, MAX_PATH, dsc, MAX_PATH);
+            addIPTest(ip,dsc);
+          }else addIPTest(tmp,"");
         }
       }
 
@@ -797,6 +823,7 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
 
   //init IP list
   SendDlgItemMessage(h_main,CB_IP,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+  SendDlgItemMessage(h_main,CB_DSC,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
   //load file
   char file[LINE_SIZE]="";
@@ -806,7 +833,7 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
   ofn.hwndOwner     = h_main;
   ofn.lpstrFile     = file;
   ofn.nMaxFile      = LINE_SIZE;
-  ofn.lpstrFilter   = "*.txt \0*.txt\0*.* \0*.*\0";
+  ofn.lpstrFilter   = "*.csv \0*.csv\0*.txt \0*.txt\0*.* \0*.*\0";
   ofn.nFilterIndex  = 1;
   ofn.Flags         = OFN_FILEMUSTEXIST|OFN_OVERWRITEPROMPT|OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
   ofn.lpstrDefExt   = "*.*";
@@ -1027,7 +1054,7 @@ BOOL LSBExist(DWORD lsb, char *sst)
   return FALSE;
 }
 //----------------------------------------------------------------
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem)
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, DWORD *id_ok)
 {
   HANDLE htoken = NULL;
   char msg[LINE_SIZE];
@@ -1053,9 +1080,14 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
           NetRes.lpRemoteName	= remote_name;
           if (WNetAddConnection2(&NetRes,config.mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
           {
-            snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s\\IPC$ with %s account.",ip,user_netbios);
-            AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-            AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            if (message)
+            {
+              snprintf(msg,LINE_SIZE,"%s\\IPC$ with %s account.",ip,user_netbios);
+              AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+
+              snprintf(msg,LINE_SIZE,"Login NET %s\\IPC$ with %s account",ip,user_netbios);
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            }
           }else
           {
             CloseHandle(htoken);
@@ -1066,8 +1098,10 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
           }
         }else
         {
-          unsigned int i;
-          for (i=0; i<config.nb_accounts ;i++)
+          unsigned int i = 0;
+          if (id_ok != NULL) i = *id_ok;
+
+          for (; i<config.nb_accounts ;i++)
           {
             if (config.accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config.accounts[i].domain,config.accounts[i].login);
             else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config.accounts[i].login);
@@ -1081,11 +1115,17 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
             NetRes.lpRemoteName	= remote_name;
             if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,user_netbios,CONNECT_PROMPT)==NO_ERROR)
             {
-              snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with %s (%02d) account.",ip,user_netbios,i);
+              if (message)
+              {
+                snprintf(msg,LINE_SIZE,"%s with (%02d) account.",user_netbios,i);
+                AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
 
-              AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
-              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+                snprintf(msg,LINE_SIZE,"Login NET %s with (%02d) account",user_netbios,i);
+                AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+              }
+              if (id_ok != NULL) *id_ok = i;
               return htoken;
+
             }else
             {
               CloseHandle(htoken);
@@ -1105,11 +1145,12 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
-  char ip[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
+  char ip[MAX_PATH]="", dsc[MAX_PATH], ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
   long long int iitem = -1;
   int ttl = -1;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
   BOOL windows_OS = FALSE;
+  DWORD id_ok = 0;
 
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
@@ -1131,6 +1172,12 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
+
+  dsc[0] = 0;
+  if (SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) < MAX_PATH)
+  {
+    SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXT, (WPARAM)index,(LPARAM)dsc);
+  }
 
   if (ip[0]!=0)
   {
@@ -1158,13 +1205,15 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           a = (struct in_addr **)host->h_addr_list;
           snprintf(ip,16,"%s",inet_ntoa(**a));
-          exist = TRUE;
-          dnsok = TRUE;
-
-          iitem = AddLSTVItem(ip, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          if (auto_scan_config.DNS_DISCOVERY)
+          {
+            exist = TRUE;
+            dnsok = TRUE;
+            iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          }
         }else
         {
-          iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
+          iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
           ReleaseSemaphore(hs_disco,1,NULL);
           ReleaseSemaphore(hs_threads,1,NULL);
 
@@ -1195,9 +1244,9 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 
           if (!exist)
           {
-            if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Windows",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, NULL, ttl_s, (char*)"Router",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            if (ttl <= MACH_LINUX)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Linux",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Windows",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            else if (ttl <= MACH_WINDOWS)iitem = AddLSTVItem(ip, dsc, NULL, ttl_s, (char*)"Router",NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             exist = TRUE;
           }else
           {
@@ -1214,7 +1263,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //DNS
-      if (config.disco_dns && scan_start && dns[0] == 0)
+      if (config.disco_dns && scan_start && dns[0] == 0 && (exist || (!exist && auto_scan_config.DNS_DISCOVERY)))
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:BEGIN",ip);
@@ -1224,13 +1273,17 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         {
           if (!exist)
           {
-            iitem = AddLSTVItem(ip, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            exist = TRUE;
+            if (auto_scan_config.DNS_DISCOVERY)
+            {
+              iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+              exist = TRUE;
+              dnsok = TRUE;
+            }
           }else
           {
             ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
+            dnsok = TRUE;
           }
-          dnsok = TRUE;
         }
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:END",ip);
@@ -1271,70 +1324,62 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         char tmp[MAX_LINE_SIZE] = "";
         if (domain[0] != 0)
         {
-          //snprintf(tmp,MAX_LINE_SIZE,"Domain: %s\r\n\0",domain);
-
-          snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Domain: %s\r\n",domain);
-
-          //strncat(cfg,tmp,MAX_LINE_SIZE);
+          snprintf(cfg,MAX_LINE_SIZE,"Domain:%s",domain);
+          AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+          AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
           netBIOS = TRUE;
         }
 
         //NULL session
         if (scan_start)
         {
-          if(Netbios_NULLSession(ip, "IPC$"))
+          BOOL null_session = Netbios_NULLSessionStart(ip, "IPC$");
+          if(null_session)
           {
-            snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"NULL Session: Enable\r\n");
-            //strncat(cfg,"NULL Session: Enable\r\n\0",MAX_LINE_SIZE);
-            //ReversSID (only administrator + guest + defaults account test)
-            /*if(TestReversSID(ip,(char*)"invité"))             strncat(cfg,(char*)"Revers SID: Enable (OK with \"invité\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"guest"))         strncat(cfg,(char*)"Revers SID: Enable (OK with \"guest\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"gast"))          strncat(cfg,(char*)"Revers SID: Enable (OK with \"gast\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"invitado"))      strncat(cfg,(char*)"Revers SID: Enable (OK with \"invitado\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"HelpAssistant")) strncat(cfg,(char*)"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"ASPNET"))        strncat(cfg,(char*)"Revers SID: Enable (OK with \"ASPNET\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"administrateur"))strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrateur\" account)\r\n\0",MAX_LINE_SIZE);
-            else if(TestReversSID(ip,(char*)"administrator")) strncat(cfg,(char*)"Revers SID: Enable (OK with \"administrator\" account)\r\n\0",MAX_LINE_SIZE);  */
-
-            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invité\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"guest\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"gast\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"invitado\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"HelpAssistant\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"ASPNET\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrateur\" account)\r\n");
-            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Revers SID: Enable (OK with \"administrator\" account)\r\n");
             netBIOS     = TRUE;
+            snprintf(cfg,MAX_LINE_SIZE,"NULL Session:Enable");
+            AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+            AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
 
-            if (scan_start)
+            cfg[0] = 0;
+            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invité\" account)");
+            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"guest\" account)");
+            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"gast\" account)");
+            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invitado\" account)");
+            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"HelpAssistant\" account)");
+            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"ASPNET\" account)");
+            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrateur\" account)");
+            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrator\" account)");
+
+            if (cfg[0] != 0)
             {
-              char c_time[MAX_PATH]="";
-              wchar_t server[MAX_PATH];
-              snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-              mbstowcs(server, tmp, MAX_PATH);
-              Netbios_Time(server, c_time, MAX_PATH);
-              if (c_time[0] != 0)
-              {
-                //snprintf(tmp,MAX_PATH,"Time: %s\r\n\0",c_time);
-                //strncat(cfg,tmp,MAX_LINE_SIZE);
-
-                snprintf(cfg+strlen(cfg),MAX_LINE_SIZE-strlen(cfg),"Time: %s\r\n",c_time);
-                netBIOS = TRUE;
-              }
-
-              //Share
-              if (scan_start)
-              {
-                char shares[MAX_LINE_SIZE+1]="";
-                Netbios_Share(server, shares, MAX_LINE_SIZE, ip);
-                if (shares[0] != 0)
-                {
-                  AddLSTVUpdateItem(shares, COL_SHARE, iitem);
-                  netBIOS = TRUE;
-                }
-              }
+              AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+              AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
             }
           }
+
+          if (scan_start)
+          {
+            char c_time[MAX_PATH]="";
+            wchar_t server[MAX_PATH];
+            snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+            mbstowcs(server, tmp, MAX_PATH);
+            Netbios_Time(server, c_time, MAX_PATH);
+            if (c_time[0] != 0)
+            {
+              snprintf(cfg,MAX_LINE_SIZE,"Time:%s",c_time);
+              AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+              AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
+            }
+
+            //Share
+            if (scan_start)
+            {
+              Netbios_Share(server, iitem, COL_SHARE, MAX_LINE_SIZE, ip, TRUE);
+            }
+          }
+
+          if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
         }
 
         if (cfg[0] != 0)
@@ -1363,7 +1408,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
           #endif
-          regisyty_remote = RemoteConnexionScan(iitem, dns, ip, config,windows_OS);
+          regisyty_remote = RemoteConnexionScan(iitem, dns, ip, config,windows_OS, &id_ok);
           if (regisyty_remote)nb_registry++;
           ReleaseSemaphore(hs_registry,1,NULL);
           #ifdef DEBUG_MODE
@@ -1386,7 +1431,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
           #endif
 
-          file_remote = RemoteConnexionFilesScan(iitem, dns, ip, config);
+          file_remote = RemoteConnexionFilesScan(iitem, dns, ip, config, &id_ok);
           ReleaseSemaphore(hs_file,1,NULL);
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
@@ -1544,6 +1589,7 @@ DWORD WINAPI scan(LPVOID lParam)
   {
     //load IP interval
     SendDlgItemMessage(h_main,CB_IP,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+    SendDlgItemMessage(h_main,CB_DSC,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
     DWORD LIp1,LIp2;
     BYTE L11,L12,L13,L14,L21,L22,L23,L24;
@@ -1564,18 +1610,18 @@ DWORD WINAPI scan(LPVOID lParam)
     {
       char sip1[IP_SIZE];
       snprintf(sip1,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
-      addIPTest(sip1);
+      addIPTest(sip1,"");
     }else if ((L11 | L12 | L13 | L14) == 0)
     {
       char sip2[IP_SIZE];
       snprintf(sip2,IP_SIZE,"%d.%d.%d.%d",L21,L22,L23,L24);
-      addIPTest(sip2);
+      addIPTest(sip2,"");
     }else
     {
       char sip1[IP_SIZE],sip2[IP_SIZE];
       snprintf(sip1,IP_SIZE,"%d.%d.%d.%d",L11,L12,L13,L14);
       snprintf(sip2,IP_SIZE,"%d.%d.%d.%d",L21,L22,L23,L24);
-      addIPInterval(sip1, sip2);
+      addIPInterval(sip1, sip2,"");
     }
   }
 
@@ -1650,7 +1696,6 @@ DWORD WINAPI scan(LPVOID lParam)
   WSADATA WSAData;
   WSAStartup(0x02, &WSAData );
   nb_test_ip = 0;
-  InitializeCriticalSection(&Sync);
 
   for (i=0;(i<nb_i) && scan_start;i++)
   {
@@ -1682,20 +1727,20 @@ DWORD WINAPI scan(LPVOID lParam)
   time(&exec_time_end);
 
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
-  snprintf(tmp,MAX_PATH,"Ip view : %lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
+  snprintf(tmp,MAX_PATH,"Ip view:%lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
   AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
 
   if (config.check_files)
   {
-    snprintf(tmp,MAX_PATH,"Remote file authentication OK : %lu/%lu",nb_files,nb_i);
+    snprintf(tmp,MAX_PATH,"Remote file authentication OK:%lu/%lu",nb_files,nb_i);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
   }
 
   if (config.check_registry || config.check_services || config.check_software || config.check_USB || config.write_key)
   {
-    snprintf(tmp,MAX_PATH,"Remote registry authentication OK : %lu/%lu",nb_registry,nb_i);
+    snprintf(tmp,MAX_PATH,"Remote registry authentication OK:%lu/%lu",nb_registry,nb_i);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
-    snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS : %lu/%lu",nb_windows,nb_i);
+    snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS:%lu/%lu",nb_windows,nb_i);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
   }
 
@@ -1757,6 +1802,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       {
         scan_start = FALSE;
         DeleteCriticalSection(&Sync);
+        DeleteCriticalSection(&Sync_item);
         CloseHandle(h_log);
         FreeLibrary((HMODULE)hndlIcmp);
         EndDialog(hwnd,0);
@@ -1946,6 +1992,14 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             {
               //strncat(msg,tmp,MAX_LINE_SIZE);
               snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"%s",tmp);
+
+              tmp[0] = 0;
+              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DSC,tmp,MAX_MSG_SIZE);
+              if (tmp[0] != 0)
+              {
+                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," (%s) ",tmp);
+                tmp[0] = 0;
+              }
 
               tmp[0] = 0;
               ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DNS,tmp,MAX_MSG_SIZE);

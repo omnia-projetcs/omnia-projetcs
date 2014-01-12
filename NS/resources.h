@@ -5,20 +5,12 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
-- intégration complète du SSH dans le code source (plus de DLL)
-
+- bug message compte admin n'existe pas !
 
 #NEXT STEP:
-- multithread SSH (nécessite une revue du code complet + des librairies associées)
-- continuer un scanne après arrêt/pause possible ! + chargement possible d'ancien csv
-- ajout une fonction d'exécution de commande (déploiement de binnaire) à distance pour les Windows
-- ajouter popup et possibilité d'arrêter un scanne/test + ouvrire un shell linux/windows ou ouvrire explorateur linux/windows
-- ne fonctionne pas sous Linux/Wine (a cause du chargement dynamique de ping : nécessite la lib + .h)
-- pour test auto :possibilité d'ajouter une autre lstv pour les tests et de mettre juste des OK et NOK ???
-- ajouter remarque possible dans la liste des ip !
+* multithread SSH (nécessite une revue du code complet + des librairies associées)
 
 [NS]
-
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -49,17 +41,19 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #include <libssh2.h>
 #pragma comment(lib, "gcrypt.lib")
 #pragma comment(lib, "gpg-error.lib")
-#pragma comment(lib, "libssh2.dll.lib")
+#pragma comment(lib, "ssh2.dll.lib")
 
 #pragma comment(lib, "ole32.lib")
 #pragma comment(lib, "oleaut32.lib")
 #pragma comment(lib, "comdlg32.lib")
 #pragma comment(lib, "gdi32.lib")
+#pragma comment(lib, "Iphlpapi.lib")
+#pragma comment(lib, "ws2_32.lib")
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.14 31/12/2013"
+#define TITLE                                       "NS v0.4.18 12/01/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -69,6 +63,8 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define DEFAULT_LIST_USB                            "conf_USB.txt"
 #define DEFAULT_LIST_REGISTRY_W                     "conf_registry_write.csv"
 #define DEFAULT_LIST_SSH                            "conf_ssh.txt"
+
+#define AUTO_SCAN_FILE_INI                          "\\NS.ini"
 //----------------------------------------------------------------
 #define LINE_SIZE                                   2048
 #define MAX_LINE_SIZE                               LINE_SIZE*4
@@ -131,6 +127,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define CB_T_FILES                                  1045
 #define CB_T_REGISTRY_W                             1046
 #define CB_T_SSH                                    1047
+#define CB_DSC                                      1050
 
 #define BT_START                                    1035
 //----------------------------------------------------------------
@@ -140,21 +137,22 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define SAVE_TYPE_ALL                               4
 //----------------------------------------------------------------
 #define COL_IP                                      0
-#define COL_DNS                                     1
-#define COL_TTL                                     2
-#define COL_OS                                      3
-#define COL_CONFIG                                  4
-#define COL_SHARE                                   5
-#define COL_POLICY                                  6
-#define COL_FILES                                   7
-#define COL_REG                                     8
-#define COL_SERVICE                                 9
-#define COL_SOFTWARE                                10
-#define COL_USB                                     11
-#define COL_SSH                                     12
-#define COL_STATE                                   13
+#define COL_DSC                                     1
+#define COL_DNS                                     2
+#define COL_TTL                                     3
+#define COL_OS                                      4
+#define COL_CONFIG                                  5
+#define COL_SHARE                                   6
+#define COL_POLICY                                  7
+#define COL_FILES                                   8
+#define COL_REG                                     9
+#define COL_SERVICE                                 10
+#define COL_SOFTWARE                                11
+#define COL_USB                                     12
+#define COL_SSH                                     13
+#define COL_STATE                                   14
 
-#define NB_COLUMN                                   14
+#define NB_COLUMN                                   15
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -267,12 +265,11 @@ BOOL save_done;
 #define NB_MAX_TCP_TEST_THREADS                     50
 #define NB_MAX_THREAD                               300
 
-CRITICAL_SECTION Sync;
+CRITICAL_SECTION Sync, Sync_item;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 SCANNE_ST config;
 //----------------------------------------------------------------
 //AUTO-SCAN
-#define AUTO_SCAN_FILE_INI       "\\NS.ini"
 typedef struct auto_scanne_st
 {
   //save
@@ -306,6 +303,8 @@ typedef struct auto_scanne_st
   unsigned int PASSWORD_POLICY_LOCKOUT_COUNT;
   BOOL PASSWORD_POLICY_COMPLEXITY_ENABLE;
   unsigned int PASSWORD_POLICY_HISTORY;
+
+  BOOL DNS_DISCOVERY;
 }AUTO_SCANNE_ST;
 
 AUTO_SCANNE_ST auto_scan_config;
@@ -357,7 +356,7 @@ DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows;
 void init(HWND hwnd);
 void AddMsg(HWND hwnd, char *type, char *txt, char *info);
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
-DWORD AddLSTVItem(char *ip, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
+DWORD AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 BOOL LSBExist(DWORD lsb, char *sst);
@@ -382,8 +381,8 @@ DWORD WINAPI scan(LPVOID lParam);
 DWORD WINAPI auto_scan(LPVOID lParam);
 
 //IP
-void addIPTest(char *ip_format);
-void addIPInterval(char *ip_src, char *ip_dst);
+void addIPTest(char *ip_format, char*dsc);
+void addIPInterval(char *ip_src, char *ip_dst, char*dsc);
 BOOL verifieName(char *name);
 
 //Disco
@@ -392,9 +391,12 @@ BOOL ResDNS(char *ip, char *name, unsigned int sz_max);
 
 //Netbios
 BOOL Netbios_NULLSession(char *ip, char *share);
+BOOL Netbios_NULLSessionStart(char *ip, char *share);
+void Netbios_NULLSessionStop(char *ip, char *share);
+
 BOOL TestReversSID(char *ip, char* user);
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
-BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip);
+BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, unsigned int sz_max, char*ip, BOOL IPC_null_session);
 BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
@@ -407,14 +409,14 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey);
-BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS);
-BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS);
+BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok);
+BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok);
 
 //File
 void FileToMd5(HANDLE Hfic, char *md5);
 void FileToSHA256(HANDLE Hfic, char *csha256);
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config);
-BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config);
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, DWORD *id_ok);
+BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, DWORD *id_ok);
 
 //SSH
 BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK);
@@ -422,7 +424,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
 int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth);
 
 //Scan
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem);
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, DWORD *id_ok);
 DWORD WINAPI ScanIp(LPVOID lParam);
 #endif
 //----------------------------------------------------------------

@@ -510,7 +510,7 @@
 1386055446 source:f:\ns_svn\ns\crypt\md5.c
 	"../resources.h"
 
-1387879556 f:\ns_svn\ns\resources.h
+1388648370 f:\ns_svn\ns\resources.h
 	<Winsock2.h>
 	<windows.h>
 	<Windowsx.h>
@@ -563,9 +563,47 @@
 1387468960 source:f:\ns_svn\ns\tests\ssh_v2.c
 	"../resources.h"
 
-1387809633 source:f:\ns_svn\ns\main.c
+1388648354 source:f:\ns_svn\ns\main.c
 	"resources.h"
 
 1388495284 source:z:\svn_omnia\ns\tests\auto_scan.c
 	"../resources.h"
+
+1386055446 source:z:\ns_svn\ns\crypt\md5.c
+	"../resources.h"
+
+1388745965 z:\ns_svn\ns\resources.h
+	<Winsock2.h>
+	<windows.h>
+	<Windowsx.h>
+	<commctrl.h>
+	<stdio.h>
+	<time.h>
+	<lm.h>
+	<Winnetwk.h>
+	<iphlpapi.h>
+	<math.h>
+	"crypt/sha2.h"
+	"crypt/md5.h"
+	<gpg-error.h>
+	<gcrypt.h>
+	<libssh2.h>
+
+1386055446 z:\ns_svn\ns\crypt\sha2.h
+	<limits.h>
+
+1386055446 z:\ns_svn\ns\crypt\md5.h
+
+1386055446 source:z:\ns_svn\ns\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
 
