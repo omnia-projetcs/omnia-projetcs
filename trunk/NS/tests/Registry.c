@@ -162,12 +162,12 @@ BOOL RegistryOS(DWORD iitem,HKEY hkey)
   char ch_sp[MAX_PATH]="";
   if (ReadValue(hkey,(char*)"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\",(char*)"ProductName",ch_os, MAX_PATH))
   {
-    if (ch_os[0] != 0)
+    if (strlen(ch_os)>2)
     {
       ret = TRUE;
       if (ReadValue(hkey,(char*)"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\",(char*)"CSDVersion",ch_sp, MAX_PATH))
       {
-        if (ch_os[0] != 0)
+        if (strlen(ch_sp)>2)
         {
           snprintf(ch_datas,LINE_SIZE,"%s %s",ch_os,ch_sp);
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,ch_datas);
@@ -744,13 +744,13 @@ void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey)
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS)
+BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok)
 {
   BOOL ret            = FALSE;
   HANDLE connect      = FALSE;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
 
-  connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem);
+  connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, TRUE, id_ok);
 
   //for testing account policy
   if (config.disco_netbios_policy && scan_start)
@@ -778,12 +778,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
     {
       if (config.local_account)
       {
-        snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with current session account.",ip);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+        snprintf(msg,LINE_SIZE,"%s with current session account.",ip);
+        AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
       }else if (!connect)
       {
-        snprintf(msg,LINE_SIZE,"Login (ScanReg:NET) in %s IP with NULL session account.",ip);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+        snprintf(msg,LINE_SIZE,"%s with NULL session account.",ip);
+        AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
       }
 
       #ifdef DEBUG_MODE
@@ -841,12 +841,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
   return ret;
 }
 //----------------------------------------------------------------
-BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS)
+BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);
   #endif
-  if(RemoteRegistryNetConnexion(iitem, name, ip, config, windows_OS))return TRUE;
+  if(RemoteRegistryNetConnexion(iitem, name, ip, config, windows_OS, id_ok))return TRUE;
   else
   {
     AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);

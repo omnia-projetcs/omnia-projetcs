@@ -32,35 +32,35 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
       case 4:
         switch (mybuff->wki100_ver_minor)
         {
-            case 0:strncpy(txtOS,"Microsoft Windows 95/NT4*",sz_max);break;
-            case 10:strncpy(txtOS,"Microsoft Windows 98*",sz_max);break;//
-            case 90:strncpy(txtOS,"Microsoft Windows ME*",sz_max);break;
+            case 0:snprintf(txtOS,sz_max,"Microsoft Windows 95/NT4*");break;
+            case 10:snprintf(txtOS,sz_max,"Microsoft Windows 98*");break;//
+            case 90:snprintf(txtOS,sz_max,"Microsoft Windows ME*");break;
         }
       break;
       case 5:
         switch (mybuff->wki100_ver_minor)
         {
-            case 0:strncpy(txtOS,"Microsoft Windows 2K*",sz_max);break;
-            case 1:strncpy(txtOS,"Microsoft Windows XP*",sz_max);break;//
-            case 2:strncpy(txtOS,"Microsoft Windows 2003/XP-64b*",sz_max);break;
+            case 0:snprintf(txtOS,sz_max,"Microsoft Windows 2K*");break;
+            case 1:snprintf(txtOS,sz_max,"Microsoft Windows XP*");break;//
+            case 2:snprintf(txtOS,sz_max,"Microsoft Windows 2003/XP-64b*");break;
         }
       break;
       case 6:
         switch (mybuff->wki100_ver_minor)
         {
-            case 0:strncpy(txtOS,"Microsoft Windows Vista/2008*",sz_max);break;
-            case 1:strncpy(txtOS,"Microsoft Windows 7/2008 R2-64b*",sz_max);break;
-            case 2:strncpy(txtOS,"Microsoft Windows 8/2012*",sz_max);break;
+            case 0:snprintf(txtOS,sz_max,"Microsoft Windows Vista/2008*");break;
+            case 1:snprintf(txtOS,sz_max,"Microsoft Windows 7/2008 R2-64b*");break;
+            case 2:snprintf(txtOS,sz_max,"Microsoft Windows 8/2012*");break;
         }
       break;
       case 7:
         switch (mybuff->wki100_ver_minor)
         {
-            case 0:strncpy(txtOS,"Microsoft Windows 7*",sz_max);break;
+            case 0:snprintf(txtOS,sz_max,"Microsoft Windows 7*");break;
         }
       break;
       default:
-            _snprintf(txtOS,sz_max,"Microsoft Windows [major:%d;minor:%d]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor);
+            snprintf(txtOS,sz_max,"Microsoft Windows [major:%d;minor:%d]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor);
       break;
     }
   }
@@ -85,6 +85,27 @@ BOOL Netbios_NULLSession(char *ip, char*share)
   return ret;
 }
 //----------------------------------------------------------------
+BOOL Netbios_NULLSessionStart(char *ip, char*share)
+{
+  char tmp[MAX_PATH];
+  snprintf(tmp,MAX_PATH,"\\\\%s\\%s",ip,share);
+
+  NETRESOURCE NetRes;
+  NetRes.dwType	      = RESOURCETYPE_ANY;
+  NetRes.lpLocalName  = (LPSTR)"";
+  NetRes.lpRemoteName	= tmp;
+  NetRes.lpProvider   = (LPSTR)"";
+  if (WNetAddConnection2(&NetRes,"","",0) == NO_ERROR)return TRUE;
+  return FALSE;
+}
+//----------------------------------------------------------------
+void Netbios_NULLSessionStop(char *ip, char*share)
+{
+  char tmp[MAX_PATH];
+  snprintf(tmp,MAX_PATH,"\\\\%s\\%s",ip,share);
+  WNetCancelConnection2(tmp,CONNECT_UPDATE_PROFILE,1);
+}
+//----------------------------------------------------------------
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
 {
   TIME_OF_DAY_INFO *timep;
@@ -102,14 +123,13 @@ BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
   return ret;
 }
 //----------------------------------------------------------------
-BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip)
+BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, unsigned int sz_max, char*ip, BOOL IPC_null_session)
 {
   BOOL ret = FALSE;
   NET_API_STATUS res;
   PSHARE_INFO_1 BufPtr,p;
   DWORD i, er=0,tr=0,resume=0;
   char tmp[MAX_PATH], tmp_share[MAX_PATH], msg[MAX_PATH];
-  share[0] = 0;
 
   do
   {
@@ -123,23 +143,35 @@ BOOL Netbios_Share(wchar_t *server, char *share, unsigned int sz_max, char*ip)
       {
         //check if we can connect in null session
         snprintf(tmp_share,MAX_PATH,"%S",p->shi1_netname);
-        if (Netbios_NULLSession(ip, tmp_share))
+
+        if (!strcmp(tmp_share,"IPC$"))
         {
-          snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+         //pour éviter l'ouverture et fermeture du partage et créer un bug
+          if (IPC_null_session)
+          {
+            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+          }else
+          {
+            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
+          }
         }else
         {
-          snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
+          if (Netbios_NULLSession(ip, tmp_share))
+          {
+            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+          }else
+          {
+            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
+          }
         }
 
-        snprintf(share+strlen(share),sz_max-strlen(share),"%s\r\n",msg);
-        AddMsg(h_main,"INFORMATION","Share",msg);
+        AddMsg(h_main,"FOUND (Share)",msg,"");
+        AddLSTVUpdateItem(msg, col, iitem);
         p++;
       }
      NetApiBufferFree(BufPtr);
     }
   }while(res==ERROR_MORE_DATA);
-  //strncat(share,"\0",sz_max);
-
   return ret;
 }
 //----------------------------------------------------------------
@@ -153,7 +185,7 @@ BOOL TestReversSID(char *ip, char* user)
   DWORD sz_Sid    = MAX_PATH;
   DWORD sz_domain = MAX_PATH;
 
-  if (LookupAccountName((LPSTR)ip,(LPSTR)user, (PSID)Sid, &sz_Sid,(LPSTR)domain, &sz_domain,&peUse))return TRUE;
+  if (LookupAccountName((LPSTR)ip,(LPSTR)user, (PSID)Sid, &sz_Sid,(LPSTR)domain, &sz_domain,&peUse) != 0)return TRUE;
   else return FALSE;
 }
 //----------------------------------------------------------------

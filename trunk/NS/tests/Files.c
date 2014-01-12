@@ -83,7 +83,7 @@ void FileToSHA256(HANDLE Hfic, char *csha256)
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config)
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, DWORD *id_ok)
 {
   //check file
   char remote_name[LINE_SIZE], msg[LINE_SIZE];
@@ -107,20 +107,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       if (!config.local_account)snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.login);
     }
 
-    if (WNetAddConnection2(&NetRes,config.mdp,tmp_login/*config.login*/,CONNECT_PROMPT)==NO_ERROR)
+    if (WNetAddConnection2(&NetRes,config.mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s\\%s with %s account.",ip,remote_share,tmp_login);
-      AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+      snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
+      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+      snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
       //check file
       char tmp_path[LINE_SIZE], file[LINE_SIZE], s_sha[SHA256_SIZE]="",s_md5[MAX_PATH], date[MAX_PATH];
-      DWORD i, _nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+      DWORD i=0, _nb_i = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
       HANDLE hfic;
       WIN32_FIND_DATA data;
       FILETIME LocalFileTime;
       SYSTEMTIME SysTimeModification;
-      for (i=0;i<_nb_i && scan_start;i++)
+
+      if (id_ok != NULL) i = *id_ok;
+
+      for (;i<_nb_i && scan_start;i++)
       {
         if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) > LINE_SIZE)continue;
 
@@ -202,8 +207,10 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       }
       if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
-        snprintf(msg,LINE_SIZE,"Login (FilesScan:NET) in %s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
-        AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+        snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
+        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
         //check file
@@ -278,18 +285,18 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
   return FALSE;
 }
 //----------------------------------------------------------------
-BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config)
+BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, DWORD *id_ok)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan",ip);
   #endif
   BOOL ret = FALSE;
 
-  if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"C$", config))
+  if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"C$", config, id_ok))
   {
     nb_files++;
-    RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config);
-    RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config);
+    RemoteAuthenticationFilesScan(iitem, ip, (char*)"D$", config, id_ok);
+    RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config, id_ok);
 
     return TRUE;
   }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");

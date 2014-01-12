@@ -35,6 +35,7 @@ BEGIN
   CONTROL ""                              ,CB_tests         ,"ListBox"        ,0x50010149| WS_VSCROLL| WS_TABSTOP,2,55,110,262,0x00000200
 
   CONTROL ""                              ,CB_IP            ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_DSC           ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
 
   CONTROL ""                              ,CB_T_REGISTRY    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
   CONTROL ""                              ,CB_T_SERVICES    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
