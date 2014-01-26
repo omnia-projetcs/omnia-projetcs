@@ -83,7 +83,7 @@ void FileToSHA256(HANDLE Hfic, char *csha256)
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, DWORD *id_ok)
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, long int *id_ok)
 {
   //check file
   char remote_name[LINE_SIZE], msg[LINE_SIZE];
@@ -123,7 +123,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
       FILETIME LocalFileTime;
       SYSTEMTIME SysTimeModification;
 
-      if (id_ok != NULL) i = *id_ok;
+      if (id_ok != NULL && *id_ok > ID_ERROR) i = *id_ok;
 
       for (;i<_nb_i && scan_start;i++)
       {
@@ -285,7 +285,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SC
   return FALSE;
 }
 //----------------------------------------------------------------
-BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, DWORD *id_ok)
+BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, long int *id_ok)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan",ip);

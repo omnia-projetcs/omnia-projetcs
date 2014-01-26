@@ -744,7 +744,7 @@ void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey)
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok)
+BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok)
 {
   BOOL ret            = FALSE;
   HANDLE connect      = FALSE;
@@ -841,7 +841,7 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
   return ret;
 }
 //----------------------------------------------------------------
-BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok)
+BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);

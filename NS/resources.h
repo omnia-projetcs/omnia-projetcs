@@ -5,12 +5,10 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
-- bug message compte admin n'existe pas !
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
 
-[NS]
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -53,7 +51,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.4.18 12/01/2014"
+#define TITLE                                       "NS v0.5 26/01/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -78,6 +76,8 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 
 #define ICMP_TIMEOUT                                6000    //6 seconds
 #define DIXM                                        10*1024*1024    //10mo
+//----------------------------------------------------------------
+#define ID_ERROR                                    -1
 //----------------------------------------------------------------
 //SSH use custom error message
 #define SSH_DEFAULT_PORT                            22
@@ -356,7 +356,7 @@ DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows;
 void init(HWND hwnd);
 void AddMsg(HWND hwnd, char *type, char *txt, char *info);
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
-DWORD AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
+long int AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 BOOL LSBExist(DWORD lsb, char *sst);
@@ -367,11 +367,13 @@ char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
 unsigned long int Contient(char*data, char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
+BOOL LinuxStart_msgOK(char *msg, char*cmd);
 
 //export
 BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
 
 //load files configuration
+char* GetLocalPath(char *path, unsigned int sizeMax);
 void loadFileIp(char *file);
 DWORD WINAPI load_file_ip(LPVOID lParam);
 DWORD load_file_list(DWORD lsb, char *file);
@@ -409,14 +411,14 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey);
-BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok);
-BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, DWORD *id_ok);
+BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok);
+BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok);
 
 //File
 void FileToMd5(HANDLE Hfic, char *md5);
 void FileToSHA256(HANDLE Hfic, char *csha256);
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, DWORD *id_ok);
-BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, DWORD *id_ok);
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, long int *id_ok);
+BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, long int *id_ok);
 
 //SSH
 BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK);
@@ -424,7 +426,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
 int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth);
 
 //Scan
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, DWORD *id_ok);
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok);
 DWORD WINAPI ScanIp(LPVOID lParam);
 #endif
 //----------------------------------------------------------------

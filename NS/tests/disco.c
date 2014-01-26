@@ -42,7 +42,7 @@ BOOL ResDNS(char *ip, char *name, unsigned int sz_max)
  if ((remoteHost=gethostbyaddr((char *)&in, 4, AF_INET))!=0)
  {
    snprintf(name,sz_max,"%s",remoteHost->h_name);
-   return TRUE;
+   if (name[0] != '\\' && name[1] != '\\')return TRUE;
  }
  return FALSE;
 }

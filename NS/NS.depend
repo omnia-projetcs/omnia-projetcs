@@ -510,7 +510,7 @@
 1386055446 source:f:\ns_svn\ns\crypt\md5.c
 	"../resources.h"
 
-1388648370 f:\ns_svn\ns\resources.h
+1390465332 f:\ns_svn\ns\resources.h
 	<Winsock2.h>
 	<windows.h>
 	<Windowsx.h>
@@ -545,25 +545,25 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1386055447 source:f:\ns_svn\ns\resources.rc
+1388745613 source:f:\ns_svn\ns\resources.rc
 	"resources.h"
 
 1386227323 source:f:\ns_svn\ns\tests\disco.c
 	"../resources.h"
 
-1386573308 source:f:\ns_svn\ns\tests\files.c
+1390406408 source:f:\ns_svn\ns\tests\files.c
 	"../resources.h"
 
-1387438654 source:f:\ns_svn\ns\tests\netbios.c
+1389858719 source:f:\ns_svn\ns\tests\netbios.c
 	"../resources.h"
 
-1386573308 source:f:\ns_svn\ns\tests\registry.c
+1390307225 source:f:\ns_svn\ns\tests\registry.c
 	"../resources.h"
 
-1387468960 source:f:\ns_svn\ns\tests\ssh_v2.c
+1389960856 source:f:\ns_svn\ns\tests\ssh_v2.c
 	"../resources.h"
 
-1388648354 source:f:\ns_svn\ns\main.c
+1390406499 source:f:\ns_svn\ns\main.c
 	"resources.h"
 
 1388495284 source:z:\svn_omnia\ns\tests\auto_scan.c
@@ -606,4 +606,7 @@
 	<stdlib.h>
 	<stdlib.h>
 	<sys/param.h>
+
+1390463772 source:f:\ns_svn\ns\tests\auto_scan.c
+	"../resources.h"
 
