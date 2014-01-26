@@ -23,7 +23,13 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
   if((res == ERROR_SUCCESS || res == ERROR_MORE_DATA) && mybuff)
   {
     ret = TRUE;
-    if (name!=NULL)   snprintf(name,sz_max,"%S",serveur);
+    if (name!=NULL)
+    {
+      snprintf(name,sz_max,"%S",serveur);
+      if (name[0] == '\\' && name[1] == '\\')
+        name[0] = 0;
+    }
+
     if (domain!=NULL) snprintf(domain,sz_max,"%S",mybuff->wki100_langroup);
 
     //on test le type d'os et on met a jour

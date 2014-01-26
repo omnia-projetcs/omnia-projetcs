@@ -270,7 +270,7 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem)
   }
 }
 //----------------------------------------------------------------
-DWORD AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
+long int AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state)
 {
   LVITEM lvi;
   HWND hlstv    = GetDlgItem(h_main,LV_results);
@@ -280,8 +280,10 @@ DWORD AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *con
   lvi.pszText   = (LPSTR)"";
   EnterCriticalSection(&Sync_item);
   lvi.iItem     = ListView_GetItemCount(hlstv);
-  DWORD itemPos = ListView_InsertItem(hlstv, &lvi);
+  long int itemPos = ListView_InsertItem(hlstv, &lvi);
   LeaveCriticalSection(&Sync_item);
+
+  if (itemPos < 0) return -1;
 
   if(ip!=NULL)      ListView_SetItemText(hlstv,itemPos,COL_IP,ip);
   if(dsc!=NULL)     ListView_SetItemText(hlstv,itemPos,COL_DSC,dsc);
@@ -1054,7 +1056,7 @@ BOOL LSBExist(DWORD lsb, char *sst)
   return FALSE;
 }
 //----------------------------------------------------------------
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, DWORD *id_ok)
+HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok)
 {
   HANDLE htoken = NULL;
   char msg[LINE_SIZE];
@@ -1099,7 +1101,7 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
         }else
         {
           unsigned int i = 0;
-          if (id_ok != NULL) i = *id_ok;
+          if (id_ok != NULL && *id_ok > ID_ERROR) i = *id_ok;
 
           for (; i<config.nb_accounts ;i++)
           {
@@ -1117,7 +1119,7 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
             {
               if (message)
               {
-                snprintf(msg,LINE_SIZE,"%s with (%02d) account.",user_netbios,i);
+                snprintf(msg,LINE_SIZE,"%s\\IPC$ with %s (%02d) account.",ip,config.accounts[i].login,i);
                 AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
 
                 snprintf(msg,LINE_SIZE,"Login NET %s with (%02d) account",user_netbios,i);
@@ -1146,11 +1148,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
   char ip[MAX_PATH]="", dsc[MAX_PATH], ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
-  long long int iitem = -1;
+  long long int iitem = ID_ERROR;
   int ttl = -1;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
   BOOL windows_OS = FALSE;
-  DWORD id_ok = 0;
+  long int id_ok = ID_ERROR;
 
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
@@ -1292,7 +1294,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       ReleaseSemaphore(hs_disco,1,NULL);
 
       //NetBIOS
-      if (exist && (iitem > -1) && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
+      if (exist && (iitem > ID_ERROR) && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
@@ -1382,10 +1384,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
         }
 
-        if (cfg[0] != 0)
+       /* if (cfg[0] != 0)
         {
           AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
-        }
+        }*/
         ReleaseSemaphore(hs_netbios,1,NULL);
 
         #ifdef DEBUG_MODE
@@ -1470,13 +1472,13 @@ DWORD WINAPI ScanIp(LPVOID lParam)
             int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,TRUE,TRUE);
             if (ret_ssh == SSH_ERROR_OK)
             {
-              if (tmp_os[0] != 0)
+              if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "head -n 1 /etc/issue"))
               {
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
                 if (config.check_ssh)ssh_exec(iitem,ip, SSH_DEFAULT_PORT, config.login, config.mdp);
               }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE,FALSE) == SSH_ERROR_OK)
               {
-                if (tmp_os[0] != 0)
+                if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "uname -a"))
                 {
                   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
                   if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp);
@@ -1515,14 +1517,14 @@ DWORD WINAPI ScanIp(LPVOID lParam)
               if (ret_ssh == SSH_ERROR_OK)
               {
                 msg_auth = FALSE;
-                if (tmp_os[0] != 0)
+                if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "head -n 1 /etc/issue"))
                 {
                   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
                   if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
                   break;
                 }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE, FALSE) == SSH_ERROR_OK)
                 {
-                  if (tmp_os[0] != 0)
+                  if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "uname -a"))
                   {
                     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
                     if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp);
@@ -1581,6 +1583,8 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 //----------------------------------------------------------------
 DWORD WINAPI scan(LPVOID lParam)
 {
+  BOOL auto_save = (BOOL)lParam;
+
   time_t exec_time_start, exec_time_end;
   time(&exec_time_start);
 
@@ -1697,6 +1701,14 @@ DWORD WINAPI scan(LPVOID lParam)
   WSAStartup(0x02, &WSAData );
   nb_test_ip = 0;
 
+  if (nb_i == 1)
+  {
+    char tmp_IP[MAX_PATH]="";
+    SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)0,(LPARAM)tmp_IP);
+    if (tmp_IP[0] == 0 || (tmp_IP[0] == '0' && tmp_IP[1] == '.'))
+      nb_i = 0;
+  }
+
   for (i=0;(i<nb_i) && scan_start;i++)
   {
     //ScanIp((LPVOID)i);
@@ -1753,6 +1765,58 @@ DWORD WINAPI scan(LPVOID lParam)
   CloseHandle(hs_registry);
   CloseHandle(hs_tcp);
   CloseHandle(hs_ssh);
+
+  //---------------------------------------------
+  //for mode simple
+  if (auto_save)
+  {
+    if (ListView_GetItemCount(GetDlgItem(h_main,LV_results)) >0)
+    {
+      char file2[LINE_SIZE];
+      time_t dateEtHMs;
+      time(&dateEtHMs);
+      struct tm *today = localtime(&dateEtHMs);
+      char date[DATE_SIZE];
+      strftime(date, DATE_SIZE,"%Y.%m.%d-%H.%M.%S",today);
+
+      char tmp_check[LINE_SIZE]="";
+      char ini_path[LINE_SIZE]="";
+      strncat(GetLocalPath(ini_path, LINE_SIZE),AUTO_SCAN_FILE_INI,LINE_SIZE);
+
+      if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+        {
+          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.csv",date);
+          if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+          else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        }
+        tmp_check[0] = 0;
+      }
+
+      if(GetPrivateProfileString("SAVE","XML","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+        {
+          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.xml",date);
+          if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+          else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        }
+        tmp_check[0] = 0;
+      }
+
+      if(GetPrivateProfileString("SAVE","HTML","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+        {
+          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.html",date);
+          if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+          else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        }
+        tmp_check[0] = 0;
+      }
+    }
+  }
 
   //---------------------------------------------
   //init
@@ -1974,7 +2038,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
       switch(((LPNMHDR)lParam)->code)
       {
         case LVN_COLUMNCLICK:
-          if (!scan_start)
+          if (!scan_start && (IsWindowEnabled(GetDlgItem(h_main,BT_START)) != 0))
           {
             tri_order = !tri_order;
             c_Tri(GetDlgItem(hwnd,LV_results),((LPNMLISTVIEW)lParam)->iSubItem,tri_order);

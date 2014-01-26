@@ -180,10 +180,12 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
 //----------------------------------------------------------------
 int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth)
 {
+  buffer[0] = 0;
+
   if (!scan_start) return SSH_ERROR_NOT_TESTED;
 
   //for each command
-  char msg[MAX_MSG_SIZE+1];
+  char msg[MAX_MSG_SIZE+1]="";
   unsigned int nb = 0;
   int rc;
   BOOL ret = 0;
