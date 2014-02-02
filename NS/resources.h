@@ -6,6 +6,15 @@
 /*
 #PRIORITE NS:
 
+- bug add ip list (revoir les test pour identifier un fichier qui ne fonctionne pas !)
+//SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
+add : fichier csv/txt
+ip
+nom
+interval /24
+interval -
+list direct : OK
+
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
 

@@ -549,8 +549,8 @@ void addIPInterval(char *ip_src, char *ip_dst, char *dsc)
 
   if ((L11+L12+L13+L14)!=0 && L14 >0 && L14 <= 255 && L13 <=255 && L12 <=255 && L11<255 || (L21+L22+L23+L24)!=0 && L24 >0 && L24 <= 255 && L23 <=255 && L22 <=255 && L21<255)
   {
-    if (((L11+L12+L13+L14) == 0 && L21>0) || !strcmp(ip_src,ip_dst))SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_src);
-    else if ((L21+L22+L23+L24) == 0 && L14 >0 && L14 <=255 && L13 <=255 && L12 <=255 && L11<255)SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_dst);
+    if (((L11+L12+L13+L14) == 0 && L21>0) || !strcmp(ip_src,ip_dst)){SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_src);/*AddMsg(h_main,(char*)"DEBUG_IP",ip_src,"");*/}
+    else if ((L21+L22+L23+L24) == 0 && L14 >0 && L14 <=255 && L13 <=255 && L12 <=255 && L11<255){SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_dst);/*AddMsg(h_main,(char*)"DEBUG_IP",ip_src,"");*/}
     else if (L21 >= L11 && (L22 >= L12 || L21 > L11) && (L23 >= L13 || (L22 > L12 || L21 > L11)) && (L24 >= L14 || (L23 > L13 || (L22 > L12 || L21 > L11))))
     {
       int a,b,c,d, initb,initc,initd,finb,finc,find;
@@ -619,6 +619,7 @@ void addIPInterval(char *ip_src, char *ip_dst, char *dsc)
             {
               snprintf(IpAdd,IP_SIZE,"%d.%d.%d.%d",a,b,c,d);
               SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)IpAdd);
+              //AddMsg(h_main,(char*)"DEBUG_IP",IpAdd,"");
               SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
             }
           }
@@ -658,6 +659,7 @@ void addIPTest(char *ip_format, char*dsc)
   {
     if (verifieName(ip_format))
       SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
+      //AddMsg(h_main,(char*)"DEBUG_IP",ip_format,"");
       SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
     return;
   }
@@ -668,6 +670,7 @@ void addIPTest(char *ip_format, char*dsc)
   if (*c == 0)//ip
   {
     SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
+    //AddMsg(h_main,(char*)"DEBUG_IP",ip_format,"");
     SendDlgItemMessage(h_main,CB_DSC,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)dsc);
   }else if (*c == '-')//ip-ip
   {
