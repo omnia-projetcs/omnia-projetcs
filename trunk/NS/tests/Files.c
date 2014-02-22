@@ -299,7 +299,7 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
     RemoteAuthenticationFilesScan(iitem, ip, (char*)"E$", config, id_ok);
 
     return TRUE;
-  }else ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_FILES,(LPSTR)"CONNEXION FAIL!");
+  }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
 
   return FALSE;
 }

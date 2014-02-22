@@ -5,18 +5,21 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
-
-- bug add ip list (revoir les test pour identifier un fichier qui ne fonctionne pas !)
-//SendDlgItemMessage(h_main,CB_IP,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)ip_format);
-add : fichier csv/txt
-ip
-nom
-interval /24
-interval -
-list direct : OK
+- ajouter un outils direct pour copier sur une machine à distance :
+  - base de registre
+  -x types de fichiers (extensions)
+  -x répertoires
+  -x énumérer la liste des fichiers et attributus d'un fichiers (come un ls) (date modification + taille + path du fichier)
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
+
+
+[NS]
+- review few bugs
+- add remote service of registry start/stop
+- review bug in the end of auto_scan
+- review bug on scan after scan
 
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
@@ -60,7 +63,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5 26/01/2014"
+#define TITLE                                       "NS v0.5.3 22/02/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -412,6 +415,7 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
 //Registry
+BOOL StartRemoteRegistryService(char *ip, BOOL start);
 BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write);
 BOOL RegistryOS(DWORD iitem,HKEY hkey);
 void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey);

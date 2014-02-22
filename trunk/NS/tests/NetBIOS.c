@@ -66,7 +66,7 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
         }
       break;
       default:
-            snprintf(txtOS,sz_max,"Microsoft Windows [major:%d;minor:%d]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor);
+            snprintf(txtOS,sz_max,"Microsoft Windows [major:%d;minor:%d;pid:%d]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor,mybuff->wki100_platform_id);
       break;
     }
   }

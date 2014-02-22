@@ -124,10 +124,6 @@ void init(HWND hwnd)
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"------------------------------");
   SendDlgItemMessage(hwnd,CB_tests,LB_INSERTSTRING,(WPARAM)-1,(LPARAM)"WRITE:Registry Values");
 
-  //critical section
-  InitializeCriticalSection(&Sync);
-  InitializeCriticalSection(&Sync_item);
-
   //load ICMP functions
   IcmpOk = FALSE;
   if ((hndlIcmp = LoadLibrary("ICMP.DLL"))!=0)
@@ -140,6 +136,10 @@ void init(HWND hwnd)
     if (pIcmpCreateFile!=0 && pIcmpCloseHandle!=0 && pIcmpSendEcho!=0 && pIcmpSendEcho2)
       IcmpOk = TRUE;
   }
+
+  //critical section
+  InitializeCriticalSection(&Sync);
+  InitializeCriticalSection(&Sync_item);
 
   auto_scan_config.DNS_DISCOVERY = TRUE;
   h_thread_scan = CreateThread(NULL,0,auto_scan,0,0,0);
@@ -1760,7 +1760,6 @@ DWORD WINAPI scan(LPVOID lParam)
   }
 
   //close
-  DeleteCriticalSection(&Sync);
   CloseHandle(hs_threads);
   CloseHandle(hs_disco);
   CloseHandle(hs_netbios);
@@ -1848,6 +1847,7 @@ DWORD WINAPI scan(LPVOID lParam)
 
   SetWindowText(GetDlgItem(h_main,BT_START),"Start");
   SetWindowText(h_main,TITLE);
+  h_thread_scan = 0;
   return 0;
 }
 //----------------------------------------------------------------
@@ -1987,6 +1987,10 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
                 SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
                 AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
+                //critical section
+                InitializeCriticalSection(&Sync);
+                InitializeCriticalSection(&Sync_item);
+
                 h_thread_scan = CreateThread(NULL,0,scan,0,0,0);
               }else EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
             break;

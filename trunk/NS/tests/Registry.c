@@ -5,6 +5,51 @@
 //----------------------------------------------------------------
 #include "../resources.h"
 //----------------------------------------------------------------
+//http://msdn.microsoft.com/en-us/library/windows/desktop/ms686335%28v=vs.85%29.aspx
+//http://support.microsoft.com/kb/166819
+#define REGISTRY_SERVICE_NAME "RemoteRegistry" //regsvc
+BOOL StartRemoteRegistryService(char *ip, BOOL start)
+{
+  BOOL ret = FALSE;
+
+  //get remote OpenSCManager
+  SC_HANDLE hm = OpenSCManager(ip, NULL, SC_MANAGER_ALL_ACCESS);
+  if (hm == NULL) return FALSE;
+
+  //Open remote service
+  SC_HANDLE hos = OpenService(hm, REGISTRY_SERVICE_NAME, SERVICE_ALL_ACCESS);
+  if (hos == NULL)
+  {
+    CloseServiceHandle(hm);
+    return FALSE;
+  }
+
+  //start - stop the service
+  if (start)
+  {
+    if (StartService(hos, 0, NULL)!= FALSE)
+    {
+      ret = TRUE;
+      //AddMsg(h_main, (char*)"DEBUG (Registry Service)",(char*)"START","");
+    }
+  }else
+  {
+    //close all dependances
+
+    //close service
+    if (ControlService(hos, SERVICE_CONTROL_STOP, (LPSERVICE_STATUS)NULL) != FALSE)
+    {
+      ret = TRUE;
+      //AddMsg(h_main, (char*)"DEBUG (Registry Service)",(char*)"STOP","");
+    }
+  }
+
+  //close
+  CloseServiceHandle(hos);
+  CloseServiceHandle(hm);
+  return ret;
+}
+//----------------------------------------------------------------
 DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
 {
   DWORD data_size_read = 0;
@@ -747,7 +792,7 @@ void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey)
 BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok)
 {
   BOOL ret            = FALSE;
-  HANDLE connect      = FALSE;
+  HANDLE connect      = 0;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
 
   connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, TRUE, id_ok);
@@ -774,7 +819,22 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
     //net
     HKEY hkey;
     snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-    if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS)
+
+    LONG reg_access = RegConnectRegistry(tmp, HKEY_LOCAL_MACHINE, &hkey);
+    BOOL start_remote_registry = FALSE;
+
+    if (reg_access!=ERROR_SUCCESS && connect != 0)
+    {
+      if (StartRemoteRegistryService(ip, TRUE))
+      {
+        //wait 10 secondes
+        Sleep(10000);
+        start_remote_registry = TRUE;
+        reg_access = RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey);
+      }
+    }
+
+    if (reg_access==ERROR_SUCCESS)
     {
       if (config.local_account)
       {
@@ -829,6 +889,11 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST conf
 
       RegCloseKey(hkey);
       ret = TRUE;
+    }
+
+    if (start_remote_registry)
+    {
+      StartRemoteRegistryService(ip, FALSE);
     }
   }
 
