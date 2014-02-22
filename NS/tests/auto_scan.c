@@ -130,7 +130,22 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
   {
     HKEY hkey;
     snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-    if (RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey)==ERROR_SUCCESS && scan_start)
+
+    BOOL start_remote_registry = FALSE;
+    LONG reg_access = RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey);
+
+    if (reg_access!=ERROR_SUCCESS && connect != 0)
+    {
+      if (StartRemoteRegistryService(ip, TRUE))
+      {
+        //wait 10 secondes
+        Sleep(10000);
+        start_remote_registry = TRUE;
+        reg_access = RegConnectRegistry(tmp,HKEY_LOCAL_MACHINE,&hkey);
+      }
+    }
+
+    if (reg_access == ERROR_SUCCESS && scan_start)
     {
       DWORD DWORD_tmp=0;
       char value[MAX_PATH], tmp_value[MAX_PATH]="",  msg[MAX_PATH];
@@ -366,6 +381,11 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
       }
       RegCloseKey(hkey);
     }
+
+    if (start_remote_registry)
+    {
+      StartRemoteRegistryService(ip, FALSE);
+    }
   }
 
   if(connect)
@@ -523,9 +543,6 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
         hfic = FindFirstFile(tmp_path, &data);
         if (hfic != INVALID_HANDLE_VALUE)
         {
-          AddMsg(h_main,(char*)"DEBUG",(char*)"(EXIST)",tmp_path);
-
-
           //current time
           time_t current_time;
           time(&current_time);
@@ -913,12 +930,14 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     {
       EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
       scan_start = FALSE;
+      h_thread_scan = 0;
       return 0;
     }
   }else
   {
     EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
     scan_start = FALSE;
+    h_thread_scan = 0;
     return 0;
   }
 
@@ -1074,22 +1093,33 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     tmp_check[0] = 0;
     if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.save_CSV = TRUE;
-      else auto_scan_config.save_CSV = FALSE;
+      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+      {
+        auto_scan_config.save_CSV = TRUE;
+        save_done = TRUE;
+      }else auto_scan_config.save_CSV = FALSE;
     }else auto_scan_config.save_CSV = FALSE;
     tmp_check[0] = 0;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("SAVE","XML","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.save_XML = TRUE;
+      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+      {
+        save_done = TRUE;
+        auto_scan_config.save_XML = TRUE;
+      }
       else auto_scan_config.save_XML = FALSE;
     }else auto_scan_config.save_XML = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("SAVE","HTML","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.save_HTML = TRUE;
+      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+      {
+        auto_scan_config.save_HTML = TRUE;
+        save_done = TRUE;
+      }
       else auto_scan_config.save_HTML = FALSE;
     }else auto_scan_config.save_HTML = FALSE;
 
@@ -1309,7 +1339,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
 
     //close
-    DeleteCriticalSection(&Sync);
     CloseHandle(hs_threads);
     CloseHandle(hs_disco);
     CloseHandle(hs_netbios);
@@ -1378,8 +1407,10 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
     SetWindowText(GetDlgItem(h_main,BT_START),"Start");
     SetWindowText(h_main,TITLE);
+    h_thread_scan = 0;
     return 0;
   }
 
+  h_thread_scan = 0;
   return 0;
 }
