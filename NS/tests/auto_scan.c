@@ -1052,6 +1052,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
         EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
         EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
         EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
+        EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
 
         EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
         SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
@@ -1076,6 +1077,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
     EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
     EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
+    EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
 
     SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
     AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
@@ -1402,6 +1404,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),TRUE);
     EnableWindow(GetDlgItem(h_main,CB_tests),TRUE);
     EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
+    EnableWindow(GetDlgItem(h_main,BT_RE),TRUE);
     scan_start = FALSE;
 
     EnableWindow(GetDlgItem(h_main,BT_START),TRUE);

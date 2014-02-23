@@ -11,16 +11,16 @@
   -x répertoires
   -x énumérer la liste des fichiers et attributus d'un fichiers (come un ls) (date modification + taille + path du fichier)
 
+  * ajouter pour les remotes, une sauvegarde des résultats en temps réel dans le lstv !!!
+  * finir extract USB !!! snprintf(tmp_path,MAX_PATH,"%sUSB_%s.xml",pathToSave,ip);
+
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
 
 
 [NS]
 - review few bugs
-- add remote service of registry start/stop
-- review bug in the end of auto_scan
-- review bug on scan after scan
-
+- experimental : add remote extract of datas (files, registry backup, list of services, softwares and coming USB keys)
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -42,7 +42,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #include <Winnetwk.h>
 #include <iphlpapi.h>
 #include <math.h>
-
+#include <Shlobj.h>  //for GetPathToSAve
 #include "crypt/sha2.h"
 #include "crypt/md5.h"
 
@@ -59,11 +59,12 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "Iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+//#pragma comment(lib, "Shell32.lib") //for GetPathToSAve
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.3 22/02/2014"
+#define TITLE                                       "NS v0.5.4a 23/02/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "conf_files.txt"
@@ -142,6 +143,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define CB_DSC                                      1050
 
 #define BT_START                                    1035
+#define BT_RE                                       1036
 //----------------------------------------------------------------
 #define SAVE_TYPE_XML                               1
 #define SAVE_TYPE_CSV                               2
@@ -441,6 +443,7 @@ int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*pa
 //Scan
 HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok);
 DWORD WINAPI ScanIp(LPVOID lParam);
+DWORD WINAPI remote_extract(LPVOID lParam);
 #endif
 //----------------------------------------------------------------
 
