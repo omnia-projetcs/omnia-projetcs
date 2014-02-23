@@ -290,7 +290,6 @@ BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan",ip);
   #endif
-  BOOL ret = FALSE;
 
   if(RemoteAuthenticationFilesScan(iitem, ip, (char*)"C$", config, id_ok))
   {

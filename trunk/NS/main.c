@@ -1150,7 +1150,7 @@ HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
-  char ip[MAX_PATH]="", dsc[MAX_PATH], ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
+  char ip[MAX_PATH]="", dsc[MAX_PATH]="", ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
   long long int iitem = ID_ERROR;
   int ttl = -1;
   BOOL exist  = FALSE, dnsok = FALSE, netBIOS = FALSE;
@@ -1178,7 +1178,6 @@ DWORD WINAPI ScanIp(LPVOID lParam)
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
 
-  dsc[0] = 0;
   if (SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) < MAX_PATH)
   {
     SendDlgItemMessage(h_main, CB_DSC, LB_GETTEXT, (WPARAM)index,(LPARAM)dsc);
@@ -1613,6 +1612,7 @@ DWORD WINAPI scan(LPVOID lParam)
     L23 = (LIp2 >> 8) & 0xFF;
     L24 = LIp2 & 0xFF;
 
+    if ((L21 | L22 | L23 | L24 | L11 | L12 | L13 | L14) == 0){}
     if ((L21 | L22 | L23 | L24) == 0)
     {
       char sip1[IP_SIZE];
@@ -1843,6 +1843,7 @@ DWORD WINAPI scan(LPVOID lParam)
   EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
   EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
   EnableWindow(GetDlgItem(h_main,CB_tests),TRUE);
+  EnableWindow(GetDlgItem(h_main,BT_RE),TRUE);
   scan_start = FALSE;
 
   SetWindowText(GetDlgItem(h_main,BT_START),"Start");
@@ -1965,6 +1966,37 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             }
             break;
             //------------------------------
+            case BT_RE:
+              scan_start = !scan_start;
+              if (scan_start)
+              {
+                EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
+                EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
+                EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
+                EnableWindow(GetDlgItem(h_main,CHK_NULL_SESSION),FALSE);
+                EnableWindow(GetDlgItem(h_main,GRP_PERIMETER),FALSE);
+                EnableWindow(GetDlgItem(h_main,IP1),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_IP_CP),FALSE);
+                EnableWindow(GetDlgItem(h_main,IP2),FALSE);
+                EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),FALSE);
+                EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
+                EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
+
+                ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
+                SendDlgItemMessage(h_main,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
+
+                SetWindowText(GetDlgItem(h_main,BT_RE),"Stop");
+                AddMsg(h_main, (char*)"INFORMATION",(char*)"Start remote extract",(char*)"");
+
+                //critical section
+                InitializeCriticalSection(&Sync);
+                InitializeCriticalSection(&Sync_item);
+
+                h_thread_scan = CreateThread(NULL,0,remote_extract,0,0,0);
+              }else EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
+            break;
             case BT_START:
               scan_start = !scan_start;
               if (scan_start)
@@ -1981,6 +2013,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 EnableWindow(GetDlgItem(h_main,CHK_ALL_TEST),FALSE);
                 EnableWindow(GetDlgItem(h_main,CB_tests),FALSE);
                 EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),FALSE);
+                EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
 
                 ListView_DeleteAllItems(GetDlgItem(h_main,LV_results));
                 SendDlgItemMessage(h_main,CB_infos,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);

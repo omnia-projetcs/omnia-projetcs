@@ -23,6 +23,7 @@
 					<Add library="gpg-error" />
 					<Add library="ssh2.dll" />
 					<Add library="Iphlpapi" />
+					<Add library="Shell32" />
 				</Linker>
 			</Target>
 		</Build>
