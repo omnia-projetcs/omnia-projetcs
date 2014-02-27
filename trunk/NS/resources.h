@@ -5,22 +5,14 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
-- ajouter un outils direct pour copier sur une machine à distance :
-  - base de registre
-  -x types de fichiers (extensions)
-  -x répertoires
-  -x énumérer la liste des fichiers et attributus d'un fichiers (come un ls) (date modification + taille + path du fichier)
-
-  * ajouter pour les remotes, une sauvegarde des résultats en temps réel dans le lstv !!!
-  * finir extract USB !!! snprintf(tmp_path,MAX_PATH,"%sUSB_%s.xml",pathToSave,ip);
+  * tester le SSH (revoir en effectuant une extraction commande par commande)
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
 
-
 [NS]
 - review few bugs
-- experimental : add remote extract of datas (files, registry backup, list of services, softwares and coming USB keys)
+
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -43,6 +35,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #include <iphlpapi.h>
 #include <math.h>
 #include <Shlobj.h>  //for GetPathToSAve
+#include <richedit.h>
 #include "crypt/sha2.h"
 #include "crypt/md5.h"
 
@@ -64,22 +57,23 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.4a 23/02/2014"
+#define TITLE                                       "NS v0.5.7 27/02/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
-#define DEFAULT_LIST_FILES                          "conf_files.txt"
-#define DEFAULT_LIST_REGISTRY                       "conf_registry.csv"
-#define DEFAULT_LIST_SERVICES                       "conf_services.txt"
-#define DEFAULT_LIST_SOFTWARE                       "conf_softwares.txt"
-#define DEFAULT_LIST_USB                            "conf_USB.txt"
-#define DEFAULT_LIST_REGISTRY_W                     "conf_registry_write.csv"
-#define DEFAULT_LIST_SSH                            "conf_ssh.txt"
+#define DEFAULT_LIST_FILES                          "\\conf_files.txt"
+#define DEFAULT_LIST_REGISTRY                       "\\conf_registry.csv"
+#define DEFAULT_LIST_SERVICES                       "\\conf_services.txt"
+#define DEFAULT_LIST_SOFTWARE                       "\\conf_softwares.txt"
+#define DEFAULT_LIST_USB                            "\\conf_USB.txt"
+#define DEFAULT_LIST_REGISTRY_W                     "\\conf_registry_write.csv"
+#define DEFAULT_LIST_SSH                            "\\conf_ssh.txt"
 
 #define AUTO_SCAN_FILE_INI                          "\\NS.ini"
 //----------------------------------------------------------------
 #define LINE_SIZE                                   2048
+#define FILE_BUFFER_SIZE                            0xA000
 #define MAX_LINE_SIZE                               LINE_SIZE*4
-#define MAX_MSG_SIZE                                0x4000
+#define MAX_MSG_SIZE                                0xA000
 #define MAX_MSG_SIZE_LINE                           0x4100
 #define MAX_COUNT_MSG                               0X10
 #define IP_SIZE                                     16
@@ -87,10 +81,17 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define DATE_SIZE                                   26
 #define HK_SIZE_MAX                                 20
 
-#define ICMP_TIMEOUT                                6000    //6 seconds
+#define ICMP_TIMEOUT                                6000            //6 seconds
 #define DIXM                                        10*1024*1024    //10mo
 //----------------------------------------------------------------
 #define ID_ERROR                                    -1
+//----------------------------------------------------------------
+//couleur
+#define ROUGE RGB(255, 0, 0)
+#define NOIR RGB(0  ,  0, 0)
+#define VERT RGB(51 ,153, 0)
+#define BLEU RGB(0  ,  0,255)
+#define GRIS RGB(153,153,153)
 //----------------------------------------------------------------
 //SSH use custom error message
 #define SSH_DEFAULT_PORT                            22
@@ -282,6 +283,7 @@ BOOL save_done;
 CRITICAL_SECTION Sync, Sync_item;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 SCANNE_ST config;
+HINSTANCE richDll;
 //----------------------------------------------------------------
 //AUTO-SCAN
 typedef struct auto_scanne_st
@@ -376,12 +378,18 @@ int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 BOOL LSBExist(DWORD lsb, char *sst);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
+//RicheEdit
+void RichEditInit(HWND HRichEdit);
+void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt);
+void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
+
 //string
 char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
 unsigned long int Contient(char*data, char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 BOOL LinuxStart_msgOK(char *msg, char*cmd);
+char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
 
 //export
 BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);

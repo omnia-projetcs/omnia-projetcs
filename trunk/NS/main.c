@@ -6,6 +6,96 @@
 //http://msdn.microsoft.com/en-us/library/aa390422%28v=vs.85%29.aspx
 #include "resources.h"
 //------------------------------------------------------------------------------
+char *extractFileFromPath(char *path, char *file, unsigned int file_size_max)
+{
+  char *c = path;
+  file[0] = 0;
+
+  while(*c++);
+  while(*c!='\\' && *c!='/' && c>path)c--;
+
+  if(*c == '\\' || *c=='/')c++;
+
+  strncpy(file,c,file_size_max);
+  return file;
+}
+//------------------------------------------------------------------------------
+//supprimer tout le contenu
+void RichEditInit(HWND HRichEdit)
+{
+  CHARFORMAT2 Format;
+
+  //init de la zone de texte
+  ZeroMemory(&Format, sizeof(CHARFORMAT2));
+  Format.cbSize = sizeof(CHARFORMAT2);
+  Format.dwMask = CFM_BOLD | CFM_COLOR | CFM_ITALIC | CFM_SIZE | CFM_UNDERLINE;
+  Format.yHeight = 200; //taille du texte
+  Format.yOffset = 0;
+  Format.crTextColor = RGB(0,0,0);   //Couleur du texte
+  Format.crBackColor = RGB(255,255,255);   //Couleur du fond
+  Format.bCharSet = ANSI_CHARSET;
+  Format.bPitchAndFamily = DEFAULT_PITCH;
+  strcpy(Format.szFaceName,"MS Sans Serif");
+  SendMessage(HRichEdit, EM_SETCHARFORMAT, SCF_ALL, (LPARAM) &Format);   //appliquer le format a tout le composant
+  SendMessage(HRichEdit, WM_SETTEXT, 0, (LPARAM)"");//on vide le texte
+}
+//------------------------------------------------------------------------------
+//texte simple
+void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt)
+{
+    CHARFORMAT2 Format; //format du texte d'un richedit
+    CHARRANGE Selection; //sélection
+
+    ZeroMemory(&Format, sizeof(CHARFORMAT2));
+    Format.cbSize = sizeof(CHARFORMAT2);
+    Format.dwMask = CFM_CHARSET|CFM_COLOR|CFM_UNDERLINE|CFM_ITALIC|CFM_BOLD|CFM_SIZE;
+    Format.crTextColor = couleur;
+    Format.dwEffects = 0;
+    Format.yHeight = 200;
+
+    //récupération de la taille du texte contenu, on ajoute le texte après
+    GETTEXTLENGTHEX TxtLenfth;
+    TxtLenfth.codepage=CP_ACP;
+    TxtLenfth.flags=GTL_NUMCHARS;
+    unsigned int pos= SendMessage(HRichEdit,EM_GETTEXTLENGTHEX,(WPARAM)&TxtLenfth,0);
+
+    Selection.cpMin = pos;
+    Selection.cpMax = pos+strlen(txt);
+
+    SendMessage(HRichEdit, EM_EXSETSEL, 0, (LPARAM) &Selection);
+    SendMessage(HRichEdit, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &Format);
+	// Il ne reste plus qu'à insérer le texte formaté:
+    SendMessage(HRichEdit, EM_REPLACESEL, 0, (LPARAM)(LPCTSTR) txt);
+}
+//------------------------------------------------------------------------------
+//Ajout de texte colorer et gras au RichEdit ; couleur = RGB(255, 0, 0)
+void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt)
+{
+    CHARFORMAT2 Format; //format du texte d'un richedit
+    CHARRANGE Selection; //sélection
+
+    ZeroMemory(&Format, sizeof(CHARFORMAT2));
+    Format.cbSize = sizeof(CHARFORMAT2);
+    Format.dwMask = CFM_COLOR|CFM_CHARSET|CFM_UNDERLINE|CFM_ITALIC|CFM_BOLD|CFM_SIZE;
+    Format.crTextColor = couleur;
+    Format.dwEffects = CFE_BOLD;
+    Format.yHeight = 200;
+
+    //récupération de la taille du texte contenu, on ajoute le texte après
+    GETTEXTLENGTHEX TxtLenfth;
+    TxtLenfth.codepage=CP_ACP;
+    TxtLenfth.flags=GTL_NUMCHARS;
+    unsigned int pos= SendMessage(HRichEdit,EM_GETTEXTLENGTHEX,(WPARAM)&TxtLenfth,0);
+
+    Selection.cpMin = pos;
+    Selection.cpMax = pos+strlen(txt);
+
+    SendMessage(HRichEdit, EM_EXSETSEL, 0, (LPARAM) &Selection);
+    SendMessage(HRichEdit, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &Format);
+	// Il ne reste plus qu'à insérer le texte formaté:
+    SendMessage(HRichEdit, EM_REPLACESEL, 0, (LPARAM)(LPCTSTR) txt);
+}
+//------------------------------------------------------------------------------
 //subclass of hdbclk_info
 //------------------------------------------------------------------------------
 LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -25,10 +115,12 @@ void init(HWND hwnd)
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
 
   //edit for dblck view
-  hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
+  richDll = LoadLibrary("RICHED32.DLL");
+  hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                          GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
                          h_main, NULL, hinst, NULL);
+
 
   SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
   SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
@@ -846,6 +938,17 @@ DWORD WINAPI load_file_ip(LPVOID lParam)
   {
     loadFileIp(file);
   }
+
+  if (SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) < 1)
+  {
+    CheckDlgButton(h_main,CHK_LOAD_IP_FILE,BST_UNCHECKED);
+
+    EnableWindow(GetDlgItem(h_main,GRP_PERIMETER),TRUE);
+    EnableWindow(GetDlgItem(h_main,IP1),TRUE);
+    EnableWindow(GetDlgItem(h_main,BT_IP_CP),TRUE);
+    EnableWindow(GetDlgItem(h_main,IP2),TRUE);
+  }
+
   //reinit GUI
   EnableWindow(GetDlgItem(h_main,CHK_LOAD_IP_FILE),TRUE);
   EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
@@ -962,7 +1065,8 @@ DWORD WINAPI load_file_accounts(LPVOID lParam)
   if (GetOpenFileName(&ofn)==TRUE)
   {
     LoadAuthFile(file);
-  }
+  }else config.nb_accounts = 0;
+
   //reinit GUI
   EnableWindow(GetDlgItem(h_main,BT_LOAD_MDP_FILES),TRUE);
 
@@ -988,8 +1092,11 @@ DWORD load_file_list(DWORD lsb, char *file)
   //init IP list
   SendDlgItemMessage(h_main,lsb,LB_RESETCONTENT,(WPARAM)NULL,(LPARAM)NULL);
 
+  char path[LINE_SIZE]="";
+  strncat(GetLocalPath(path, LINE_SIZE),file,LINE_SIZE);
+
   //load file with on item by line to lstv
-  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  HANDLE hfile = CreateFile(path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (hfile != INVALID_HANDLE_VALUE)
   {
     DWORD size      = GetFileSize(hfile,NULL);
@@ -999,7 +1106,7 @@ DWORD load_file_list(DWORD lsb, char *file)
       DWORD copiee =0;
       memset(buffer,0,size+1);
       ReadFile(hfile, buffer, size,&copiee,0);
-      if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",file);
+      if (size != copiee)AddMsg(h_main, (char*)"ERROR",(char*)"In loading file",path);
 
       //line by line
       char tmp[MAX_PATH];
@@ -1030,7 +1137,7 @@ DWORD load_file_list(DWORD lsb, char *file)
 
       //message
       snprintf(tmp,LINE_SIZE,"Loaded file with %lu item(s)",SendDlgItemMessage(h_main,lsb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-      AddMsg(h_main,(char*)"INFORMATION",tmp,file);
+      AddMsg(h_main,(char*)"INFORMATION",tmp,path);
       free(buffer);
     }
     CloseHandle(hfile);
@@ -1781,6 +1888,9 @@ DWORD WINAPI scan(LPVOID lParam)
       char date[DATE_SIZE];
       strftime(date, DATE_SIZE,"%Y.%m.%d-%H.%M.%S",today);
 
+      char cpath[LINE_SIZE]="";
+      GetLocalPath(cpath, LINE_SIZE);
+
       char tmp_check[LINE_SIZE]="";
       char ini_path[LINE_SIZE]="";
       strncat(GetLocalPath(ini_path, LINE_SIZE),AUTO_SCAN_FILE_INI,LINE_SIZE);
@@ -1789,9 +1899,11 @@ DWORD WINAPI scan(LPVOID lParam)
       {
         if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
         {
-          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.csv",date);
+          snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.csv",cpath,date);
           if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
           else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+          save_done = TRUE;
         }
         tmp_check[0] = 0;
       }
@@ -1800,9 +1912,11 @@ DWORD WINAPI scan(LPVOID lParam)
       {
         if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
         {
-          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.xml",date);
+          snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.xml",cpath,date);
           if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
           else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+          save_done = TRUE;
         }
         tmp_check[0] = 0;
       }
@@ -1811,9 +1925,11 @@ DWORD WINAPI scan(LPVOID lParam)
       {
         if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
         {
-          snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.html",date);
+          snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.html",cpath,date);
           if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
           else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+          save_done = TRUE;
         }
         tmp_check[0] = 0;
       }
@@ -1873,6 +1989,7 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         DeleteCriticalSection(&Sync_item);
         CloseHandle(h_log);
         FreeLibrary((HMODULE)hndlIcmp);
+        FreeLibrary(richDll);
         EndDialog(hwnd,0);
       }
     }
@@ -2086,143 +2203,39 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         break;
         case NM_DBLCLK:
         {
-          char msg[MAX_MSG_SIZE+1]="",tmp[MAX_MSG_SIZE+1];
-          long int index = SendDlgItemMessage(hwnd,LV_results,LVM_GETNEXTITEM,(WPARAM)-1,(LPARAM)LVNI_FOCUSED);
+          char tmp[MAX_MSG_SIZE+1], tmp2[MAX_MSG_SIZE+1];
+          long int i, index = SendDlgItemMessage(hwnd,LV_results,LVM_GETNEXTITEM,(WPARAM)-1,(LPARAM)LVNI_FOCUSED);
+          RichEditInit(hdbclk_info);
+
           if (index != -1)
           {
-            tmp[0] = 0;
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_IP,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"%s",tmp);
+            LVCOLUMN lvc;
+            lvc.mask        = LVCF_TEXT;
+            lvc.cchTextMax  = MAX_MSG_SIZE;
+            lvc.pszText     = tmp;
 
+            for (i=0;i<NB_COLUMN;i++)
+            {
               tmp[0] = 0;
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DSC,tmp,MAX_MSG_SIZE);
-              if (tmp[0] != 0)
+              tmp2[0] = 0;
+              if (SendMessage(GetDlgItem(hwnd,LV_results),LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
               {
-                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," (%s) ",tmp);
-                tmp[0] = 0;
+                if (strlen(tmp)>0)
+                {
+                  ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,i,tmp2,MAX_MSG_SIZE);
+
+                  if (strlen(tmp2)>0)
+                  {
+                    RichEditCouleur(hdbclk_info,NOIR,"\r\n[");
+                    RichEditCouleurGras(hdbclk_info,NOIR,tmp);
+                    RichEditCouleur(hdbclk_info,NOIR,"]\r\n");
+                    RichEditCouleur(hdbclk_info,NOIR,tmp2);
+                    RichEditCouleur(hdbclk_info,NOIR,"\r\n");
+                  }
+                }
               }
-
-              tmp[0] = 0;
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_DNS,tmp,MAX_MSG_SIZE);
-              if (tmp[0] != 0)
-              {
-                //strncat(msg," ",MAX_LINE_SIZE);
-                //strncat(msg,tmp,MAX_LINE_SIZE);
-                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
-                tmp[0] = 0;
-              }
-
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_TTL,tmp,MAX_MSG_SIZE);
-              if (tmp[0] != 0)
-              {
-                //strncat(msg," ",MAX_LINE_SIZE);
-                //strncat(msg,tmp,MAX_LINE_SIZE);
-                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
-                tmp[0] = 0;
-              }
-
-              ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_OS,tmp,MAX_MSG_SIZE);
-              if (tmp[0] != 0)
-              {
-                //strncat(msg," ",MAX_LINE_SIZE);
-                //strncat(msg,tmp,MAX_LINE_SIZE);
-                snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg)," %s",tmp);
-                tmp[0] = 0;
-              }
-
             }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_CONFIG,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Config]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Config]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SHARE,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Share]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Share]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_POLICY,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Account Policy]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Account Policy]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_FILES,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Files]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Files]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_REG,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Registry]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Registry]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SERVICE,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Services]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Services]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SOFTWARE,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[Softwares]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[Softwares]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_USB,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[USB]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[USB]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            ListView_GetItemText(GetDlgItem(hwnd,LV_results),index,COL_SSH,tmp,MAX_MSG_SIZE);
-            if (tmp[0] != 0)
-            {
-              //strncat(msg,"\r\n\r\n[SSH]\r\n",MAX_LINE_SIZE);
-              //strncat(msg,tmp,MAX_LINE_SIZE);
-              snprintf(msg+strlen(msg),MAX_MSG_SIZE-strlen(msg),"\r\n\r\n[SSH]\r\n%s",tmp);
-              tmp[0] = 0;
-            }
-
-            //strncat(msg,"\0",MAX_LINE_SIZE);
-            if (strlen(msg))
-            {
-              SetWindowText(hdbclk_info, msg);
-              ShowWindow (hdbclk_info, SW_SHOW);
-              //MessageBox(h_main,msg,"Global View",MB_OK|MB_TOPMOST);
-            }
+            ShowWindow (hdbclk_info, SW_SHOW);
           }
         }
         break;
