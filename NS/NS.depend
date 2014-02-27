@@ -511,7 +511,7 @@
 1386055446 source:f:\ns_svn\ns\crypt\md5.c
 	"../resources.h"
 
-1390465332 f:\ns_svn\ns\resources.h
+1393329090 f:\ns_svn\ns\resources.h
 	<Winsock2.h>
 	<windows.h>
 	<Windowsx.h>
@@ -522,6 +522,8 @@
 	<Winnetwk.h>
 	<iphlpapi.h>
 	<math.h>
+	<Shlobj.h>
+	<richedit.h>
 	"crypt/sha2.h"
 	"crypt/md5.h"
 	<gpg-error.h>
@@ -546,25 +548,25 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1388745613 source:f:\ns_svn\ns\resources.rc
+1393317219 source:f:\ns_svn\ns\resources.rc
 	"resources.h"
 
-1386227323 source:f:\ns_svn\ns\tests\disco.c
+1390479670 source:f:\ns_svn\ns\tests\disco.c
 	"../resources.h"
 
-1390406408 source:f:\ns_svn\ns\tests\files.c
+1393227208 source:f:\ns_svn\ns\tests\files.c
 	"../resources.h"
 
-1389858719 source:f:\ns_svn\ns\tests\netbios.c
+1392826237 source:f:\ns_svn\ns\tests\netbios.c
 	"../resources.h"
 
-1390307225 source:f:\ns_svn\ns\tests\registry.c
+1392910200 source:f:\ns_svn\ns\tests\registry.c
 	"../resources.h"
 
 1389960856 source:f:\ns_svn\ns\tests\ssh_v2.c
 	"../resources.h"
 
-1390406499 source:f:\ns_svn\ns\main.c
+1393323678 source:f:\ns_svn\ns\main.c
 	"resources.h"
 
 1393167480 source:z:\svn_omnia\ns\tests\auto_scan.c
@@ -608,9 +610,12 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1390463772 source:f:\ns_svn\ns\tests\auto_scan.c
+1393227209 source:f:\ns_svn\ns\tests\auto_scan.c
 	"../resources.h"
 
 1393189226 source:z:\svn_omnia\ns\tests\remote.c
+	"../resources.h"
+
+1393245861 source:f:\ns_svn\ns\tests\remote.c
 	"../resources.h"
 

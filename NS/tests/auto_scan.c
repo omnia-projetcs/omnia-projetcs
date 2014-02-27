@@ -1098,7 +1098,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
       {
         auto_scan_config.save_CSV = TRUE;
-        save_done = TRUE;
       }else auto_scan_config.save_CSV = FALSE;
     }else auto_scan_config.save_CSV = FALSE;
     tmp_check[0] = 0;
@@ -1108,7 +1107,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     {
       if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
       {
-        save_done = TRUE;
         auto_scan_config.save_XML = TRUE;
       }
       else auto_scan_config.save_XML = FALSE;
@@ -1120,7 +1118,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
       {
         auto_scan_config.save_HTML = TRUE;
-        save_done = TRUE;
       }
       else auto_scan_config.save_HTML = FALSE;
     }else auto_scan_config.save_HTML = FALSE;
@@ -1361,25 +1358,34 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       char date[DATE_SIZE];
       strftime(date, DATE_SIZE,"%Y.%m.%d-%H.%M.%S",today);
 
+      char cpath[LINE_SIZE]="";
+      GetLocalPath(cpath, LINE_SIZE);
+
       if (auto_scan_config.save_CSV)
       {
-        snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.csv",date);
+        snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.csv",cpath,date);
         if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
         else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+        save_done = TRUE;
       }
 
       if (auto_scan_config.save_XML)
       {
-        snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.xml",date);
+        snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.xml",cpath,date);
         if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
         else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+        save_done = TRUE;
       }
 
       if (auto_scan_config.save_HTML)
       {
-        snprintf(file2,LINE_SIZE,"[%s]_auto_scan_NS.html",date);
+        snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.html",cpath,date);
         if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
         else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+        save_done = TRUE;
       }
     }
 
