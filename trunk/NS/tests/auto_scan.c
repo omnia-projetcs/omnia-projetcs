@@ -12,119 +12,14 @@ char* GetLocalPath(char *path, unsigned int sizeMax)
   *c = 0;
   return path;
 }
-//------------------------------------------------------------------------------
-BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
-{
-  if (!scan_start)return FALSE;
-
-  char tmp[MAX_PATH];
-  wchar_t serveur[MAX_PATH];
-  wchar_t user[MAX_PATH];
-  snprintf(tmp,MAX_PATH,"\\\\%s",ip);
-  mbstowcs(serveur,tmp,MAX_PATH);
-  mbstowcs(user,username,MAX_PATH);
-
-  LPUSER_INFO_1 p1Buf =NULL;
-  LPUSER_INFO_2 p2Buf =NULL;
-  LPUSER_INFO_3 p3Buf =NULL;
-  NET_API_STATUS net_res;
-
-  net_res = NetUserGetInfo(serveur,user,1,(LPBYTE*)&p1Buf);
-  if (net_res == NERR_UserNotFound)
-  {
-    AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-    AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
-    return TRUE;
-  }else if (net_res==NERR_Success)
-  {
-    if (p1Buf->usri1_flags&UF_ACCOUNTDISABLE)
-    {
-      if (p1Buf->usri1_flags&UF_PASSWORD_EXPIRED)
-      {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
-      }else
-      {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
-      }
-    }else
-    {
-      AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
-    }
-    NetApiBufferFree(p1Buf);
-    return TRUE;
-  }else if (NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf)==NERR_Success)
-  {
-    net_res = NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf);
-    if (net_res == NERR_UserNotFound)
-    {
-      AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
-      return TRUE;
-    }else if (net_res==NERR_Success)
-    {
-      if (p2Buf->usri2_flags&UF_ACCOUNTDISABLE)
-      {
-        if (p2Buf->usri2_flags&UF_PASSWORD_EXPIRED)
-        {
-          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
-        }else
-        {
-          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
-        }
-      }else
-      {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
-      }
-      NetApiBufferFree(p2Buf);
-      return TRUE;
-    }else
-    {
-      net_res = NetUserGetInfo(serveur,user,3,(LPBYTE*)&p3Buf);
-      if (net_res == NERR_UserNotFound)
-      {
-        AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
-        return TRUE;
-      }else if (net_res==NERR_Success)
-      {
-        if (p3Buf->usri3_flags&UF_ACCOUNTDISABLE)
-        {
-          if (p3Buf->usri3_flags&UF_PASSWORD_EXPIRED || p3Buf->usri3_password_expired)
-          {
-            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
-          }else
-          {
-            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
-          }
-        }else
-        {
-          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
-        }
-        NetApiBufferFree(p3Buf);
-        return TRUE;
-      }
-    }
-  }
-
-  return FALSE;
-}
 //----------------------------------------------------------------
-void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS, long int *id_ok)
+void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BOOL windows_OS, long int *id_ok)
 {
   char remote_name[MAX_PATH]="", tmp[MAX_PATH]="";
   HANDLE connect = 0;
   WaitForSingleObject(hs_netbios,INFINITE);
 
-  if (scan_start)connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, FALSE, id_ok);
+  if (scan_start)connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,&config, iitem, FALSE, id_ok);
 
   if (scan_start)
   {
@@ -161,7 +56,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
         DWORD_tmp=0;
         if(ReadValue(hkey,"System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\","RequireStrongKey",&DWORD_tmp, sizeof(DWORD)) != 0)
         {
-          snprintf(value,MAX_PATH,"%s\\HKLM\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\RequireStrongKey=%d",ip,DWORD_tmp);
+          snprintf(value,MAX_PATH,"%s\\HKLM\\System\\CurrentControlSet\\Services\\Netlogon\\Parameters\\RequireStrongKey=%lu",ip,DWORD_tmp);
 
           if (DWORD_tmp == 1)
           {
@@ -180,7 +75,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
         DWORD_tmp=0;
         if(ReadValue(hkey,"Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\","NoDriveTypeAutorun",&DWORD_tmp, sizeof(DWORD)) != 0)
         {
-          snprintf(value,MAX_PATH,"%s\\HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\NoDriveTypeAutorun=%d",ip,DWORD_tmp);
+          snprintf(value,MAX_PATH,"%s\\HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\policies\\Explorer\\NoDriveTypeAutorun=%lu",ip,DWORD_tmp);
           if (DWORD_tmp == 0xFF)
           {
             AddLSTVUpdateItem("AUTORUN:OK (Disable)", COL_CONFIG, iitem);
@@ -328,7 +223,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
             tmp[2] = 0;
             unsigned int day = atoi(tmp);
 
-            if (today->tm_mday - day >= 0 && (today->tm_mon+1) == month && today->tm_year+1900 == year)
+            if ((today->tm_mday - day) >= 0 && (today->tm_mon+1) == month && (today->tm_year+1900) == year)
             {
               if (today->tm_mday - day <= 30)
               {
@@ -374,7 +269,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
             {
               snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (last update:%s)",tmp_value);
             }
-          }else snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (never updated)",tmp_value);
+          }else snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (never updated)");
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
           AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
         }
@@ -391,16 +286,16 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, BOOL windows_OS
   if(connect)
   {
     WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-    CloseHandle(connect);
+    if (connect != (HANDLE)1)CloseHandle(connect);
   }
   ReleaseSemaphore(hs_netbios,1,NULL);
 }
 //----------------------------------------------------------------
-void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, long int *id_ok)
+void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *id_ok)
 {
   char remote_name[MAX_PATH], tmp[MAX_PATH];
   HANDLE connect = 0;
-  if (scan_start)  connect = NetConnexionAuthenticateTest(ip, remote_name,config, iitem, TRUE, id_ok);
+  if (scan_start)  connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,&config, iitem, TRUE, id_ok);
 
   //account policy
   if (auto_scan_config.PASSWORD_POLICY && scan_start)
@@ -417,10 +312,10 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, long int *id_ok)
       if (pUmI_0 != NULL)
       {
         snprintf(tmp_pUmI_0,MAX_PATH,
-                                     "min_passwd_age:%s(%d days)\r\n"
-                                     "max_passwd_age:%s(%d days)\r\n"
-                                     "min_passwd_len:%s(%d)\r\n"
-                                     "passord_history:%s(%d)"
+                                     "min_passwd_age:%s(%lu days)\r\n"
+                                     "max_passwd_age:%s(%lu days)\r\n"
+                                     "min_passwd_len:%s(%lu)\r\n"
+                                     "passord_history:%s(%lu)"
                                     ,(pUmI_0->usrmod0_min_passwd_age/86400)>=auto_scan_config.PASSWORD_POLICY_MIN_AGE?"OK":"NOK",pUmI_0->usrmod0_min_passwd_age/86400
                                     ,(pUmI_0->usrmod0_max_passwd_age/86400)<=auto_scan_config.PASSWORD_POLICY_MAX_AGE?"OK":"NOK",pUmI_0->usrmod0_max_passwd_age/86400
                                     ,pUmI_0->usrmod0_min_passwd_len>=auto_scan_config.PASSWORD_POLICY_MIN_LEN?"OK":"NOK",pUmI_0->usrmod0_min_passwd_len
@@ -434,7 +329,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, long int *id_ok)
     {
       if (pUmI_3 != NULL)
       {
-        snprintf(tmp_pUmI_3,MAX_PATH,"bad_password_count_to_lock_account:%s(%d)"
+        snprintf(tmp_pUmI_3,MAX_PATH,"bad_password_count_to_lock_account:%s(%lu)"
                                     ,pUmI_3->usrmod3_lockout_threshold<=auto_scan_config.PASSWORD_POLICY_LOCKOUT_COUNT?"OK":"NOK",pUmI_3->usrmod3_lockout_threshold);
         NetApiBufferFree(pUmI_3);
         AddLSTVUpdateItem(tmp_pUmI_3, COL_CONFIG, iitem);
@@ -491,7 +386,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, long int *id_ok)
   if(connect)
   {
     WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
-    CloseHandle(connect);
+    if (connect != (HANDLE)1)CloseHandle(connect);
   }
 }
 //----------------------------------------------------------------
@@ -525,7 +420,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
       snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config.accounts[i].login);
     }
 
-    if (WNetAddConnection2(&NetRes,config.accounts[i].mdp,tmp_login,CONNECT_PROMPT)==NO_ERROR)
+    if (WNetAddConnection2(&NetRes,config.accounts[i].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s with %s (%02d) account.",remote_name,config.accounts[i].login,i);
       AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
@@ -609,25 +504,13 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
   ReleaseSemaphore(hs_netbios,1,NULL);
 }
 //----------------------------------------------------------------
-BOOL LinuxStart_msgOK(char *msg, char*cmd)
-{
-  if (msg == NULL)return FALSE;
-  else if (msg[0] == 0)return FALSE;
-  else if (msg[0] == cmd[0] && msg[1] == cmd[1] && msg[2] == cmd[2])return FALSE;
-  else if (msg[0] == 'Y' && msg[1] == 'o' && msg[2] == 'u')return FALSE;
-  else if (msg[0] == 'T' && msg[1] == 'h' && msg[2] == 'i' && msg[3] == 's' && msg[4] == ' ' && msg[5] == 'a' && msg[6] == 'c')return FALSE;
-  else if (msg[0] == 'D' && msg[1] == 'E' && msg[2] == 'L' && msg[3] == 'I' && msg[4] == 'V' && msg[5] == 'E' && msg[6] == 'R')return FALSE;
-  return TRUE;
-}
-
-//----------------------------------------------------------------
 DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 {
   if (!scan_start)return 0;
   DWORD index = (DWORD)lParam;
-  BOOL exist = FALSE, dnsok=FALSE;
+  BOOL exist = FALSE;
   long int iitem = ID_ERROR;
-  char ip[MAX_PATH]="", dsc[MAX_PATH], ip_mac[MAX_PATH]="", dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH];
+  char ip[MAX_PATH]="", dsc[MAX_PATH], dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH],msg[MAX_PATH];
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
     ReleaseSemaphore(hs_threads,1,NULL);
@@ -662,14 +545,13 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       struct in_addr **a;
       struct hostent *host;
 
-      if (host=gethostbyname(ip))
+      if ((host=gethostbyname(ip)))
       {
         a = (struct in_addr **)host->h_addr_list;
         snprintf(ip,16,"%s",inet_ntoa(**a));
         if(auto_scan_config.DNS_DISCOVERY)
         {
           exist = TRUE;
-          dnsok = TRUE;
           iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
         }
       }else
@@ -727,12 +609,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           {
             iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
             exist = TRUE;
-            dnsok = TRUE;
           }
         }else
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
-          dnsok = TRUE;
         }
       }
     }
@@ -781,15 +661,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           if (auto_scan_config.REVERS_SID)
           {
             cfg[0] = 0;
-
-            if(TestReversSID(ip,(char*)"invité"))             snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invité\" account)");
-            else if(TestReversSID(ip,(char*)"guest"))         snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"guest\" account)");
-            else if(TestReversSID(ip,(char*)"gast"))          snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"gast\" account)");
-            else if(TestReversSID(ip,(char*)"invitado"))      snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"invitado\" account)");
-            else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"HelpAssistant\" account)");
-            else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"ASPNET\" account)");
-            else if(TestReversSID(ip,(char*)"administrateur"))snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrateur\" account)");
-            else if(TestReversSID(ip,(char*)"administrator")) snprintf(cfg,MAX_LINE_SIZE,"Revers SID:Enable (OK with \"administrator\" account)");
+            CheckReversSID(ip, cfg, MAX_LINE_SIZE);
 
             if (cfg[0] != 0)
             {
@@ -806,12 +678,12 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           snprintf(tmp,MAX_PATH,"\\\\%s",ip);
           mbstowcs(server, tmp, MAX_PATH);
 
-          Netbios_Share(server, iitem, COL_CONFIG, MAX_LINE_SIZE, ip, TRUE);
+          Netbios_Share(server, iitem, COL_CONFIG, ip, TRUE);
         }
 
         if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
       }
-      RemoteConnexionScan_auto_scan(iitem, ip, &id_ok);
+      RemoteConnexionScan_auto_scan(iitem, ip, index, &id_ok);
 
       ReleaseSemaphore(hs_netbios,1,NULL);
     }
@@ -821,7 +693,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       //registry
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
       WaitForSingleObject(hs_registry,INFINITE);
-      RemoteConnexionRegistryScan_auto_scan(iitem, ip, windows_OS, &id_ok);
+      RemoteConnexionRegistryScan_auto_scan(iitem, ip, index, windows_OS, &id_ok);
       ReleaseSemaphore(hs_registry,1,NULL);
     }
 
@@ -844,13 +716,35 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         WaitForSingleObject(hs_ssh,INFINITE);
         if (config.nb_accounts == 0)
         {
-          int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,TRUE,TRUE);
+          snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s",config.login);
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+          int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.password, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,TRUE,TRUE);
           if (ret_ssh == SSH_ERROR_OK)
           {
             if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "head -n 1 /etc/issue"))
             {
               ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
-            }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.mdp, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE,FALSE) == SSH_ERROR_OK)
+            }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.login, config.password, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE,FALSE) == SSH_ERROR_OK)
+            {
+              if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "uname -a"))
+              {
+                ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+              }
+            }
+          }
+        }else if(config.global_ip_file)
+        {
+          snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s (%02d)",config.accounts[index].login, index);
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+          int ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[index].login, config.accounts[index].password, -1,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,TRUE,TRUE);
+          if (ret_ssh == SSH_ERROR_OK)
+          {
+            if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "head -n 1 /etc/issue"))
+            {
+              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
+            }else  if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[index].login, config.accounts[index].password, -1,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE,FALSE) == SSH_ERROR_OK)
             {
               if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "uname -a"))
               {
@@ -869,7 +763,11 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           {
             //OS rescue
             tmp_os[0] = 0;
-            ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,first_msg,msg_auth);
+
+            snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s (%02d)",config.accounts[j].login,j);
+            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+            ret_ssh = ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].password, j,"head -n 1 /etc/issue",tmp_os,MAX_MSG_SIZE,first_msg,msg_auth);
             if (ret_ssh == SSH_ERROR_OK)
             {
               msg_auth = FALSE;
@@ -877,7 +775,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
               {
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
                 break;
-              }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].mdp, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE, FALSE) == SSH_ERROR_OK)
+              }else if (ssh_exec_cmd(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].password, j,"uname -a",tmp_os,MAX_MSG_SIZE,FALSE, FALSE) == SSH_ERROR_OK)
               {
                 if (tmp_os[0] != 0 && LinuxStart_msgOK(tmp_os, "uname -a"))
                 {
@@ -956,12 +854,22 @@ DWORD WINAPI auto_scan(LPVOID lParam)
 
     CheckDlgButton(h_main,CHK_LOAD_IP_FILE,BST_CHECKED);
 
-    //loads accounts
-    tmp_check[0] = 0;
-    if(GetPrivateProfileString("SCAN","ACCOUNT_FILE","",tmp_check,LINE_SIZE,ini_path))
+    if (config.global_ip_file == FALSE)
     {
-      config.nb_accounts = 0;
-      LoadAuthFile(tmp_check);
+      //loads accounts
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","ACCOUNT_FILE","",tmp_check,LINE_SIZE,ini_path))
+      {
+        config.nb_accounts = 0;
+        LoadAuthFile(tmp_check);
+      }
+    }
+
+    //LOG
+    tmp_check[0] = 0;
+    if(GetPrivateProfileString("LOG","LOG","ENABLE",tmp_check,LINE_SIZE,ini_path))
+    {
+      if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_DISABLE = TRUE;
     }
 
     //check scan type :
@@ -1280,7 +1188,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     //scan_start
     DWORD i;
     nb_i = SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
-    char ip_test[MAX_PATH];
 
     hs_threads  = CreateSemaphore(NULL,NB_MAX_THREAD,NB_MAX_THREAD,NULL);
     hs_disco    = CreateSemaphore(NULL,NB_MAX_DISCO_THREADS,NB_MAX_DISCO_THREADS,NULL);

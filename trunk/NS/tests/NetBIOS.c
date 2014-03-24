@@ -66,28 +66,11 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
         }
       break;
       default:
-            snprintf(txtOS,sz_max,"Microsoft Windows [major:%d;minor:%d;pid:%d]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor,mybuff->wki100_platform_id);
+            snprintf(txtOS,sz_max,"Microsoft Windows [major:%lu;minor:%lu;pid:%lu]*",mybuff->wki100_ver_major,mybuff->wki100_ver_minor,mybuff->wki100_platform_id);
       break;
     }
   }
   NetApiBufferFree(mybuff);
-  return ret;
-}
-//----------------------------------------------------------------
-BOOL Netbios_NULLSession(char *ip, char*share)
-{
-  char tmp[MAX_PATH];
-  _snprintf(tmp,MAX_PATH,"\\\\%s\\%s",ip,share);
-
-  BOOL ret            = FALSE;
-  NETRESOURCE NetRes;
-  NetRes.dwType	      = RESOURCETYPE_ANY;
-  NetRes.lpLocalName  = (LPSTR)"";
-  NetRes.lpRemoteName	= tmp;
-  NetRes.lpProvider   = (LPSTR)"";
-  if (WNetAddConnection2(&NetRes,"","",0) == NO_ERROR)ret = TRUE;
-
-  WNetCancelConnection2(tmp,CONNECT_UPDATE_PROFILE,1);
   return ret;
 }
 //----------------------------------------------------------------
@@ -112,6 +95,16 @@ void Netbios_NULLSessionStop(char *ip, char*share)
   WNetCancelConnection2(tmp,CONNECT_UPDATE_PROFILE,1);
 }
 //----------------------------------------------------------------
+BOOL Netbios_NULLSession(char *ip, char*share)
+{
+  if (Netbios_NULLSessionStart(ip, share))
+  {
+    Netbios_NULLSessionStop(ip, share);
+    return TRUE;
+  }
+  return FALSE;
+}
+//----------------------------------------------------------------
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
 {
   TIME_OF_DAY_INFO *timep;
@@ -129,13 +122,13 @@ BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max)
   return ret;
 }
 //----------------------------------------------------------------
-BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, unsigned int sz_max, char*ip, BOOL IPC_null_session)
+BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_null_session)
 {
   BOOL ret = FALSE;
   NET_API_STATUS res;
   PSHARE_INFO_1 BufPtr,p;
   DWORD i, er=0,tr=0,resume=0;
-  char tmp[MAX_PATH], tmp_share[MAX_PATH], msg[MAX_PATH];
+  char tmp_share[MAX_PATH], msg[MAX_PATH];
 
   do
   {
@@ -195,6 +188,19 @@ BOOL TestReversSID(char *ip, char* user)
   else return FALSE;
 }
 //----------------------------------------------------------------
+void CheckReversSID(char *ip, char *results, DWORD max_size_results)
+{
+    results[0] = 0;
+    if(TestReversSID(ip,(char*)"invité"))             snprintf(results,max_size_results,"Revers SID:Enable (OK with \"invité\" account)");
+    else if(TestReversSID(ip,(char*)"guest"))         snprintf(results,max_size_results,"Revers SID:Enable (OK with \"guest\" account)");
+    else if(TestReversSID(ip,(char*)"gast"))          snprintf(results,max_size_results,"Revers SID:Enable (OK with \"gast\" account)");
+    else if(TestReversSID(ip,(char*)"invitado"))      snprintf(results,max_size_results,"Revers SID:Enable (OK with \"invitado\" account)");
+    else if(TestReversSID(ip,(char*)"HelpAssistant")) snprintf(results,max_size_results,"Revers SID:Enable (OK with \"HelpAssistant\" account)");
+    else if(TestReversSID(ip,(char*)"ASPNET"))        snprintf(results,max_size_results,"Revers SID:Enable (OK with \"ASPNET\" account)");
+    else if(TestReversSID(ip,(char*)"administrateur"))snprintf(results,max_size_results,"Revers SID:Enable (OK with \"administrateur\" account)");
+    else if(TestReversSID(ip,(char*)"administrator")) snprintf(results,max_size_results,"Revers SID:Enable (OK with \"administrator\" account)");
+}
+//----------------------------------------------------------------
 BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
 {
   BOOL ret0 = FALSE, ret1 = FALSE;
@@ -210,10 +216,10 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
     if (pUmI_0 != NULL)
     {
       ret0 = TRUE;
-      snprintf(tmp_pUmI_0,MAX_PATH,"min_passwd_len:%d\r\n"
-                                   "max_passwd_age:%d(days)\r\n"
-                                   "min_passwd_age:%d(days)\r\n"
-                                   "passord_history:%d\r\n"
+      snprintf(tmp_pUmI_0,MAX_PATH,"min_passwd_len:%lu\r\n"
+                                   "max_passwd_age:%lu(days)\r\n"
+                                   "min_passwd_age:%lu(days)\r\n"
+                                   "passord_history:%lu\r\n"
                                    //"force_logoff:%d(s)\n"
                                   ,pUmI_0->usrmod0_min_passwd_len
                                   ,pUmI_0->usrmod0_max_passwd_age/86400
@@ -229,9 +235,9 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
     if (pUmI_3 != NULL)
     {
       ret1 = TRUE;
-      snprintf(tmp_pUmI_3,MAX_PATH,"lockout_duration_before_auto_unlock:%d(s)\r\n"
-                                   "wait_time_to_reset_fail_logon_count:%d(s)\r\n"
-                                   "bad_password_count_to_lock_account:%d"
+      snprintf(tmp_pUmI_3,MAX_PATH,"lockout_duration_before_auto_unlock:%lu(s)\r\n"
+                                   "wait_time_to_reset_fail_logon_count:%lu(s)\r\n"
+                                   "bad_password_count_to_lock_account:%lu"
                                   ,pUmI_3->usrmod3_lockout_duration
                                   ,pUmI_3->usrmod3_lockout_observation_window
                                   ,pUmI_3->usrmod3_lockout_threshold);
@@ -244,4 +250,109 @@ BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max)
   else strncpy(pol,tmp_pUmI_3,sz_max);
 
   return (ret0|ret1);
+}
+//------------------------------------------------------------------------------
+BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
+{
+  if (!scan_start)return FALSE;
+
+  char tmp[MAX_PATH];
+  wchar_t serveur[MAX_PATH];
+  wchar_t user[MAX_PATH];
+  snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+  mbstowcs(serveur,tmp,MAX_PATH);
+  mbstowcs(user,username,MAX_PATH);
+
+  LPUSER_INFO_1 p1Buf =NULL;
+  LPUSER_INFO_2 p2Buf =NULL;
+  LPUSER_INFO_3 p3Buf =NULL;
+  NET_API_STATUS net_res;
+
+  net_res = NetUserGetInfo(serveur,user,1,(LPBYTE*)&p1Buf);
+  if (net_res == NERR_UserNotFound)
+  {
+    AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
+    AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+    return TRUE;
+  }else if (net_res==NERR_Success)
+  {
+    if (p1Buf->usri1_flags&UF_ACCOUNTDISABLE)
+    {
+      if (p1Buf->usri1_flags&UF_PASSWORD_EXPIRED)
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+      }else
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+      }
+    }else
+    {
+      AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+    }
+    NetApiBufferFree(p1Buf);
+    return TRUE;
+  }else if (NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf)==NERR_Success)
+  {
+    net_res = NetUserGetInfo(serveur,user,2,(LPBYTE*)&p2Buf);
+    if (net_res == NERR_UserNotFound)
+    {
+      AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+      return TRUE;
+    }else if (net_res==NERR_Success)
+    {
+      if (p2Buf->usri2_flags&UF_ACCOUNTDISABLE)
+      {
+        if (p2Buf->usri2_flags&UF_PASSWORD_EXPIRED)
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+        }else
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+        }
+      }else
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+      }
+      NetApiBufferFree(p2Buf);
+      return TRUE;
+    }else
+    {
+      net_res = NetUserGetInfo(serveur,user,3,(LPBYTE*)&p3Buf);
+      if (net_res == NERR_UserNotFound)
+      {
+        AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+        return TRUE;
+      }else if (net_res==NERR_Success)
+      {
+        if (p3Buf->usri3_flags&UF_ACCOUNTDISABLE)
+        {
+          if (p3Buf->usri3_flags&UF_PASSWORD_EXPIRED || p3Buf->usri3_password_expired)
+          {
+            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+          }else
+          {
+            AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+          }
+        }else
+        {
+          AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+        }
+        NetApiBufferFree(p3Buf);
+        return TRUE;
+      }
+    }
+  }
+
+  return FALSE;
 }

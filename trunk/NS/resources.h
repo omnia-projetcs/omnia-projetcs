@@ -5,14 +5,16 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
-  * tester le SSH (revoir en effectuant une extraction commande par commande)
+ * ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
+
+ * bug de connexion au service de registre à distance en 7 vers XP en connexion AD : en scanne normal (en remplissant les crédentiels) et en extract!!!
+ * bug d'extinction du service de registre à distance , à revoir avec les infos Windows
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
 
 [NS]
 - review few bugs
-
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -23,6 +25,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //----------------------------------------------------------------
 //#define DEBUG_MODE                                  1
 //#define DEBUG_MODE_SSH                              1
+//#define DEBUG_MODE_REGISTRY                         1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -42,6 +45,8 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #include <gpg-error.h>
 #include <gcrypt.h>
 #include <libssh2.h>
+/*
+//for visual studio compatibilities
 #pragma comment(lib, "gcrypt.lib")
 #pragma comment(lib, "gpg-error.lib")
 #pragma comment(lib, "ssh2.dll.lib")
@@ -52,12 +57,13 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "Iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
+*/
 //#pragma comment(lib, "Shell32.lib") //for GetPathToSAve
 
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.7 27/02/2014"
+#define TITLE                                       "NS v0.5.15 21/03/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -150,6 +156,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define SAVE_TYPE_CSV                               2
 #define SAVE_TYPE_HTML                              3
 #define SAVE_TYPE_ALL                               4
+#define SAVE_TYPE_LOG                               5
 //----------------------------------------------------------------
 #define COL_IP                                      0
 #define COL_DSC                                     1
@@ -208,12 +215,12 @@ typedef struct rg_st
   unsigned short data_type;
 }RG_ST;
 //----------------------------------------------------------------
-#define MAX_ACCOUNTS 256
+#define MAX_ACCOUNTS      4096
 typedef struct accounts_st
 {
   char domain[MAX_PATH];
   char login[MAX_PATH];
-  char mdp[MAX_PATH];
+  char password[MAX_PATH];
 }ACCOUNTS_ST;
 
 typedef struct scanne_st
@@ -242,6 +249,8 @@ typedef struct scanne_st
   BOOL check_ssh;
   BOOL check_ssh_os;
 
+  BOOL global_ip_file; // = IP + desc + domain + login + mdp par ligne !!!
+
   unsigned int nb_accounts;
   ACCOUNTS_ST accounts[MAX_ACCOUNTS];
 
@@ -249,8 +258,8 @@ typedef struct scanne_st
   BOOL local_account;
   char domain[MAX_PATH];
   char login[MAX_PATH];
-  char mdp[MAX_PATH];
-}SCANNE_ST;
+  char password[MAX_PATH];
+}SCANNE_ST, *PSCANNE_ST;
 //----------------------------------------------------------------
 typedef struct
 {
@@ -284,6 +293,8 @@ CRITICAL_SECTION Sync, Sync_item;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 SCANNE_ST config;
 HINSTANCE richDll;
+
+BOOL LOG_DISABLE;
 //----------------------------------------------------------------
 //AUTO-SCAN
 typedef struct auto_scanne_st
@@ -379,6 +390,7 @@ BOOL LSBExist(DWORD lsb, char *sst);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //RicheEdit
+void RichSetTopPos(HWND HRichEdit);
 void RichEditInit(HWND HRichEdit);
 void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt);
 void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
@@ -386,13 +398,15 @@ void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
 //string
 char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
-unsigned long int Contient(char*data, char*chaine);
+long int Contient(char*data, char*chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 BOOL LinuxStart_msgOK(char *msg, char*cmd);
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
+char *extractPath(char *path, char *path_dst, unsigned int path_size_max);
 
 //export
 BOOL SaveLSTV(HWND hlv, char *file, unsigned int type, unsigned int nb_column);
+BOOL SaveLV(HWND hlv, char *file);
 
 //load files configuration
 char* GetLocalPath(char *path, unsigned int sizeMax);
@@ -405,7 +419,7 @@ DWORD WINAPI scan(LPVOID lParam);
 DWORD WINAPI auto_scan(LPVOID lParam);
 
 //IP
-void addIPTest(char *ip_format, char*dsc);
+BOOL addIPTest(char *ip_format, char*dsc);
 void addIPInterval(char *ip_src, char *ip_dst, char*dsc);
 BOOL verifieName(char *name);
 
@@ -419,8 +433,9 @@ BOOL Netbios_NULLSessionStart(char *ip, char *share);
 void Netbios_NULLSessionStop(char *ip, char *share);
 
 BOOL TestReversSID(char *ip, char* user);
+void CheckReversSID(char *ip, char *results, DWORD max_size_results);
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
-BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, unsigned int sz_max, char*ip, BOOL IPC_null_session);
+BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_null_session);
 BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
@@ -433,23 +448,26 @@ DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size);
 void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
-void RegistryWriteKey(DWORD iitem,char *ip, HKEY hkey, char *chkey);
-BOOL RemoteRegistryNetConnexion(DWORD iitem,char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok);
-BOOL RemoteConnexionScan(DWORD iitem, char *name, char *ip, SCANNE_ST config, BOOL windows_OS, long int *id_ok);
+void RegistryWriteKey(char *ip, HKEY hkey, char *chkey);
+BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok);
+BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok);
 
 //File
 void FileToMd5(HANDLE Hfic, char *md5);
 void FileToSHA256(HANDLE Hfic, char *csha256);
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, char *remote_share, SCANNE_ST config, long int *id_ok);
-BOOL RemoteConnexionFilesScan(DWORD iitem,char *name, char *ip, SCANNE_ST config, long int *id_ok);
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok);
+BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok);
+void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data);
+BOOL RemoteFilesCopy(DWORD iitem, char *ip, char*remote_share, PSCANNE_ST config, char*pathToSave, char*file);
 
 //SSH
 BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK);
 int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*password);
+int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, char*password, HANDLE hfile);
 int ssh_exec_cmd(DWORD iitem,char *ip, unsigned int port, char*username, char*password, long int id_account, char *cmd, char *buffer, DWORD buffer_size, BOOL msg_OK, BOOL msg_auth);
 
 //Scan
-HANDLE NetConnexionAuthenticateTest(char *ip, char*remote_name, SCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok);
+HANDLE NetConnexionAuthenticateTest(char *ip, DWORD id_ip, char*remote_name, PSCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok);
 DWORD WINAPI ScanIp(LPVOID lParam);
 DWORD WINAPI remote_extract(LPVOID lParam);
 #endif

@@ -63,7 +63,7 @@
 		<Unit filename="tests/disco.c">
 			<Option compilerVar="CC" />
 		</Unit>
-		<Unit filename="tests/remote.c">
+		<Unit filename="tests/extract.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tests/ssh_v2.c">
