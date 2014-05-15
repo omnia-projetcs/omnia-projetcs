@@ -22,15 +22,14 @@ DWORD WINAPI ImpEcran(LPVOID lParam)
   time_t date;
   time(&date);
   //actual path
-  char local_path[MAX_PATH]="";
-  GetLocalPath(local_path, MAX_PATH);
+  char local_path[MAX_PATH] = "";
+  char fic[MAX_PATH]        = "";
 
-  char fic[MAX_PATH]="";
-  snprintf(fic,MAX_PATH,"%s\\%s",local_path,(char *)ctime(&date));
-  fic[strlen(fic)-1]=0;
+  snprintf(fic,MAX_PATH,"%s\\%s",GetLocalPath(local_path, MAX_PATH),(char *)ctime(&date));
+  fic[strlen(fic)-1] = 0;
   strncat(fic,".bmp\0",MAX_PATH);
-  fic[strlen(fic)-15]='h';
-  fic[strlen(fic)-12]='m';
+  fic[strlen(fic)-15]= 'h';
+  fic[strlen(fic)-12]= 'm';
 
   //only window : get window name
   HANDLE HFen=0;
@@ -139,7 +138,6 @@ DWORD WINAPI ImpEcran(LPVOID lParam)
                 }
               }
             }
-            free(pBits);
           }
           DeleteObject(Hbmp);
         }

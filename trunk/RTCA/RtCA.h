@@ -22,6 +22,7 @@
 #define NOM_APPLI              "RtCA"
 #define URL_APPLI              "http://code.google.com/p/omnia-projetcs/"
 
+#define SQLITE_F               100
 #define DEFAULT_SQLITE_FILE    "RtCA.sqlite"
 #define DEFAULT_TM_SQLITE_FILE "RtCA.sqlite-journal"
 #define DEFAULT_TOOL_MENU_FILE "tools.cfg"
@@ -62,6 +63,7 @@
 #include <iprtrmib.h>           //tracert PMIB_IPFORWARDTABLE
 #include <iphlpapi.h>           //network
 #include <lmshare.h>            //share
+#include <richedit.h>           //Richedit
 #include <tlhelp32.h>           //process
 #include <psapi.h>              //process
 #include "sqlite/sqlite3.h"     //sqlite
@@ -174,14 +176,13 @@ TOOLS_USE tools_load[NB_MAX_TOOLS];
 #define TOOL_BAR                 1002
 
 HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip,
-     hdbclk_info, hdbclk_info_process, hdbclk_info_registry, hdbclk_info_sqlite;
+     hdbclk_info, hdbclk_info_process, hdbclk_info_registry, hdbclk_info_sqlite, hdbclk_info_state;
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
-WNDPROC wndproc_hdbclk_info;
 
 HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa, h_proxy;
-BOOL disable_m_context, disable_p_context, enable_magic;
+BOOL disable_m_context, disable_p_context, enable_magic, enable_remote;
 
 
 BOOL enable_LNK;
@@ -210,6 +211,7 @@ HANDLE h_Hexa;
 #define BT_REGISTRY_RECOV_MODE   2016
 #define BT_UTC_CHK               2017
 #define BT_MAGIC_CHK             2018
+#define BT_RA_CHK                2019
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
@@ -448,6 +450,7 @@ HHOOK HHook; // Handle du hook global
 #define POPUP_TRV_FILES_UP                    11008
 #define POPUP_TRV_FILES_DOWN                  11009
 #define POPUP_TRV_FILES_AUTO_SEARCH_PATH      11010
+#define POPUP_TRV_FILES_LOAD_LIST             11011
 
 #define POPUP_TRV_TEST                        11100
 #define POPUP_TRV_CHECK_ALL                   11101
@@ -1001,6 +1004,26 @@ unsigned long int nb_session, session[NB_MAX_SESSION];
 
 DWORD pos_search,pos_search_reg;
 //------------------------------------------------------------------------------
+//richedit
+//couleur
+#define ROUGE RGB(255, 0, 0)
+#define NOIR RGB(0  ,  0, 0)
+#define VERT RGB(51 ,153, 0)
+#define BLEU RGB(0  ,  0,255)
+#define GRIS RGB(153,153,153)
+
+HINSTANCE richDll;
+//HWND hdbclk_info;
+WNDPROC wndproc_hdbclk_info;
+
+//RicheEdit
+void RichSetTopPos(HWND HRichEdit);
+void RichEditInit(HWND HRichEdit);
+void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt);
+void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
+
+LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+//------------------------------------------------------------------------------
 //MD5
 #include "crypt/md5.h"
 typedef unsigned char md5_byte_t; /* 8-bit byte */
@@ -1026,6 +1049,7 @@ void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 #include "crypt/opensslv.h"
 //------------------------------------------------------------------------------
 //SQLITE functions
+void ExtractSQLITE_DB();
 char *convertStringToSQL(char *data, unsigned int size_max);
 int callback_write_sqlite(void *datas, int argc, char **argv, char **azColName);
 BOOL SQLITE_LireData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
@@ -1131,7 +1155,7 @@ void SCREENSHOT_fct();
 
 //file function
 BOOL FileExist(char *file);
-void GetLocalPath(char *path, unsigned int sizeMax);
+char* GetLocalPath(char *path, unsigned int sizeMax);
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size);
@@ -1142,6 +1166,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
 void ConsoleDirectory_sha256deep(char *tmp_path);
 void DDConsole(char *path_disk, DWORD sz, char *save_file);
+void loadFile_test(char *file, unsigned int index);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);

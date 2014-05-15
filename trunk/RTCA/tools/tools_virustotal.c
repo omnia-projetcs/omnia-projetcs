@@ -151,9 +151,9 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
 
         //lecture + convertion : , "last_analysis_date": "
         c = resultat;
-        while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='l'|| *(c+4)!='a'))c++;
+        while (*c && (*c != ',' || *(c+1)!=' '|| *(c+2)!='"' || *(c+3)!='l'|| *(c+4)!='a'|| *(c+17)!='d'))c++;
 
-        if (*c == ',' && *(c+1)==' ' && *(c+2)=='"' && *(c+3)=='l' && *(c+4)=='a')
+        if (*c == ',' && *(c+1)==' ' && *(c+2)=='"' && *(c+3)=='l' && *(c+4)=='a' && *(c+17)=='d')
         {
           c+=strlen(", \"last_analysis_date\": \""); //25
 

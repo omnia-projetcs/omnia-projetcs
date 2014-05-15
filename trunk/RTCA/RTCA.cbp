@@ -44,6 +44,9 @@
 		<Unit filename="configuration/proxy.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="configuration/richedit_conf.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="crypt/d3des.c">
 			<Option compilerVar="CC" />
 		</Unit>
@@ -262,6 +265,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/tools_registry_recovery.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/tools_remote_extract.c">
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/tools_screenshot.c">

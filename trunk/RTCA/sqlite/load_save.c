@@ -43,7 +43,6 @@ BOOL SQLITE_LoadSession(char *file)
   SQLITE_SaveSession("RtCA.sqlite.back");
 
   //BOOL ret = BackupSQLITESession(file, SQLITE_LOCAL_BDD);
-
   char request[MAX_LINE_SIZE];
   snprintf(request,MAX_LINE_SIZE,"ATTACH '%s' AS toMerge;",file);
   sqlite3_exec(db_scan,request, NULL, NULL, NULL);

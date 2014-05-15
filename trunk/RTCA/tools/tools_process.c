@@ -581,119 +581,130 @@ void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *Compan
 //------------------------------------------------------------------------------
 DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
 {
-  long nitem = SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
-  if (nitem > -1)
+  long i, index = SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+  if (index > -1)
   {
-    //allow 10mo memory (max data ok)
-    char *buffer = (char *)LocalAlloc(LMEM_FIXED, DIXM);
-    if (buffer !=0)
+    char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
+    char SEPARATOR[] = "\r\n---------------------------------------------\r\n";
+    RichEditInit(hdbclk_info_process);
+
+    LVCOLUMN lvc;
+    lvc.mask        = LVCF_TEXT;
+    lvc.cchTextMax  = MAX_LINE_SIZE;
+    lvc.pszText     = tmp;
+
+    for (i=0;i<NB_PROCESS_COLUMN;i++)
     {
-      //get process simple infos
-      char tmp[MAX_LINE_SIZE];
-      char SEPARATOR[] = "---------------------------------------------\r\n";
-      DWORD i;
-      LVCOLUMN lvc;
-      lvc.mask        = LVCF_TEXT;
-      lvc.cchTextMax  = MAX_LINE_SIZE;
-      lvc.pszText     = tmp;
-      buffer[0]       = 0;
-
-      for (i=0;i<NB_PROCESS_COLUMN;i++)
-      {
-        tmp[0] = 0;
-        SendMessage(hlstv_process,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc);
-        strncat(buffer,tmp,DIXM);
-        strncat(buffer,": ",DIXM);
-        tmp[0] = 0;
-        ListView_GetItemText(hlstv_process,nitem,i,tmp,MAX_LINE_SIZE);
-        strncat(buffer,tmp,DIXM);
-        strncat(buffer,"\r\n\0",DIXM);
-      }
-      strncat(buffer,SEPARATOR,DIXM);
-
-      //get real path
-      char path[MAX_PATH]="";
-      ListView_GetItemText(hlstv_process,nitem,2,tmp,MAX_LINE_SIZE);
-      if (tmp[0]=='\\' && tmp[1]=='?' && tmp[2]=='?' && tmp[3]=='\\')
-      {
-        strncpy(path,tmp+4,MAX_PATH);
-      }else if (tmp[0]=='\\' && (tmp[1]=='S' || tmp[1]=='s') && tmp[2]=='y' && tmp[3]=='s' && tmp[4]=='t' && tmp[5]=='e' && tmp[6]=='m' && (tmp[7]=='R' || tmp[7]=='r')) //SystemRoot
-      {
-        strncpy(path,tmp+1,MAX_PATH); //passe le '\\'
-        ReplaceEnv("SystemROOT", path, MAX_PATH);
-      }else strncpy(path,tmp,MAX_PATH);
-
-      //get pid
       tmp[0] = 0;
-      ListView_GetItemText(hlstv_process,nitem,1,tmp,MAX_LINE_SIZE);
-      DWORD pid = atol(tmp);
-
-      //binary infos
-      char tmp1[MAX_PATH], tmp2[MAX_PATH], tmp3[MAX_PATH];
-      GetFileInfos(path, tmp, MAX_PATH, tmp1, tmp2, MAX_PATH);
-      strncat(buffer,"Size: ",DIXM);
-      strncat(buffer,tmp,DIXM);
-      strncat(buffer,"\r\nFile create time: ",DIXM);
-      strncat(buffer,tmp1,DIXM);
-      strncat(buffer,"\r\nFile last update time: ",DIXM);
-      strncat(buffer,tmp2,DIXM);
-
-      GetACLS(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-      strncat(buffer,"\r\nACL Owner: ",DIXM);
-      strncat(buffer,tmp1,DIXM);
-      strncat(buffer," (",DIXM);
-      strncat(buffer,tmp3,DIXM);
-      strncat(buffer,")\r\nACLs: ",DIXM);
-      strncat(buffer,tmp,DIXM);
-      strncat(buffer,"\r\n\0",DIXM);
-      strncat(buffer,SEPARATOR,DIXM);
-
-      //file binary informations
-      FileInfoRead(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-      strncat(buffer,"ProductName: ",DIXM);
-      strncat(buffer,tmp,DIXM);
-      strncat(buffer,"\r\nFileVersion: ",DIXM);
-      strncat(buffer,tmp1,DIXM);
-      strncat(buffer,"\r\nCompanyName: ",DIXM);
-      strncat(buffer,tmp2,DIXM);
-      strncat(buffer,"\r\nFileDescription: ",DIXM);
-      strncat(buffer,tmp3,DIXM);
-      strncat(buffer,"\r\n\0",DIXM);
-      strncat(buffer,SEPARATOR,DIXM);
-
-      //dll infos
-      HMODULE hMod[MAX_LINE_SIZE];
-      DWORD cbNeeded = 0, j;
-      HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0, pid);
-      if (hProcess != NULL)
+      tmp2[0] = 0;
+      if (SendMessage(hlstv_process,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
       {
-        //chargement de la liste des dll du processus
-        if (EnumProcessModules(hProcess, hMod, MAX_LINE_SIZE,&cbNeeded))
+        if (strlen(tmp)>0)
         {
-          strncat(buffer,"DLL dependency:\r\n",DIXM);
+          ListView_GetItemText(hlstv_process,index,i,tmp2,MAX_LINE_SIZE);
 
-          for ( j = 1; j < (cbNeeded / sizeof(HMODULE)) && j< MAX_LINE_SIZE; j++)
+          if (strlen(tmp2)>0)
           {
-            //emplacement de la dll
-            tmp[0]=0;
-            if (GetModuleFileNameEx(hProcess,hMod[j],tmp,MAX_LINE_SIZE)>0)
-            {
-              strncat(buffer,tmp,DIXM);
-              strncat(buffer,"\r\n\0",DIXM);
-            }
+            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n[");
+            RichEditCouleurGras(hdbclk_info_process,NOIR,tmp);
+            RichEditCouleur(hdbclk_info_process,NOIR,"]\r\n");
+            RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
+            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n");
           }
         }
-        CloseHandle(hProcess);
       }
-
-      //set text
-      strncat(buffer,"\0",DIXM);
-      SetWindowText(hdbclk_info_process, buffer);
-      ShowWindow (hdbclk_info_process, SW_SHOW);
-
-      LocalFree((HLOCAL)buffer);
     }
+
+    //get real path
+    char path[MAX_PATH]= "";
+    tmp[0] = 0;
+    ListView_GetItemText(hlstv_process,index,2,tmp,MAX_LINE_SIZE);
+    if (tmp[0]=='\\' && tmp[1]=='?' && tmp[2]=='?' && tmp[3]=='\\')
+    {
+      strncpy(path,tmp+4,MAX_PATH);
+    }else if (tmp[0]=='\\' && (tmp[1]=='S' || tmp[1]=='s') && tmp[2]=='y' && tmp[3]=='s' && tmp[4]=='t' && tmp[5]=='e' && tmp[6]=='m' && (tmp[7]=='R' || tmp[7]=='r')) //SystemRoot
+    {
+      strncpy(path,tmp+1,MAX_PATH); //passe le '\\'
+      ReplaceEnv("SystemROOT", path, MAX_PATH);
+    }else strncpy(path,tmp,MAX_PATH);
+
+    //get pid
+    tmp[0] = 0;
+    ListView_GetItemText(hlstv_process,index,1,tmp,MAX_LINE_SIZE);
+    DWORD pid = atol(tmp);
+
+    //binary infos
+    char tmp1[MAX_PATH]="", tmp3[MAX_PATH]="";
+    GetFileInfos(path, tmp, MAX_PATH, tmp1, tmp2, MAX_PATH);
+
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nSize: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFile create time: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFile last update time: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
+    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+
+    tmp[0]  = 0;
+    tmp1[0] = 0;
+    tmp2[0] = 0;
+    tmp3[0] = 0;
+    GetACLS(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
+    RichEditCouleur(hdbclk_info_process,NOIR,"ACL Owner: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
+    RichEditCouleur(hdbclk_info_process,NOIR," (");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp3);
+    RichEditCouleur(hdbclk_info_process,NOIR,")\r\nACLs: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
+    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+
+    //file binary informations
+    tmp[0]  = 0;
+    tmp1[0] = 0;
+    tmp2[0] = 0;
+    tmp3[0] = 0;
+    FileInfoRead(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
+    RichEditCouleur(hdbclk_info_process,NOIR,"ProductName: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFileVersion: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nCompanyName: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
+    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFileDescription: ");
+    RichEditCouleur(hdbclk_info_process,NOIR,tmp3);
+    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+
+    //dll infos
+    HMODULE hMod[MAX_LINE_SIZE];
+    DWORD cbNeeded = 0, j;
+    HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0, pid);
+    if (hProcess != NULL)
+    {
+      //chargement de la liste des dll du processus
+      if (EnumProcessModules(hProcess, hMod, MAX_LINE_SIZE,&cbNeeded))
+      {
+        RichEditCouleur(hdbclk_info_process,NOIR,"\r\n[");
+        RichEditCouleurGras(hdbclk_info_process,NOIR,"DLL dependency");
+        RichEditCouleur(hdbclk_info_process,NOIR,"]\r\n");
+
+        for ( j = 1; j < (cbNeeded / sizeof(HMODULE)) && j< MAX_LINE_SIZE; j++)
+        {
+          //emplacement de la dll
+          tmp[0]=0;
+          if (GetModuleFileNameEx(hProcess,hMod[j],tmp,MAX_LINE_SIZE)>0)
+          {
+            RichEditCouleur(hdbclk_info_process,NOIR,tmp);
+            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n");
+          }
+        }
+      }
+      CloseHandle(hProcess);
+    }
+
+    RichSetTopPos(hdbclk_info_process);
+    ShowWindow (hdbclk_info_process, SW_SHOW);
   }
+  RichSetTopPos(hdbclk_info_process);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -917,7 +928,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                 {
                   ListView_SetItemText(hlstv_process,current_item,18,s_sha);
 
-                  MessageBox(h_process,s_sha,ok_path,MB_OK|MB_TOPMOST);
+                  //MessageBox(h_process,s_sha,ok_path,MB_OK|MB_TOPMOST);
 
                   //get VirusTotal Datas
                   CheckItemToVirusTotal(hlstv_process, current_item, 18, 18, NULL, FALSE);
@@ -988,7 +999,11 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
 
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -1049,7 +1064,11 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               for (;i<NB_POPUP_I;i++)RemoveMenu(hmenu,POPUP_H_00+i,MF_BYCOMMAND);
 
               //view popup
-              TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos),hwnd, NULL);
+              POINT pos;
+              if (GetCursorPos(&pos)!=0)
+              {
+                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+              }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(dwPos), GET_Y_LPARAM(dwPos),hwnd, NULL);
               DestroyMenu(hmenu);
             }
             disable_p_context = TRUE;
@@ -1059,7 +1078,6 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         case NM_DBLCLK:
           if (LOWORD(wParam) == LV_VIEW)CreateThread(NULL,0,ThreadGetProcessInfos,NULL,0,0);
         break;
-
       }
     break;
     case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;

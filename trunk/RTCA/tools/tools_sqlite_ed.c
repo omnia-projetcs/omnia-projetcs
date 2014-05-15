@@ -34,14 +34,19 @@ int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColNa
 
       if (lvi.iItem == 0) //first item, add headers
       {
+        //size
+        nb_current_col_sqlite = argc;
+        RECT Rect;
+        GetWindowRect(GetDlgItem(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE), &Rect);
+        DWORD col_sz = ((Rect.right-Rect.left)/argc) -20;
+
         //create column
         LVCOLUMN lvc;
         lvc.mask                = LVCF_TEXT|LVCF_WIDTH|LVCF_FMT;
         lvc.fmt                 = LVCFMT_LEFT;
-        lvc.cx                  = 100;
+        lvc.cx                  = col_sz;
 
         //add text header
-        nb_current_col_sqlite = argc;
         for (i=0;i<argc;i++)
         {
           lvc.pszText = azColName[i];
@@ -310,41 +315,41 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
           if (LOWORD(wParam) == DLG_SQL_ED_LV_RESPONSE)
           {
             HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
-            long nitem = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
-            if (nitem > -1)
+            long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            if (index > -1)
             {
-              char tmp[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
-
-              //for each column
-              unsigned int i;
+              char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
+              RichEditInit(hdbclk_info_sqlite);
               LVCOLUMN lvc;
-              lvc.mask = LVCF_TEXT;
-              lvc.cchTextMax = MAX_LINE_SIZE;
-              lvc.pszText = tmp;
+              lvc.mask        = LVCF_TEXT;
+              lvc.cchTextMax  = MAX_LINE_SIZE;
+              lvc.pszText     = tmp;
 
-              for(i=0;i<nb_current_col_sqlite;i++)
+              for (i=0;i<nb_current_col_sqlite;i++)
               {
-                //column header
-                strncat(buffer,"\r\n\r\n[",MAX_LINE_SIZE);
-                SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc);
-                strncat(buffer,tmp,MAX_LINE_SIZE);
-                strncat(buffer,"]\r\n",MAX_LINE_SIZE);
                 tmp[0] = 0;
-                lvc.mask = LVCF_TEXT;
-                lvc.cchTextMax = MAX_LINE_SIZE;
-                lvc.pszText = tmp;
+                tmp2[0] = 0;
+                if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
+                {
+                  if (strlen(tmp)>0)
+                  {
+                    ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 
-                //datas
-                ListView_GetItemText(hlstv,nitem,i,tmp,MAX_LINE_SIZE);
-                strncat(buffer,tmp,MAX_LINE_SIZE);
-                tmp[0] = 0;
+                    if (strlen(tmp2)>0)
+                    {
+                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"\r\n[");
+                      RichEditCouleurGras(hdbclk_info_sqlite,NOIR,tmp);
+                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"]\r\n");
+                      RichEditCouleur(hdbclk_info_sqlite,NOIR,tmp2);
+                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"\r\n");
+                    }
+                  }
+                }
               }
-              strncat(buffer,"\0",MAX_LINE_SIZE);
-
-              //set text
-              SetWindowText(hdbclk_info_sqlite, buffer);
+              RichSetTopPos(hdbclk_info_sqlite);
               ShowWindow (hdbclk_info_sqlite, SW_SHOW);
             }
+            RichSetTopPos(hdbclk_info_sqlite);
           }
         break;
       }
@@ -358,7 +363,11 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
           ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING ,POPUP_S_VIEW           ,cps[TXT_POPUP_S_VIEW].c);
           ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING ,POPUP_S_SELECTION      ,cps[TXT_POPUP_S_SELECTION].c);
 
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }

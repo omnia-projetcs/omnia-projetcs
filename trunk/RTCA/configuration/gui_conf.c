@@ -6,6 +6,69 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
+void loadFile_test(char *file, unsigned int index)
+{
+  //load file
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hfile != INVALID_HANDLE_VALUE)
+  {
+    DWORD size      = GetFileSize(hfile,NULL);
+    char *buffer    = (char *) malloc(size+1);
+    if (buffer != NULL)
+    {
+      DWORD copiee =0;
+      ReadFile(hfile, buffer, size,&copiee,0);
+
+      char line[MAX_LINE_SIZE+1], *l;
+      char *s = buffer;
+      while (*s)
+      {
+        line[0] = 0;
+        l = line;
+
+        while(*s && (*s != '\r') && (*s != '\n'))*l++ = *s++;
+        while(*s && ((*s == '\n') || (*s == '\r')))s++;
+        *l = 0;
+
+        if (line[0] == '"')index = 2;
+        switch(index)
+        {
+          //txt file one line by line
+          case 0:
+          case 1:FileToTreeView(line);break;
+
+          //csv format
+          case 2:
+            //rescue only column 2
+            l = line;
+            if (*l)
+            {
+              l++;
+              while(*l && ((*l != '"') && (*(l+1) != ';')))l++;
+
+              if (*l == '"')
+              {
+                l+=3;
+                if (*l)
+                {
+                  // ";
+                  if (line[strlen(line)-2] == '"')
+                  {
+                    line[strlen(line)-2] = 0;
+                    FileToTreeView(l);
+                  }
+                }
+              }
+            }
+          break;
+        }
+      }
+      free(buffer);
+    }
+  }
+  CloseHandle(hfile);
+}
+//------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch(message)
@@ -35,6 +98,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               else UTC_TIME=FALSE;
               if (IsDlgButtonChecked(h_conf,BT_MAGIC_CHK)==BST_CHECKED)enable_magic=TRUE;
               else enable_magic=FALSE;
+              if (IsDlgButtonChecked(h_conf,BT_RA_CHK)==BST_CHECKED)enable_remote=TRUE;
+              else enable_remote=FALSE;
               if (Ischeck_treeview(htrv_test, H_tests[INDEX_FILE_NK]))enable_LNK= TRUE;
               else enable_LNK= FALSE;
 
@@ -44,6 +109,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               EnableWindow(GetDlgItem((HWND)h_conf,BT_SHA_FILE_CHK),FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_UTC_CHK),FALSE);
               EnableWindow(GetDlgItem((HWND)h_conf,BT_MAGIC_CHK),FALSE);
+              EnableWindow(GetDlgItem((HWND)h_conf,BT_RA_CHK),FALSE);
 
               if(TreeView_GetCount(htrv_files) > NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = FALSE;
               else LOCAL_SCAN = TRUE;
@@ -316,6 +382,29 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             }
           }
           break;
+          case POPUP_TRV_FILES_LOAD_LIST:
+          {
+            char file[MAX_LINE_SIZE]="";
+            memset(file,0,MAX_LINE_SIZE);
+            OPENFILENAME ofn;
+            ZeroMemory(&ofn, sizeof(OPENFILENAME));
+            ofn.lStructSize = sizeof(OPENFILENAME);
+            ofn.hwndOwner = h_conf;
+            ofn.lpstrFile = file;
+            ofn.nMaxFile = MAX_LINE_SIZE;
+            ofn.lpstrFilter = "*.* \0*.*\0"
+                              "*.txt\0*.txt\0"
+                              "*.csv\0*.csv\0";
+            ofn.nFilterIndex = 1;
+            ofn.Flags =/*OFN_FILEMUSTEXIST |*/ OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
+            ofn.lpstrDefExt ="*.*";
+            if (GetOpenFileName(&ofn)==TRUE)
+            {
+              loadFile_test(file, ofn.nFilterIndex);
+            }
+          }
+          break;
+
           case POPUP_TRV_CHECK_ALL:check_childs_treeview(htrv_test, TRUE);break;
           case POPUP_TRV_UNCHECK_ALL:check_childs_treeview(htrv_test, FALSE);break;
           case POPUP_TRV_STOP_TEST:
@@ -393,7 +482,12 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
 
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+
           DestroyMenu(hmenu);
         }
       }else if ((HWND)wParam == htrv_files)
@@ -445,7 +539,11 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
 
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -517,6 +615,38 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
         }
       }
+    break;
+    case WM_SIZE:
+    {
+      unsigned int mWidth  = LOWORD(lParam);
+      unsigned int mHeight = HIWORD(lParam);
+
+      //controle de la taille minimum
+      if (mWidth<800 ||mHeight<600)
+      {
+        RECT Rect;
+        GetWindowRect(hwnd, &Rect);
+        MoveWindow(hwnd,Rect.left,Rect.top,800+20,600+64,TRUE);
+      }else
+      {
+        MoveWindow(GetDlgItem(hwnd,TRV_FILES),0,0,mWidth/2,mHeight-27,TRUE);
+        MoveWindow(GetDlgItem(hwnd,TRV_TEST),mWidth/2+2,0,(mWidth/2)-2,mHeight-167,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth/2+2,mHeight-165,(mWidth/2)-2,98,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,BT_ACL_FILE_CHK),mWidth/2+20,mHeight-148,(mWidth/2)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_ADS_FILE_CHK),mWidth/2+20,mHeight-128,(mWidth/2)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_SHA_FILE_CHK),mWidth/2+20,mHeight-108,(mWidth/2)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_UTC_CHK),mWidth/2+20,mHeight-88,(mWidth/4)-40,17,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,BT_RA_CHK),mWidth*3/4+20,mHeight-108,(mWidth*1/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_MAGIC_CHK),mWidth*3/4+20,mHeight-88,(mWidth*1/4)-40,17,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,BT_START),mWidth/2+2,mHeight-64,(mWidth/2)-2,38,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_CONF_SB),0,mHeight-25,mWidth,25,TRUE);
+      }
+      InvalidateRect(hwnd, NULL, TRUE);
+    }
     break;
     case WM_CLOSE:
     {
