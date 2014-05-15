@@ -296,7 +296,7 @@ DWORD Hex_search_hexa(HANDLE hlv, char *search, DWORD start_id)
 //------------------------------------------------------------------------------
 DWORD Hex_search_ansi(HANDLE hlv, char *search, DWORD start_id)
 {
-  DWORD k,i, j, nb_item = ListView_GetItemCount(hlv);
+  DWORD k,i, nb_item = ListView_GetItemCount(hlv);
   if (!nb_item) return -1;
 
   char tmp[MAX_LINE_SIZE], tmp2[MAX_LINE_SIZE];

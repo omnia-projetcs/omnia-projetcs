@@ -36,6 +36,8 @@ BEGIN
     END
   END
 END
+
+SQLITE_F RCDATA DEFAULT_SQLITE_FILE
 //------------------------------------------------------------------------------
 //ACCELERATORS
 //------------------------------------------------------------------------------
@@ -57,7 +59,8 @@ END
 DLG_CONF DIALOGEX 0,24,458,307
 CAPTION NOM_APPLI
 FONT 8,"Arial",0,0
-STYLE   0x10C80800
+//STYLE 0x10C80800
+STYLE   0x10CF0800
 EXSTYLE 0x00000010
 BEGIN
   CONTROL "",                           TRV_FILES         ,"SysTreeView32"  ,0x50010007|WS_TABSTOP,2,1,260,293,0x00000200
@@ -67,6 +70,7 @@ BEGIN
   CONTROL "Enable ADS files search",    BT_ADS_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,238,174,9
   CONTROL "SHA256 files hash (slow)",   BT_SHA_FILE_CHK   ,"Button"         ,0x50010003|WS_TABSTOP,272,248,174,9
   CONTROL "UTC/GMT",                    BT_UTC_CHK        ,"Button"         ,0x50010003|WS_TABSTOP,272,258,90,9
+ // CONTROL "Remote Access",              BT_RA_CHK         ,"Button"         ,0x50010003|WS_TABSTOP,370,248,80,9
   CONTROL "File magic number",          BT_MAGIC_CHK      ,"Button"         ,0x50010003|WS_TABSTOP,370,258,80,9
 
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
@@ -362,6 +366,7 @@ BEGIN
     MENUITEM "Open Path"                  ,POPUP_TRV_FILES_OPEN_PATH
     MENUITEM "Auto search"                ,POPUP_TRV_FILES_AUTO_SEARCH
     MENUITEM "Auto search (Path)"         ,POPUP_TRV_FILES_AUTO_SEARCH_PATH
+    MENUITEM "Import list"                ,POPUP_TRV_FILES_LOAD_LIST
     MENUITEM "Export list"                ,POPUP_TRV_FILES_SAVE_LIST
   END
 END

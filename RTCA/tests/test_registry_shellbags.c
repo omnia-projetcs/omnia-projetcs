@@ -35,7 +35,7 @@ void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value,
     unsigned short type2;
   }START_SHELLBAG;
 
-  START_SHELLBAG *ss = data;
+  START_SHELLBAG *ss = (START_SHELLBAG *)data;
   char file[MAX_PATH]="";
 
   if (ss->type == 0x31 || ss->type == 0x32) //0x31 = directory, 0x32 = file

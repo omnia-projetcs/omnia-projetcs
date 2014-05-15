@@ -1082,6 +1082,7 @@ DWORD WINAPI Load_state(LPVOID lParam)
   SendDlgItemMessage(h_state,DLG_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
 
   h_load_th = 0;
+  EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),TRUE);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -1104,6 +1105,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 ListView_DeleteAllItems(GetDlgItem(h_state,DLG_STATE_LV_FILTER));
                 SendMessage(GetDlgItem(h_state,DLG_STATE_SB),SB_SETTEXT,0, (LPARAM)"");
                 SetWindowText(GetDlgItem(h_state,DLG_STATE_BT_LOAD),"STOP");
+                EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),FALSE);
                 h_load_th = CreateThread(NULL,0,Load_state,0,0,0);
               }else //stop
               {
@@ -1112,6 +1114,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 TerminateThread(h_load_th,IDThread);
                 SetWindowText(GetDlgItem(h_state,DLG_STATE_BT_LOAD),"Load");
                 h_load_th = 0;
+                EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),TRUE);
               }
             break;
             //tabl
@@ -1251,7 +1254,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_SELECT_ALL_SESSION)))!= NULL)
         {
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }else if (hlv == GetDlgItem(hwnd,DLG_STATE_LB_TEST))
@@ -1260,7 +1267,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_SELECT_ALL_TEST)))!= NULL)
         {
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }else if (ListView_GetItemCount(hlv) > 0)
@@ -1323,7 +1334,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
           }
 
           //affichage du popup menu
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -1397,6 +1412,48 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               c_Tri(GetDlgItem(hwnd,((LPNMHDR)lParam)->idFrom),((LPNMLISTVIEW)lParam)->iSubItem,TRI_STATE_FILTER);
             break;
           }
+        break;
+        case NM_DBLCLK:
+        {
+          HANDLE hlstv = GetDlgItem(hwnd,LOWORD(wParam));
+          long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+
+          if (index > -1)
+          {
+            char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
+            RichEditInit(hdbclk_info_state);
+
+            LVCOLUMN lvc;
+            lvc.mask        = LVCF_TEXT;
+            lvc.cchTextMax  = MAX_LINE_SIZE;
+            lvc.pszText     = tmp;
+
+            for (i=0;i<8;i++)
+            {
+              tmp[0] = 0;
+              tmp2[0] = 0;
+              if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
+              {
+                if (strlen(tmp)>0)
+                {
+                  ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
+
+                  if (strlen(tmp2)>0)
+                  {
+                    RichEditCouleur(hdbclk_info_state,NOIR,"\r\n[");
+                    RichEditCouleurGras(hdbclk_info_state,NOIR,tmp);
+                    RichEditCouleur(hdbclk_info_state,NOIR,"]\r\n");
+                    RichEditCouleur(hdbclk_info_state,NOIR,tmp2);
+                    RichEditCouleur(hdbclk_info_state,NOIR,"\r\n");
+                  }
+                }
+              }else break;
+            }
+            RichSetTopPos(hdbclk_info_state);
+            ShowWindow (hdbclk_info_state, SW_SHOW);
+          }
+          RichSetTopPos(hdbclk_info_state);
+        }
         break;
       }
     break;

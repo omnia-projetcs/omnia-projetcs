@@ -657,11 +657,12 @@ DWORD WINAPI BackupFile(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
-void GetLocalPath(char *path, unsigned int sizeMax)
+char* GetLocalPath(char *path, unsigned int sizeMax)
 {
   char *c = path+GetModuleFileName(0, path,sizeMax);
   while(*c != '\\') c--;
   *c = 0;
+  return path;
 }
 //------------------------------------------------------------------------------
 void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername,HANDLE MyhFile)
@@ -1306,7 +1307,7 @@ void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDL
                   if(wfd0.cFileName[0] == '.' && (wfd0.cFileName[1] == 0 || wfd0.cFileName[1] == '.'))continue;
 
                   snprintf(tmp_key_path,MAX_PATH,"%s\\Local Settings\\Historique\\%s\\index.dat",tmp_key,wfd0.cFileName);
-                  if (tmp_key_path)
+                  //if (tmp_key_path)
                   {
                     snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_%s_Feeds_Cache_index.dat",computername,user,wfd0.cFileName);
                     //add file

@@ -9,8 +9,9 @@
 // or whose value is the same for all processes, I don't need a separate copy
 // of these for each process that uses this DLL. In Visual C++'s Linker
 // settings, I add "/section:Shared,rws"
-
-#pragma data_seg("shared")
+#ifdef VISUAL_STUDIO
+  #pragma data_seg("shared")
+#endif
 
 static HINSTANCE	ThisInstance;
 
@@ -113,8 +114,10 @@ static const char ZipSuffixes[] = {".z\0"
 // probability, to avoid transmitting the lengths for unused bit length codes.
 static const UCH BL_order[BL_CODES] = {16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15};
 
-#pragma data_seg()
 
+#ifdef VISUAL_STUDIO
+  #pragma data_seg()
+#endif
 // ====================== LOCAL DECLARATIONS =======================
 
 static void			writeDestShort(TZIP *, DWORD);

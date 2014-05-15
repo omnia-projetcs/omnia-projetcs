@@ -5,6 +5,28 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
+//----------------------------------------------------------------------------
+void ExtractSQLITE_DB()
+{
+  //save ressource in a local file
+  HRSRC hr   = FindResource(NULL, MAKEINTRESOURCE(SQLITE_F), RT_RCDATA);
+  HGLOBAL hb = LoadResource(NULL, hr);
+  if (hb != NULL)
+  {
+    char local_path[MAX_PATH]="",file[MAX_PATH];
+    GetLocalPath(local_path, MAX_PATH);
+    snprintf(file,MAX_PATH,"%s\\%s",local_path,DEFAULT_SQLITE_FILE);
+
+    //save the file in local
+    HANDLE hf = CreateFile(file, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 0, NULL);
+    if (hf != INVALID_HANDLE_VALUE)
+    {
+      DWORD nb = 0;
+      WriteFile(hf, LockResource(hb), SizeofResource(NULL, hr), &nb, NULL);
+      CloseHandle(hf);
+    }
+  }
+}
 //------------------------------------------------------------------------------
 //init strings + tests name + menu
 //------------------------------------------------------------------------------
@@ -220,7 +242,6 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   }
 
   //init globals var
-  current_session_id    = 0;
   current_item_selected = -1;
 
   STAY_ON_TOP           = FALSE;
@@ -250,8 +271,10 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   //check if admin right ok
   if(!HaveAdminRight())
   {
-    if (!CONSOL_ONLY)MessageBox(h_main,cps[TXT_MSG_RIGHT_ADMIN].c,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,MB_OK|MB_TOPMOST|MB_ICONWARNING);
-    else printf("[%s] %s\n",cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,cps[TXT_MSG_RIGHT_ADMIN].c);
+    if (!CONSOL_ONLY)
+    {
+      if (current_session_id != 0)MessageBox(h_main,cps[TXT_MSG_RIGHT_ADMIN].c,cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,MB_OK|MB_TOPMOST|MB_ICONWARNING);
+    }else printf("[%s] %s\n",cps[TXT_MSG_RIGHT_ADMIN_ATTENTION].c,cps[TXT_MSG_RIGHT_ADMIN].c);
   }
 
   //init if 64b
@@ -268,7 +291,11 @@ void LoadTools()
   nb_tools = 0;
 
   //open file
-  HANDLE hFile = CreateFile(DEFAULT_TOOL_MENU_FILE,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  char local_path[MAX_PATH]="",file[MAX_PATH];
+  GetLocalPath(local_path, MAX_PATH);
+  snprintf(file,MAX_PATH,"%s\\%s",local_path,DEFAULT_TOOL_MENU_FILE);
+
+  HANDLE hFile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
   if (hFile != INVALID_HANDLE_VALUE)
   {
     DWORD file_size = GetFileSize(hFile,NULL);
@@ -350,13 +377,14 @@ void LoadTools()
 //------------------------------------------------------------------------------
 DWORD WINAPI InitGUIConfig(LPVOID lParam)
 {
+  if (GetFileAttributes(SQLITE_LOCAL_BDD) == INVALID_FILE_ATTRIBUTES)ExtractSQLITE_DB();
+
   BOOL reinit = (BOOL)lParam;
   if (reinit)
   {
     //clean
     sqlite3_close(db_scan);
   }
-
 
   //hidden DOS form
   #ifndef DEV_DEBUG_MODE
@@ -383,10 +411,11 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   reg_file_start_process = FALSE;
   AVIRUSTTAL            = FALSE;
   VIRUSTTAL             = FALSE;
-  SQLITE_FULL_SPEED     = FALSE;
+  SQLITE_FULL_SPEED     = TRUE;
   B_SCREENSHOT          = FALSE;
   B_SCREENSHOT_START    = FALSE;
   enable_magic          = FALSE;
+  enable_remote         = FALSE;
   DISABLE_GRID_LV_ALL   = FALSE;
   backup_dd             = FALSE;
   h_Hexa                = 0;
@@ -401,16 +430,19 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
     hMutex_TRAME_BUFFER = CreateMutex(0,FALSE,0);
   }
 
-
   //open sqlite file
   if (sqlite3_open(SQLITE_LOCAL_BDD, &db_scan) != SQLITE_OK)
   {
+    char local_path[MAX_PATH]="",file[MAX_PATH];
+    GetLocalPath(local_path, MAX_PATH);
+    snprintf(file,MAX_PATH,"%s\\%s",local_path,DEFAULT_TM_SQLITE_FILE);
+
     //if tmp sqlite file exist free !!
     //for bug case
-    /*if (GetFileAttributes(DEFAULT_TM_SQLITE_FILE) != INVALID_FILE_ATTRIBUTES)
+    if (GetFileAttributes(file) != INVALID_FILE_ATTRIBUTES)
     {
-      DeleteFile(DEFAULT_TM_SQLITE_FILE);
-    }*/
+      DeleteFile(file);
+    }
 
     sqlite3_open(SQLITE_LOCAL_BDD, &db_scan);
   }
@@ -458,11 +490,13 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   //init load of externes tools or actions :
   LoadTools();
 
-
   if (WINE_OS)
   {
     EnableMenuItem(GetMenu(h_main),IDM_TOOLS_PROCESS,MF_BYCOMMAND|MF_GRAYED);
   }
+
+  CheckMenuItem(GetMenu(h_main),BT_SQLITE_FULL_SPEED,MF_BYCOMMAND|MF_CHECKED);
+  sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
 
   //create Accelerators
   hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
@@ -591,6 +625,9 @@ void EndGUIConfig(HANDLE hwnd)
     GetWindowText(GetDlgItem(h_proxy,PROXY_ED_PASSWORD),tmp,DEFAULT_TMP_SIZE);
     WritePrivateProfileString("PROXY","PROXY_PASSWORD",chr(tmp,MDP_TEST),path);
   }
+
+  //clean richedit
+  FreeLibrary(richDll);
 
   CloseWindow(hwnd);
   PostQuitMessage(0);

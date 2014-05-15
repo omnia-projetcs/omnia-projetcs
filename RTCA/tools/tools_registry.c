@@ -406,7 +406,11 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_TV_REGISTRY)))!= NULL)
         {
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }else if ((HWND)wParam == GetDlgItem(hwnd,LV_VIEW))
@@ -414,7 +418,11 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_REGISTRY)))!= NULL)
         {
-          TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }else TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam),hwnd, NULL);
           DestroyMenu(hmenu);
         }
       }
@@ -462,41 +470,42 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         case NM_DBLCLK:
           if (LOWORD(wParam) == LV_VIEW)
           {
-            long nitem = SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
-            if (nitem > -1)
+            long i, index = SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            if (index > -1)
             {
-              char tmp[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="";
+              char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
+              RichEditInit(hdbclk_info_registry);
 
               //for each column
-              unsigned int i;
               LVCOLUMN lvc;
-              lvc.mask = LVCF_TEXT;
-              lvc.cchTextMax = MAX_LINE_SIZE;
-              lvc.pszText = tmp;
+              lvc.mask        = LVCF_TEXT;
+              lvc.cchTextMax  = MAX_LINE_SIZE;
+              lvc.pszText     = tmp;
 
-              for(i=0;i<DLG_REG_LV_NB_COLUMN;i++)
+              for (i=0;i<DLG_REG_LV_NB_COLUMN;i++)
               {
-                //column header
-                strncat(buffer,"\r\n\r\n[",MAX_LINE_SIZE);
-                SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc);
-                strncat(buffer,tmp,MAX_LINE_SIZE);
-                strncat(buffer,"]\r\n",MAX_LINE_SIZE);
                 tmp[0] = 0;
-                lvc.mask = LVCF_TEXT;
-                lvc.cchTextMax = MAX_LINE_SIZE;
-                lvc.pszText = tmp;
-
-                //datas
-                ListView_GetItemText(GetDlgItem(h_reg,LV_VIEW),nitem,i,tmp,MAX_LINE_SIZE);
-                strncat(buffer,tmp,MAX_LINE_SIZE);
-                tmp[0] = 0;
+                tmp2[0] = 0;
+                if (SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
+                {
+                  if (strlen(tmp)>0)
+                  {
+                    ListView_GetItemText(GetDlgItem(h_reg,LV_VIEW),index,i,tmp2,MAX_LINE_SIZE);
+                    if (strlen(tmp2)>0)
+                    {
+                      RichEditCouleur(hdbclk_info_registry,NOIR,"\r\n[");
+                      RichEditCouleurGras(hdbclk_info_registry,NOIR,tmp);
+                      RichEditCouleur(hdbclk_info_registry,NOIR,"]\r\n");
+                      RichEditCouleur(hdbclk_info_registry,NOIR,tmp2);
+                      RichEditCouleur(hdbclk_info_registry,NOIR,"\r\n");
+                    }
+                  }
+                }
               }
-              strncat(buffer,"\0",MAX_LINE_SIZE);
-
-              //set text
-              SetWindowText(hdbclk_info_registry, buffer);
+              RichSetTopPos(hdbclk_info_registry);
               ShowWindow (hdbclk_info_registry, SW_SHOW);
             }
+            RichSetTopPos(hdbclk_info_registry);
           }
         break;
       }
