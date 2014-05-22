@@ -71,6 +71,24 @@ void InitGuiState()
   ShowOnglet(DLG_STATE_LV_ALL);
 }
 //------------------------------------------------------------------------------
+int compareDate(char *date1, char *date2)
+{
+  if (date1 == NULL && date2 == NULL) return 0;
+  if (date1 == NULL) return 1;
+  if (date2 == NULL) return -1;
+
+  char *a = date1;
+  char *b = date2;
+
+  do
+  {
+      if (*a < *b) return 1;
+      else if (*a > *b) return -1;
+  }while (*a == *b && *a++ && *b++);
+
+  return 0;
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI Filter_state(LPVOID lParam)
 {
   //get if date or note
@@ -84,9 +102,60 @@ DWORD WINAPI Filter_state(LPVOID lParam)
   lvi.lParam = LVM_SORTITEMS;
   lvi.pszText="";
 
-  HANDLE hlv_src = GetDlgItem(h_state,DLG_STATE_LV_ALL), hlv_dst = GetDlgItem(h_state,DLG_STATE_LV_FILTER);
+  HANDLE  hlv_src = GetDlgItem(h_state,DLG_STATE_LV_ALL),
+          hlv_dst = GetDlgItem(h_state,DLG_STATE_LV_FILTER);
 
-  if (tmp2[0] == 0 || tmp1[4]!='/' || tmp1[7]!='/' || tmp1[10]!=' ' || tmp1[13]!=':' || tmp1[16]!=':')
+  if (tmp2[0] != 0 && tmp1[4] == '/' && tmp1[7] =='/' && tmp2[4] == '/' && tmp2[7] =='/')
+  {
+    //string search
+    DWORD i,k, ref_item, nb_item = ListView_GetItemCount(hlv_src);
+    int a,b;
+    char tmp[MAX_LINE_SIZE];
+    for (i=0;i<nb_item;i++)
+    {
+      tmp[0]=0;
+      ListView_GetItemText(hlv_src,i,0,tmp,MAX_LINE_SIZE);
+      if (tmp[0] != 0)
+      {
+        //if (strcmp(tmp1, tmp) >= 0)
+        if (compareDate(tmp1, tmp) >= 0)
+        {
+          //if (strcmp(tmp2, tmp) <= 0)
+          if (compareDate(tmp2, tmp) <= 0)
+          {
+            //add item
+            lvi.iItem = ListView_GetItemCount(hlv_dst);
+            ref_item = ListView_InsertItem(hlv_dst, &lvi);
+            for(k=0;k<8;k++)
+            {
+              tmp[0]=0;
+              ListView_GetItemText(hlv_src,i,k,tmp,MAX_LINE_SIZE);
+              ListView_SetItemText(hlv_dst,ref_item,k,tmp);
+            }
+          }
+        }
+        /*
+        a = strcmp(tmp1, tmp);
+        b = strcmp(tmp2, tmp);
+
+        //MessageBox(NULL,tmp,tmp1,MB_OK|MB_TOPMOST);
+
+        //if (a>=0 && b<=0)
+        if (a>=0 || b<=0)
+        {
+          //add item
+          lvi.iItem = ListView_GetItemCount(hlv_dst);
+          ref_item = ListView_InsertItem(hlv_dst, &lvi);
+          for(k=0;k<8;k++)
+          {
+            tmp[0]=0;
+            ListView_GetItemText(hlv_src,i,k,tmp,MAX_LINE_SIZE);
+            ListView_SetItemText(hlv_dst,ref_item,k,tmp);
+          }
+        }*/
+      }
+    }
+  }else
   {
     //string search
     DWORD i, j,k, ref_item, nb_item = ListView_GetItemCount(hlv_src);
@@ -112,35 +181,6 @@ DWORD WINAPI Filter_state(LPVOID lParam)
             ListView_SetItemText(hlv_dst,ref_item,k,tmp);
           }
           break;
-        }
-      }
-    }
-  }else //intervalls
-  {
-    //string search
-    DWORD i,k, ref_item, nb_item = ListView_GetItemCount(hlv_src);
-    int a,b;
-    char tmp[MAX_LINE_SIZE];
-    for (i=0;i<nb_item;i++)
-    {
-      tmp[0]=0;
-      ListView_GetItemText(hlv_src,i,0,tmp,MAX_LINE_SIZE);
-      if (tmp[0] != 0)
-      {
-        a = strcmp(tmp1, tmp);
-        b = strcmp(tmp2, tmp);
-
-        if (a>=0 && b<=0)
-        {
-          //add item
-          lvi.iItem = ListView_GetItemCount(hlv_dst);
-          ref_item = ListView_InsertItem(hlv_dst, &lvi);
-          for(k=0;k<8;k++)
-          {
-            tmp[0]=0;
-            ListView_GetItemText(hlv_src,i,k,tmp,MAX_LINE_SIZE);
-            ListView_SetItemText(hlv_dst,ref_item,k,tmp);
-          }
         }
       }
     }
@@ -1078,8 +1118,21 @@ DWORD WINAPI Load_state(LPVOID lParam)
     }
   }
   SetWindowText(GetDlgItem(h_state,DLG_STATE_BT_LOAD),"Load");
-  snprintf(request,MAX_LINE_SIZE,"Load %lu item(s)",(DWORD)ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_ALL)));
+  DWORD nb_all_items = (DWORD)ListView_GetItemCount(GetDlgItem(h_state,DLG_STATE_LV_ALL));
+  snprintf(request,MAX_LINE_SIZE,"Load %lu item(s)",nb_all_items);
   SendDlgItemMessage(h_state,DLG_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
+
+  if (nb_all_items > 0)
+  {
+    //set first date
+    request[0] = 0;
+    ListView_GetItemText(GetDlgItem(h_state,DLG_STATE_LV_ALL),0,0,request,MAX_LINE_SIZE);
+    SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_1),request);
+
+    request[0] = 0;
+    ListView_GetItemText(GetDlgItem(h_state,DLG_STATE_LV_ALL),nb_all_items-1,0,request,MAX_LINE_SIZE);
+    SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_2),request);
+  }
 
   h_load_th = 0;
   EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),TRUE);
@@ -1421,7 +1474,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
           if (index > -1)
           {
             char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
-            RichEditInit(hdbclk_info_state);
+            RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
 
             LVCOLUMN lvc;
             lvc.mask        = LVCF_TEXT;
@@ -1440,19 +1493,19 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 
                   if (strlen(tmp2)>0)
                   {
-                    RichEditCouleur(hdbclk_info_state,NOIR,"\r\n[");
-                    RichEditCouleurGras(hdbclk_info_state,NOIR,tmp);
-                    RichEditCouleur(hdbclk_info_state,NOIR,"]\r\n");
-                    RichEditCouleur(hdbclk_info_state,NOIR,tmp2);
-                    RichEditCouleur(hdbclk_info_state,NOIR,"\r\n");
+                    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+                    RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
+                    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+                    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
                   }
                 }
               }else break;
             }
-            RichSetTopPos(hdbclk_info_state);
-            ShowWindow (hdbclk_info_state, SW_SHOW);
+            RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
+            if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
           }
-          RichSetTopPos(hdbclk_info_state);
+          RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
         }
         break;
       }

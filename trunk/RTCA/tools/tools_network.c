@@ -7,6 +7,13 @@
 #include "../RtCA.h"
 #include "tools_network/_entetes.h"
 //------------------------------------------------------------------------------
+unsigned int onglet;
+#define ONGLET_PAQUETS  0
+#define ONGLET_FILTRE   1
+#define ONGLET_IP       2
+
+#define ID_COLUMN       6
+//------------------------------------------------------------------------------
 BOOL FilterExist(char *filter)
 {
   if (SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)filter)== LB_ERR) return FALSE;
@@ -643,16 +650,24 @@ DWORD WINAPI Sniff(LPVOID lParam)
 //------------------------------------------------------------------------------
 HANDLE GetCurrentLstv()
 {
-  if(IsWindowVisible(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS)))return GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);
-  else if(IsWindowVisible(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE)))return GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE);
-  else return GetDlgItem(h_sniff,DLG_NS_LSTV);
+  switch(onglet)
+  {
+    case ONGLET_FILTRE: return GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE);break;
+    case ONGLET_IP:     return GetDlgItem(h_sniff,DLG_NS_LSTV);break;
+    case ONGLET_PAQUETS:
+    default:            return GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);break;
+  }
 }
 //------------------------------------------------------------------------------
 DWORD GetCurrentLstvNbColumn()
 {
-  if(IsWindowVisible(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS)))return DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;
-  else if(IsWindowVisible(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE)))return DLG_SNIFF_STATE_FILTER_NB_COLUMN;
-  else return DLG_SNIFF_STATE_IP_NB_COLUMN;
+  switch(onglet)
+  {
+    case ONGLET_FILTRE: return DLG_SNIFF_STATE_FILTER_NB_COLUMN;break;
+    case ONGLET_IP:     return DLG_SNIFF_STATE_IP_NB_COLUMN;break;
+    case ONGLET_PAQUETS:
+    default:            return DLG_SNIFF_STATE_PAQUETS_NB_COLUMN;break;
+  }
 }
 //------------------------------------------------------------------------------
 DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
@@ -662,20 +677,27 @@ DWORD  WINAPI Filtre_Sniff(LPVOID lParam)
 
   HANDLE hlstv    = GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);
   HANDLE hlstv_f  = GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE);
+  HANDLE hlstv_ip = GetDlgItem(h_sniff,DLG_NS_LSTV);
 
   //clean
   ListView_DeleteAllItems(hlstv_f);
 
-  if (index == LB_ERR) //no filter
+  if (index == LB_ERR || index == 0) //no filter
   {
     //if ip is visible
-    HANDLE hlstv_ip = GetDlgItem(h_sniff,DLG_NS_LSTV);
-    if(IsWindowVisible(hlstv_ip))ShowWindow(hlstv_ip,SW_HIDE);
 
+    ShowWindow(hlstv_ip,SW_HIDE);
     ShowWindow(hlstv_f,SW_HIDE);
     ShowWindow(hlstv,SW_SHOW);
+
+    onglet = ONGLET_PAQUETS;
   }else
   {
+    onglet = ONGLET_FILTRE;
+    ShowWindow(hlstv_ip,SW_HIDE);
+    ShowWindow(hlstv_f,SW_SHOW);
+    ShowWindow(hlstv,SW_HIDE);
+
     //get filter text
     char buffer[DEFAULT_TMP_SIZE]="";
     if (SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_GETTEXT,(WPARAM) index, (LPARAM)buffer)!=LB_ERR)
@@ -742,14 +764,18 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
 {
   HANDLE hlstv    = GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS);
   HANDLE hlstv_f  = GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE);
+  HANDLE hlstv_ip = GetDlgItem(h_sniff,DLG_NS_LSTV);
   unsigned int type_filter = (unsigned int)lParam;
 
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
-  long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
 
-  //clean
-  ListView_DeleteAllItems(hlstv_f);
-  if (index == -1)return 0;
+  long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+  if (index == -1) return 0;
+
+  ShowWindow(hlstv_ip,SW_HIDE);
+  ShowWindow(hlstv_f,SW_SHOW);
+  ShowWindow(hlstv,SW_HIDE);
+  onglet = ONGLET_FILTRE;
 
   unsigned int col1=0, col2=0; //search column
   char search_string[DEFAULT_TMP_SIZE]="";
@@ -777,6 +803,9 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
     break;
   }
 
+  //clean
+  ListView_DeleteAllItems(hlstv_f);
+
   //search
   long int i, j, pos;
   char tmp[DEFAULT_TMP_SIZE];
@@ -787,7 +816,7 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
   lvi.pszText   = "";
   lvi.iItem     = 0;
 
-  for (i=0;i<NB_trame_buffer-1;i++)
+  for (i=0;i<ListView_GetItemCount(hlstv);i++)
   {
     tmp[0] = 0;
     ListView_GetItemText(hlstv,i,col1,tmp,DEFAULT_TMP_SIZE);
@@ -825,16 +854,8 @@ DWORD WINAPI Filtre_Sniff_custom(LPVOID lParam)
     }
   }
 
-  //if ip is visible
-  HANDLE hlstv_ip = GetDlgItem(h_sniff,DLG_NS_LSTV);
-  if(IsWindowVisible(hlstv_ip))ShowWindow(hlstv_ip,SW_HIDE);
-
-  ShowWindow(hlstv,SW_HIDE);
-  ShowWindow(hlstv_f,SW_SHOW);
-
   return 0;
 }
-
 //------------------------------------------------------------------------------
 void chartohexstring(char *src, unsigned int src_size, char *result, unsigned int result_size_max)
 {
@@ -889,13 +910,18 @@ void chartohexstring(char *src, unsigned int src_size, char *result, unsigned in
 DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
 {
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
+
+  char c_index[MAX_PATH] = "";
   long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
   if (index == -1 || index > NB_trame_buffer) return 0;
 
-  read_trame_sniff = TRUE;
-  SetWindowText(hdbclk_sniff, "");
+  ListView_GetItemText(hlstv_tmp,index,ID_COLUMN,c_index,MAX_PATH);
+  index = atol(c_index);
+  if (index == -1 || index > NB_trame_buffer) return 0;
+
+  RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
   if (start_sniff)WaitForSingleObject(hMutex_TRAME_BUFFER,INFINITE);
-  char buffer_ipv4[MAX_LINE_SIZE]="", buffer_hdr[MAX_LINE_SIZE]="", buffer_datas[MAX_LINE_SIZE]="", buffer_datas_hexa[MAX_LINE_SIZE]="", buffer_total[MAX_LINE_DBSIZE]="";
+  char buffer_ipv4[MAX_LINE_SIZE]="", buffer_hdr[MAX_LINE_SIZE]="", buffer_datas[MAX_LINE_SIZE]="", buffer_datas_hexa[MAX_LINE_SIZE]="";
 
   //ipv4
   IPV4_HDR *ipv4_hdr = (IPV4_HDR *)Trame_buffer[index].buffer;
@@ -1042,26 +1068,33 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   }
 
   //set text
-  snprintf(buffer_total,MAX_LINE_DBSIZE,"%s%s%s%s",buffer_ipv4,buffer_hdr,buffer_datas,buffer_datas_hexa);
-  SetWindowText(hdbclk_sniff, buffer_total);
-  ShowWindow (hdbclk_sniff, SW_SHOW);
-  read_trame_sniff = FALSE;
+  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_ipv4);
+  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_hdr);
+  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_datas);
+  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_datas_hexa);
+
+  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
   return 0;
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI follow_stream(LPVOID lParam)
 {
   HANDLE hlstv_tmp = GetCurrentLstv(); //get current listeview
+
+  char c_index[MAX_PATH] = "";
   long int index = SendMessage(hlstv_tmp, LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
   if (index == -1 || index > NB_trame_buffer) return 0;
+
+  ListView_GetItemText(hlstv_tmp,index,ID_COLUMN,c_index,MAX_PATH);
+  index = atol(c_index);
+  if (index == -1 || index > NB_trame_buffer) return 0;
+
   //only for tcp and udp
   if (Trame_buffer[index].ProtoType != IPPROTO_TCP && Trame_buffer[index].ProtoType != IPPROTO_UDP)return 0;
 
   follow_sniff = TRUE;
-  SetWindowText(hdbclk_sniff, "");
+  RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
   if (start_sniff)WaitForSingleObject(hMutex_TRAME_BUFFER,INFINITE);
-  char *buffer = (char *)malloc(MAX_LINE_DBSIZE), *b;
-  buffer[0] = 0;
 
   DWORD i;
   char frame_buffer[MAX_LINE_DBSIZE], data_buffer[MAX_LINE_DBSIZE];
@@ -1080,9 +1113,13 @@ DWORD WINAPI follow_stream(LPVOID lParam)
         snprintf(data_buffer,MAX_LINE_DBSIZE,"%s",(Trame_buffer[i].buffer+IPV4_HDR_SIZE+TCP_HDR_SIZE));
         //if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
         {
-          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]%08d\r\n%s\r\n\r\n",
+          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]TCP%08d\r\n",
                    Trame_buffer[i].ip_src,Trame_buffer[i].src_port,
-                   Trame_buffer[i].ip_dst,Trame_buffer[i].dst_port,i,data_buffer);
+                   Trame_buffer[i].ip_dst,Trame_buffer[i].dst_port,i);
+
+          RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,frame_buffer);
+          RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,data_buffer);
+          RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n\r\n");
         }
       }else if (Trame_buffer[index].ProtoType == IPPROTO_UDP)
       {
@@ -1090,39 +1127,22 @@ DWORD WINAPI follow_stream(LPVOID lParam)
         snprintf(data_buffer,MAX_LINE_DBSIZE,"%s",(Trame_buffer[i].buffer+IPV4_HDR_SIZE+UDP_HDR_SIZE));
         //if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
         {
-          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]%08d\r\n%s\r\n\r\n",
+          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]UDP%08d\r\n",
                    Trame_buffer[i].ip_src,Trame_buffer[i].src_port,
-                   Trame_buffer[i].ip_dst,Trame_buffer[i].dst_port,i,data_buffer);
+                   Trame_buffer[i].ip_dst,Trame_buffer[i].dst_port,i);
+
+          RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,frame_buffer);
+          RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,data_buffer);
+          RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n\r\n");
         }
       }
-
-      //add
-      b = realloc(buffer,(i+1)*MAX_LINE_DBSIZE);
-      if (b == NULL) break;
-      buffer = b;
-
-      strncat(buffer,frame_buffer,(i+1)*MAX_LINE_DBSIZE);
-      strncat(buffer,"\0",(i+1)*MAX_LINE_DBSIZE);
     }
   }
 
   if (start_sniff)ReleaseMutex(hMutex_TRAME_BUFFER);
 
-  //set text
-  SetWindowText(hdbclk_sniff, buffer);
-  free(buffer);
-  ShowWindow (hdbclk_sniff, SW_SHOW);
+  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
   follow_sniff = FALSE;
-  return 0;
-}
-
-//------------------------------------------------------------------------------
-//subclass of hdbclk_sniff
-//------------------------------------------------------------------------------
-LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
-{
-  if (uMsg == WM_CLOSE)ShowWindow (hdbclk_sniff, SW_HIDE);
-  else return CallWindowProc(wndproc_hdbclk_sniff, hwnd, uMsg, wParam, lParam);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -1318,11 +1338,13 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV),SW_HIDE);
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE),SW_HIDE);
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS),SW_SHOW);
+                onglet = ONGLET_PAQUETS;
               }else
               {
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE),SW_HIDE);
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS),SW_HIDE);
                 ShowWindow(GetDlgItem(h_sniff,DLG_NS_LSTV),SW_SHOW);
+                onglet = ONGLET_IP;
               }
             break;
             case DLG_NS_BT_START:
@@ -1397,6 +1419,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         break;
       }
     break;
+    case WM_INITDIALOG:onglet = ONGLET_PAQUETS;break;
     case WM_CLOSE :
       if (start_sniff)
       {

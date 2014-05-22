@@ -11,8 +11,8 @@ void addProxyConfig()
   if (IsDlgButtonChecked(h_proxy,PROXY_CHK_USE)==BST_CHECKED)
   {
     //if login and password
-    if (GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_USER)) > 0 ||
-        GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_PASSWORD)) > 0)
+    if ((GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_USER)) > 0) ||
+        (GetWindowTextLength(GetDlgItem(h_proxy,PROXY_ED_PASSWORD)) > 0))
     {
       use_proxy_advanced_settings = TRUE;
       GetWindowText(GetDlgItem(h_proxy,PROXY_ED_USER),proxy_ch_user,DEFAULT_TMP_SIZE);

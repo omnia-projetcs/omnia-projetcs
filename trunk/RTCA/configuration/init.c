@@ -184,7 +184,7 @@ BOOL HaveAdminRight()
       {
         if (GetTokenInformation(hThread, TokenElevationType, ptet, size, &size))
         {
-          if (*ptet == TokenElevationTypeDefault || *ptet == TokenElevationTypeLimited)
+          if ((*ptet == TokenElevationTypeDefault) || (*ptet == TokenElevationTypeLimited))
           {
             ret = FALSE;
           }
@@ -320,7 +320,7 @@ void LoadTools()
            {
              //get line by line
              l = line;
-             while (*b && *b != '\r' && *b!='\n') *l++ = *b++;
+             while (*b && (*b != '\r') && (*b!='\n') && (l-line < MAX_LINE_SIZE)) *l++ = *b++;
              *l = 0;
 
              if (line[0] != '#')
@@ -339,7 +339,7 @@ void LoadTools()
                t = tools_load[nb_tools].title;
                l = line+3; // pass "01;"
 
-               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               while(*l && (*l!=';') && (t-tmp < DEFAULT_TMP_SIZE)) *t++ = *l++;
                *t = 0;
                l++;
 
@@ -347,7 +347,7 @@ void LoadTools()
                tools_load[nb_tools].cmd[0] = 0;
                t = tools_load[nb_tools].cmd;
 
-               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               while(*l && (*l!=';') && (t-tmp < DEFAULT_TMP_SIZE)) *t++ = *l++;
                *t = 0;
                l++;
 
@@ -355,7 +355,7 @@ void LoadTools()
                tools_load[nb_tools].params[0] = 0;
                t = tools_load[nb_tools].params;
 
-               while(*l && *l!=';' && t-tmp < DEFAULT_TMP_SIZE) *t++ = *l++;
+               while(*l && (*l!=';') && (t-tmp < DEFAULT_TMP_SIZE)) *t++ = *l++;
                *t = 0;
                l++;
 
@@ -363,7 +363,7 @@ void LoadTools()
                //printf("[%d] (%s) %s - %s\n",tools_load[nb_tools].type,tools_load[nb_tools].title,tools_load[nb_tools].cmd,tools_load[nb_tools].params);
                nb_tools++;
              }
-             while (*b && (*b=='\r' || *b == '\n'))b++; //pass \r\n
+             while (*b && ((*b=='\r') || (*b == '\n')))b++; //pass \r\n
            }
          }
         LocalFree(buffer);
@@ -406,7 +406,6 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   current_OS_BE_64b     = FALSE;
   nb_current_columns    = 0;
   current_lang_id       = 1;
-  read_trame_sniff      = FALSE;
   follow_sniff          = FALSE;
   reg_file_start_process = FALSE;
   AVIRUSTTAL            = FALSE;
@@ -598,7 +597,7 @@ void EndGUIConfig(HANDLE hwnd)
   //get current path
   char path[MAX_PATH]="";
   GetLocalPath(path, MAX_PATH);
-  strcat(path,DEFAULT_INI_FILE);
+  strncat(path,DEFAULT_INI_FILE,MAX_PATH);
 
   //set value
   char default_lang_id[DEFAULT_TMP_SIZE];
@@ -626,9 +625,9 @@ void EndGUIConfig(HANDLE hwnd)
     WritePrivateProfileString("PROXY","PROXY_PASSWORD",chr(tmp,MDP_TEST),path);
   }
 
+  CloseWindow(hwnd);
+
   //clean richedit
   FreeLibrary(richDll);
-
-  CloseWindow(hwnd);
   PostQuitMessage(0);
 }

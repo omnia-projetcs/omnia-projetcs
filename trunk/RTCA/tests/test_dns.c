@@ -27,7 +27,7 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
 //------------------------------------------------------------------------------
 int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName)
 {
-  if(malware_check[0] == 0 )snprintf(malware_check,MAX_PATH,"%s",argv[0]);
+  if(malware_check[0] == 0 )snprintf(malware_check,MAX_PATH,"%s (Last update:%s)",argv[0],argv[1]);
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -51,8 +51,8 @@ void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_
   if (*c == '.')
   {
     c++;
-    snprintf(request, MAX_LINE_SIZE,"SELECT description FROM malware_list WHERE domain LIKE \"%%%s\";",c);
-  }else snprintf(request, MAX_LINE_SIZE,"SELECT description FROM malware_list WHERE domain LIKE \"%%%s\";",name);
+    snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_list WHERE domain LIKE \"%%%s\";",c);
+  }else snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_list WHERE domain LIKE \"%%%s\";",name);
 
   FORMAT_CALBAK_READ_INFO fcri;
   sqlite3_exec(db_scan, request, callback_sqlite_malware, &fcri, NULL);

@@ -151,6 +151,28 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               }
             }
             break;
+
+            case POPUP_SQLITE_REQUEST_SELECT:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"SELECT * FROM table;");break;
+            case POPUP_SQLITE_REQUEST_INSERT:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"INSERT INTO table (param1,param2) VALUES(\"data1\",\"data2\");");break;
+            case POPUP_SQLITE_REQUEST_DELETE:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"DELETE FROM table WHERE value=\"1\";");break;
+            case POPUP_SQLITE_REQUEST_VACCUM:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"VACUUM;");break;
+            case POPUP_SQLITE_REQUEST_JOURNAL_ON:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"PRAGMA journal_mode = ON;");break;
+            case POPUP_SQLITE_REQUEST_JOURNAL_OFF:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"PRAGMA journal_mode = OFF;");break;
+            case POPUP_SQLITE_REQUEST_BEGIN_TRANSACTION:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"BEGIN TRANSACTION;");break;
+            case POPUP_SQLITE_REQUEST_END_TRANSACTION:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"END TRANSACTION;");break;
+
+            case DLG_SQL_ED_BT_MODELS:
+            {
+              HMENU hmenu;
+              if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_SQLITE_REQUEST)))!= NULL)
+              {
+                RECT Rect;
+                GetWindowRect(GetDlgItem((HWND)hwnd,DLG_SQL_ED_BT_MODELS), &Rect);
+                TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, Rect.left, Rect.bottom,hwnd, NULL);
+                DestroyMenu(hmenu);
+              }
+            }
+            break;
             //-----------------------------------------------------
             case POPUP_S_VIEW:
             {
@@ -292,7 +314,10 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_CLOSE)         ,97,mHeight-55,95,30,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_ED_REQUEST)       ,200,0,mWidth-245,200,TRUE);
-        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_SEND)          ,mWidth-43,0,41,200,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_SEND)          ,mWidth-43,0,41,160,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_MODELS)          ,mWidth-43,162,41,38,TRUE);
+
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE)      ,200,202,mWidth-205,mHeight-228,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_STATE_SB)         ,0,mHeight-22,mWidth,22,TRUE);
       }
@@ -319,7 +344,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             if (index > -1)
             {
               char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
-              RichEditInit(hdbclk_info_sqlite);
+              RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
               LVCOLUMN lvc;
               lvc.mask        = LVCF_TEXT;
               lvc.cchTextMax  = MAX_LINE_SIZE;
@@ -337,19 +362,19 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
                     if (strlen(tmp2)>0)
                     {
-                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"\r\n[");
-                      RichEditCouleurGras(hdbclk_info_sqlite,NOIR,tmp);
-                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"]\r\n");
-                      RichEditCouleur(hdbclk_info_sqlite,NOIR,tmp2);
-                      RichEditCouleur(hdbclk_info_sqlite,NOIR,"\r\n");
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+                      RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
                     }
                   }
                 }
               }
-              RichSetTopPos(hdbclk_info_sqlite);
-              ShowWindow (hdbclk_info_sqlite, SW_SHOW);
+              RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
             }
-            RichSetTopPos(hdbclk_info_sqlite);
+            RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
           }
         break;
       }

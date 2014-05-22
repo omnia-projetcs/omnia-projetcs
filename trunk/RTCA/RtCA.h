@@ -175,15 +175,13 @@ TOOLS_USE tools_load[NB_MAX_TOOLS];
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip,
-     hdbclk_info, hdbclk_info_process, hdbclk_info_registry, hdbclk_info_sqlite, hdbclk_info_state;
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip;
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
 
-HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa, h_proxy;
+HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_hexa, h_proxy, h_info;
 BOOL disable_m_context, disable_p_context, enable_magic, enable_remote;
-
 
 BOOL enable_LNK;
 
@@ -333,6 +331,18 @@ DWORD last_bt;
 #define MY_POPUP_SCREENSHOT         9009
 #define MSG_SCREENSHOT              9010
 //#define MSG_SCREENSHOT_WINDOW       9011
+#define DLG_SQL_ED_BT_MODELS        9012
+
+#define POPUP_SQLITE_REQUEST        9020
+
+#define POPUP_SQLITE_REQUEST_SELECT             9021
+#define POPUP_SQLITE_REQUEST_INSERT             9022
+#define POPUP_SQLITE_REQUEST_DELETE             9023
+#define POPUP_SQLITE_REQUEST_VACCUM             9024
+#define POPUP_SQLITE_REQUEST_JOURNAL_ON         9025
+#define POPUP_SQLITE_REQUEST_JOURNAL_OFF        9026
+#define POPUP_SQLITE_REQUEST_BEGIN_TRANSACTION  9027
+#define POPUP_SQLITE_REQUEST_END_TRANSACTION    9028
 
 #define DLG_HEXA_READER             9100
 #define DLG_HEXA_BT_LOAD            9101
@@ -343,6 +353,8 @@ DWORD last_bt;
 #define DLG_HEXA_CHK_HEXA           9106
 #define DLG_HEXA_LV_INFOS           9107
 #define DLG_HEXA_LV_HEXA            9108
+#define POPUP_LSTV_HEXA             9109
+
 
 #define DLG_PROXY                   9200
 BOOL use_proxy_advanced_settings;
@@ -361,6 +373,9 @@ char proxy_ch_password[DEFAULT_TMP_SIZE];
 #define PROXY_ED_PROXY              9208
 #define PROXY_BT_OK                 9209
 #define PROXY_CHK_SAVE              9210
+
+#define DLG_INFO                    9300
+#define DLG_INFO_TXT                9301
 //------------------------------------------------------------------------------
 #define MY_MENU                 10000
 #define IDM_NEW_SESSION         10001
@@ -896,9 +911,7 @@ TRAME_BUFFER *Trame_buffer;                               //liste des trames lue
 unsigned long int NB_trame_buffer;                        //nombre de trames lues
 BOOL start_sniff;
 HANDLE Hsniff;
-HANDLE hdbclk_sniff;
-WNDPROC wndproc_hdbclk_sniff;
-BOOL read_trame_sniff, follow_sniff;
+BOOL follow_sniff;
 
 //color for sniff
 #define TXT_TCP_IPV4 "TCP/IPv4"
@@ -1021,8 +1034,7 @@ void RichSetTopPos(HWND HRichEdit);
 void RichEditInit(HWND HRichEdit);
 void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt);
 void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
-
-LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+DWORD RichEditTextSize(HWND HRichEdit);
 //------------------------------------------------------------------------------
 //MD5
 #include "crypt/md5.h"
@@ -1245,11 +1257,9 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
 BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 BOOL CALLBACK DialogProc_proxy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
+BOOL CALLBACK DialogProc_infos(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 DWORD WINAPI ImpEcran(LPVOID lParam);
-
-//subclass
-LRESULT APIENTRY subclass_hdbclk_sniff(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //Scan function
 DWORD WINAPI Scan_files(LPVOID lParam);

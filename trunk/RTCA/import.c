@@ -104,7 +104,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           //get line
           memset(line,0,MAX_LINE_SIZE);
           l = line;
-          while (*b && *b != '\r' && *b!='\n' && e>l) *l++=*b++;
+          while (*b && *b != '\r' && *b!='\n' && e>l && (l-line < MAX_LINE_SIZE)) *l++=*b++;
           if (*b == '\r')b++;
           *l = 0;
           *l++ = 0;
@@ -167,7 +167,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           //get line
           memset(line,0,MAX_LINE_SIZE);
           l = line;
-          while (*b && *b != '\r' && *b!='\n' && e>l) *l++=*b++;
+          while (*b && *b != '\r' && *b!='\n' && e>l && (l-line < MAX_LINE_SIZE)) *l++=*b++;
           if (*b == '\r')b++;
           *l = 0;
 

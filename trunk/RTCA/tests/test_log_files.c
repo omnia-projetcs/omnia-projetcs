@@ -57,7 +57,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
         {
           memset(line_unicode,0,MAX_LINE_DBSIZE);
           l = line_unicode;
-          while ((*b!=0 || *(b+1)!=0) && (l-line_unicode) < MAX_LINE_DBSIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+          while ((*b!=0 || *(b+1)!=0) && ((l-line_unicode) < MAX_LINE_DBSIZE) && *b != '\r' && *b != '\n')*l++ = *b++;
           if (*b == '\r')b+=4;
           else if (*b == '\n')b+=2;
           *l++=0;
@@ -67,7 +67,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
         {
           memset(line,0,MAX_LINE_SIZE);
           l = line;
-          while (*b && (l-line) < MAX_LINE_SIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+          while (*b && ((l-line) < MAX_LINE_SIZE) && *b != '\r' && *b != '\n')*l++ = *b++;
 
           if (*b == '\r')b+=2;
           else if (*b == '\n')b++;
@@ -267,13 +267,13 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
             //user/computer
             l = line+16;
             c = user;
-            while(c-user < MAX_PATH && *l && *l!=' ' && *l!='\t')*c++=*l++;
+            while((c-user < MAX_PATH) && *l && *l!=' ' && *l!='\t')*c++=*l++;
             *c = 0;
 
             //source
             l++;
             c = source;
-            while(c-source < MAX_PATH && *l && *l!=':')*c++=*l++;
+            while((c-source < MAX_PATH) && *l && *l!=':')*c++=*l++;
             *c = 0;
 
             //description (datas)
@@ -311,7 +311,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
           {
             memset(line_unicode,0,MAX_LINE_DBSIZE);
             l = line_unicode;
-            while ((*b!=0 || *(b+1)!=0) && (l-line_unicode) < MAX_LINE_DBSIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+            while ((*b!=0 || *(b+1)!=0) && ((l-line_unicode) < MAX_LINE_DBSIZE) && *b != '\r' && *b != '\n')*l++ = *b++;
             if (*b == '\r')b+=4;
             else if (*b == '\n')b+=2;
             *l++=0;
@@ -321,7 +321,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
           {
             memset(line,0,MAX_LINE_SIZE);
             l = line;
-            while (*b && (l-line) < MAX_LINE_SIZE && *b != '\r' && *b != '\n')*l++ = *b++;
+            while (*b && (l-line < MAX_LINE_SIZE) && *b != '\r' && *b != '\n')*l++ = *b++;
 
             if (*b == '\r')b+=2;
             else if (*b == '\n')b++;
@@ -491,13 +491,13 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
               //user/computer
               l = line+16;
               c = user;
-              while(c-user < MAX_PATH && *l && *l!=' ' && *l!='\t')*c++=*l++;
+              while((c-user < MAX_PATH) && *l && *l!=' ' && *l!='\t')*c++=*l++;
               *c = 0;
 
               //source
               l++;
               c = source;
-              while(c-source < MAX_PATH && *l && *l!=':')*c++=*l++;
+              while((c-source < MAX_PATH) && *l && *l!=':')*c++=*l++;
               *c = 0;
 
               //description (datas)

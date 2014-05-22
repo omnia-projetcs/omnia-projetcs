@@ -474,7 +474,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
             if (index > -1)
             {
               char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
-              RichEditInit(hdbclk_info_registry);
+              RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
 
               //for each column
               LVCOLUMN lvc;
@@ -493,19 +493,19 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                     ListView_GetItemText(GetDlgItem(h_reg,LV_VIEW),index,i,tmp2,MAX_LINE_SIZE);
                     if (strlen(tmp2)>0)
                     {
-                      RichEditCouleur(hdbclk_info_registry,NOIR,"\r\n[");
-                      RichEditCouleurGras(hdbclk_info_registry,NOIR,tmp);
-                      RichEditCouleur(hdbclk_info_registry,NOIR,"]\r\n");
-                      RichEditCouleur(hdbclk_info_registry,NOIR,tmp2);
-                      RichEditCouleur(hdbclk_info_registry,NOIR,"\r\n");
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+                      RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+                      RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
                     }
                   }
                 }
               }
-              RichSetTopPos(hdbclk_info_registry);
-              ShowWindow (hdbclk_info_registry, SW_SHOW);
+              RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
             }
-            RichSetTopPos(hdbclk_info_registry);
+            RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
           }
         break;
       }

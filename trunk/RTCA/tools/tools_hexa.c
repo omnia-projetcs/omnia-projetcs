@@ -102,6 +102,44 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
       ListView_SetItemText(hlv,ref_item,0,"Last access:");
       filetimeToString_GMT(data.ftLastAccessTime, tmp, DATE_SIZE_MAX);
       ListView_SetItemText(hlv,ref_item,1,tmp);
+
+      //get file infos :
+      char t0[MAX_PATH]="", t1[MAX_PATH]="", t2[MAX_PATH]="", t3[MAX_PATH]="";
+      GetACLS(file, t0, t1, t2, t3, MAX_PATH);
+
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"ACL Owner:");
+      snprintf(t2,MAX_PATH,"%s (%s)",t1,t3);
+      ListView_SetItemText(hlv,ref_item,1,t2);
+
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"ACLs:");
+      ListView_SetItemText(hlv,ref_item,1,t0);
+
+      t0[0] = 0;
+      t1[0] = 0;
+      t2[0] = 0;
+      t3[0] = 0;
+      FileInfoRead(file, t0, t1, t2, t3, MAX_PATH);
+
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"ProductName:");
+      ListView_SetItemText(hlv,ref_item,1,t0);
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"FileVersion:");
+      ListView_SetItemText(hlv,ref_item,1,t1);
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"CompanyName:");
+      ListView_SetItemText(hlv,ref_item,1,t2);
+      lvi.iItem = ListView_GetItemCount(hlv);
+      ref_item = ListView_InsertItem(hlv, &lvi);
+      ListView_SetItemText(hlv,ref_item,0,"FileDescription:");
+      ListView_SetItemText(hlv,ref_item,1,t3);
     }
 
     //load file and write line in lsv
@@ -430,6 +468,7 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             break;
             case DLG_HEXA_CHK_UNICODE:CheckDlgButton(hwnd,DLG_HEXA_CHK_HEXA,BST_UNCHECKED);break;
             case DLG_HEXA_CHK_HEXA:CheckDlgButton(hwnd,DLG_HEXA_CHK_UNICODE,BST_UNCHECKED);break;
+            case POPUP_CP_LINE:CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA), SendMessage(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 10);break;
           }
         break;
         //case CBN_SELCHANGE:CalculDate(last_bt);break;
@@ -460,6 +499,21 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
       DragFinish(H_DropInfo);
     }break;
+    case WM_CONTEXTMENU:
+      if ((HWND)wParam == GetDlgItem(hwnd,DLG_HEXA_LV_HEXA))
+      {
+        HMENU hmenu;
+        if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_HEXA)))!= NULL)
+        {
+          POINT pos;
+          if (GetCursorPos(&pos)!=0)
+          {
+            TrackPopupMenuEx(GetSubMenu(hmenu, 0), 0, pos.x, pos.y,hwnd, NULL);
+          }
+          DestroyMenu(hmenu);
+        }
+      }
+    break;
     case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
   }
   return FALSE;
