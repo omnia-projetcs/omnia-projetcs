@@ -15,6 +15,27 @@ LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARA
   return 0;
 }
 //------------------------------------------------------------------------------
+BOOL CALLBACK DialogProc_infos (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  switch (message)
+  {
+    case WM_SIZE:
+    {
+      unsigned int mWidth  = LOWORD(lParam);
+      unsigned int mHeight = HIWORD(lParam);
+
+      MoveWindow(GetDlgItem((HWND)hwnd,DLG_INFO_TXT),0,0,mWidth,mHeight,TRUE);
+      InvalidateRect(hwnd, NULL, TRUE);
+    }
+    break;
+    case WM_CLOSE:
+      ShowWindow(hwnd,SW_HIDE);
+      RichEditInit(GetDlgItem((HWND)hwnd,DLG_INFO_TXT));
+    break;
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
 //main dialogue function
 //------------------------------------------------------------------------------
 LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -658,15 +679,15 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               if (index > -1)
               {
                 char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
-                RichEditInit(hdbclk_info);
+                RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
 
                 //get title
                 int selected_cb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
                 if (SendMessage(hlstbox, LB_GETTEXTLEN, selected_cb_item, 0) < MAX_LINE_SIZE)
                 {
                   SendMessage(hlstbox, LB_GETTEXT, selected_cb_item, (LPARAM)tmp);
-                  RichEditCouleurGras(hdbclk_info,NOIR,tmp);
-                  RichEditCouleur(hdbclk_info,NOIR,"\r\n--------------------\r\n");
+                  RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n--------------------\r\n");
                 }
 
                 LVCOLUMN lvc;
@@ -686,19 +707,19 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                       if (strlen(tmp2)>0)
                       {
-                        RichEditCouleur(hdbclk_info,NOIR,"\r\n[");
-                        RichEditCouleurGras(hdbclk_info,NOIR,tmp);
-                        RichEditCouleur(hdbclk_info,NOIR,"]\r\n");
-                        RichEditCouleur(hdbclk_info,NOIR,tmp2);
-                        RichEditCouleur(hdbclk_info,NOIR,"\r\n");
+                        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+                        RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
+                        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+                        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
                       }
                     }
                   }
                 }
-                RichSetTopPos(hdbclk_info);
-                ShowWindow (hdbclk_info, SW_SHOW);
+                RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
               }
-              RichSetTopPos(hdbclk_info);
+              RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
             }
           break;
           //popup menu for view column !!
@@ -1413,19 +1434,6 @@ int main(int argc, char* argv[])
                                      CW_USEDEFAULT,CW_USEDEFAULT,h_main,NULL,hinst,NULL);
     //edit dblclick
     richDll = LoadLibrary("RICHED32.DLL");
-    hdbclk_info = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           h_main, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_info, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #else
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #endif
 
     //dialogue for process
     h_process     = CreateDialog(0, MAKEINTRESOURCE(DLG_PROCESS) ,NULL,DialogProc_info);
@@ -1433,19 +1441,6 @@ int main(int argc, char* argv[])
     SendMessage(h_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
     SetWindowText(h_process,NOM_FULL_APPLI);
 
-    hdbclk_info_process = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           h_process, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_info_process, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_info_process, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_process, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #else
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_process, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #endif
     //set columns !!!
     LVCOLUMN lvc;
     unsigned int i;
@@ -1543,22 +1538,6 @@ int main(int argc, char* argv[])
     Hb_pink = CreateSolidBrush(RGB(255, 204, 204));
     Hb_violet = CreateSolidBrush(RGB(204, 204, 255));
 
-    //create fom for infos
-    //edit dblclick
-    hdbclk_sniff = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, WC_EDIT, NOM_FULL_APPLI, 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                                 GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                                 h_sniff, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_sniff, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_sniff, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_sniff = (WNDPROC)SetWindowLongPtr(hdbclk_sniff, GWL_WNDPROC,(LONG)subclass_hdbclk_sniff);
-    #else
-      wndproc_hdbclk_sniff = (WNDPROC)SetWindowLong(hdbclk_sniff, GWL_WNDPROC,(LONG)subclass_hdbclk_sniff);
-    #endif
-
     //if no interface disable sniff
     if (SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCOUNT,0,0) == 0)
       EnableMenuItem(GetMenu(h_main),IDM_TOOLS_SNIFF,MF_BYCOMMAND|MF_GRAYED);
@@ -1574,20 +1553,6 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_reg,LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     ShowWindow(GetDlgItem(h_reg,TV_VIEW), SW_HIDE);
     ShowWindow(GetDlgItem(h_reg,LV_VIEW), SW_SHOW);
-
-    hdbclk_info_registry = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           h_reg, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_info_registry, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_info_registry, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_registry, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #else
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_registry, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #endif
 
     lvc.cx      = 110;
     lvc.pszText = "File";
@@ -1751,20 +1716,6 @@ int main(int argc, char* argv[])
     SetWindowText(h_sqlite_ed,NOM_FULL_APPLI);
     SendDlgItemMessage(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
 
-    hdbclk_info_sqlite = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           h_sqlite_ed, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_info_sqlite, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_info_sqlite, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_sqlite, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #else
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_sqlite, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #endif
-
     //hexa reader
     h_hexa = CreateDialog(0, MAKEINTRESOURCE(DLG_HEXA_READER), NULL,DialogProc_hexa);
     SendMessage(h_hexa, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
@@ -1808,22 +1759,13 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT);
     SendDlgItemMessage(h_hexa,DLG_HEXA_LV_HEXA,WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
 
-    hdbclk_info_state = CreateWindowEx(0x200|WS_EX_CLIENTEDGE, "RichEdit20A", "", 0x00E80844|WS_SIZEBOX|WS_MAXIMIZEBOX,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           GetSystemMetrics(SM_CXSCREEN)/3, GetSystemMetrics(SM_CYSCREEN)/3,
-                           h_state, NULL, hinst, NULL);
-
-    SendMessage(hdbclk_info_state, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
-    SendMessage(hdbclk_info_state, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
-
-    #ifdef _WIN64_VERSION_
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLongPtr(hdbclk_info_state, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #else
-      wndproc_hdbclk_info = (WNDPROC)SetWindowLong(hdbclk_info_state, GWL_WNDPROC,(LONG)subclass_hdbclk_info);
-    #endif
     //proxy
     h_proxy = CreateDialog(0, MAKEINTRESOURCE(DLG_PROXY), NULL,DialogProc_proxy);
     SendMessage(h_proxy, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+
+    h_info = CreateDialog(0, MAKEINTRESOURCE(DLG_INFO), NULL,DialogProc_infos);
+    SendMessage(h_info, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+    SendDlgItemMessage(h_info,DLG_INFO_TXT, WM_SETFONT,(WPARAM)CreateFont(15, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New"), TRUE);
 
     CreateThread(NULL,0,InitGUIConfig,NULL,0,0);
     ShowWindow(hCombo_lang, SW_SHOW);

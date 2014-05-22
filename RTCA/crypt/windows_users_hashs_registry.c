@@ -31,7 +31,7 @@ BOOL get_sid(const char *name, SID **ppsid)
 
   *ppsid = (SID *)LocalAlloc( LMEM_FIXED, sid_size);
   domain = (char *)LocalAlloc( LMEM_FIXED, dom_size);
-  if( *ppsid == 0 || domain == 0)
+  if( (*ppsid == 0) || (domain == 0))
   {
     if(*ppsid)
       LocalFree((HLOCAL)*ppsid);
@@ -191,7 +191,7 @@ BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size)
       DWORD nb = 0, total=0;
 
       NET_API_STATUS nStatus = NetLocalGroupEnum(0,0,(LPBYTE*)&pBuf,2048,&nb,&total,0);
-      if (((nStatus == 0/*NERR_Success*/) || (nStatus == ERROR_MORE_DATA)) && (pBuf) != 0 && nb>0)
+      if (((nStatus == 0/*NERR_Success*/) || (nStatus == ERROR_MORE_DATA)) && ((pBuf) != 0) && (nb>0))
       {
           //le 1er compte est toujour l'administrateur, ils sont chargés dans l'ordre de rid!
           snprintf(group_name,gn_max_size,"%S",pBuf->lgrpi0_name);
@@ -453,9 +453,9 @@ char *SHexaToString(char *src, char *dst, unsigned int dst_size_max)
 {
   unsigned int i,j=0,size = strlen(src);
   char *d = dst;
-  for (i=0;i<size && j<dst_size_max;i+=4,j++)
+  for (i=0;(i<size) && (j<dst_size_max);i+=4,j++)
   {
-    if (src[i]=='1' && src[i+1]=='9' && src[i+2]=='2' && src[i+3]=='0')*d++ = '\'';
+    if ((src[i]=='1') && (src[i+1]=='9') && (src[i+2]=='2') && (src[i+3]=='0'))*d++ = '\'';
     else *d++ = HexaToDecS(&src[i]);
   }
   *d =0;
@@ -741,7 +741,7 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
 
   //---results---
   //name
-  if (taille_nom>0 && taille_nom<size_total && of_name>0 && of_name<size_total)
+  if ((taille_nom>0) && (taille_nom<size_total) && (of_name>0) && (of_name<size_total))
   {
     tmp[0] = 0;
     tmp2[0] = 0;
@@ -755,7 +755,7 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     ret = TRUE;
   }
   //lecture de la description (fullname)
-  if (taille_full_name>0 && taille_full_name<size_total && of_full_name>0 && of_full_name<size_total)
+  if ((taille_full_name>0) && (taille_full_name<size_total) && (of_full_name>0) && (of_full_name<size_total))
   {
     tmp[0]  = 0;
     tmp2[0] = 0;
@@ -767,7 +767,7 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   }else tmp2[0] = 0;
 
   //lecture de la description (comment)
-  if (taille_description>0 && taille_description<size_total && of_description>0 && of_description<size_total)
+  if ((taille_description>0) && (taille_description<size_total) && (of_description>0) && (of_description<size_total))
   {
     tmp[0]  = 0;
     tmp3[0] = 0;
@@ -779,12 +779,12 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     if (tmp2[0] != 0)snprintf(User_infos->description,MAX_PATH,"(%s) %s",tmp2,tmp3);
     else snprintf(User_infos->description,MAX_PATH,"%s",tmp3);
     ret = TRUE;
-  }else if (taille_full_name>0 && tmp2[0] != 0) snprintf(User_infos->description,MAX_PATH,"(%s)",tmp2);
+  }else if ((taille_full_name>0) && (tmp2[0] != 0)) snprintf(User_infos->description,MAX_PATH,"(%s)",tmp2);
 
   //type
-  if ((buffer[8]=='B' || buffer[8]=='b') && (buffer[9]=='C' || buffer[9]=='c'))snprintf(User_infos->type,MAX_PATH,"2 : %s",cps[TXT_MSG_ADMIN].c);
-  else if ((buffer[8]=='B' || buffer[8]=='b') && buffer[9]=='0')snprintf(User_infos->type,MAX_PATH,"0 : %s",cps[TXT_MSG_GUEST].c);
-  else if ((buffer[8]=='D' || buffer[8]=='d') && buffer[9]=='4')snprintf(User_infos->type,MAX_PATH,"1 : %s",cps[TXT_MSG_USER].c);
+  if (((buffer[8]=='B') || (buffer[8]=='b')) && ((buffer[9]=='C') || (buffer[9]=='c')))snprintf(User_infos->type,MAX_PATH,"2 : %s",cps[TXT_MSG_ADMIN].c);
+  else if (((buffer[8]=='B') || (buffer[8]=='b')) && (buffer[9]=='0'))snprintf(User_infos->type,MAX_PATH,"0 : %s",cps[TXT_MSG_GUEST].c);
+  else if (((buffer[8]=='D') || (buffer[8]=='d')) && (buffer[9]=='4'))snprintf(User_infos->type,MAX_PATH,"1 : %s",cps[TXT_MSG_USER].c);
   else snprintf(User_infos->type,MAX_PATH,"0x%c%c : %s",buffer[8],buffer[9],cps[TXT_MSG_UNK].c);
 
   //SID+RID
@@ -794,7 +794,7 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   tmp3[0] = 0;
   unsigned long int type_id = 0, type_id2=0, last_id=0;
   unsigned long int i = Contient(buffer,"2400440002000105000000000005"); // 1500 0000 = 21 le SID de début
-  if (i>0 && i<(strlen(buffer)-40))
+  if ((i>0) && (i<(strlen(buffer)-40)))
   {
     //création du SID : 4o-4o-4o-4o-4o
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+6],buffer[i+7],buffer[i+4],buffer[i+5],buffer[i+2],buffer[i+3],buffer[i],buffer[i+1]);
@@ -902,19 +902,19 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     tmp2[0]=0;
     tmp3[0]=0;
     //8 => 4 size of separator
-    if (taille_lmpw > 8 && of_lmpw>0 && (of_lmpw + 8+ taille_lmpw)<=size_total)
+    if ((taille_lmpw > 8) && (of_lmpw>0) && ((of_lmpw + 8+ taille_lmpw)<=size_total))
     {
       strncpy(tmp2,buffer+of_lmpw+8,MAX_PATH);
       tmp2[32]=0;
     }else strcpy(tmp2,"NO PASSWORD*********************");//LM
 
-    if (taille_ntpw > 8 && of_ntpw>0 && (of_ntpw + taille_ntpw)<=size_total)
+    if ((taille_ntpw > 8) && (of_ntpw>0) && ((of_ntpw + taille_ntpw)<=size_total))
     {
       strncpy(tmp3,buffer+(of_ntpw+8),MAX_PATH);
       tmp3[32]=0;
     }else strcpy(tmp3,"NO PASSWORD*********************");//NT
 
-    if (tmp2[0]!=0 && tmp3[0]!=0)
+    if ((tmp2[0]!=0) && (tmp3[0]!=0))
     {
       //pwdump format
       //<user>:<id>:<lanman pw>:<NT pw>:comment:homedir:
@@ -961,7 +961,7 @@ DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer)
     tmp[6] = buffer[0x18];
     tmp[7] = buffer[0x19];
     FileTime.dwHighDateTime = HTDF(tmp,8);
-    if (FileTime.dwHighDateTime == 0 && FileTime.dwLowDateTime == 0)strncpy(User_infos->last_logon,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
+    if ((FileTime.dwHighDateTime == 0) && (FileTime.dwLowDateTime == 0))strncpy(User_infos->last_logon,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     else
     {
       filetimeToString_GMT(FileTime, User_infos->last_logon, DATE_SIZE_MAX);
@@ -988,7 +988,7 @@ DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer)
     tmp[6] = buffer[0x38];
     tmp[7] = buffer[0x39];
     FileTime.dwHighDateTime = HTDF(tmp,8);
-    if (FileTime.dwHighDateTime == 0 && FileTime.dwLowDateTime == 0)strncpy(User_infos->last_password_change,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
+    if ((FileTime.dwHighDateTime == 0) && (FileTime.dwLowDateTime == 0))strncpy(User_infos->last_password_change,cps[TXT_MSG_NEVER].c,DATE_SIZE_MAX);
     else
     {
       filetimeToString_GMT(FileTime, User_infos->last_password_change, DATE_SIZE_MAX);
@@ -1000,7 +1000,7 @@ DWORD TestUserDataFromSAM_F(USERS_INFOS *User_infos, char*buffer)
     else User_infos->state_id=300;
 
     //Password Expire
-    if (buffer[0x73]=='2'||buffer[0x73]=='3'||buffer[0x73]=='6'||buffer[0x73]=='7'||buffer[0x73]=='A'||buffer[0x73]=='B'||buffer[0x73]=='E'||buffer[0x73]=='F')
+    if ((buffer[0x73]=='2')||(buffer[0x73]=='3')||(buffer[0x73]=='6')||(buffer[0x73]=='7')||(buffer[0x73]=='A')||(buffer[0x73]=='B')||(buffer[0x73]=='E')||(buffer[0x73]=='F'))
     {
       strncat(User_infos->last_password_change," (",MAX_PATH);
       strncat(User_infos->last_password_change,cps[TXT_MSG_MDP_NEVER_EXP].c,MAX_PATH);
@@ -1117,7 +1117,7 @@ void TraiterGroupDataFromSAM_C(char *buffer, unsigned int rid, char *group, unsi
   DWORD nb_sid = HTDF(tmp,8);
 
   //2 = name
-  if (taille_nom>0 && taille_nom<size_total && of_name>0 && of_name<size_total)
+  if ((taille_nom>0) && (taille_nom<size_total) && (of_name>0) && (of_name<size_total))
   {
     strncpy(tmp,(char*)(buffer+of_name),MAX_LINE_SIZE);
     SHexaToString(tmp,group_name,MAX_PATH);
@@ -1299,14 +1299,14 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
 
             }else
             {
-              if(User_infos.RID[0] == 0 && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
-              if(User_infos.SID[0] == 0 && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
+              if((User_infos.RID[0] == 0) && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
+              if((User_infos.SID[0] == 0) && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
             }
             ok_test = TRUE;
           }else
           {
-            if(User_infos.RID[0] == 0 && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
-            if(User_infos.SID[0] == 0 && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
+            if((User_infos.RID[0] == 0) && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
+            if((User_infos.SID[0] == 0) && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
           }
 
           if (!ok_test)continue;
@@ -1315,7 +1315,7 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
           if (userRID) GetUserGroup(userRID, User_infos.group, MAX_PATH);
 
           //get hashs
-          if(b_f[0] != 0 && syskeyok)
+          if((b_f[0] != 0) && syskeyok)
           {
             DecodeSAMHashXP(sk,User_infos.pwdump_pwd_raw_format,userRID,User_infos.name,b_f);
           }

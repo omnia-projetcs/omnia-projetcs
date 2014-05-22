@@ -57,10 +57,17 @@ void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt)
 //En haut d ela fenêtre
 void RichSetTopPos(HWND HRichEdit)
 {
-  POINT p;
+  /*POINT p;
   p.x = 0;
   p.y = 0;
-  SendMessage(HRichEdit,EM_SETSCROLLPOS,(WPARAM)0,(LPARAM) &p);
+  SendMessage(HRichEdit,EM_SETSCROLLPOS,(WPARAM)0,(LPARAM) &p);*/
+  /*CHARRANGE c;
+  memset(&c,0,sizeof(CHARRANGE));
+  c.cpMax = 1;
+
+  SendMessage(HRichEdit, EM_EXSETSEL, 0, &c);*/
+  SendMessage(HRichEdit, WM_VSCROLL, SB_BOTTOM, 0);
+  //SetScrollPos(HRichEdit, SB_VERT, 0, TRUE);
 }
 //------------------------------------------------------------------------------
 //Ajout de texte colorer et gras au RichEdit ; couleur = RGB(255, 0, 0)
@@ -89,4 +96,17 @@ void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt)
     SendMessage(HRichEdit, EM_SETCHARFORMAT, SCF_SELECTION, (LPARAM) &Format);
 	// Il ne reste plus qu'à insérer le texte formaté:
     SendMessage(HRichEdit, EM_REPLACESEL, 0, (LPARAM)(LPCTSTR) txt);
+}
+
+//------------------------------------------------------------------------------
+//get richedit text length
+DWORD RichEditTextSize(HWND HRichEdit)
+{
+  GETTEXTLENGTHEX getLen;
+  getLen.flags    = GTL_DEFAULT;//texte size
+  getLen.codepage = CP_ACP;     //ANSI
+
+  DWORD size = SendMessage(HRichEdit, EM_GETTEXTLENGTHEX , (WPARAM) &getLen, 0);
+  if (size != E_INVALIDARG) return size;
+  else return 0;
 }

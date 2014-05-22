@@ -93,7 +93,7 @@ void TraiterDescription (char *buffer,DWORD size_buffer,char *description,DWORD 
 
     //copie
     k=0;
-    while (j < size_buffer-1 && i<size_description && *s != 0x00)
+    while (j < size_buffer-1 && i<size_description && *s != 0x00 && (d-description < size_description))
     {
       if (*s < 32 || *s > 126)s++;
       else

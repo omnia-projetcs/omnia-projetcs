@@ -94,7 +94,7 @@ FONT 8,"Ms Shell Dlg 2",400,0,1
 STYLE 0x00CF0800
 BEGIN
   CONTROL ""                        ,DLG_NS_SNIFF_LB_FILTRE       ,"ListBox",0x50010141,2,1,100,273,0x00000200
-  CONTROL ""                        ,DLG_NS_LSTV                  ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SINGLESEL|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT |WS_CHILD,2,1,546,273
+  CONTROL ""                        ,DLG_NS_LSTV                  ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SINGLESEL|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT |WS_CHILD,2,1,546,273 // IP
   CONTROL ""                        ,DLG_NS_LSTV_FILTRE           ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SINGLESEL|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT |WS_CHILD,104,1,444,273
   CONTROL ""                        ,DLG_NS_LSTV_PAQUETS          ,"SysListView32",WS_BORDER|WS_TABSTOP|LVS_SHOWSELALWAYS|LVS_NOLABELWRAP| LVS_REPORT | WS_VISIBLE|WS_CHILD|LVS_OWNERDRAWFIXED,104,1,444,273
 
@@ -213,7 +213,8 @@ BEGIN
   CONTROL "Load"                                      ,DLG_SQL_ED_BT_LOAD,"Button",0x50010000,2,245,60,19
   CONTROL "Close"                                     ,DLG_SQL_ED_BT_CLOSE,"Button",0x50010000,64,245,60,19
   CONTROL "SELECT * FROM table;"                      ,DLG_SQL_ED_ED_REQUEST,"Edit",0x50210004,128,1,402,91,0x00000200
-  CONTROL "Send"                                      ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,532,1,20,91
+  CONTROL "Send"                                      ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,532,1,20,61
+  CONTROL "Models"                                    ,DLG_SQL_ED_BT_MODELS,"Button",0x50010000,532,1,22,28
   CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
@@ -251,6 +252,15 @@ BEGIN
 
   CONTROL "Password:"                                 ,PROXY_ST_PASSWORD,"Static",0x50000000,2,63,34,9
   CONTROL ""                                          ,PROXY_ED_PASSWORD,"Edit",0x580100A0,40,61,122,13,0x00000200
+END
+//------------------------------------------------------------------------------
+DLG_INFO DIALOGEX 6,6,194,102
+CAPTION "Information"
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CF0800
+EXSTYLE 0x00000008
+BEGIN
+  CONTROL "",DLG_INFO_TXT,"RichEdit20A",0x563100C4,0,0,194,102,0x00000200
 END
 //------------------------------------------------------------------------------
 MY_MENU MENU
@@ -346,6 +356,16 @@ BEGIN
     MENUITEM "Open RtCA home\tAlt+H"     ,IDM_RTCA_HOME
     MENUITEM SEPARATOR
     MENUITEM "About\tF1"                 ,IDM_ABOUT
+  END
+END
+//------------------------------------------------------------------------------
+//popup files menu
+//------------------------------------------------------------------------------
+POPUP_LSTV_HEXA MENU DISCARDABLE
+BEGIN
+  POPUP "POPUP_LSTV_HEXA"
+  BEGIN
+    MENUITEM "Copy the line to clipboard",POPUP_CP_LINE
   END
 END
 //------------------------------------------------------------------------------
@@ -540,6 +560,23 @@ BEGIN
   END
 END
 //------------------------------------------------------------------------------
+POPUP_SQLITE_REQUEST MENU DISCARDABLE
+BEGIN
+  POPUP "Popup_sqlite_request"
+    BEGIN
+      MENUITEM "SELECT"                           ,POPUP_SQLITE_REQUEST_SELECT //"SELECT * FROM table;"
+      MENUITEM "INSERT"                           ,POPUP_SQLITE_REQUEST_INSERT //"INSERT INTO table (param1,param2) VALUES(\"data1\",\"data2\");"
+      MENUITEM "DELETE"                           ,POPUP_SQLITE_REQUEST_DELETE //"DELETE FROM table WHERE value=\"1\";"
+      MENUITEM SEPARATOR
+      MENUITEM "Compact database"                 ,POPUP_SQLITE_REQUEST_VACCUM //"VACUUM;"
+      MENUITEM "Enable transaction journal"       ,POPUP_SQLITE_REQUEST_JOURNAL_ON //"PRAGMA journal_mode = ON;"
+      MENUITEM "Disable transaction journal"      ,POPUP_SQLITE_REQUEST_JOURNAL_OFF //"PRAGMA journal_mode = OFF;"
+      MENUITEM "Begin transaction"                ,POPUP_SQLITE_REQUEST_BEGIN_TRANSACTION //"BEGIN TRANSACTION;"
+      MENUITEM "End transaction"                  ,POPUP_SQLITE_REQUEST_END_TRANSACTION //"END TRANSACTION;"
+    END
+END
+
+//------------------------------------------------------------------------------
 POPUP_TV_REGISTRY MENU DISCARDABLE
 BEGIN
   POPUP "Popup_tv"
@@ -594,5 +631,6 @@ BEGIN
      BEGIN
        MENUITEM "Screenshot\tPrint screen", MSG_SCREENSHOT
 //       MENUITEM "Screenshot window\tPause", MSG_SCREENSHOT_WINDOW
+        MENUITEM "Disable screenshot"     ,BT_SREEENSHOT
      END
 END

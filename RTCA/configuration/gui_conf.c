@@ -26,7 +26,7 @@ void loadFile_test(char *file, unsigned int index)
         line[0] = 0;
         l = line;
 
-        while(*s && (*s != '\r') && (*s != '\n'))*l++ = *s++;
+        while(*s && (*s != '\r') && (*s != '\n') && (l-line < MAX_LINE_SIZE))*l++ = *s++;
         while(*s && ((*s == '\n') || (*s == '\r')))s++;
         *l = 0;
 
@@ -472,7 +472,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           HTREEITEM item = (HTREEITEM)SendMessage(htrv_test,TVM_GETNEXTITEM,(WPARAM)TVGN_CARET, (LPARAM)0);
           BOOL check = Ischeck_treeview(htrv_test, item);
 
-          if (start_scan && item!=NULL && check && h_thread_test[GetTrvItemIndex(item, htrv_test)]!=NULL)
+          if (start_scan && (item!=NULL) && check && (h_thread_test[GetTrvItemIndex(item, htrv_test)]!=NULL))
           {
             ModifyMenu(hmenu,POPUP_TRV_STOP_TEST        ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_STOP_TEST        ,cps[TXT_POPUP_STOP_TEST].c);
           }else
@@ -622,7 +622,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       unsigned int mHeight = HIWORD(lParam);
 
       //controle de la taille minimum
-      if (mWidth<800 ||mHeight<600)
+      if ((mWidth<800) || (mHeight<600))
       {
         RECT Rect;
         GetWindowRect(hwnd, &Rect);
@@ -651,7 +651,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     case WM_CLOSE:
     {
       //if in stop case
-      if (start_scan == FALSE && stop_scan == TRUE)
+      if ((start_scan == FALSE) && (stop_scan == TRUE))
       {
         sqlite3_close(db_scan);
         CloseWindow(hwnd);

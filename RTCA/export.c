@@ -354,7 +354,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
 {
   //get item count
   unsigned long int nb_items = ListView_GetItemCount(hlv);
-  if (nb_items > 0 && nb_column > 0)
+  if ((nb_items > 0) && (nb_column > 0))
   {
     //open file
     HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
@@ -400,7 +400,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
             }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"\";");
@@ -437,7 +437,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
             copiee = 0;
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
               WriteFile(hfile,lines,strlen(lines),&copiee,0);
@@ -481,7 +481,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
             }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
@@ -514,7 +514,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
 {
   //get item count
   unsigned long int nb_items = ListView_GetItemCount(hlv);
-  if (nb_items > 0 && nb_column > 0)
+  if ((nb_items > 0) && (nb_column > 0))
   {
     //open file
     HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
@@ -561,7 +561,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"%s\";",buffer);
             }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"\"\";");
@@ -598,7 +598,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
             copiee = 0;
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines,MAX_LINE_SIZE,"  <%s><![CDATA[%s]]></%s>\r\n",lv_line[i].c,buffer,lv_line[i].c);
               WriteFile(hfile,lines,strlen(lines),&copiee,0);
@@ -646,7 +646,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
           {
             buffer[0]=0;
             ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-            if (buffer != NULL && strlen(buffer)>0)
+            if ((buffer != NULL) && (strlen(buffer)>0))
             {
               snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
             }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
@@ -762,7 +762,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
             //first line
             char *c = value;
             char *d = &lines[strlen(lines)];
-            while (*c && strlen(lines) < 77)
+            while (*c && (strlen(lines) < 77))
             {
               *d++ = *c++;
               *d++ = *c++;
@@ -791,7 +791,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
               {
                 strcpy(lines,"  \0");
                 char *d = lines+2;
-                while (*c && strlen(lines) < 77)
+                while (*c && (strlen(lines) < 77))
                 {
                   *d++ = *c++;
                   *d++ = *c++;
@@ -832,7 +832,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
             //first line
             char *c = value;
             char *d = &lines[strlen(lines)];
-            while (*c && strlen(lines) < 77)
+            while (*c && (strlen(lines) < 77))
             {
               snprintf(d,4,"%02X,", (*c) & 0xFF);c++;
             }
@@ -858,7 +858,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
               {
                 strcpy(lines,"  \0");
                 char *d = lines+2;
-                while (*c && strlen(lines) < 77)
+                while (*c && (strlen(lines) < 77))
                 {
                   snprintf(d,4,"%02X,", (*c) & 0xFF);c++;
                 }
@@ -896,7 +896,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
             //first line
             char *c = value;
             char *d = &lines[strlen(lines)];
-            while (*c && strlen(lines) < 77)
+            while (*c && (strlen(lines) < 77))
             {
               snprintf(d,4,"%02X,", *c++& 0xFF);
             }
@@ -922,7 +922,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
               {
                 strcpy(lines,"  \0");
                 char *d = lines+2;
-                while (*c && strlen(lines) < 77)
+                while (*c && (strlen(lines) < 77))
                 {
                   snprintf(d,4,"%02X,", *c++& 0xFF);
                 }
@@ -960,7 +960,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
             //first line
             char *c = value;
             char *d = &lines[strlen(lines)];
-            while (*c && strlen(lines) < 77)
+            while (*c && (strlen(lines) < 77))
             {
               *d++ = *c++;
               *d++ = *c++;
@@ -989,7 +989,7 @@ BOOL SaveLSTVItemstoREG(HANDLE hlv, char *file, BOOL selected)
               {
                 strcpy(lines,"  \0");
                 char *d = lines+2;
-                while (*c && strlen(lines) < 77)
+                while (*c && (strlen(lines) < 77))
                 {
                   *d++ = *c++;
                   *d++ = *c++;

@@ -12,6 +12,14 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 {
   update_thread_start = 1;
 
+  //get current date
+  time_t date;
+  time(&date);
+  struct tm *today = localtime(&date);
+
+  //get date
+  char date_today[DATE_SIZE_MAX]="";
+  strftime(date_today, DATE_SIZE_MAX,"%Y/%m/%d %H:%M:%S",today);
 //---------------------------
 //update malware database
 //http://www.selectrealsecurity.com/public-block-lists
@@ -26,6 +34,8 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
   else M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PROXY, proxy_ch_auth, NULL, 0);
 
   if (M_connexion==NULL)return 0;
+
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   //---------------------------
   HINTERNET M_session = InternetConnect(M_connexion, "easylist-downloads.adblockplus.org",443,"","",INTERNET_SERVICE_HTTP,0,0);
   if (M_session!=NULL)
@@ -71,13 +81,14 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
                 if (*c++ == '|')
                 {
                   d = domain;
-                  while (d+1 < domain+MAX_PATH-1 && *c && *c!='^') *d++ = *c++;
+                  while (*c && *c!='^' && (d-domain < MAX_PATH)) *d++ = *c++;
                   *d = 0;
 
                   if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
                   {
-                    snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
-                                                   "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\");",domain);
+                    snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                                                   "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\",\"%s\");",domain,date_today);
+                    //MessageBox(NULL,"OK",request,MB_OK|MB_TOPMOST);
                     sqlite3_exec(db_scan,request, NULL, NULL, NULL);
                     SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
                   }
@@ -143,13 +154,13 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
               {
                 c++;
                 d = domain;
-                while (d+1 < domain+MAX_PATH-1 && *c && *c!=' ') *d++ = *c++;
+                while ((d-domain < MAX_PATH) && *c && *c!=' ') *d++ = *c++;
                 *d = 0;
 
                 if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
                 {
-                  snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
-                                                 "VALUES(\"%s\",\"http://malc0de.com/bl/BOOT\");",domain);
+                  snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                                                 "VALUES(\"%s\",\"http://malc0de.com/bl/BOOT\",\"%s\");",domain,date_today);
                   sqlite3_exec(db_scan,request, NULL, NULL, NULL);
                   SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
                 }
@@ -209,13 +220,13 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
               //get data by line
               //127.0.0.1  0koryu0.easter.ne.jp
               d = domain;
-              while (d+1 < domain+MAX_PATH-1 && *c && *c!='\r' && *c!='\n') *d++ = *c++;
+              while ((d-domain < MAX_PATH) && *c && *c!='\r' && *c!='\n') *d++ = *c++;
               *d = 0;
 
               if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
               {
-                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description) "
-                                               "VALUES(\"%s\",\"http://www.malwaredomainlist.com/hostslist/hosts.txt\");",domain);
+                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                                               "VALUES(\"%s\",\"http://www.malwaredomainlist.com/hostslist/hosts.txt\",\"%s\");",domain,date_today);
                 sqlite3_exec(db_scan,request, NULL, NULL, NULL);
                 SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
               }
@@ -236,6 +247,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
   InternetCloseHandle(M_connexion);
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_END].c);
   SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"");
+  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   update_thread_start = 0;
   return 0;
 }

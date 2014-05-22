@@ -225,7 +225,7 @@ DWORD getFileInfo(TZIP *tzip, IZTIMES *times)
 
 			SetFilePointer(tzip->source, hpos, 0, FILE_BEGIN);
 			ReadFile(tzip->source, &signature, sizeof(signature), &read, 0);
-			if (signature == IMAGE_DOS_SIGNATURE || signature == IMAGE_OS2_SIGNATURE || signature == IMAGE_OS2_SIGNATURE_LE || signature == IMAGE_NT_SIGNATURE)
+			if ((signature == IMAGE_DOS_SIGNATURE) || (signature == IMAGE_OS2_SIGNATURE) || (signature == IMAGE_OS2_SIGNATURE_LE) || (signature == IMAGE_NT_SIGNATURE))
 				a |= 0x00400000; // executable
 		}
 

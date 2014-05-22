@@ -586,7 +586,7 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
   {
     char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
     char SEPARATOR[] = "\r\n---------------------------------------------\r\n";
-    RichEditInit(hdbclk_info_process);
+    RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
 
     LVCOLUMN lvc;
     lvc.mask        = LVCF_TEXT;
@@ -605,11 +605,11 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
 
           if (strlen(tmp2)>0)
           {
-            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n[");
-            RichEditCouleurGras(hdbclk_info_process,NOIR,tmp);
-            RichEditCouleur(hdbclk_info_process,NOIR,"]\r\n");
-            RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
-            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n");
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+            RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
           }
         }
       }
@@ -637,26 +637,26 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
     char tmp1[MAX_PATH]="", tmp3[MAX_PATH]="";
     GetFileInfos(path, tmp, MAX_PATH, tmp1, tmp2, MAX_PATH);
 
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nSize: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFile create time: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFile last update time: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
-    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nSize: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nFile create time: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp1);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nFile last update time: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,SEPARATOR);
 
     tmp[0]  = 0;
     tmp1[0] = 0;
     tmp2[0] = 0;
     tmp3[0] = 0;
     GetACLS(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-    RichEditCouleur(hdbclk_info_process,NOIR,"ACL Owner: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
-    RichEditCouleur(hdbclk_info_process,NOIR," (");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp3);
-    RichEditCouleur(hdbclk_info_process,NOIR,")\r\nACLs: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
-    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"ACL Owner: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp1);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR," (");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp3);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,")\r\nACLs: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,SEPARATOR);
 
     //file binary informations
     tmp[0]  = 0;
@@ -664,15 +664,15 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
     tmp2[0] = 0;
     tmp3[0] = 0;
     FileInfoRead(path, tmp, tmp1, tmp2, tmp3, MAX_PATH);
-    RichEditCouleur(hdbclk_info_process,NOIR,"ProductName: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp);
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFileVersion: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp1);
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nCompanyName: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp2);
-    RichEditCouleur(hdbclk_info_process,NOIR,"\r\nFileDescription: ");
-    RichEditCouleur(hdbclk_info_process,NOIR,tmp3);
-    RichEditCouleur(hdbclk_info_process,NOIR,SEPARATOR);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"ProductName: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nFileVersion: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp1);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nCompanyName: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp2);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\nFileDescription: ");
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp3);
+    RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,SEPARATOR);
 
     //dll infos
     HMODULE hMod[MAX_LINE_SIZE];
@@ -683,9 +683,9 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       //chargement de la liste des dll du processus
       if (EnumProcessModules(hProcess, hMod, MAX_LINE_SIZE,&cbNeeded))
       {
-        RichEditCouleur(hdbclk_info_process,NOIR,"\r\n[");
-        RichEditCouleurGras(hdbclk_info_process,NOIR,"DLL dependency");
-        RichEditCouleur(hdbclk_info_process,NOIR,"]\r\n");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
+        RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"DLL dependency");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"]\r\n");
 
         for ( j = 1; j < (cbNeeded / sizeof(HMODULE)) && j< MAX_LINE_SIZE; j++)
         {
@@ -693,18 +693,16 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
           tmp[0]=0;
           if (GetModuleFileNameEx(hProcess,hMod[j],tmp,MAX_LINE_SIZE)>0)
           {
-            RichEditCouleur(hdbclk_info_process,NOIR,tmp);
-            RichEditCouleur(hdbclk_info_process,NOIR,"\r\n");
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+            RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
           }
         }
       }
       CloseHandle(hProcess);
     }
-
-    RichSetTopPos(hdbclk_info_process);
-    ShowWindow (hdbclk_info_process, SW_SHOW);
+    if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
   }
-  RichSetTopPos(hdbclk_info_process);
+  RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
   return 0;
 }
 //------------------------------------------------------------------------------
