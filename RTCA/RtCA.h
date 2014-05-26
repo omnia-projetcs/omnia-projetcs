@@ -689,8 +689,13 @@ typedef struct line_proc_item
 {
   char protocol[SIZE_ITEMS_PORT_MAX];
   char state[SIZE_ITEMS_PORT_MAX];
+
   char IP_src[SIZE_ITEMS_PORT_MAX];
   char IP_dst[SIZE_ITEMS_PORT_MAX];
+
+  char name_src[SIZE_ITEMS_PORT_MAX];
+  char name_dst[SIZE_ITEMS_PORT_MAX];
+
   char Port_src[SIZE_ITEMS_PORT_MAX];
   char Port_dst[SIZE_ITEMS_PORT_MAX];
 }LINE_PROC_ITEM;
@@ -1238,7 +1243,7 @@ void InitDlgRegfile();
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
-void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check);
+void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items);
 
 //DNS malware
 void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size);

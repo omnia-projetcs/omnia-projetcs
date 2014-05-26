@@ -25,7 +25,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 //http://www.selectrealsecurity.com/public-block-lists
   SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)cps[TXT_UPDATE_START].c);
   //init database ?
-  //sqlite3_exec(db_scan,"DELETE from malware_list;", NULL, NULL, NULL);
+  //sqlite3_exec(db_scan,"DELETE from malware_dns_list;", NULL, NULL, NULL);
 
   //ddl malware file https://easylist-downloads.adblockplus.org/malwaredomains_full.txt
   //init SSL connexion
@@ -86,7 +86,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
                   if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
                   {
-                    snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                    snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_dns_list (domain,description,update_time) "
                                                    "VALUES(\"%s\",\"https://easylist-downloads.adblockplus.org/malwaredomains_full.txt\",\"%s\");",domain,date_today);
                     //MessageBox(NULL,"OK",request,MB_OK|MB_TOPMOST);
                     sqlite3_exec(db_scan,request, NULL, NULL, NULL);
@@ -159,7 +159,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
                 if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
                 {
-                  snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                  snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_dns_list (domain,description,update_time) "
                                                  "VALUES(\"%s\",\"http://malc0de.com/bl/BOOT\",\"%s\");",domain,date_today);
                   sqlite3_exec(db_scan,request, NULL, NULL, NULL);
                   SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);
@@ -225,7 +225,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
               if (strlen(domain)>=DNS_MALWARE_MIN_SIZE)
               {
-                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_list (domain,description,update_time) "
+                snprintf(request,MAX_LINE_SIZE,"INSERT INTO malware_dns_list (domain,description,update_time) "
                                                "VALUES(\"%s\",\"http://www.malwaredomainlist.com/hostslist/hosts.txt\",\"%s\");",domain,date_today);
                 sqlite3_exec(db_scan,request, NULL, NULL, NULL);
                 SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)domain);

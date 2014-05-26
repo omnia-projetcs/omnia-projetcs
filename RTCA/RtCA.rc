@@ -41,17 +41,21 @@ SQLITE_F RCDATA DEFAULT_SQLITE_FILE
 //------------------------------------------------------------------------------
 //ACCELERATORS
 //------------------------------------------------------------------------------
-MY_ACCEL ACCELERATORS DISCARDABLE
+MY_ACCEL ACCELERATORS
 BEGIN
-  "n"                                     ,IDM_NEW_SESSION      , VIRTKEY, SHIFT, NOINVERT
-  "s"                                     ,POPUP_E_CSV          , VIRTKEY, SHIFT, NOINVERT
+  "^n"                                     ,IDM_NEW_SESSION                 //CTRL+n
+  "^N"                                     ,IDM_NEW_SESSION                 //CTRL+N
 
-  "t"                                     ,IDM_STAY_ON_TOP      , VIRTKEY, ALT, NOINVERT
-  "c"                                     ,IDM_CHECK_ALL_TESTS  , VIRTKEY, ALT, NOINVERT
-  "u"                                     ,IDM_UNCHECK_ALL_TESTS, VIRTKEY, ALT, NOINVERT
+  "^s"                                     ,POPUP_E_CSV                     //CTRL+s
+  "^S"                                     ,POPUP_E_CSV                     //CTRL+S
 
-  "h"                                     ,IDM_RTCA_HOME        , VIRTKEY, ALT, NOINVERT
-  VK_F1                                   ,IDM_ABOUT            , VIRTKEY, NOINVERT
+  "t"                                     ,IDM_STAY_ON_TOP      , ALT
+  "T"                                     ,IDM_STAY_ON_TOP      , ALT
+
+  "h"                                     ,IDM_RTCA_HOME        , ALT
+  "H"                                     ,IDM_RTCA_HOME        , ALT
+
+  VK_F1                                   ,IDM_ABOUT            , VIRTKEY
 END
 //------------------------------------------------------------------------------
 //configuration dialogue
@@ -254,7 +258,7 @@ BEGIN
   CONTROL ""                                          ,PROXY_ED_PASSWORD,"Edit",0x580100A0,40,61,122,13,0x00000200
 END
 //------------------------------------------------------------------------------
-DLG_INFO DIALOGEX 6,6,194,102
+DLG_INFO DIALOGEX 6,6,480,260
 CAPTION "Information"
 FONT 8,"MS Sans Serif",0,0
 STYLE 0x00CF0800

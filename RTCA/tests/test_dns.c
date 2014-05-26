@@ -51,8 +51,8 @@ void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_
   if (*c == '.')
   {
     c++;
-    snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_list WHERE domain LIKE \"%%%s\";",c);
-  }else snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_list WHERE domain LIKE \"%%%s\";",name);
+    snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",c);
+  }else snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",name);
 
   FORMAT_CALBAK_READ_INFO fcri;
   sqlite3_exec(db_scan, request, callback_sqlite_malware, &fcri, NULL);

@@ -145,6 +145,24 @@ void GetProcessOwner(DWORD pid, char *owner, char *rid, char *sid, DWORD size_ma
   }
 }
 //------------------------------------------------------------------------------
+BOOL GetNameFromIP(char *ip, char *ip_name, unsigned int name_sz_max)
+{
+  ip_name[0] = 0;
+
+  if (ip[0] == '*') return FALSE;
+
+  struct hostent* remoteHost;
+  struct in_addr in;
+  in.s_addr = inet_addr(ip);
+  if ((remoteHost=gethostbyaddr((char *)&in, 4, AF_INET))!=0)
+  {
+   snprintf(ip_name,name_sz_max,"%s",remoteHost->h_name);
+   if (ip_name[0] != '\\' && ip_name[1] != '\\')return TRUE;
+  }
+
+  return FALSE;
+}
+//------------------------------------------------------------------------------
 DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item_max,unsigned int taille_max_line)
 {
   HMODULE hLibrary = LoadLibrary( "IPHLPAPI.DLL" );
@@ -207,6 +225,8 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
     MIB_TCPROW_OWNER_MODULE table[ANY_SIZE];
     }MIB_TCPTABLE_OWNER_MODULE, *PMIB_TCPTABLE_OWNER_MODULE;
 
+    //char ip_tmp[SIZE_ITEMS_PORT_MAX];
+
     pTCPTable = malloc(size+1);
     if (pTCPTable != NULL)
     {
@@ -218,8 +238,13 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
           if (pid == module.dwOwningPid)
           {
             strncpy(port_line[nb_item].protocol,"TCP",taille_max_line);
+
             snprintf(port_line[nb_item].IP_src,taille_max_line,"%s",inet_ntoa(*(struct in_addr *)&module.dwLocalAddr));
             snprintf(port_line[nb_item].IP_dst,taille_max_line,"%s",inet_ntoa(*(struct in_addr *)&module.dwRemoteAddr));
+
+            GetNameFromIP(port_line[nb_item].IP_src, port_line[nb_item].name_src, SIZE_ITEMS_PORT_MAX);
+            GetNameFromIP(port_line[nb_item].IP_dst, port_line[nb_item].name_dst, SIZE_ITEMS_PORT_MAX);
+
             snprintf(port_line[nb_item].Port_src,taille_max_line,"%d",htons((u_short) module.dwLocalPort));
             snprintf(port_line[nb_item].Port_dst,taille_max_line,"%d",htons((u_short) module.dwRemotePort));
 
@@ -310,6 +335,9 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
        parent_pid[DEFAULT_TMP_SIZE],
        parent_path[MAX_PATH]*/;
 
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
+
   //force enumerate all process by id !
   for (d_pid=FIRST_PROCESS_ID;d_pid<LAST_PROCESS_ID && start_scan;d_pid++)
   {
@@ -377,9 +405,15 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
       {
         for (k=0;k<j;k++)
         {
+          if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+          else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+          if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+          else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
           addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
-                                port_line[k].protocol, port_line[k].IP_src, port_line[k].Port_src,
-                                port_line[k].IP_dst, port_line[k].Port_dst, port_line[k].state, "X", "", "",session_id,db);
+                                port_line[k].protocol, src_name, port_line[k].Port_src,
+                                dst_name, port_line[k].Port_dst, port_line[k].state, "X", "", "",session_id,db);
         }
       }
     }
@@ -423,6 +457,9 @@ DWORD WINAPI Scan_process(LPVOID lParam)
        start_date[DATE_SIZE_MAX],
        parent_pid[DEFAULT_TMP_SIZE],
        parent_path[MAX_PATH];
+
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
 
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
 
@@ -499,9 +536,15 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     {
       for (k=0;k<j;k++)
       {
+        if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+        else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+        if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+        else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
         addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
-                              port_line[k].protocol, port_line[k].IP_src, port_line[k].Port_src,
-                              port_line[k].IP_dst, port_line[k].Port_dst, port_line[k].state,"" , parent_path, parent_pid,session_id,db);
+                              port_line[k].protocol, src_name, port_line[k].Port_src,
+                              dst_name, port_line[k].Port_dst, port_line[k].state, "", parent_path, parent_pid,session_id,db);
       }
     }
     CloseHandle(hProcess);

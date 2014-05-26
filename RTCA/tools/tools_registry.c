@@ -503,7 +503,11 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 }
               }
               RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
-              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+              {
+                ShowWindow (h_info, SW_SHOW);
+                UpdateWindow(h_info);
+              }
             }
             RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
           }
@@ -570,6 +574,7 @@ BOOL CALLBACK DialogProc_reg_file(HWND hwnd, UINT message, WPARAM wParam, LPARAM
               {
                 ShowWindow(h_reg_file, SW_HIDE);
                 ShowWindow(h_reg, SW_SHOW);
+                UpdateWindow(h_reg);
                 //textbutton
                 SetWindowText(GetDlgItem(hwnd,BT_REG_START),cps[TXT_BT_STOP].c);
                 reg_file_start_process = TRUE;
@@ -585,6 +590,7 @@ BOOL CALLBACK DialogProc_reg_file(HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 EnableWindow(GetDlgItem(hwnd,BT_REG_START),FALSE);
                 ShowWindow(h_reg_file, SW_HIDE);
                 ShowWindow(h_reg, SW_SHOW);
+                UpdateWindow(h_reg);
               }
             break;
             //------------------------------------------

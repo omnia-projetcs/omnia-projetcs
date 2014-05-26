@@ -33,7 +33,8 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
   char tmp[MAX_PATH]="";
   char date[DATE_SIZE_MAX]="";
   unsigned int i,size=0;
-  if (type->type > 0 && type->type < nb_sql_CHROME)
+
+  if (type->type <= nb_sql_CHROME)
   {
     //special case of password !!!
     if(sql_CHROME[type->type].test_string_id == SPECIAL_CASE_CHROME_PASSWORD)
@@ -45,9 +46,8 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
       data_in.cbData = strlen(argv[3]);
       data_in.pbData = (BYTE*)argv[3];
 
-      snprintf(tmp,MAX_PATH,"%s,%s,%s (%s)",tmp_file_chrome,convertUTF8toUTF16(argv[0], strlen(argv[0])+1),convertUTF8toUTF16(argv[1], strlen(argv[1])+1),argv[4]);
+      snprintf(tmp,MAX_PATH,"%s, %s",argv[1],argv[2]);
       snprintf(raw_password,MAX_PATH,"%s",argv[3]);
-
 
       if (CryptUnprotectData(&data_out,NULL,NULL,NULL,NULL,0,&data_in))
       {
@@ -57,7 +57,7 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
       convertStringToSQL(tmp, MAX_PATH);
       convertStringToSQL(password, MAX_PATH);
       convertStringToSQL(raw_password, MAX_PATH);
-      addPasswordtoDB(tmp_file_chrome,tmp,raw_password,password,SPECIAL_CASE_CHROME_PASSWORD,current_session_id,db_scan);
+      addPasswordtoDB(tmp_file_chrome,tmp,password,raw_password,SPECIAL_CASE_CHROME_PASSWORD,current_session_id,db_scan);
     }else
     {
       //copy datas
@@ -70,7 +70,7 @@ int callback_sqlite_chrome(void *datas, int argc, char **argv, char **azColName)
         {
           if (argv[i][4] == '/' && argv[i][13] == ':')
           {
-            if (strcmp("1970/01/01 01:00:00",argv[i])!=0)strncpy(date,argv[i],DATE_SIZE_MAX);
+            if (strcmp("1970/01/01 01:00:00",argv[i])!=0 && strcmp("1601/01/01 01:00:00",argv[i])!=0)strncpy(date,argv[i],DATE_SIZE_MAX);
             continue;
           }
         }

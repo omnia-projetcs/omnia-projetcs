@@ -389,7 +389,7 @@ void DisableGrid(HANDLE hlv, BOOL disable, int menu)
   if (disable)
   {
     CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_CHECKED);
-    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,~LVS_EX_GRIDLINES);
+    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,LVS_EX_GRIDLINES,0);
   }else
   {
     CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_UNCHECKED);

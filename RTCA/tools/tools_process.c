@@ -174,6 +174,9 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
        /*parent_pid[DEFAULT_TMP_SIZE]="",
        parent_path[MAX_PATH]="";*/
 
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
+
   LVITEM lvi;
   lvi.mask     = LVIF_TEXT|LVIF_PARAM|LVIF_IMAGE;
   lvi.iSubItem = 0;
@@ -294,9 +297,19 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
           ListView_SetItemText(hlv,ref_item,6,sid);
           ListView_SetItemText(hlv,ref_item,7,start_date);
           ListView_SetItemText(hlv,ref_item,8,port_line[k].protocol);
-          ListView_SetItemText(hlv,ref_item,9,port_line[k].IP_src);
+
+          if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+          else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+          //ListView_SetItemText(hlv,ref_item,9,port_line[k].IP_src);
+          ListView_SetItemText(hlv,ref_item,9,src_name);
           ListView_SetItemText(hlv,ref_item,10,port_line[k].Port_src);
-          ListView_SetItemText(hlv,ref_item,11,port_line[k].IP_dst);
+
+          if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+          else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
+          //ListView_SetItemText(hlv,ref_item,11,port_line[k].IP_dst);
+          ListView_SetItemText(hlv,ref_item,11,dst_name);
           ListView_SetItemText(hlv,ref_item,12,port_line[k].Port_dst);
           ListView_SetItemText(hlv,ref_item,13,port_line[k].state);
           ListView_SetItemText(hlv,ref_item,14,"X");
@@ -341,6 +354,9 @@ void LoadPRocessList(HWND hlv)
   lvi.iSubItem = 0;
   lvi.lParam   = LVM_SORTITEMS;
   lvi.pszText  = "";
+
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
 
   while(Process32Next(hCT, &pe))
   {
@@ -449,9 +465,19 @@ void LoadPRocessList(HWND hlv)
         ListView_SetItemText(hlv,ref_item,6,sid);
         ListView_SetItemText(hlv,ref_item,7,start_date);
         ListView_SetItemText(hlv,ref_item,8,port_line[k].protocol);
-        ListView_SetItemText(hlv,ref_item,9,port_line[k].IP_src);
+
+        if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+        else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+        //ListView_SetItemText(hlv,ref_item,9,port_line[k].IP_src);
+        ListView_SetItemText(hlv,ref_item,9,src_name);
         ListView_SetItemText(hlv,ref_item,10,port_line[k].Port_src);
-        ListView_SetItemText(hlv,ref_item,11,port_line[k].IP_dst);
+
+        if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+        else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
+        //ListView_SetItemText(hlv,ref_item,11,port_line[k].IP_dst);
+        ListView_SetItemText(hlv,ref_item,11,dst_name);
         ListView_SetItemText(hlv,ref_item,12,port_line[k].Port_dst);
         ListView_SetItemText(hlv,ref_item,13,port_line[k].state);
         ListView_SetItemText(hlv,ref_item,14,"");
@@ -615,8 +641,41 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       }
     }
 
-    //get real path
+    //check DNS is malware
     char path[MAX_PATH]= "";
+    tmp[0] = 0;
+    ListView_GetItemText(hlstv_process,index,9,tmp,MAX_LINE_SIZE);
+    if (tmp[0]!='0' && tmp[0]!='*')
+    {
+      MalwareCheck(tmp, path, MAX_PATH);
+      if (path[0] != 0)
+       {
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,"MALWARE DNS IN SRC: ");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,tmp);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,", informations: ");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,path);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
+      }
+    }
+
+    path[0] = 0;
+    tmp[0] = 0;
+    ListView_GetItemText(hlstv_process,index,11,tmp,MAX_LINE_SIZE);
+    if (tmp[0]!='0' && tmp[0]!='*')
+    {
+      MalwareCheck(tmp, path, MAX_PATH);
+      if (path[0] != 0)
+       {
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,"MALWARE DNS IN DST: ");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,tmp);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,", informations: ");
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,path);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
+      }
+    }
+
+    //get real path
+    path[0] = 0;
     tmp[0] = 0;
     ListView_GetItemText(hlstv_process,index,2,tmp,MAX_LINE_SIZE);
     if (tmp[0]=='\\' && tmp[1]=='?' && tmp[2]=='?' && tmp[3]=='\\')
@@ -700,7 +759,11 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       }
       CloseHandle(hProcess);
     }
-    if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+    if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+    {
+      ShowWindow (h_info, SW_SHOW);
+      UpdateWindow(h_info);
+    }
   }
   RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
   return 0;
@@ -929,7 +992,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                   //MessageBox(h_process,s_sha,ok_path,MB_OK|MB_TOPMOST);
 
                   //get VirusTotal Datas
-                  CheckItemToVirusTotal(hlstv_process, current_item, 18, 18, NULL, FALSE);
+                  CheckItemToVirusTotal(hlstv_process, current_item, 18, 18, NULL, FALSE, FALSE);
                 }
               }
             }

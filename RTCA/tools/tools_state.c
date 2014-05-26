@@ -16,6 +16,7 @@ void ShowOnglet(DWORD id)
   ShowWindow(GetDlgItem(h_state,DLG_STATE_LV_LOG_STATE), SW_HIDE);
 
   ShowWindow(GetDlgItem(h_state,id), SW_SHOW);
+  UpdateWindow(GetDlgItem(h_state,id));
 }
 //------------------------------------------------------------------------------
 void InitGuiState()
@@ -109,7 +110,6 @@ DWORD WINAPI Filter_state(LPVOID lParam)
   {
     //string search
     DWORD i,k, ref_item, nb_item = ListView_GetItemCount(hlv_src);
-    int a,b;
     char tmp[MAX_LINE_SIZE];
     for (i=0;i<nb_item;i++)
     {
@@ -134,25 +134,6 @@ DWORD WINAPI Filter_state(LPVOID lParam)
             }
           }
         }
-        /*
-        a = strcmp(tmp1, tmp);
-        b = strcmp(tmp2, tmp);
-
-        //MessageBox(NULL,tmp,tmp1,MB_OK|MB_TOPMOST);
-
-        //if (a>=0 && b<=0)
-        if (a>=0 || b<=0)
-        {
-          //add item
-          lvi.iItem = ListView_GetItemCount(hlv_dst);
-          ref_item = ListView_InsertItem(hlv_dst, &lvi);
-          for(k=0;k<8;k++)
-          {
-            tmp[0]=0;
-            ListView_GetItemText(hlv_src,i,k,tmp,MAX_LINE_SIZE);
-            ListView_SetItemText(hlv_dst,ref_item,k,tmp);
-          }
-        }*/
       }
     }
   }else
@@ -1503,7 +1484,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               }else break;
             }
             RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
-            if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+            if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+            {
+              ShowWindow (h_info, SW_SHOW);
+              UpdateWindow(h_info);
+            }
           }
           RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
         }

@@ -221,6 +221,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
       }
       CloseHandle(Hfic);
     }
+    SetWindowText(h_hexa,file);
   }
 
   h_Hexa = 0;
@@ -419,6 +420,7 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               //clean LSVs
               ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_INFOS));
               ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA));
+              SetWindowText(h_hexa,NOM_FULL_APPLI);
             break;
             case DLG_HEXA_BT_SEARCH:
               if (IsDlgButtonChecked(hwnd,DLG_HEXA_CHK_UNICODE)==BST_CHECKED)

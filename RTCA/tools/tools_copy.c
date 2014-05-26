@@ -300,7 +300,42 @@ BOOL VSSFileCopyFilefromPath(char *path_src, char *path_dst)
   }
   return Ok;
 }
+//------------------------------------------------------------------------------
+//copy file directly from disk
+BOOL DirectFileCopy(char *path_src, char *path_dst)
+{
+  if (path_src[0] == '\\' || path_src[0] == '/')return FALSE;
+  BOOL ret = FALSE;
 
+  //extract drive letter ex: "c:\" and verify if NTFS
+  char path[4]="C:\\\0", filesystem[DEFAULT_TMP_SIZE];
+  path[0] = path_src[0];
+  DWORD FileFlags=0;
+
+  if (GetVolumeInformation(path,NULL,0,NULL,NULL,&FileFlags,filesystem,DEFAULT_TMP_SIZE) == 0)return FALSE;
+
+  //copy only on NTFS system
+  if (!strcmp(filesystem,"NTFS") || !strcmp(filesystem,"ntfs"))
+  {
+    //get volume name
+    char volume[MAX_PATH]="";
+    if (GetVolumeNameForVolumeMountPoint(path,volume,MAX_PATH))
+    {
+      //"\\\\.\\PhysicalDrive0"
+      HANDLE hdrive = CreateFile(volume,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      if (hdrive != INVALID_HANDLE_VALUE)
+      {
+        //search the file on the MFT
+
+
+        //copy the file
+
+        CloseHandle(hdrive);
+      }
+    }
+  }
+  return ret;
+}
 //------------------------------------------------------------------------------
 BOOL CopyFilefromPath(char *path_src, char *path_dst, BOOL direct_shadow_copy)
 {
