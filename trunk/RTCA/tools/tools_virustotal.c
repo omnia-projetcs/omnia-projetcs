@@ -197,7 +197,7 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
   InternetCloseHandle(M_connexion);
 }
 //------------------------------------------------------------------------------
-void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check)
+void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items)
 {
   //init
   VIRUSTOTAL_STR vts;
@@ -210,7 +210,8 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   char tmp[51] = "";
   ListView_GetItemText(hlv,item,column_sha256,vts.sha256,65);
   ListView_GetItemText(hlv,item,colum_sav,tmp,50);
-  if (vts.sha256[0] == 0 || (check && (tmp[0] != 0 || tmp[0] == 'R' || (tmp[0] == 'U' && tmp[7] == 'R'))))return;
+  //if (vts.sha256[0] == 0 || (check && (tmp[0] != 0)/* || tmp[0] == 'R' || (tmp[0] == 'U' && tmp[7] == 'R')))*/)return;
+  if (vts.sha256[0] == 0 || (check && (tmp[0] != 0 && tmp[0] != 'R' && tmp[0] != 'U')))return;
 
   //lecture du token
   if (token == NULL)GetCSRFToken(&vts);
@@ -241,6 +242,25 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
     break;
   }
   ListView_SetItemText(hlv,item,colum_sav,resultats);//owner
+
+  //check all others files identical
+  /*if (check_all_lv_items)
+  {
+    DWORD i, nb_items = SendMessage(hlv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
+    if (nb_items > item)
+    {
+      char tmp_sha256[MAX_PATH];
+      for (i=item+1;i++;i<nb_items)
+      {
+        tmp_sha256[0] = 0;
+        ListView_GetItemText(hlv,i,column_sha256,tmp_sha256,MAX_PATH);
+        if (!strcmp(tmp_sha256,vts.sha256))
+        {
+          ListView_SetItemText(hlv,i,colum_sav,resultats);
+        }
+      }
+    }
+  }*/
 }
 //------------------------------------------------------------------------------
 typedef struct
@@ -260,7 +280,7 @@ DWORD WINAPI TCheckFileToVirusTotal(LPVOID lParam)
   char token[MAX_PATH];
   strncpy(token,s->token,MAX_PATH);
   ReleaseSemaphore(hSemaphoreItem,1,NULL);
-  CheckItemToVirusTotal(hlv, item, COLUMN_SHA256, COLUMN_VIRUSTOTAL,token,TRUE);
+  CheckItemToVirusTotal(hlv, item, COLUMN_SHA256, COLUMN_VIRUSTOTAL,token,TRUE, TRUE);
   ReleaseSemaphore(hSemaphore,1,NULL);
   return 0;
 }
@@ -273,7 +293,7 @@ DWORD WINAPI TCheckFileToVirusTotalProcess(LPVOID lParam)
   char token[MAX_PATH];
   strncpy(token,s->token,MAX_PATH);
   ReleaseSemaphore(hSemaphoreItem,1,NULL);
-  CheckItemToVirusTotal(hlv, item, 18, 18,token,FALSE);
+  CheckItemToVirusTotal(hlv, item, 18, 18,token,FALSE, FALSE);
   ReleaseSemaphore(hSemaphore,1,NULL);
   return 0;
 }
@@ -400,7 +420,7 @@ DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam)
 {
-  CheckItemToVirusTotal(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), COLUMN_SHA256, COLUMN_VIRUSTOTAL, NULL, TRUE);
+  CheckItemToVirusTotal(hlstv, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), COLUMN_SHA256, COLUMN_VIRUSTOTAL, NULL, TRUE, TRUE);
   VIRUSTTAL = FALSE;
   return 0;
 }

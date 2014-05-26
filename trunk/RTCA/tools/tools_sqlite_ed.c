@@ -87,7 +87,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               ofn.lpstrFile = file;
               ofn.nMaxFile = MAX_PATH;
               ofn.lpstrFilter ="SQLITE (*.sqlite)\0*.sqlite\0SQLITE (*.db)\0*.db\0ALL (*.*)\0*.*\0";
-              ofn.nFilterIndex = 1;
+              ofn.nFilterIndex = 3;
               ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST| OFN_ALLOWMULTISELECT | OFN_EXPLORER;
               ofn.lpstrDefExt ="*.sqlite\0";
 
@@ -101,6 +101,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                 FORMAT_CALBAK_READ_INFO fcri;
                 fcri.type = TYPE_SQLITE_LOAD_TABLES;
                 sqlite3_exec(db_sqlite_test,"SELECT DISTINCT tbl_name FROM sqlite_master ORDER BY tbl_name;", callback_sqlite_sqlite_ed, &fcri, NULL);
+                SetWindowText(hwnd,file);
               }
             }
             break;
@@ -119,6 +120,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
               //lB
               SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_RESETCONTENT,0, (LPARAM)"");
+              SetWindowText(hwnd,NOM_FULL_APPLI);
             break;
             case DLG_SQL_ED_BT_SEND:
             {
@@ -293,9 +295,12 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
       sqlite3_exec(db_sqlite_test,"SELECT DISTINCT tbl_name FROM sqlite_master ORDER BY tbl_name;", callback_sqlite_sqlite_ed, &fcri, NULL);
 
       DragFinish(H_DropInfo);
+      SetWindowText(hwnd,file);
     }
     break;
-    case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
+    case WM_CLOSE :
+      ShowWindow(hwnd, SW_HIDE);
+    break;
     case WM_SIZE:
     {
       unsigned int mWidth  = LOWORD(lParam);
@@ -372,7 +377,11 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                 }
               }
               RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
-              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+              {
+                ShowWindow (h_info, SW_SHOW);
+                UpdateWindow(h_info);
+              }
             }
             RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
           }

@@ -60,6 +60,7 @@ void InitGlobalLangueString(unsigned int langue_id)
     //update Windows
     ShowWindow(h_main, SW_HIDE);
     ShowWindow(h_main, SW_SHOW);
+    UpdateWindow(h_main);
 
     //select item ! + force use of gui message
     if (current_item_selected > -1)
@@ -265,6 +266,9 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   InitSQLStrings();
   InitGlobalLangueString(current_lang_id);
   current_session_id = session[0];
+
+  WSADATA WSAData;
+  WSAStartup(0x02, &WSAData );
 
   SetDebugPrivilege(TRUE);
 
@@ -497,9 +501,6 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   CheckMenuItem(GetMenu(h_main),BT_SQLITE_FULL_SPEED,MF_BYCOMMAND|MF_CHECKED);
   sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
 
-  //create Accelerators
-  hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
-
   //init dd menu to copy only driver in disk format
   char letter;
   char tmp[] = "C:\\";
@@ -629,5 +630,7 @@ void EndGUIConfig(HANDLE hwnd)
 
   //clean richedit
   FreeLibrary(richDll);
+
+  WSACleanup();
   PostQuitMessage(0);
 }

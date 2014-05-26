@@ -1073,7 +1073,11 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_datas);
   RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,buffer_datas_hexa);
 
-  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+  {
+    ShowWindow (h_info, SW_SHOW);
+    UpdateWindow(h_info);
+  }
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -1141,7 +1145,11 @@ DWORD WINAPI follow_stream(LPVOID lParam)
 
   if (start_sniff)ReleaseMutex(hMutex_TRAME_BUFFER);
 
-  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+  if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+  {
+    ShowWindow (h_info, SW_SHOW);
+    UpdateWindow(h_info);
+  }
   follow_sniff = FALSE;
   return 0;
 }

@@ -74,6 +74,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
 
   //at end of scan : view main form + quit
   ShowWindow (h_main, SW_SHOW);
+  UpdateWindow(h_main);
   EndDialog(h_conf, 0);
 
   return 0;

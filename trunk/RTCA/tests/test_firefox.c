@@ -33,7 +33,7 @@ int callback_sqlite_firefox(void *datas, int argc, char **argv, char **azColName
   char date[DATE_SIZE_MAX]="";
   unsigned int i;
 
-  if (type->type > 0 && type->type < nb_sql_FIREFOX && argc>0 && argv != NULL)
+  if (type->type <= nb_sql_FIREFOX && argc>0 && argv != NULL)
   {
     char *tmp = malloc(argc*MAX_PATH);
     if (tmp == NULL)return 0;

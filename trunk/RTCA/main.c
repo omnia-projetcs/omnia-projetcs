@@ -45,7 +45,61 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
       case WM_COMMAND:
         switch (HIWORD(wParam))
         {
-          case BN_CLICKED:
+          case CBN_SELCHANGE:
+            //for change in combobox selection
+            switch(LOWORD(wParam))
+            {
+              case CB_LANG :
+                InitGlobalLangueString(SendMessage(hCombo_lang,CB_GETCURSEL,0,0)+1);
+
+                //update tooltips
+                ModifyToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
+                ModifyToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
+              break;
+              case CB_SESSION :
+                current_session_id = session[SendMessage(hCombo_session,CB_GETCURSEL,(WPARAM)0,(LPARAM)0)];
+                //get items infos + items
+                ListView_DeleteAllItems(hlstv);
+                FORMAT_CALBAK_READ_INFO fcri;
+                fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
+                SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
+
+                char tmp_infos[DEFAULT_TMP_SIZE];
+                snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
+                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos);
+              break;
+              case LV_BOX:
+                current_item_selected = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+                TRI_RESULT_VIEW       = FALSE;
+                column_tri            = -1;
+                pos_search            = 0;
+
+                if (current_item_selected > -1)
+                {
+                  FORMAT_CALBAK_READ_INFO fcri2;
+
+                  //get column count
+                  fcri2.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
+
+                  //get column + text
+                  fcri2.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
+
+                  //get items infos + items
+                  ListView_DeleteAllItems(hlstv);
+                  fcri2.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
+                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
+
+                  char tmp_infos2[DEFAULT_TMP_SIZE];
+                  snprintf(tmp_infos2,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
+                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos2);
+                }
+              break;
+            }
+          break;
+          default:
+ //case BN_CLICKED:
             switch(LOWORD(wParam))
             {
               case IDM_QUIT:EndGUIConfig(hwnd);break;
@@ -177,7 +231,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 DisableGrid(hlstv, DISABLE_GRID_LV_ALL,BT_DISABLE_GRID);
               break;
               case BT_SREEENSHOT:SCREENSHOT_fct();break;
-              case BT_PROXY: ShowWindow(h_proxy, SW_SHOW);break;
+              case BT_PROXY: ShowWindow(h_proxy, SW_SHOW);UpdateWindow(h_proxy);break;
               case BT_SEARCH_MATCH_CASE:
                 if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
                   CheckMenuItem(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND|MF_UNCHECKED);
@@ -380,6 +434,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 }
 
                 ShowWindow(h_process,SW_SHOW);
+                UpdateWindow(h_process);
               }
               break;
               case IDM_TOOLS_SNIFF:
@@ -392,24 +447,30 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_LB_FILTRE, LB_INSERTSTRING, (WPARAM)-1, (LPARAM)cps[TXT_SNIFF_FILTRE].c);
 
                 ShowWindow(h_sniff,SW_SHOW);
+                UpdateWindow(h_sniff);
               }
               break;
               case IDM_TOOLS_REG_EXPLORER:
                 InitDlgRegfile();
                 ShowWindow(h_reg_file, SW_SHOW);
+                UpdateWindow(h_reg_file);
               break;
               case IDM_TOOLS_DATE:
                 ShowWindow(h_date, SW_SHOW);
+                UpdateWindow(h_date);
               break;
               case IDM_TOOLS_ANALYSER:
                 InitGuiState();
                 ShowWindow(h_state, SW_SHOW);
+                UpdateWindow(h_state);
               break;
               case IDM_TOOLS_SQLITE_ED:
                 ShowWindow(h_sqlite_ed, SW_SHOW);
+                UpdateWindow(h_sqlite_ed);
               break;
               case IDM_TOOLS_HEXA_READER:
                 ShowWindow(h_hexa, SW_SHOW);
+                UpdateWindow(h_hexa);
               break;
               case IDM_TOOLS_CP_DRIVE_A:
               case IDM_TOOLS_CP_DRIVE_B:
@@ -595,59 +656,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               }
             }
           break;
-          case CBN_SELCHANGE:
-            //for change in combobox selection
-            switch(LOWORD(wParam))
-            {
-              case CB_LANG :
-                InitGlobalLangueString(SendMessage(hCombo_lang,CB_GETCURSEL,0,0)+1);
-
-                //update tooltips
-                ModifyToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);
-                ModifyToolTip(htoolbar, htooltip, hinst, 5, NULL, cps[TXT_TOOLTIP_SEARCH].c);
-              break;
-              case CB_SESSION :
-                current_session_id = session[SendMessage(hCombo_session,CB_GETCURSEL,(WPARAM)0,(LPARAM)0)];
-                //get items infos + items
-                ListView_DeleteAllItems(hlstv);
-                FORMAT_CALBAK_READ_INFO fcri;
-                fcri.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-                SQLITE_LireData(&fcri, SQLITE_LOCAL_BDD);
-
-                char tmp_infos[DEFAULT_TMP_SIZE];
-                snprintf(tmp_infos,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
-                SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos);
-              break;
-              case LV_BOX:
-                current_item_selected = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
-                TRI_RESULT_VIEW       = FALSE;
-                column_tri            = -1;
-                pos_search            = 0;
-
-                if (current_item_selected > -1)
-                {
-                  FORMAT_CALBAK_READ_INFO fcri2;
-
-                  //get column count
-                  fcri2.type = TYPE_SQLITE_FLAG_GET_COLUM_COUNT;
-                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
-
-                  //get column + text
-                  fcri2.type = TYPE_SQLITE_FLAG_VIEW_CHANGE;
-                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
-
-                  //get items infos + items
-                  ListView_DeleteAllItems(hlstv);
-                  fcri2.type = TYPE_SQLITE_FLAG_GET_ITEMS_INFO;
-                  SQLITE_LireData(&fcri2, SQLITE_LOCAL_BDD);
-
-                  char tmp_infos2[DEFAULT_TMP_SIZE];
-                  snprintf(tmp_infos2,DEFAULT_TMP_SIZE,"Item(s) : %d",ListView_GetItemCount(hlstv));
-                  SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)tmp_infos2);
-                }
-              break;
-            }
-          break;
         }
       break;
       case WM_NOTIFY:
@@ -719,22 +727,20 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
               }
               RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
-              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))ShowWindow (h_info, SW_SHOW);
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+              {
+                ShowWindow (h_info, SW_SHOW);
+                UpdateWindow(h_info);
+              }
             }
           break;
           //popup menu for view column !!
           case NM_RCLICK:
           {
-            //src code : http://support.microsoft.com/kb/125694
-            //get click pos
-            DWORD dwPos = GetMessagePos();
-            POINT pointScreen;
-            pointScreen.x = LOWORD (dwPos);
-            pointScreen.y = HIWORD (dwPos);
-
-            //set to lstv pos
-            ScreenToClient (hlstv, &pointScreen);
-            HANDLE hChildWnd = ChildWindowFromPoint(hlstv, pointScreen);
+            POINT pos;
+            GetCursorPos(&pos);
+            ScreenToClient (hlstv, &pos);
+            HANDLE hChildWnd = ChildWindowFromPoint(hlstv, pos);
 
             if (hChildWnd != hlstv) //header have been clicked
             {
@@ -1301,6 +1307,7 @@ int CmdLine(int argc, char* argv[])
   }
 
   SetDebugPrivilege(FALSE);
+  WSACleanup();
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -1553,6 +1560,7 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_reg,LV_VIEW,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     ShowWindow(GetDlgItem(h_reg,TV_VIEW), SW_HIDE);
     ShowWindow(GetDlgItem(h_reg,LV_VIEW), SW_SHOW);
+    UpdateWindow(GetDlgItem(h_reg,LV_VIEW));
 
     lvc.cx      = 110;
     lvc.pszText = "File";
@@ -1771,6 +1779,10 @@ int main(int argc, char* argv[])
     ShowWindow(hCombo_lang, SW_SHOW);
     ShowWindow(hCombo_session, SW_SHOW);
     ShowWindow(h_main, SW_SHOW);
+    UpdateWindow(h_main);
+
+    //create Accelerators
+    hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
     while (GetMessage (&msg, NULL, 0, 0))
     {

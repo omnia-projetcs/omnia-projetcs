@@ -671,6 +671,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       TerminateThread(h_thread_scan,IDThread);
 
       ShowWindow (h_main, SW_SHOW);
+      UpdateWindow(h_main);
       EndDialog(hwnd, 0);
     }
     break;

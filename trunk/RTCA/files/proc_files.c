@@ -182,6 +182,7 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
               strcmp(lowcase_file,"cookies")==0 ||
               strcmp(lowcase_file,"default")==0 ||
               strcmp(lowcase_file,"login data")==0 ||
+              strcmp(lowcase_file,"top sites")==0 ||
               strcmp(lowcase_file,"web data")==0)
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_APPLI]);
