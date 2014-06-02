@@ -80,6 +80,8 @@
 
 #include "files/LiteZip.h"      //zip file for save all locals datas
 
+#include "tools/tools_copy/MFT_parser.h"
+
 #include <Winldap.h>            //LDAP
 //---------------------------------------------------------------------------
 char SQLITE_LOCAL_BDD[MAX_PATH];
@@ -133,6 +135,9 @@ char _SYSKEY[MAX_PATH];
 #define OMB              10*1024*1024    //10mo
 #define DIXM             10*1024*1024    //10mo
 #define DBM               2*1024*1024    //2mo
+
+#define WINDOWS_X_MIN_SZ          780
+#define WINDOWS_Y_MIN_SZ          540
 //------------------------------------------------------------------------------
 //debug message
 #define NB_MSG_COLUMN               6
@@ -1184,6 +1189,13 @@ void FileToSHA256(char *path, char *csha256);
 void ConsoleDirectory_sha256deep(char *tmp_path);
 void DDConsole(char *path_disk, DWORD sz, char *save_file);
 void loadFile_test(char *file, unsigned int index);
+//MFT
+ULONGLONG HexaToll(char *src, unsigned int nb);
+BOOL CopyFileFromMFT(HANDLE hfile, char *destination);
+char *Partition_Type(unsigned int code, char *ctype, unsigned int ctype_sz_max);
+BOOL MBRReadInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos);
+BOOL ReadPartInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos, unsigned int index);
+
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);

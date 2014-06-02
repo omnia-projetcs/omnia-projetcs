@@ -972,11 +972,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
         unsigned int mHeight = HIWORD(lParam);
 
         //controle de la taille minimum
-        if (mWidth<800 ||mHeight<600)
+        if (mWidth<WINDOWS_X_MIN_SZ ||mHeight<WINDOWS_Y_MIN_SZ)
         {
           RECT Rect;
           GetWindowRect(hwnd, &Rect);
-          MoveWindow(hwnd,Rect.left,Rect.top,800+20,600+64,TRUE);
+          MoveWindow(hwnd,Rect.left,Rect.top,WINDOWS_X_MIN_SZ+20,WINDOWS_Y_MIN_SZ+64,TRUE);
         }else
         {
           MoveWindow(htoolbar,0,0,mWidth,22,TRUE);

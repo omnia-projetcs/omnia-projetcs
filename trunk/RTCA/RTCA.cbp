@@ -12,10 +12,6 @@
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option use_console_runner="0" />
-				<Compiler>
-					<Add option="-O1" />
-					<Add option="-Wall" />
-				</Compiler>
 				<Linker>
 					<Add option="-s" />
 					<Add library="comdlg32" />
@@ -249,6 +245,13 @@
 		<Unit filename="tools/tools_copy.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="tools/tools_copy/MBR_parser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/tools_copy/MFT_parser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="tools/tools_copy/MFT_parser.h" />
 		<Unit filename="tools/tools_date.c">
 			<Option compilerVar="CC" />
 		</Unit>
