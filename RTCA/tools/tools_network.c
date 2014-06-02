@@ -1154,6 +1154,263 @@ DWORD WINAPI follow_stream(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
+void LoadTrame_datas(char *buffer, unsigned int buffer_sz_max, long int index)
+{
+  buffer[0] = 0;
+  char buffer_ipv4[MAX_LINE_SIZE]="", buffer_hdr[MAX_LINE_SIZE]="", buffer_datas[MAX_LINE_SIZE]="", buffer_datas_hexa[MAX_LINE_SIZE]="";
+
+  //ipv4
+  IPV4_HDR *ipv4_hdr = (IPV4_HDR *)Trame_buffer[index].buffer;
+  //unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) >> 4)*4;
+  unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) & 0x0F)*4;
+
+  snprintf(buffer_ipv4,REQUEST_MAX_SIZE,
+               "[%s:%d->%s:%d]%08lu\r\n"
+               "[IPV4 HEADER]\r\n"
+               "ip_header_len:\t%d\r\n"
+               "ip_version:\t%d\r\n"
+               "ip_tos:\t%d\r\n"
+               "ip_total_length:\t%d\r\n"
+               "ip_id:\t%d\r\n"
+               "ip_reserved_zero:\t%d\r\n"
+               "ip_dont_fragment:\t%d\r\n"
+               "ip_more_fragment:\t%d\r\n"
+               "ip_frag_offset:\t%d\r\n"
+               "ip_ttl:\t%d\r\n"
+               "ip_protocol:\t%d\r\n"
+               "ip_srcaddr:\t%s\r\n"
+               "ip_destaddr:\t%s\r\n\r\n",
+                Trame_buffer[index].ip_src,Trame_buffer[index].src_port,
+                Trame_buffer[index].ip_dst,Trame_buffer[index].dst_port,
+                index,
+                iphdr_size,
+                ipv4_hdr->ip_header_len_version >> 4,
+                ipv4_hdr->ip_tos,
+                ipv4_hdr->ip_total_length,
+                ipv4_hdr->ip_id,
+                ipv4_hdr->flags & 0x8000,
+                ipv4_hdr->flags & 0x4000,
+                ipv4_hdr->flags & 0x2000,
+                ipv4_hdr->flags & 0x1FFF,
+                ipv4_hdr->ip_ttl,
+                ipv4_hdr->ip_protocol,
+                Trame_buffer[index].ip_src,
+                Trame_buffer[index].ip_dst);
+
+  char *b = Trame_buffer[index].buffer;
+  switch(Trame_buffer[index].ProtoType)
+  {
+    case IPPROTO_TCP:
+    {
+      TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(b+(iphdr_size));
+      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+               "[TCP]\r\n"
+               "source_port:\t%d\r\n"
+               "dest_port:\t%d\r\n"
+               "sequence:\t%ul\r\n"
+               "acknowledge:\t%d\r\n"
+               "ns:\t%d\r\n"
+               "reserved:\t%d\r\n"
+               "data_offset:\t%d\r\n"
+               "flags:\t",
+               tcpheader->source_port,
+               tcpheader->dest_port,
+               tcpheader->sequence,
+               tcpheader->acknowledge,
+               tcpheader->data_offset & 0x80,
+               tcpheader->data_offset & 0x70,
+               tcpheader->data_offset & 0x0F);
+      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE);
+
+      char tmp[10]="";
+      strncat(buffer_hdr,"\r\nwindow:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),REQUEST_MAX_SIZE);
+      tmp[0]=0;
+      strncat(buffer_hdr,"\r\nchecksum:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->checksum,tmp,10),REQUEST_MAX_SIZE);
+      tmp[0]=0;
+      strncat(buffer_hdr,"\r\nurgent_pointer:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->urgent_pointer,tmp,10),REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\n\r\n\0",REQUEST_MAX_SIZE);
+
+      //datas in hexa
+      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+TCP_HDR_SIZE);
+      if (!ValideChDesc(buffer_datas,strlen(buffer_datas)))strcpy(buffer_datas,"[DATAS-HEXA]\r\n\0");
+      chartohexstring(b+iphdr_size+TCP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-TCP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+    }
+    break;
+    case IPPROTO_UDP:
+    {
+      UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(b+(iphdr_size));
+      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+               "[UDP]\r\n"
+               "source_port:\t%d\r\n"
+               "dest_port:\t%d\r\n"
+               "udp_length:\t%d\r\n"
+               "udp_checksum:\t%d\r\n\r\n",
+               udpheader->source_port,
+               udpheader->dest_port,
+               udpheader->udp_length,
+               udpheader->udp_checksum);
+
+      //datas in hexa
+      snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+UDP_HDR_SIZE);
+      if (!ValideChDesc(buffer_datas,strlen(buffer_datas)))strcpy(buffer_datas,"[DATAS-HEXA]\r\n\0");
+      chartohexstring(b+iphdr_size+UDP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-UDP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+    }
+    break;
+    case IPPROTO_ICMP:
+    {
+      ICMP_HDR *icmp_hdr = (ICMP_HDR*)(unsigned char *)(b+(iphdr_size));
+      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+               "[ICMP]\r\n"
+               "type:\t%d\r\n"
+               "code:\t%d\r\n"
+               "checksum:\t%d\r\n"
+               "id:\t%d\r\n"
+               "seq:\t%d\r\n\r\n[DATAS-HEXA]\r\n",
+               icmp_hdr->type,
+               icmp_hdr->code,
+               icmp_hdr->checksum,
+               icmp_hdr->id,
+               icmp_hdr->seq);
+
+      //datas in hexa
+      chartohexstring(b+iphdr_size+ICMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-ICMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+    }
+    break;
+    case IPPROTO_IGMP:
+    {
+      IGMP_HDR *igmp_hdr = (IGMP_HDR*)(unsigned char *)(b+(iphdr_size));
+      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+               "[IGMP]\r\n"
+               "type:\t%d\r\n"
+               "ttl:\t%d\r\n"
+               "checksum:\t%d\r\n"
+               "ip_groupe:\t%d\r\n\r\n[DATAS-HEXA]\r\n",
+               igmp_hdr->type,
+               igmp_hdr->Temp_reponse,
+               igmp_hdr->checksum,
+               igmp_hdr->ip_groupe);
+
+      //datas in hexa
+      chartohexstring(b+iphdr_size+IGMP_HDR_SIZE, (Trame_buffer[index].taille_buffer)-iphdr_size-IGMP_HDR_SIZE,buffer_datas_hexa,MAX_LINE_SIZE);
+    }
+    break;
+  }
+
+  //set text
+  snprintf(buffer,buffer_sz_max,"%s%s%s%s",buffer_ipv4,buffer_hdr,buffer_datas,buffer_datas_hexa);
+}
+//------------------------------------------------------------------------------
+BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelectedItems)
+{
+  //get item count
+  unsigned long int nb_items = ListView_GetItemCount(hlv);
+  if ((nb_items > 0) && (nb_column > 0))
+  {
+    //open file
+    HANDLE hfile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+    if (hfile == INVALID_HANDLE_VALUE)
+    {
+      return FALSE;
+    }
+
+    char lines[MAX_LINE_SIZE]="", buffer[MAX_LINE_SIZE]="", *buf = malloc(DIXM+1);
+    DWORD copiee;
+    unsigned long int i=0,j=0;
+
+    LVCOLUMN lvc;
+    lvc.mask        = LVCF_TEXT;
+    lvc.cchTextMax  = MAX_LINE_SIZE;
+    lvc.pszText     = buffer;
+
+    char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+    WriteFile(hfile,head,strlen(head),&copiee,0);
+
+    //title line
+    for (i=0;i<nb_column;i++)
+    {
+      if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
+      if (strlen(buffer)>0)
+        snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"  <th>%s</th>",buffer);
+
+      buffer[0]=0;
+      lvc.mask = LVCF_TEXT;
+      lvc.cchTextMax = MAX_LINE_SIZE;
+      lvc.pszText = buffer;
+    }
+    strncat(lines,"  <th>RAW</th>\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
+    copiee = 0;
+    WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+    if (!OnlySelectedItems)
+    {
+      for (j=0;j<nb_items;j++)
+      {
+        if (j%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
+        else strcpy(lines,"  <tr>");
+
+        for (i=0;i<nb_column;i++)
+        {
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
+          if ((buffer != NULL) && (strlen(buffer)>0))
+          {
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
+          }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
+        }
+
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+        //datas !
+        WriteFile(hfile,"<td><PRE>",strlen("<td><PRE>"),&copiee,0);
+        LoadTrame_datas(buf, DIXM, j);
+        WriteFile(hfile,buf,strlen(buf),&copiee,0);
+        WriteFile(hfile,"</PRE></td></tr>\r\n",strlen("</PRE></td></tr>\r\n"),&copiee,0);
+      }
+    }else
+    {
+      DWORD z;
+      for (j=0,z=0;j<nb_items;j++)
+      {
+        if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
+        z++;
+
+        if (z%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
+        else strcpy(lines,"  <tr>");
+
+        for (i=0;i<nb_column;i++)
+        {
+          buffer[0]=0;
+          ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
+          if ((buffer != NULL) && (strlen(buffer)>0))
+          {
+            snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
+          }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
+        }
+
+        WriteFile(hfile,lines,strlen(lines),&copiee,0);
+
+        //datas !
+        WriteFile(hfile,"<td><PRE>",strlen("<td><PRE>"),&copiee,0);
+        LoadTrame_datas(buf, DIXM, j);
+        WriteFile(hfile,buf,strlen(buf),&copiee,0);
+        WriteFile(hfile,"</PRE></td></tr>\r\n",strlen("</PRE></td></tr>\r\n"),&copiee,0);
+      }
+    }
+    WriteFile(hfile," </table>\r\n</html>",17,&copiee,0);
+
+    CloseHandle(hfile);
+    free(buf);
+    return TRUE;
+  }else return FALSE;
+}
+//------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
   switch(message)
@@ -1385,7 +1642,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               ofn.hwndOwner    = h_sniff;
               ofn.lpstrFile    = file;
               ofn.nMaxFile     = MAX_PATH;
-              ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";//*.pcap \0*.pcap\0";
+              ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0All datas *.html \0*.html\0";//*.pcap \0*.pcap\0";
               ofn.nFilterIndex = 1;
               ofn.Flags        = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
               ofn.lpstrDefExt  =".csv\0";
@@ -1393,7 +1650,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               {
                 if (ofn.nFilterIndex == SAVE_TYPE_PCAP)
                 {
-                  //a coder
+                  SaveNetRaw(GetCurrentLstv(), file, GetCurrentLstvNbColumn(), FALSE);
                 }else SaveLSTV(GetCurrentLstv(), file, ofn.nFilterIndex, GetCurrentLstvNbColumn());
                 SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }
@@ -1409,7 +1666,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               ofn.hwndOwner    = h_sniff;
               ofn.lpstrFile    = file;
               ofn.nMaxFile     = MAX_PATH;
-              ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";//*.pcap \0*.pcap*/\0";
+              ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0All datas *.html \0*.html\0";//*.pcap \0*.pcap*/\0";
               ofn.nFilterIndex = 1;
               ofn.Flags        = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
               ofn.lpstrDefExt  =".csv\0";
@@ -1417,7 +1674,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               {
                 if (ofn.nFilterIndex == SAVE_TYPE_PCAP)
                 {
-                  //a coder
+                  SaveNetRaw(GetCurrentLstv(), file, GetCurrentLstvNbColumn(), TRUE);
                 }else SaveLSTVSelectedItems(GetCurrentLstv(), file, ofn.nFilterIndex, GetCurrentLstvNbColumn());
                 SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Export done !!!");
               }

@@ -42,7 +42,7 @@ BOOL dd_partition(char drive_letter, char *save_file)
             /*else break; *///erreur : pas de traitement des erreur, permet un accès aux données même si des erreurs de copie/binaire
 
             pos+=buffer_size;
-            snprintf(progress,MAX_PATH,"%d%% (%lu mo) %c:\\ -> %s",(pos/total_size_to_cp)*100,pos/1048510,drive_letter,save_file);
+            snprintf(progress,MAX_PATH,"%lu/%lu mo %c:\\ -> %s",pos/1048510,total_size_to_cp/1048510,drive_letter,save_file);
             SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
 
           }while (pos < total_size_to_cp && cr > 0 && cp > 0 && backup_dd);
@@ -211,16 +211,16 @@ DWORD WINAPI BackupDisk(LPVOID lParam)
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
-    char pathdisk[18]="\\\\.\\PhysicalDrive0";
-    pathdisk[17] = letter;
+    char pathdisk[MAX_PATH];
+    snprintf(pathdisk,MAX_PATH,"\\\\.\\PhysicalDrive%c",letter);
 
     if (dd_disk(pathdisk, file))
     {
-      snprintf(tmp,MAX_PATH,"Physical Drive imagine %c:\\ saved to : %s",letter,file);
+      snprintf(tmp,MAX_PATH,"Physical Drive imagine %s saved to : %s",pathdisk,file);
       SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
     }else
     {
-      snprintf(tmp,MAX_PATH,"Error in imagine Physical Drive %c:\\ to file : %s",letter,file);
+      snprintf(tmp,MAX_PATH,"Error in imagine Physical Drive %s to file : %s",pathdisk,file);
       SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
     }
   }
@@ -311,25 +311,25 @@ BOOL DirectFileCopy(char *path_src, char *path_dst)
   char path[4]="C:\\\0", filesystem[DEFAULT_TMP_SIZE];
   path[0] = path_src[0];
   DWORD FileFlags=0;
+  char volume[MAX_PATH]="",finalvolume[MAX_PATH]="";
 
-  if (GetVolumeInformation(path,NULL,0,NULL,NULL,&FileFlags,filesystem,DEFAULT_TMP_SIZE) == 0)return FALSE;
+  if (GetVolumeInformation(path,NULL,NULL,NULL,NULL,&FileFlags,filesystem,DEFAULT_TMP_SIZE) == 0)return FALSE;
 
   //copy only on NTFS system
   if (!strcmp(filesystem,"NTFS") || !strcmp(filesystem,"ntfs"))
   {
-    //get volume name
-    char volume[MAX_PATH]="";
-    if (GetVolumeNameForVolumeMountPoint(path,volume,MAX_PATH))
+    //get volume path (remove final \ of c:\)
+    path[2] = 0;
+    unsigned int vol_sz_name = QueryDosDevice(path,volume,MAX_PATH);
+    //only \Device\HarddiskVolume1 format (start on 1 but PhysicalDrive start on 0)
+    if(vol_sz_name > 22)
     {
-      //"\\\\.\\PhysicalDrive0"
-      HANDLE hdrive = CreateFile(volume,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+      snprintf(finalvolume,MAX_PATH,"\\\\.\\PhysicalDrive%c",volume[22]-1);
+      //open the device
+      HANDLE hdrive = CreateFile(finalvolume,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
       if (hdrive != INVALID_HANDLE_VALUE)
       {
-        //search the file on the MFT
-
-
-        //copy the file
-
+        ret = CopyFileFromMFT(hdrive, path_dst);
         CloseHandle(hdrive);
       }
     }
@@ -684,8 +684,8 @@ DWORD WINAPI BackupFile(LPVOID lParam)
       {
         snprintf(path2,MAX_PATH,"%s\\%s",path,extractFileFromPath(file_p, file, MAX_PATH));
         //save
-        CopyFilefromPath(file,path, FALSE);
-        SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");
+        CopyFilefromPath(file_p,path, FALSE);
+        //if(DirectFileCopy(file_p, path)) SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");
       }
     }
   }

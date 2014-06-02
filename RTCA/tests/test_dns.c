@@ -27,7 +27,11 @@ void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned 
 //------------------------------------------------------------------------------
 int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName)
 {
-  if(malware_check[0] == 0 )snprintf(malware_check,MAX_PATH,"%s (Last update:%s)",argv[0],argv[1]);
+  if(malware_check[0] == 0)
+  {
+    if (argc>2) snprintf(malware_check,MAX_PATH,"%s (%s:%s)",argv[0],argv[1],argv[2]);
+    else snprintf(malware_check,MAX_PATH,"%s (%s)",argv[0],argv[1]);
+  }
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -51,8 +55,8 @@ void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_
   if (*c == '.')
   {
     c++;
-    snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",c);
-  }else snprintf(request, MAX_LINE_SIZE,"SELECT description,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",name);
+    snprintf(request, MAX_LINE_SIZE,"SELECT description,domain,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",c);
+  }else snprintf(request, MAX_LINE_SIZE,"SELECT description,domain,update_time FROM malware_dns_list WHERE domain LIKE \"%%%s\";",name);
 
   FORMAT_CALBAK_READ_INFO fcri;
   sqlite3_exec(db_scan, request, callback_sqlite_malware, &fcri, NULL);
@@ -60,11 +64,13 @@ void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_dns(LPVOID lParam)
 {
+  unsigned int local_id = (unsigned int)lParam;
+
   //check if local or not :)
   if (!LOCAL_SCAN || WINE_OS)
   {
-    h_thread_test[(unsigned int)lParam] = 0;
-    check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
+    h_thread_test[local_id] = 0;
+    check_treeview(htrv_test, H_tests[local_id], TRV_STATE_UNCHECK);//db_scan
     return 0;
   }
 
@@ -167,7 +173,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
         if (name[0] != 0)
         {
           //get IP + TTL
-          if(DnsQuery(name,DNS_TYPE_A,0/*0x10 : DNS_QUERY_CACHE_ONLY*/,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
+          if(DnsQuery(name,DNS_TYPE_A,0,NULL,&dnsRecords,NULL) == ERROR_SUCCESS)
           {
             dnsr = dnsRecords;
             while (dnsr != NULL)
@@ -183,9 +189,6 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
             }
             //free
             DnsRecordListFree(dnsRecords,DnsFreeRecordList);
-          }else
-          {
-            addHosttoDB("", "", name, "",session_id,db);
           }
         }
         cache = cache->pNext;
@@ -195,7 +198,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   FreeLibrary(hDLL);
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-  check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
-  h_thread_test[(unsigned int)lParam] = 0;
+  check_treeview(htrv_test, H_tests[local_id], TRV_STATE_UNCHECK);//db_scan
+  h_thread_test[local_id] = 0;
   return 0;
 }
