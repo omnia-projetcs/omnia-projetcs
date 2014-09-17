@@ -6,6 +6,14 @@
 //http://msdn.microsoft.com/en-us/library/aa390422%28v=vs.85%29.aspx
 #include "resources.h"
 //------------------------------------------------------------------------------
+BOOL compare_nocas(char *a, char *b)
+{
+  charToLowChar(a);
+  charToLowChar(b);
+  if (!strcmp(a,b))return TRUE;
+  return FALSE;
+}
+//------------------------------------------------------------------------------
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max)
 {
   char *c = path;
@@ -122,8 +130,12 @@ void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt)
 //------------------------------------------------------------------------------
 LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-  if (uMsg == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
-  else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
+  if (uMsg == WM_CLOSE)
+  {
+    ShowWindow (hwnd, SW_HIDE);
+    ShowWindow (h_main, SW_HIDE);
+    ShowWindow (h_main, SW_SHOW);
+  }else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
   return 0;
 }
 //----------------------------------------------------------------
@@ -132,7 +144,10 @@ void init(HWND hwnd)
   h_main            = hwnd;
   scan_start        = FALSE;
   tri_order         = FALSE;
+  SHA1_enable       = FALSE;
   config.nb_accounts= 0;
+  save_done         = FALSE;
+  save_current      = FALSE;
 
   SendMessage(hwnd, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
 
@@ -1558,6 +1573,12 @@ HANDLE NetConnexionAuthenticateTest(char *ip, DWORD id_ip, char*remote_name, PSC
   return htoken;
 }
 //----------------------------------------------------------------
+BOOL ipIsLoclahost(char *ip)
+{
+  if (!strcmp("127.0.0.1",ip))return TRUE;
+  return FALSE;
+}
+//----------------------------------------------------------------
 DWORD WINAPI ScanIp(LPVOID lParam)
 {
   DWORD index = (DWORD)lParam;
@@ -1584,7 +1605,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
       LeaveCriticalSection(&Sync);
       SetWindowText(h_main,test_title);
-    }
+    }else nb_test_ip++;
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -1678,7 +1699,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       }
 
       //DNS
-      if (config.disco_dns && scan_start && dns[0] == 0 && (exist || (!exist && auto_scan_config.DNS_DISCOVERY)))
+      if (config.disco_dns && scan_start && dns[0] == 0)
       {
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","DNS:BEGIN",ip);
@@ -1697,7 +1718,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           }else
           {
             ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
-            dnsok = TRUE;
+            if (auto_scan_config.DNS_DISCOVERY)dnsok = TRUE;
           }
         }
         #ifdef DEBUG_MODE
@@ -2017,7 +2038,7 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
     LeaveCriticalSection(&Sync);
     SetWindowText(h_main,test_title);
-  }
+  }else nb_test_ip++;
   return 0;
 }
 //----------------------------------------------------------------
@@ -2087,6 +2108,12 @@ DWORD WINAPI scan(LPVOID lParam)
   nb_registry       = 0;
   nb_windows        = 0;
 
+  //check if no tests enable
+  if (SendDlgItemMessage(h_main,CB_tests,LB_GETSELCOUNT,(WPARAM)NULL,(LPARAM)NULL) == 0)
+  {
+    AddMsg(h_main,(char*)"ERROR",(char*)"No test select from the left panel!",(char*)"");
+  }
+
   //config.disco_arp          = 0;//SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)0,(LPARAM)NULL);
   config.disco_icmp           = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
   config.disco_dns            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
@@ -2103,9 +2130,13 @@ DWORD WINAPI scan(LPVOID lParam)
   ref++;
   config.write_key            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
 
-
   //load files
-  if (config.check_files)   config.check_files    = (BOOL)load_file_list(CB_T_FILES,     (char*)DEFAULT_LIST_FILES);
+  if (config.check_files)
+  {
+    config.check_files    = (BOOL)load_file_list(CB_T_FILES,     (char*)DEFAULT_LIST_FILES);
+    config.check_files    += (BOOL)load_file_list(CB_T_MULFILES, (char*)DEFAULT_LIST_MULFILES);
+  }
+
   if (config.check_registry)config.check_registry = (BOOL)load_file_list(CB_T_REGISTRY,  (char*)DEFAULT_LIST_REGISTRY);
   if (config.check_services)config.check_services = (BOOL)load_file_list(CB_T_SERVICES,  (char*)DEFAULT_LIST_SERVICES);
   if (config.check_software)config.check_software = (BOOL)load_file_list(CB_T_SOFTWARE,  (char*)DEFAULT_LIST_SOFTWARE);
@@ -2157,6 +2188,18 @@ DWORD WINAPI scan(LPVOID lParam)
       nb_i = 0;
   }
 
+  //check for SHA1
+  char ini_path[LINE_SIZE]="";
+  char tmp_check[LINE_SIZE]="";
+  strncat(GetLocalPath(ini_path, LINE_SIZE),AUTO_SCAN_FILE_INI,LINE_SIZE);
+
+  if(GetPrivateProfileString("SCAN","SHA1_ONLY","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SHA1_enable = TRUE;
+    else SHA1_enable = FALSE;
+
+  }
+
   for (i=0;(i<nb_i) && scan_start;i++)
   {
     //ScanIp((LPVOID)i);
@@ -2169,10 +2212,12 @@ DWORD WINAPI scan(LPVOID lParam)
 
   if (!scan_start)
   {
-    while (nb_test_ip < i && scan_start)Sleep(100);
+    DWORD end = 0;
+    while ((nb_test_ip < i) && (end < THE_END_THREAD_WAIT)){Sleep(100);end++;}
   }else
   {
     for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
+    //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,THREAD_MAX_TIMEOUT);
 
     WaitForSingleObject(hs_netbios,INFINITE);
     WaitForSingleObject(hs_file,INFINITE);
@@ -2229,10 +2274,7 @@ DWORD WINAPI scan(LPVOID lParam)
       char cpath[LINE_SIZE]="";
       GetLocalPath(cpath, LINE_SIZE);
 
-      char tmp_check[LINE_SIZE]="";
-      char ini_path[LINE_SIZE]="";
-      strncat(GetLocalPath(ini_path, LINE_SIZE),AUTO_SCAN_FILE_INI,LINE_SIZE);
-
+      tmp_check[0] = 0;
       if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
       {
         if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
@@ -2304,6 +2346,51 @@ DWORD WINAPI scan(LPVOID lParam)
   SetWindowText(h_main,TITLE);
   h_thread_scan = 0;
   return 0;
+}
+//----------------------------------------------------------------
+DWORD WINAPI SaveWorld(LPVOID lParam)
+{
+  char file[MAX_PATH]= "";
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize    = sizeof(OPENFILENAME);
+  ofn.hwndOwner      = h_main;
+  ofn.lpstrFile      = file;
+  ofn.nMaxFile       = MAX_PATH;
+  ofn.nFilterIndex   = 1;
+  ofn.Flags          = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+  ofn.lpstrFilter    = "*.xml \0*.xml\0*.csv \0*.csv\0*.html \0*.html\0All formats\0*.*\0Log file\0*.txt\0";
+  ofn.lpstrDefExt    = "\0";
+  if (GetSaveFileName(&ofn)==TRUE)
+  {
+    if (ofn.nFilterIndex == SAVE_TYPE_ALL)
+    {
+      char file2[MAX_PATH];
+      snprintf(file2,MAX_PATH,"%s.xml",file);
+      if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+      else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+      snprintf(file2,MAX_PATH,"%s.csv",file);
+      if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+      else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+
+      snprintf(file2,MAX_PATH,"%s.html",file);
+      if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
+      else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+    }else if (ofn.nFilterIndex == SAVE_TYPE_LOG)
+    {
+      char file2[MAX_PATH];
+      snprintf(file2,MAX_PATH,"%s.txt",file);
+      SaveLV(GetDlgItem(h_main,CB_infos), file2);
+    }else
+    {
+      if(SaveLSTV(GetDlgItem(h_main,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file);
+      else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file);
+    }
+
+    save_done = TRUE;
+    save_current = FALSE;
+  }
 }
 //----------------------------------------------------------------
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -2384,53 +2471,18 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
             //------------------------------
             case BT_SAVE:
             {
-              char file[MAX_PATH]= "";
-              OPENFILENAME ofn;
-              ZeroMemory(&ofn, sizeof(OPENFILENAME));
-              ofn.lStructSize    = sizeof(OPENFILENAME);
-              ofn.hwndOwner      = hwnd;
-              ofn.lpstrFile      = file;
-              ofn.nMaxFile       = MAX_PATH;
-              ofn.nFilterIndex   = 1;
-              ofn.Flags          = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrFilter    = "*.xml \0*.xml\0*.csv \0*.csv\0*.html \0*.html\0All formats\0*.*\0Log file\0*.txt\0";
-              ofn.lpstrDefExt    = "\0";
-              if (GetSaveFileName(&ofn)==TRUE)
+              if (!save_current)
               {
-                if (ofn.nFilterIndex == SAVE_TYPE_ALL)
-                {
-                  char file2[MAX_PATH];
-                  snprintf(file2,MAX_PATH,"%s.xml",file);
-                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
-                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
-
-                  snprintf(file2,MAX_PATH,"%s.csv",file);
-                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
-                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
-
-                  snprintf(file2,MAX_PATH,"%s.html",file);
-                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file2);
-                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file2);
-                }else if (ofn.nFilterIndex == SAVE_TYPE_LOG)
-                {
-                  char file2[MAX_PATH];
-                  snprintf(file2,MAX_PATH,"%s.txt",file);
-                  SaveLV(GetDlgItem(hwnd,CB_infos), file2);
-                }else
-                {
-                  if(SaveLSTV(GetDlgItem(hwnd,LV_results), file, ofn.nFilterIndex, NB_COLUMN)) AddMsg(hwnd, (char*)"INFORMATION",(char*)"Recorded data",file);
-                  else AddMsg(hwnd, (char*)"ERROR",(char*)"No data saved to!",file);
-                }
-
-                save_done = TRUE;
+                save_current = TRUE;
+                CreateThread(NULL,0,SaveWorld,0,0,0);
               }
             }
             break;
             //------------------------------
             case BT_RE:
-              scan_start = !scan_start;
-              if (scan_start)
+              if (scan_start == FALSE)
               {
+                scan_start = TRUE;
                 EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
                 EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
                 EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
@@ -2456,12 +2508,16 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 InitializeCriticalSection(&Sync_item);
 
                 h_thread_scan = CreateThread(NULL,0,remote_extract,0,0,0);
-              }else EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
+              }else
+              {
+                scan_start = FALSE;
+                EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
+              }
             break;
             case BT_START:
-              scan_start = !scan_start;
-              if (scan_start)
+              if (scan_start == FALSE)
               {
+                scan_start = TRUE;
                 EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
                 EnableWindow(GetDlgItem(h_main,ED_NET_LOGIN),FALSE);
                 EnableWindow(GetDlgItem(h_main,ED_NET_PASSWORD),FALSE);
@@ -2490,7 +2546,11 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
                 AddMsg(h_main,(char*)"DEBUG",(char*)"scan",(char*)"CreateThread:START");
                 #endif
                 h_thread_scan = CreateThread(NULL,0,scan,0,0,0);
-              }else EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
+              }else
+              {
+                scan_start = FALSE;
+                EnableWindow(GetDlgItem(h_main,BT_START),FALSE);
+              }
             break;
             //------------------------------
             case CHK_ALL_TEST:

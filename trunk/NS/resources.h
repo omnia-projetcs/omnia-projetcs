@@ -5,10 +5,20 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
- * ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
+* refaire des vérification pour la base de registre
+RemoteRegistryNetConnexion
+RegistryScan
+parseLineToReg
 
- * bug de connexion au service de registre à distance en 7 vers XP en connexion AD : en scanne normal (en remplissant les crédentiels) et en extract!!!
- * bug d'extinction du service de registre à distance , à revoir avec les infos Windows
+* pour chaque extract d'un fichier il doit y avoir la taille + empreintes
+* mettre à jour la doc en ajoutant une rubrique "message d'erreur"
+ ERROR",(char*)"No test select from the left panel!",(char*)"");
+
+** ajouter la possibiliter de recherche de fichier sans taille juste une empreinte SHA1/256 ou MD5!
+** Possibiliter de rechercher si le nom de fichier est contenu dans le nom des fichiers
+
+* ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
+
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
@@ -26,6 +36,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //#define DEBUG_MODE                                  1
 //#define DEBUG_MODE_SSH                              1
 //#define DEBUG_MODE_REGISTRY                         1
+//#define DEBUG_MODE_FILES                            1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -40,6 +51,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #include <Shlobj.h>  //for GetPathToSAve
 #include <richedit.h>
 #include "crypt/sha2.h"
+#include "crypt/sha1.h"
 #include "crypt/md5.h"
 
 #include <gpg-error.h>
@@ -63,10 +75,11 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.15 21/03/2014"
+#define TITLE                                       "NS v0.5.20 17/09/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
+#define DEFAULT_LIST_MULFILES                       "\\conf_mulfiles.txt"
 #define DEFAULT_LIST_REGISTRY                       "\\conf_registry.csv"
 #define DEFAULT_LIST_SERVICES                       "\\conf_services.txt"
 #define DEFAULT_LIST_SOFTWARE                       "\\conf_softwares.txt"
@@ -84,10 +97,13 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define MAX_COUNT_MSG                               0X10
 #define IP_SIZE                                     16
 #define SHA256_SIZE                                 65
+#define SHA1_SIZE                                   41
 #define DATE_SIZE                                   26
 #define HK_SIZE_MAX                                 20
 
 #define ICMP_TIMEOUT                                6000            //6 seconds
+#define THREAD_MAX_TIMEOUT                          100000          //100 secondes
+#define THE_END_THREAD_WAIT                         1000//*100ms
 #define DIXM                                        10*1024*1024    //10mo
 //----------------------------------------------------------------
 #define ID_ERROR                                    -1
@@ -147,7 +163,9 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define CB_T_FILES                                  1045
 #define CB_T_REGISTRY_W                             1046
 #define CB_T_SSH                                    1047
+#define CB_T_MULFILES                                  1048
 #define CB_DSC                                      1050
+
 
 #define BT_START                                    1035
 #define BT_RE                                       1036
@@ -269,11 +287,13 @@ typedef struct
 BOOL scan_start, tri_order;
 HANDLE h_thread_scan;
 
+BOOL SHA1_enable;
+
 HINSTANCE hinst;
 HWND h_main, hdbclk_info;
 HANDLE h_log;
 WNDPROC wndproc_hdbclk_info;
-BOOL save_done;
+BOOL save_done, save_current;
 //----------------------------------------------------------------
 //scan
 #define MACH_LINUX                                  64
@@ -281,13 +301,13 @@ BOOL save_done;
 #define MACH_ROUTEUR                                256
 
 //Threads
-#define NB_MAX_DISCO_THREADS                        300
+#define NB_MAX_DISCO_THREADS                        400
 #define NB_MAX_NETBIOS_THREADS                      10
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
 #define NB_MAX_SSH_THREADS                          1
 #define NB_MAX_TCP_TEST_THREADS                     50
-#define NB_MAX_THREAD                               300
+#define NB_MAX_THREAD                               400
 
 CRITICAL_SECTION Sync, Sync_item;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
@@ -396,6 +416,7 @@ void RichEditCouleur(HWND HRichEdit,COLORREF couleur,char* txt);
 void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
 
 //string
+BOOL compare_nocas(char *a, char *d);
 char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
 long int Contient(char*data, char*chaine);
@@ -424,6 +445,7 @@ void addIPInterval(char *ip_src, char *ip_dst, char*dsc);
 BOOL verifieName(char *name);
 
 //Disco
+BOOL ipIsLoclahost(char *ip);
 int Ping(char *ip);
 BOOL ResDNS(char *ip, char *name, unsigned int sz_max);
 
@@ -455,9 +477,10 @@ BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, 
 //File
 void FileToMd5(HANDLE Hfic, char *md5);
 void FileToSHA256(HANDLE Hfic, char *csha256);
-BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok);
+BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok, DWORD id_cb, BOOL multi);
 BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok);
 void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data);
+void CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id);
 BOOL RemoteFilesCopy(DWORD iitem, char *ip, char*remote_share, PSCANNE_ST config, char*pathToSave, char*file);
 
 //SSH

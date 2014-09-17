@@ -952,13 +952,13 @@ void CheckCpFiles(DWORD iitem, char *remote_name, char *file, char*pathToSave, c
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*remote_share, PSCANNE_ST config, char*pathToSave)
+BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*remote_share, PSCANNE_ST config, char*pathToSave, DWORD cb_id)
 {
   //check file
   char tmp_login[MAX_PATH], file[LINE_SIZE];//, tmp_path[LINE_SIZE], tmp_path2[LINE_SIZE];
   char remote_name[LINE_SIZE], msg[LINE_SIZE];
   snprintf(remote_name,LINE_SIZE,"\\\\%s\\%s",ip,remote_share);
-  DWORD j=0, _nb_j = SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+  DWORD j=0, _nb_j = SendDlgItemMessage(h_main,cb_id,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
 
   if (config->nb_accounts == 0)
   {
@@ -988,9 +988,9 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
 
       for (;j<_nb_j && scan_start;j++)
       {
-        if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
+        if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
 
-        if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
+        if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
         {
           CheckCpFiles(iitem, remote_name, file,pathToSave,ip);
 
@@ -1036,9 +1036,9 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
 
       for (;j<_nb_j && scan_start;j++)
       {
-        if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
+        if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
 
-        if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
+        if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
         {
           CheckCpFiles(iitem, remote_name, file,pathToSave,ip);
 
@@ -1085,9 +1085,9 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
 
         for (;j<_nb_j && scan_start;j++)
         {
-          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
+          if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
 
-          if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
+          if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXT,(WPARAM)j,(LPARAM)file))
           {
             CheckCpFiles(iitem, remote_name, file,pathToSave,ip);
 
@@ -1109,13 +1109,13 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
   return FALSE;
 }
 //----------------------------------------------------------------
-void RemoteFilesExtract(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, char*pathToSave)
+void RemoteFilesExtract(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, char*pathToSave, DWORD cb_id)
 {
   //backup all files and directories
-  if(RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"C$", config, pathToSave))
+  if(RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"C$", config, pathToSave, cb_id))
   {
-    RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"D$", config, pathToSave);
-    RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"E$", config, pathToSave);
+    RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"D$", config, pathToSave, cb_id);
+    RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"E$", config, pathToSave, cb_id);
   }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
 }
 //----------------------------------------------------------------
@@ -1323,7 +1323,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
       snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
       LeaveCriticalSection(&Sync);
       SetWindowText(h_main,test_title);
-    }
+    }else nb_test_ip++;
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -1397,7 +1397,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
       }
 
       //DNS
-      if (config.disco_dns && scan_start && dns[0] == 0 && (exist || (!exist && auto_scan_config.DNS_DISCOVERY)))
+      if (config.disco_dns && scan_start && dns[0] == 0)
       {
         if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"DNS");
         if(ResDNS(ip, dns, MAX_PATH))
@@ -1444,7 +1444,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
       {
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
         WaitForSingleObject(hs_file,INFINITE);
-        RemoteFilesExtract(iitem, ip, index, &config, path_to_save);
+        RemoteFilesExtract(iitem, ip, index, &config, path_to_save, CB_T_FILES);
         ReleaseSemaphore(hs_file,1,NULL);
       }
 
@@ -1473,7 +1473,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
     snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
     LeaveCriticalSection(&Sync);
     SetWindowText(h_main,test_title);
-  }
+  }else nb_test_ip++;
   return 0;
 }
 //----------------------------------------------------------------
@@ -1528,6 +1528,12 @@ DWORD WINAPI remote_extract(LPVOID lParam)
   snprintf(tmp,LINE_SIZE,"Loaded %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
   AddMsg(h_main,(char*)"INFORMATION",tmp,(char*)"");
 
+  //check if no tests enable
+  if (SendDlgItemMessage(h_main,CB_tests,LB_GETSELCOUNT,(WPARAM)NULL,(LPARAM)NULL) == 0)
+  {
+    AddMsg(h_main,(char*)"ERROR",(char*)"No test select from the left panel!",(char*)"");
+  }
+
   //get configuration
   unsigned int ref  = 0;
 
@@ -1542,6 +1548,14 @@ DWORD WINAPI remote_extract(LPVOID lParam)
   config.check_ssh            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
 
   if (config.check_files)   config.check_files    = (BOOL)load_file_list(CB_T_FILES,(char*)DEFAULT_LIST_FILES);
+
+  //load files
+  if (config.check_files)
+  {
+    config.check_files    = (BOOL)load_file_list(CB_T_FILES,     (char*)DEFAULT_LIST_FILES);
+    config.check_files    += (BOOL)load_file_list(CB_T_MULFILES, (char*)DEFAULT_LIST_MULFILES);
+  }
+
   if (config.check_ssh)     config.check_ssh      = (BOOL)load_file_list(CB_T_SSH,   (char*)DEFAULT_LIST_SSH);
 
   //where save the datas ?
@@ -1583,7 +1597,8 @@ DWORD WINAPI remote_extract(LPVOID lParam)
 
     if (!scan_start)
     {
-      while (nb_test_ip < i && scan_start)Sleep(100);
+      DWORD end = 0;
+      while (nb_test_ip < i && end < THE_END_THREAD_WAIT){Sleep(100);end++;}
     }else
     {
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);

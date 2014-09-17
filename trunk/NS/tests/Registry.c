@@ -12,7 +12,7 @@ BOOL StartRemoteRegistryService(char *ip, BOOL start)
 {
   BOOL ret = FALSE;
   #ifdef DEBUG_MODE_REGISTRY
-  AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,(char*)"StartRemoteRegistryService START");
+  AddMsg(h_main,(char*)"DEBUG (OpenSCManager)",ip,(char*)"StartRemoteRegistryService START");
   #endif // DEBUG_MODE_REGISTRY
 
   //get remote OpenSCManager
@@ -34,7 +34,7 @@ BOOL StartRemoteRegistryService(char *ip, BOOL start)
     {
       ret = TRUE;
       #ifdef DEBUG_MODE_REGISTRY
-      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,(char*)"StartRemoteRegistryService START SERVICE OK");
+      AddMsg(h_main,(char*)"DEBUG (OpenSCManager)",ip,(char*)"StartRemoteRegistryService START SERVICE OK");
       #endif // DEBUG_MODE_REGISTRY
     }
   }else
@@ -46,7 +46,7 @@ BOOL StartRemoteRegistryService(char *ip, BOOL start)
     {
       ret = TRUE;
       #ifdef DEBUG_MODE_REGISTRY
-      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,(char*)"StartRemoteRegistryService STOP SERVICE OK");
+      AddMsg(h_main,(char*)"DEBUG (OpenSCManager)",ip,(char*)"StartRemoteRegistryService STOP SERVICE OK");
       #endif // DEBUG_MODE_REGISTRY
     }
   }
@@ -99,6 +99,10 @@ DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
 //----------------------------------------------------------------
 BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write)
 {
+  #ifdef DEBUG_MODE_REGISTRY
+  AddMsg(h_main,(char*)"DEBUG (parseLineToReg)","",(char*)line);
+  #endif // DEBUG_MODE_REGISTRY
+
   //line format :"SYSTEM\\CurrentControlSet\\Services\\";"value";"data";"format";"check";
   //get path
   strncpy(reg_st->path,line+1,LINE_SIZE);
@@ -166,6 +170,12 @@ BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write)
     reg_st->data_dword  = FALSE;
     reg_st->data_string = TRUE;
   }
+
+  #ifdef DEBUG_MODE_REGISTRY
+  char tmp_[MAX_PATH]="";
+  snprintf(tmp_,MAX_PATH,"%s, %s, %s, %s, %s, %s",reg_st->data_dword?"DWORD":"STRING",reg_st->chkey,reg_st->description,reg_st->data,reg_st->value,reg_st->path);
+  AddMsg(h_main,(char*)"DEBUG (parseLineToReg)","",(char*)tmp_);
+  #endif // DEBUG_MODE_REGISTRY
 
   //check
   reg_st->check_equal     = FALSE;
@@ -253,8 +263,15 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey)
       //check format: =<>!*
       if (parseLineToReg(buffer,&reg_st,FALSE))
       {
+          #ifdef DEBUG_MODE_REGISTRY
+          AddMsg(h_main,(char*)"DEBUG (parseLineToReg)","OK",(char*)reg_st.path);
+          #endif // DEBUG_MODE_REGISTRY
         if (RegOpenKey(hkey,reg_st.path,&CleTmp)==ERROR_SUCCESS)
         {
+          #ifdef DEBUG_MODE_REGISTRY
+          AddMsg(h_main,(char*)"DEBUG (RegOpenKey)","OK",(char*)reg_st.path);
+          #endif // DEBUG_MODE_REGISTRY
+
           if (reg_st.check_no_value)
           {
             snprintf(msg,LINE_SIZE,"%s\\%s\\%s (%s)",ip,chkey,reg_st.path,reg_st.description);
@@ -809,14 +826,14 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
     wchar_t server[MAX_PATH];
     snprintf(tmp,MAX_PATH,"\\\\%s",ip);
 
-    WaitForSingleObject(hs_netbios,INFINITE);
+    //WaitForSingleObject(hs_netbios,INFINITE);
     mbstowcs(server, tmp, MAX_PATH);
 
     if (Netbios_Policy(server, pol, MAX_PATH))
     {
       AddLSTVUpdateItem(pol, COL_POLICY, iitem);
     }
-    ReleaseSemaphore(hs_netbios,1,NULL);
+    //ReleaseSemaphore(hs_netbios,1,NULL);
   }
 
   if ((config->check_registry || config->check_services || config->check_software || config->check_USB || config->write_key) && scan_start)
@@ -911,12 +928,81 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
   return ret;
 }
 //----------------------------------------------------------------
+BOOL LocalRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok)
+{
+  //for testing account policy
+  if (config->disco_netbios_policy && scan_start)
+  {
+    char pol[MAX_PATH]="";
+    char tmp[MAX_PATH]="";
+    wchar_t server[MAX_PATH];
+    snprintf(tmp,MAX_PATH,"\\\\%s",ip);
+
+    //WaitForSingleObject(hs_netbios,INFINITE);
+    mbstowcs(server, tmp, MAX_PATH);
+
+    if (Netbios_Policy(server, pol, MAX_PATH))
+    {
+      AddLSTVUpdateItem(pol, COL_POLICY, iitem);
+    }
+    //ReleaseSemaphore(hs_netbios,1,NULL);
+  }
+
+  HKEY hkey;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,"",&hkey)==ERROR_SUCCESS)
+  {
+    //get Exact OS !!!
+    if (RegistryOS(iitem,hkey))
+    {
+      nb_windows++;
+    }
+
+    if (config->check_registry && scan_start)
+    {
+      RegistryScan(iitem,ip,hkey,(char*)"HKLM");
+
+      //other check
+      HKEY hkey2;
+      if (RegOpenKey(HKEY_CLASSES_ROOT,"",&hkey2)==ERROR_SUCCESS)
+      {
+        RegistryScan(iitem,ip,hkey2,(char*)"HKCR");
+        if (config->write_key && scan_start)RegistryWriteKey(ip,hkey2,(char*)"HKCR");
+        RegCloseKey(hkey2);
+      }
+      if (RegOpenKey(HKEY_USERS,"",&hkey2)==ERROR_SUCCESS)
+      {
+        RegistryScan(iitem,ip,hkey2,(char*)"HKU");
+        if (config->write_key && scan_start)RegistryWriteKey(ip,hkey2,(char*)"HKU");
+        RegCloseKey(hkey2);
+      }
+    }
+
+    if (config->check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
+    if (config->check_software && scan_start)
+    {
+      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
+      RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
+    }
+    if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+
+    if (config->write_key && scan_start)RegistryWriteKey(ip,hkey,(char*)"HKLM");
+
+    RegCloseKey(hkey);
+  }
+  return TRUE;
+}
+//----------------------------------------------------------------
 BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);
   #endif
-  if(RemoteRegistryNetConnexion(iitem, ip, ip_id, config, windows_OS, id_ok))return TRUE;
+  if (ipIsLoclahost(ip))
+  {
+    if (LocalRegistryNetConnexion(iitem, ip, ip_id, config, id_ok))return TRUE;
+    else AddLSTVUpdateItem((char*)"LOCAL REG SCAN FAIL!",COL_FILES,iitem);
+
+  }else if(RemoteRegistryNetConnexion(iitem, ip, ip_id, config, windows_OS, id_ok))return TRUE;
   else
   {
     if (config->check_registry)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);
