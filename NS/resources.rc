@@ -44,6 +44,7 @@ BEGIN
   CONTROL ""                              ,CB_T_SOFTWARE    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
   CONTROL ""                              ,CB_T_USB         ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
   CONTROL ""                              ,CB_T_FILES       ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
+  CONTROL ""                              ,CB_T_MULFILES    ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
   CONTROL ""                              ,CB_T_REGISTRY_W  ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
   CONTROL ""                              ,CB_T_SSH         ,"ListBox"        ,NOT 0x50300141,2,35,110,262,0x00000200
 END

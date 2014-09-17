@@ -522,7 +522,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
       LeaveCriticalSection(&Sync);
       SetWindowText(h_main,test_title);
-    }
+    }else nb_test_ip++;
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -598,7 +598,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     if (iitem == ID_ERROR)exist = FALSE;
 
     //DNS
-    if (scan_start && (auto_scan_config.DNS_DISCOVERY || exist))
+    if (scan_start && dns[0] == 0)
     {
       if(exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"DNS");
       if(ResDNS(ip, dns, MAX_PATH))
@@ -613,6 +613,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         }else
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_DNS,dns);
+          if (auto_scan_config.DNS_DISCOVERY)exist = TRUE;
         }
       }
     }
@@ -803,7 +804,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
     LeaveCriticalSection(&Sync);
     SetWindowText(h_main,test_title);
-  }
+  }else nb_test_ip++;
   return 0;
 }
 //----------------------------------------------------------------
@@ -821,6 +822,13 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   char tmp_check[LINE_SIZE]="";
 
   //specials tests
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","DNS_DISCOVERY","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')auto_scan_config.DNS_DISCOVERY = TRUE;
+    else auto_scan_config.DNS_DISCOVERY = FALSE;
+  }else auto_scan_config.DNS_DISCOVERY = TRUE;
+
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","TYPE","",tmp_check,LINE_SIZE,ini_path))
   {
@@ -840,12 +848,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   }
 
   tmp_check[0] = 0;
-  if(GetPrivateProfileString("SCAN","DNS_DISCOVERY","",tmp_check,LINE_SIZE,ini_path))
-  {
-    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')auto_scan_config.DNS_DISCOVERY = TRUE;
-    else auto_scan_config.DNS_DISCOVERY = FALSE;
-  }else auto_scan_config.DNS_DISCOVERY = TRUE;
-
   if(GetPrivateProfileString("SCAN","IP_FILE","",tmp_check,LINE_SIZE,ini_path))
   {
     //load ips
@@ -1221,7 +1223,8 @@ DWORD WINAPI auto_scan(LPVOID lParam)
 
     if (!scan_start)
     {
-      while (nb_test_ip < i && scan_start)Sleep(100);
+      DWORD end = 0;
+      while (nb_test_ip < i && end < THE_END_THREAD_WAIT){Sleep(100);end++;}
     }else
     {
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
