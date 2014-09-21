@@ -18,6 +18,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
   char remote_name[MAX_PATH]="", tmp[MAX_PATH]="";
   HANDLE connect = 0;
   WaitForSingleObject(hs_netbios,INFINITE);
+  hs_c_netbios++;
 
   if (scan_start)connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,&config, iitem, FALSE, id_ok);
 
@@ -289,6 +290,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
     if (connect != (HANDLE)1)CloseHandle(connect);
   }
   ReleaseSemaphore(hs_netbios,1,NULL);
+  hs_c_netbios--;
 }
 //----------------------------------------------------------------
 void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *id_ok)
@@ -401,6 +403,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
   if (id_ok != NULL && *id_ok > ID_ERROR) i = *id_ok;
 
   WaitForSingleObject(hs_netbios,INFINITE);
+  hs_c_netbios++;
 
   //MCAFEE_UPDATE_DAYS_INTERVAL
   for (; i<config.nb_accounts && scan_start;i++)
@@ -494,6 +497,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
           }
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
           AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
+          FindClose(hfic);
         }
       }
 
@@ -502,6 +506,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
     }
   }
   ReleaseSemaphore(hs_netbios,1,NULL);
+  hs_c_netbios--;
 }
 //----------------------------------------------------------------
 DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
@@ -514,6 +519,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
     ReleaseSemaphore(hs_threads,1,NULL);
+    hs_c_threads--;
 
     //tracking
     if (scan_start)
@@ -536,6 +542,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   if (ip[0]!=0 && scan_start)
   {
     WaitForSingleObject(hs_disco,INFINITE);
+    hs_c_disco++;
 
     if ((ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.')) && scan_start)
     {
@@ -558,7 +565,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       {
         iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
         ReleaseSemaphore(hs_disco,1,NULL);
+        hs_c_disco--;
         ReleaseSemaphore(hs_threads,1,NULL);
+        hs_c_threads--;
 
         //tracking
         EnterCriticalSection(&Sync);
@@ -620,6 +629,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
     if (iitem == ID_ERROR)exist = FALSE;
     ReleaseSemaphore(hs_disco,1,NULL);
+    hs_c_disco--;
 
     BOOL windows_OS = FALSE;
     //tests !!!
@@ -629,6 +639,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
       WaitForSingleObject(hs_netbios,INFINITE);
+      hs_c_netbios++;
 
       //get OS
       if (dns[0] == 0 && scan_start)
@@ -687,6 +698,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       RemoteConnexionScan_auto_scan(iitem, ip, index, &id_ok);
 
       ReleaseSemaphore(hs_netbios,1,NULL);
+      hs_c_netbios--;
     }
 
     if (exist && scan_start)
@@ -694,8 +706,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       //registry
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
       WaitForSingleObject(hs_registry,INFINITE);
+      hs_c_registry++;
       RemoteConnexionRegistryScan_auto_scan(iitem, ip, index, windows_OS, &id_ok);
       ReleaseSemaphore(hs_registry,1,NULL);
+      hs_c_registry--;
     }
 
     //add file test !!!
@@ -703,8 +717,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
       WaitForSingleObject(hs_file,INFINITE);
+      hs_c_file++;
       RemoteConnexionScanFiles_auto_scan(iitem, ip, &id_ok);
       ReleaseSemaphore(hs_file,1,NULL);
+      hs_c_file--;
     }
 
     if (exist && scan_start)
@@ -715,6 +731,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
       {
         WaitForSingleObject(hs_ssh,INFINITE);
+        hs_c_ssh++;
         if (config.nb_accounts == 0)
         {
           snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s",config.login);
@@ -789,6 +806,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           }
         }
         ReleaseSemaphore(hs_ssh,1,NULL);
+        hs_c_ssh--;
       }
     }
 
@@ -796,6 +814,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   }
 
   ReleaseSemaphore(hs_threads,1,NULL);
+  hs_c_threads--;
 
   //tracking
   if (scan_start)
@@ -829,11 +848,122 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     else auto_scan_config.DNS_DISCOVERY = FALSE;
   }else auto_scan_config.DNS_DISCOVERY = TRUE;
 
+  //LOG
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("LOG","LOG","ENABLE",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_DISABLE = TRUE;
+  }
+
+  //get all parameters
+  //SAVE
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    {
+      auto_scan_config.save_CSV = TRUE;
+    }else auto_scan_config.save_CSV = FALSE;
+  }else auto_scan_config.save_CSV = FALSE;
+  tmp_check[0] = 0;
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SAVE","XML","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    {
+      auto_scan_config.save_XML = TRUE;
+    }
+    else auto_scan_config.save_XML = FALSE;
+  }else auto_scan_config.save_XML = FALSE;
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SAVE","HTML","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    {
+      auto_scan_config.save_HTML = TRUE;
+    }
+    else auto_scan_config.save_HTML = FALSE;
+  }else auto_scan_config.save_HTML = FALSE;
+
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","TYPE","",tmp_check,LINE_SIZE,ini_path))
   {
     if (tmp_check[0] == 'D' || tmp_check[0] == 'd')//DISABLE
     {
+      EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
+      scan_start = FALSE;
+      h_thread_scan = 0;
+      return 0;
+    }else if (tmp_check[0] == 'M' || tmp_check[0] == 'm') //MANUAL mode
+    {
+      //check test if enable !!
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_ICMP","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)0);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_DNS","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)1);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_NETBIOS","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)2);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_NETBIOS_POLICY","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)3);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_FILES","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)5);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_REGISTRY","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)6);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_SERVICES","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)7);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_SOFTWARE","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)8);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_USB","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)9);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_CHECK_SSH","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)10);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_WRITE_KEY","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)12);
+      }
       EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
       scan_start = FALSE;
       h_thread_scan = 0;
@@ -865,13 +995,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
         config.nb_accounts = 0;
         LoadAuthFile(tmp_check);
       }
-    }
-
-    //LOG
-    tmp_check[0] = 0;
-    if(GetPrivateProfileString("LOG","LOG","ENABLE",tmp_check,LINE_SIZE,ini_path))
-    {
-      if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_DISABLE = TRUE;
     }
 
     //check scan type :
@@ -999,38 +1122,6 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     config.disco_netbios_policy = TRUE;
     config.check_files          = TRUE;
     config.check_registry       = TRUE;
-
-    //get all parameters
-    //SAVE
-    tmp_check[0] = 0;
-    if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
-    {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
-      {
-        auto_scan_config.save_CSV = TRUE;
-      }else auto_scan_config.save_CSV = FALSE;
-    }else auto_scan_config.save_CSV = FALSE;
-    tmp_check[0] = 0;
-
-    tmp_check[0] = 0;
-    if(GetPrivateProfileString("SAVE","XML","",tmp_check,LINE_SIZE,ini_path))
-    {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
-      {
-        auto_scan_config.save_XML = TRUE;
-      }
-      else auto_scan_config.save_XML = FALSE;
-    }else auto_scan_config.save_XML = FALSE;
-
-    tmp_check[0] = 0;
-    if(GetPrivateProfileString("SAVE","HTML","",tmp_check,LINE_SIZE,ini_path))
-    {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
-      {
-        auto_scan_config.save_HTML = TRUE;
-      }
-      else auto_scan_config.save_HTML = FALSE;
-    }else auto_scan_config.save_HTML = FALSE;
 
     //CHECK
     tmp_check[0] = 0;
@@ -1215,6 +1306,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     for (i=0;(i<nb_i) && scan_start;i++)
     {
       WaitForSingleObject(hs_threads,INFINITE);
+      hs_c_threads++;
       CreateThread(NULL,0,ScanIp_auto_scan,(PVOID)i,0,0);
     }
 
@@ -1230,10 +1322,15 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
 
       WaitForSingleObject(hs_netbios,INFINITE);
+      hs_c_netbios++;
       WaitForSingleObject(hs_file,INFINITE);
+      hs_c_file++;
       WaitForSingleObject(hs_registry,INFINITE);
+      hs_c_registry++;
       WaitForSingleObject(hs_tcp,INFINITE);
+      hs_c_tcp++;
       WaitForSingleObject(hs_ssh,INFINITE);
+      hs_c_ssh++;
     }
 
     WSACleanup();

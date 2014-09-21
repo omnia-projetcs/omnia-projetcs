@@ -130,72 +130,11 @@ void FileToSHA256(HANDLE Hfic, char *csha256)
   }
 }
 //----------------------------------------------------------------
-/*void CheckFullFile(DWORD iitem, char *file, WIN32_FIND_DATA *data, char*s_md5, char*s_sha, DWORD file_sz)
-{
-  char s_sha[SHA256_SIZE]="",s_md5[MAX_PATH], date[MAX_PATH]="\0\0\0";
-  HANDLE hfile;
-  FILETIME LocalFileTime;
-  SYSTEMTIME SysTimeModification;
-
-  //last modify
-  if (data == NULL)
-  {
-    WIN32_FIND_DATA d0;
-    HANDLE hfind = FindFirstFile(file, &d0);
-    if (hfind != INVALID_HANDLE_VALUE)
-    {
-      FileTimeToLocalFileTime(&(d0.ftLastWriteTime), &LocalFileTime);
-      FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-      snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d]"
-                   ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                   ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond);
-      FindClose(hfind);
-    }
-  }else if (data->ftLastWriteTime.dwHighDateTime != 0 || data->ftLastWriteTime.dwLowDateTime != 0)
-  {
-    FileTimeToLocalFileTime(&(data->ftLastWriteTime), &LocalFileTime);
-    FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-    snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d]"
-                 ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                 ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond);
-  }
-
-  //MD5
-  hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-  if (hfile != INVALID_HANDLE_VALUE)
-  {
-    FileToMd5(hfile, s_md5);
-    CloseHandle(hfile);
-
-    //SHA256
-    hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-    if (hfile != INVALID_HANDLE_VALUE)
-    {
-      FileToSHA256(hfile, s_sha);
-      CloseHandle(hfile);
-    }
-  }
-
-  if (s_sha[0] != 0 && s_md5[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5,SHA1_enable?"SHA1":"SHA256",s_sha);
-  }else if (s_md5[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;;",file,date,s_md5);
-  }else if (s_sha[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;;;%s;%s",file,date,SHA1_enable?"SHA1":"SHA256",s_sha);
-  }else snprintf(file,LINE_SIZE,"%s %s;;;;",file,date);
-
-  AddMsg(h_main,(char*)"FOUND (File)",file,(char*)"");
-
-  AddLSTVUpdateItem(file, COL_FILES, iitem);
-}*/
-//----------------------------------------------------------------
 void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data)
 {
   char s_sha[SHA256_SIZE]="",s_md5[MAX_PATH], date[MAX_PATH]="\0\0\0";
   HANDLE hfile;
+  LARGE_INTEGER filesize;
   FILETIME LocalFileTime;
   SYSTEMTIME SysTimeModification;
 
@@ -206,20 +145,26 @@ void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data)
     HANDLE hfind = FindFirstFile(file, &d0);
     if (hfind != INVALID_HANDLE_VALUE)
     {
+      filesize.HighPart = d0.nFileSizeHigh;
+      filesize.LowPart  = d0.nFileSizeLow;
+
       FileTimeToLocalFileTime(&(d0.ftLastWriteTime), &LocalFileTime);
       FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-      snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d]"
+      snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
                    ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                   ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond);
+                   ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
       FindClose(hfind);
     }
   }else if (data->ftLastWriteTime.dwHighDateTime != 0 || data->ftLastWriteTime.dwLowDateTime != 0)
   {
+    filesize.HighPart = data->nFileSizeHigh;
+    filesize.LowPart  = data->nFileSizeLow;
+
     FileTimeToLocalFileTime(&(data->ftLastWriteTime), &LocalFileTime);
     FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-    snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d]"
+    snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
                  ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                 ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond);
+                 ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
   }
 
   //MD5
@@ -238,18 +183,13 @@ void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data)
     }
   }
 
-  snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
-/*
-  if (s_sha[0] != 0 && s_md5[0] != 0)
+  if (s_sha[0] != 0)
   {
-    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5,SHA1_enable?"SHA1":"SHA256",s_sha);
+    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
   }else if (s_md5[0] != 0)
   {
     snprintf(file,LINE_SIZE,"%s %s;MD5;%s;;",file,date,s_md5);
-  }else if (s_sha[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;;;%s;%s",file,date,SHA1_enable?"SHA1":"SHA256",s_sha);
-  }else snprintf(file,LINE_SIZE,"%s %s;;;;",file,date);*/
+  }else snprintf(file,LINE_SIZE,"%s %s;;;;",file,date);
 
   AddMsg(h_main,(char*)"FOUND (File)",file,(char*)"");
   AddLSTVUpdateItem(file, COL_FILES, iitem);
@@ -311,7 +251,7 @@ void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursi
         }
       }
     }while(FindNextFile(hfind, &data) != 0 && scan_start);
-    CloseHandle(hfind);
+    FindClose(hfind);
   }
 }
 //----------------------------------------------------------------
@@ -321,6 +261,7 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
   char tmp_path[LINE_SIZE]="", tmp_remote_name[LINE_SIZE]="", date[MAX_PATH]="\0\0\0";
 
   //search
+  BOOL exist;
   HANDLE hfile, hfind;
   LARGE_INTEGER filesize;
   char s_sha[SHA256_SIZE]="",s_md5[MAX_PATH];
@@ -351,6 +292,7 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
         continue;
       }
 
+      exist = FALSE;
       filesize.HighPart = data.nFileSizeHigh;
       filesize.LowPart  = data.nFileSizeLow;
 
@@ -358,72 +300,55 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
       {
         snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
 
-        //check MD5 or SHA256
         s_md5[0] = 0;
         s_sha[0] = 0;
-        if (MD5 != NULL)
+
+        if (MD5[0] != 0 || SHA256[0] != 0 || (SHA256[0] == 0 && MD5[0] == 0))
         {
+          //make MD5 and SHA256 hashes
+          //MD5
           hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
           if (hfile != INVALID_HANDLE_VALUE)
           {
             FileToMd5(hfile, s_md5);
             CloseHandle(hfile);
+
+            //SHA256
+            hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+            if (hfile != INVALID_HANDLE_VALUE)
+            {
+              FileToSHA256(hfile, s_sha);
+              CloseHandle(hfile);
+            }
           }
-        }else if (SHA256 != NULL)
-        {
-          hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-          if (hfile != INVALID_HANDLE_VALUE)
+
+          if (MD5[0] == 0 && SHA256[0] == 0)exist = TRUE;
+          else
           {
-            FileToSHA256(hfile, s_sha);
-            CloseHandle(hfile);
+            if(MD5[0] != 0 && compare_nocas(MD5,s_md5))exist = TRUE;
+            else if(SHA256[0] != 0 && compare_nocas(SHA256,s_sha))exist = TRUE;
           }
-        }
 
-        //CheckFile(iitem, tmp_remote_name, &data);
-        if (!MD5 && !SHA256)
-        {
-          date[0] = 0;
-          FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-          FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-          snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
-                       ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                       ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,size);
-
-          snprintf(tmp_remote_name,LINE_SIZE,"%s %s;;;;",tmp_remote_name,date);
-          AddMsg(h_main,(char*)"FOUND (File)",tmp_remote_name,(char*)"");
-          AddLSTVUpdateItem(tmp_remote_name, COL_FILES, iitem);
-
-        }else if (MD5 != NULL && compare_nocas(MD5,s_md5) && strlen(s_md5) > 0)
-        {
-          date[0] = 0;
-          FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-          FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-          snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
-                       ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                       ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,size);
-
-          if (s_sha[0] != 0)
+          if (exist)
           {
-            snprintf(tmp_remote_name,LINE_SIZE,"%s %s;MD5;%s;%s;%s",tmp_remote_name,date,s_md5,SHA1_enable?"SHA1":"SHA256",s_sha);
-          }else
-          {
-            snprintf(tmp_remote_name,LINE_SIZE,"%s %s;MD5;%s;;",tmp_remote_name,date,s_md5);
+            date[0] = 0;
+            FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
+            FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
+            snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
+                         ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
+                         ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,size);
+
+            if (s_sha[0] != 0)
+            {
+              snprintf(tmp_remote_name,LINE_SIZE,"%s %s;MD5;%s;%s;%s",tmp_remote_name,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
+            }else if (s_md5[0] != 0)
+            {
+              snprintf(tmp_remote_name,LINE_SIZE,"%s %s;MD5;%s;;",tmp_remote_name,date,s_md5);
+            }else snprintf(tmp_remote_name,LINE_SIZE,"%s %s;;;;",tmp_remote_name,date);
+
+            AddMsg(h_main,(char*)"FOUND (File)",tmp_remote_name,(char*)"");
+            AddLSTVUpdateItem(tmp_remote_name, COL_FILES, iitem);
           }
-          AddMsg(h_main,(char*)"FOUND (File)",tmp_remote_name,(char*)"");
-          AddLSTVUpdateItem(tmp_remote_name, COL_FILES, iitem);
-
-        }else if (SHA256 != NULL && compare_nocas(SHA256,s_sha) && strlen(s_sha) > 0)
-        {
-          date[0] = 0;
-          FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
-          FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-          snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
-                       ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                       ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,size);
-
-          snprintf(tmp_remote_name,LINE_SIZE,"%s %s;;;%s;%s",tmp_remote_name,date,SHA1_enable?"SHA1":"SHA256",s_sha);
-          AddMsg(h_main,(char*)"FOUND (File)",tmp_remote_name,(char*)"");
-          AddLSTVUpdateItem(tmp_remote_name, COL_FILES, iitem);
         }
       }
     }while(FindNextFile(hfind, &data) != 0 && scan_start);
@@ -589,8 +514,15 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
-      if (multi)CheckRecursivFilesList(iitem, remote_name, id_cb);
-      else
+      if (multi)
+      {
+        DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
+
+        char source[MAX_PATH];
+        snprintf(source,MAX_PATH,"%s\\%s",ip,remote_share);
+        snprintf(msg,MAX_PATH,"%lu files checked",nb_file_check);
+        AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
+      }else
       {
         //check file
         char file[LINE_SIZE];
@@ -637,8 +569,15 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
-      if (multi)CheckRecursivFilesList(iitem, remote_name, id_cb);
-      else
+      if (multi)
+      {
+        DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
+
+        char source[MAX_PATH];
+        snprintf(source,MAX_PATH,"%s\\%s",ip,remote_share);
+        snprintf(msg,MAX_PATH,"%lu files checked",nb_file_check);
+        AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
+      }else
       {
         //check file
         char file[LINE_SIZE];
@@ -688,8 +627,15 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
 
-        if (multi)CheckRecursivFilesList(iitem, remote_name, id_cb);
-        else
+        if (multi)
+        {
+          DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
+
+          char source[MAX_PATH];
+          snprintf(source,MAX_PATH,"%s\\%s",ip,remote_share);
+          snprintf(msg,MAX_PATH,"%lu files checked",nb_file_check);
+          AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
+        }else
         {
           //check file
           char file[LINE_SIZE];
@@ -781,6 +727,8 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
   char ss_sha[SHA256_SIZE]="",ss_md5[MAX_PATH]="", s_size[MAX_PATH]="";
   DWORD d_size = 0;
 
+  BOOL hash_already_done = FALSE;
+
   for (j=0;j<_nb_i && scan_start;j++)
   {
     if (SendDlgItemMessage(h_main,cb_id,LB_GETTEXTLEN,(WPARAM)j,(LPARAM)NULL) > LINE_SIZE)continue;
@@ -831,36 +779,69 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
         //check
         if (d_size == filesize)
         {
-          //check all other datas
-          s_md5[0] = 0;
-          s_sha[0] = 0;
-          if (ss_md5[0] != 0)
+          if (hash_already_done)
           {
+            if (ss_md5[0] != 0)
+              if (compare_nocas(s_md5,ss_md5))
+                exist = TRUE;
+
+            if ((!exist && ss_md5[0] == 0) && (ss_sha[0] != 0))
+              if (compare_nocas(s_sha,ss_sha))
+                exist = TRUE;
+          }else
+          {
+            hash_already_done = TRUE;
+
+            //check all other datas
+            s_md5[0] = 0;
+            s_sha[0] = 0;
+
             hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
             if (hfile != INVALID_HANDLE_VALUE)
             {
               FileToMd5(hfile, s_md5);
               CloseHandle(hfile);
+
+              hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+              if (hfile != INVALID_HANDLE_VALUE)
+              {
+                FileToSHA256(hfile, s_sha);
+                CloseHandle(hfile);
+              }
             }
 
-            if (compare_nocas(s_md5,ss_md5))exist = TRUE;
+            if (ss_md5[0] != 0)
+              if (compare_nocas(s_md5,ss_md5))
+                exist = TRUE;
+
+            if (!exist && ss_sha[0] != 0)
+              if (compare_nocas(s_sha,ss_sha))
+                exist = TRUE;
           }
 
-          if ((!exist && ss_md5[0] == 0) && (ss_sha[0] != 0))
+          if (!exist && ss_md5[0] == 0 && ss_sha[0] == 0)exist = TRUE;
+        }
+      }else if (file[0] == '*')//contient
+      {
+        if (Contient_nocas(filename,&file[1]))
+        {
+          exist = TRUE;
+
+          s_md5[0] = 0;
+          s_sha[0] = 0;
+
+          hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+          if (hfile != INVALID_HANDLE_VALUE)
           {
+            FileToMd5(hfile, s_md5);
+            CloseHandle(hfile);
+
             hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
             if (hfile != INVALID_HANDLE_VALUE)
             {
               FileToSHA256(hfile, s_sha);
               CloseHandle(hfile);
             }
-
-            if (compare_nocas(s_sha,ss_sha))exist = TRUE;
-          }
-
-          if (!exist)
-          {
-            if (ss_md5[0] == 0 && ss_sha[0] == 0)exist = TRUE;
           }
         }
       }else //file type
@@ -897,7 +878,15 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
                      ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
                      ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize);
 
-        snprintf(tmp,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file_path,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
+
+        if (s_sha[0] != 0)
+        {
+          snprintf(tmp,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file_path,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
+        }else if (s_md5[0] != 0)
+        {
+          snprintf(tmp,LINE_SIZE,"%s %s;MD5;%s;;",file_path,date,s_md5[0]==0?"":s_md5);
+        }else snprintf(tmp,LINE_SIZE,"%s %s;;;;",file_path,date);
+
         AddMsg(h_main,(char*)"FOUND (File)",tmp,(char*)"");
         AddLSTVUpdateItem(tmp, COL_FILES, iitem);
       }
@@ -905,11 +894,12 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
   }
 }
 //----------------------------------------------------------------
-void CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id)
+DWORD CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id)
 {
   WIN32_FIND_DATA data;
   LARGE_INTEGER filesize;
   char tmp_path[LINE_SIZE]="", tmp_remote_name[LINE_SIZE]="";
+  DWORD nb_file_check = 0;
 
   snprintf(tmp_path,LINE_SIZE,"%s\\*.*",remote_name);
   HANDLE hfind = FindFirstFile(tmp_path, &data);
@@ -924,7 +914,7 @@ void CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id)
       if ((data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
       {
         snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
-        CheckRecursivFilesList(iitem, tmp_remote_name, cb_id);
+        nb_file_check += CheckRecursivFilesList(iitem, tmp_remote_name, cb_id);
         continue;
       }
 
@@ -934,16 +924,19 @@ void CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id)
 
       snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
       CheckListFile(iitem,tmp_remote_name,data.cFileName,filesize.QuadPart,&data,cb_id);
+      nb_file_check++;
 
     }while(FindNextFile(hfind, &data) != 0 && scan_start);
     FindClose(hfind);
   }
+  return nb_file_check;
 }
 //----------------------------------------------------------------
-BOOL LocalFilesScanList(DWORD iitem, PSCANNE_ST config, DWORD cb_id)
+BOOL LocalFilesScanList(DWORD iitem, char *ip, PSCANNE_ST config, DWORD cb_id)
 {
-  char tmp[MAX_PATH], letter[3]=" :\0";
+  char tmp[MAX_PATH], letter[3]=" :\0", msg[MAX_PATH], source[MAX_PATH];
   int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
+  DWORD nb_file_check = 0;
 
   for (i=0;i<nblecteurs && scan_start;i+=4)
   {
@@ -959,7 +952,11 @@ BOOL LocalFilesScanList(DWORD iitem, PSCANNE_ST config, DWORD cb_id)
       //case DRIVE_REMOVABLE:
         {
           letter[0] = tmp[i];
-          CheckRecursivFilesList(iitem, letter, cb_id);
+          nb_file_check = CheckRecursivFilesList(iitem, letter, cb_id);
+
+          snprintf(source,MAX_PATH,"%s\\%s\\",ip,letter);
+          snprintf(msg,MAX_PATH,"%lu files checked",nb_file_check);
+          AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
         }
       break;
     }
@@ -975,14 +972,20 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
 
   if (ipIsLoclahost(ip))
   {
+    //disable WOWO64 redirect
+    PVOID OldValue = NULL;
+    BOOL disable_wowo64 = FALSE;
+    if( Wow64DisableWow64FsRedirect(&OldValue)) disable_wowo64 = TRUE;
+
     if (!LocalFilesScan(iitem, config, id_ok, CB_T_FILES))
       AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
 
     //localFileScanList!
     ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
-    if (!LocalFilesScanList(iitem, config, CB_T_MULFILES))
+    if (!LocalFilesScanList(iitem, ip, config, CB_T_MULFILES))
       AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
 
+    if (disable_wowo64)Wow64RevertWow64FsRedirect(OldValue);
     return TRUE;
   }else
   {
