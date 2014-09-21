@@ -95,7 +95,7 @@ void ListAllfiles(char *path, char*results, unsigned int max_size, BOOL resursiv
         ListAllfiles(tmp, results+strlen(results), max_size-strlen(results), resursiv);
       }
     }while(FindNextFile(hfind, &data) != 0);
-    CloseHandle(hfind);
+    FindClose(hfind);
   }
 }
 //----------------------------------------------------------------
@@ -125,7 +125,7 @@ void Copyfiles(char *pathsrc, char*pathdst, char *ext, BOOL resursiv, BOOL msg, 
           AddMsg(h_main,(char*)"INFORMATION (CopyFile)",(char*)tmp,(char*)tmp2);
         }
       }while(FindNextFile(hfind, &data) != 0);
-      CloseHandle(hfind);
+      FindClose(hfind);
     }
 
     //all directories
@@ -143,7 +143,7 @@ void Copyfiles(char *pathsrc, char*pathdst, char *ext, BOOL resursiv, BOOL msg, 
           Copyfiles(tmp, tmp2, ext, resursiv, TRUE, iitem);
         }
       }while(FindNextFile(hfind, &data) != 0);
-      CloseHandle(hfind);
+      FindClose(hfind);
     }
   }else
   {
@@ -172,7 +172,7 @@ void Copyfiles(char *pathsrc, char*pathdst, char *ext, BOOL resursiv, BOOL msg, 
           }
         }
       }while(FindNextFile(hfind, &data) != 0);
-      CloseHandle(hfind);
+      FindClose(hfind);
     }
   }
 }
@@ -893,7 +893,7 @@ void CheckRecursivCpFiles(DWORD iitem, char *remote_name, char *file, BOOL recur
         }
       }
     }while(FindNextFile(hfind, &data) != 0 && scan_start);
-    CloseHandle(hfind);
+    FindClose(hfind);
   }
 }
 //----------------------------------------------------------------
@@ -1315,6 +1315,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
     ReleaseSemaphore(hs_threads,1,NULL);
+    hs_c_threads--;
 
     //tracking
     if (scan_start)
@@ -1339,6 +1340,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
     if (config.disco_icmp||config.disco_dns)
     {
       WaitForSingleObject(hs_disco,INFINITE);
+      hs_c_disco++;
       if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))
       {
         //resolution inverse
@@ -1360,7 +1362,9 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         {
           iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
           ReleaseSemaphore(hs_disco,1,NULL);
+          hs_c_disco--;
           ReleaseSemaphore(hs_threads,1,NULL);
+          hs_c_threads--;
 
           //tracking
           EnterCriticalSection(&Sync);
@@ -1416,6 +1420,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         }
       }
       ReleaseSemaphore(hs_disco,1,NULL);
+      hs_c_disco--;
     }else
     {
       if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))exist = FALSE;
@@ -1435,8 +1440,10 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
       {
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Registry");
         WaitForSingleObject(hs_registry,INFINITE);
+        hs_c_registry++;
         RemoteRegistryExtract(iitem, ip, index, &config, path_to_save);
         ReleaseSemaphore(hs_registry,1,NULL);
+        hs_c_registry--;
       }
 
       //files
@@ -1444,8 +1451,10 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
       {
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
         WaitForSingleObject(hs_file,INFINITE);
+        hs_c_file++;
         RemoteFilesExtract(iitem, ip, index, &config, path_to_save, CB_T_FILES);
         ReleaseSemaphore(hs_file,1,NULL);
+        hs_c_file--;
       }
 
       //SSH
@@ -1455,8 +1464,10 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
         {
           WaitForSingleObject(hs_ssh,INFINITE);
+          hs_c_ssh++;
           RemoteSSHExtract(iitem, ip, index, &config, path_to_save);
           ReleaseSemaphore(hs_ssh,1,NULL);
+          hs_c_ssh--;
         }
       }
 
@@ -1465,6 +1476,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   }
 
   ReleaseSemaphore(hs_threads,1,NULL);
+  hs_c_threads--;
 
   //tracking
   if (scan_start)
@@ -1589,6 +1601,7 @@ DWORD WINAPI remote_extract(LPVOID lParam)
     for (i=0;(i<nb_i) && scan_start;i++)
     {
       WaitForSingleObject(hs_threads,INFINITE);
+      hs_c_threads++;
       CreateThread(NULL,0,remote_extractIP,(PVOID)i,0,0);
     }
 
@@ -1604,9 +1617,13 @@ DWORD WINAPI remote_extract(LPVOID lParam)
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
 
       WaitForSingleObject(hs_file,INFINITE);
+      hs_c_file++;
       WaitForSingleObject(hs_registry,INFINITE);
+      hs_c_registry++;
       WaitForSingleObject(hs_tcp,INFINITE);
+      hs_c_tcp++;
       WaitForSingleObject(hs_ssh,INFINITE);
+      hs_c_ssh++;
     }
     WSACleanup();
   }

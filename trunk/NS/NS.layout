@@ -1,38 +1,42 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_layout_file>
 	<ActiveTarget name="default" />
+	<File name="tests\ssh_v2.c" open="1" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="22640" topLine="587" />
+		</Cursor>
+	</File>
 	<File name="main.c" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-2" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="55657" topLine="1698" />
+			<Cursor1 position="11348" topLine="278" />
+		</Cursor>
+	</File>
+	<File name="tests\auto_scan.c" open="1" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="32851" topLine="833" />
+		</Cursor>
+	</File>
+	<File name="tests\Files.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="33117" topLine="612" />
 		</Cursor>
 		<Folding>
-			<Collapse line="93" />
-			<Collapse line="1576" />
+			<Collapse line="8" />
+			<Collapse line="46" />
+			<Collapse line="87" />
+			<Collapse line="716" />
+			<Collapse line="897" />
+			<Collapse line="935" />
 		</Folding>
 	</File>
-	<File name="resources.rc" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
+	<File name="tests\disco.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="492" topLine="0" />
+			<Cursor1 position="763" topLine="6" />
 		</Cursor>
 	</File>
-	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
+	<File name="tests\extract.c" open="1" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="371" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="tests\auto_scan.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="31278" topLine="946" />
-		</Cursor>
-	</File>
-	<File name="tests\Registry.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2844" topLine="169" />
-		</Cursor>
-	</File>
-	<File name="tests\NetBIOS.c" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="12867" topLine="0" />
+			<Cursor1 position="2162" topLine="1" />
 		</Cursor>
 	</File>
 	<File name="crypt\sha2.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -40,29 +44,28 @@
 			<Cursor1 position="6469" topLine="157" />
 		</Cursor>
 	</File>
-	<File name="tests\ssh_v2.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.h" open="1" top="1" tabpos="1" split="0" active="1" splitpos="0" zoom_1="-1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="20879" topLine="577" />
+			<Cursor1 position="910" topLine="9" />
 		</Cursor>
 	</File>
-	<File name="tests\disco.c" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\NetBIOS.c" open="1" top="0" tabpos="9" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="763" topLine="11" />
+			<Cursor1 position="3281" topLine="77" />
 		</Cursor>
 	</File>
-	<File name="tests\extract.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="resources.rc" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="58943" topLine="1518" />
+			<Cursor1 position="492" topLine="0" />
 		</Cursor>
 	</File>
-	<File name="tests\Files.c" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="tests\Registry.c" open="1" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="1" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="16338" topLine="282" />
+			<Cursor1 position="2166" topLine="48" />
 		</Cursor>
 		<Folding>
-			<Collapse line="8" />
-			<Collapse line="46" />
-			<Collapse line="87" />
+			<Collapse line="101" />
+			<Collapse line="141" />
 		</Folding>
 	</File>
 </CodeBlocks_layout_file>

@@ -5,31 +5,44 @@
 //----------------------------------------------------------------
 /*
 #PRIORITE NS:
+* bug thread !!!! ne s'arrête pas et ne reprend pas !!! : monté des variables globales et voir ou nous en sommes quand sa bloque !
+  fuite de mémoire au niveau des threads, faire des tests pour vérifier d'ou provient cette fuite de mémoire
+
+* duplication de l'afichage:
+Login NET 10.126.11.134\IPC$ with mphr11\r11admnh account
+
 * refaire des vérification pour la base de registre
 RemoteRegistryNetConnexion
 RegistryScan
 parseLineToReg
 
-* pour chaque extract d'un fichier il doit y avoir la taille + empreintes
 * mettre à jour la doc en ajoutant une rubrique "message d'erreur"
  ERROR",(char*)"No test select from the left panel!",(char*)"");
+ + ajouter la gestion de la ruche HKEY_USERS
+ + ajouter la nouvelle gestion des paramètres ini afin de désactiver les logs + sauvegarde automatique
 
 ** ajouter la possibiliter de recherche de fichier sans taille juste une empreinte SHA1/256 ou MD5!
-** Possibiliter de rechercher si le nom de fichier est contenu dans le nom des fichiers
 
 * ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
 
-
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
-
-[NS]
-- review few bugs
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
 //----------------------------------------------------------------
 #define _WIN32_IE                               0x0501  // IE5 min
+
+//for used of wowo64 local check
+/*#ifdef _WIN32_WINNT
+#undef _WIN32_WINNT
+#endif
+#define _WIN32_WINNT 0x0501
+
+#ifdef NTDDI_VERSION
+#undef NTDDI_VERSION
+#endif
+#define NTDDI_VERSION 0x05010000*/
 
 #define UF_PASSWORD_EXPIRED                     0x800000// bad record for netbios account policy
 //----------------------------------------------------------------
@@ -37,6 +50,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //#define DEBUG_MODE_SSH                              1
 //#define DEBUG_MODE_REGISTRY                         1
 //#define DEBUG_MODE_FILES                            1
+#define DEBUG_THREADS                               1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -75,7 +89,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.20 17/09/2014"
+#define TITLE                                       "NS v0.5.26 21/09/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -311,9 +325,12 @@ BOOL save_done, save_current;
 
 CRITICAL_SECTION Sync, Sync_item;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
+
+long int hs_c_threads, hs_c_disco, hs_c_netbios, hs_c_file, hs_c_registry, hs_c_ssh, hs_c_tcp;
+HANDLE hs_count;
+
 SCANNE_ST config;
 HINSTANCE richDll;
-
 BOOL LOG_DISABLE;
 //----------------------------------------------------------------
 //AUTO-SCAN
@@ -394,8 +411,12 @@ BOOL IcmpOk;
 HANDLE hndlIcmp;
 HANDLE (WINAPI *pIcmpCreateFile)(VOID);
 BOOL (WINAPI *pIcmpCloseHandle)(HANDLE);
-DWORD (WINAPI *pIcmpSendEcho) (HANDLE,DWORD,LPVOID,WORD, PIPINFO,    LPVOID,DWORD,DWORD);
+DWORD (WINAPI *pIcmpSendEcho) (HANDLE,DWORD,LPVOID,WORD, PIPINFO,LPVOID,DWORD,DWORD);
 DWORD (WINAPI *pIcmpSendEcho2) (HANDLE,HANDLE,PIO_APC_ROUTINE,PVOID,IPAddr,LPVOID,WORD,PIP_OPTION_INFORMATION,LPVOID,DWORD,DWORD);
+
+HMODULE hDLL_kernel32;
+BOOL (WINAPI *Wow64DisableWow64FsRedirect)(PVOID *OldValue);
+BOOL (WINAPI *Wow64RevertWow64FsRedirect)(PVOID *OldValue);
 //----------------------------------------------------------------
 DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows;
 //----------------------------------------------------------------
@@ -420,6 +441,7 @@ BOOL compare_nocas(char *a, char *d);
 char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
 long int Contient(char*data, char*chaine);
+BOOL Contient_nocas(char *data, char *chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 BOOL LinuxStart_msgOK(char *msg, char*cmd);
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
@@ -465,7 +487,7 @@ BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_
 BOOL StartRemoteRegistryService(char *ip, BOOL start);
 BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write);
 BOOL RegistryOS(DWORD iitem,HKEY hkey);
-void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey);
+void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users);
 DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size);
 void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
@@ -480,7 +502,7 @@ void FileToSHA256(HANDLE Hfic, char *csha256);
 BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok, DWORD id_cb, BOOL multi);
 BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok);
 void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data);
-void CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id);
+DWORD CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id);
 BOOL RemoteFilesCopy(DWORD iitem, char *ip, char*remote_share, PSCANNE_ST config, char*pathToSave, char*file);
 
 //SSH

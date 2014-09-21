@@ -547,6 +547,7 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
   if (!scan_start) return FALSE;
 
   WaitForSingleObject(hs_tcp,INFINITE);
+  hs_c_tcp++;
 
   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock != INVALID_SOCKET)
@@ -586,6 +587,7 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
         FD_CLR(sock, &read);
         closesocket(sock);
         ReleaseSemaphore(hs_tcp,1,NULL);
+        hs_c_tcp--;
         return TRUE;
       }
       //clean
@@ -605,11 +607,13 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 
         closesocket(sock);
         ReleaseSemaphore(hs_tcp,1,NULL);
+        hs_c_tcp--;
         return TRUE;
       }
     }
     closesocket(sock);
   }
   ReleaseSemaphore(hs_tcp,1,NULL);
+  hs_c_tcp--;
   return FALSE;
 }
