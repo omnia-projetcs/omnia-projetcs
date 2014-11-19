@@ -10,19 +10,19 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
                     char *owner, char *rid, char *sid, char *start_date,
                     char *protocol, char *ip_src, char *port_src,
                     char *ip_dst, char *port_dst, char *state,
-                    char *hidden,char *parent_process, char *parent_pid, unsigned int session_id, sqlite3 *db)
+                    char *hidden,char *parent_process, char *parent_pid, char *sha256, char * sign, unsigned int session_id, sqlite3 *db)
 {
   #ifndef CMD_LINE_ONLY_NO_DB
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,
            "INSERT INTO extract_process (process,pid,path,cmd,owner,"
-           "rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,session_id) "
-           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
-           process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,session_id);
+           "rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,sha256,sign,session_id) "
+           "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
+           process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,sha256,sign,session_id);
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
-  printf("\"Process\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
-         process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,session_id);
+  printf("\"Process\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
+         process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,sha256,sign,session_id);
   #endif
 }
 //------------------------------------------------------------------------------
@@ -331,9 +331,9 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
        owner[DEFAULT_TMP_SIZE],
        rid[DEFAULT_TMP_SIZE],
        sid[DEFAULT_TMP_SIZE],
-       start_date[DATE_SIZE_MAX]/*,
-       parent_pid[DEFAULT_TMP_SIZE],
-       parent_path[MAX_PATH]*/;
+       start_date[DATE_SIZE_MAX],
+       verified[MAX_PATH],
+       h_sha256[MAX_PATH];
 
   char src_name[MAX_PATH];
   char dst_name[MAX_PATH];
@@ -399,8 +399,11 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
       convertStringToSQL(path, MAX_PATH);
       convertStringToSQL(cmd, MAX_PATH);
 
+      //sha256 + signed
+      GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH);
+
       //add items !
-      if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "", "X", "", "",session_id,db);
+      if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "", "X", "", "",h_sha256, verified,session_id,db);
       else
       {
         for (k=0;k<j;k++)
@@ -413,7 +416,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
 
           addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
                                 port_line[k].protocol, src_name, port_line[k].Port_src,
-                                dst_name, port_line[k].Port_dst, port_line[k].state, "X", "", "",session_id,db);
+                                dst_name, port_line[k].Port_dst, port_line[k].state, "X", "", "",h_sha256, verified,session_id,db);
         }
       }
     }
@@ -432,7 +435,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   }
 
   #ifdef CMD_LINE_ONLY_NO_DB
-  printf("\"Process\";\"rid\";\"sid\";\"start_date\";\"protocol\";\"ip_src\";\"port_src\";\"ip_dst\";\"port_dst\";\"state\";\"hidden\";\"parent_process\";\"parent_pid\";\"session_id\";\r\n");
+  printf("\"Process\";\"PID\";\"Path\";\"Command\";\"Owner\";\"RID\";\"SID\";\"Start_date\";\"Protocol\";\"IP_src\";\"Port_src\";\"IP_dst\";\"Port_dst\";\"State\";\"Hidden\";\"Parent_process\";\"Parent_PID\";\"session_id\";\r\n");
   #endif
   //init
   sqlite3 *db = (sqlite3 *)db_scan;
@@ -456,7 +459,9 @@ DWORD WINAPI Scan_process(LPVOID lParam)
        sid[DEFAULT_TMP_SIZE],
        start_date[DATE_SIZE_MAX],
        parent_pid[DEFAULT_TMP_SIZE],
-       parent_path[MAX_PATH];
+       parent_path[MAX_PATH],
+       verified[MAX_PATH],
+       h_sha256[MAX_PATH];
 
   char src_name[MAX_PATH];
   char dst_name[MAX_PATH];
@@ -530,8 +535,11 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     convertStringToSQL(path, MAX_PATH);
     convertStringToSQL(cmd, MAX_PATH);
 
+    //sha256 + signed
+    GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH);
+
     //add items !
-    if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "",""  , parent_path, parent_pid,session_id,db);
+    if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "",""  , parent_path, parent_pid,h_sha256, verified,session_id,db);
     else
     {
       for (k=0;k<j;k++)
@@ -544,7 +552,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
 
         addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
                               port_line[k].protocol, src_name, port_line[k].Port_src,
-                              dst_name, port_line[k].Port_dst, port_line[k].state, "", parent_path, parent_pid,session_id,db);
+                              dst_name, port_line[k].Port_dst, port_line[k].state, "", parent_path, parent_pid,h_sha256, verified,session_id,db);
       }
     }
     CloseHandle(hProcess);

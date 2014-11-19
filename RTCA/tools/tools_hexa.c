@@ -38,6 +38,8 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
 
   if (inc)
   {
+    SetWindowText(GetDlgItem(h_hexa,DLG_HEXA_BT_LOAD),"Stop");
+
     //clean LSVs
     ListView_DeleteAllItems(GetDlgItem(h_hexa,DLG_HEXA_LV_INFOS));
     ListView_DeleteAllItems(GetDlgItem(h_hexa,DLG_HEXA_LV_HEXA));
@@ -75,7 +77,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
       lvi.iItem = ListView_GetItemCount(hlv);
       ref_item = ListView_InsertItem(hlv, &lvi);
       ListView_SetItemText(hlv,ref_item,0,"SHA256:");
-      FileToSHA256(file, tmp);
+      if ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH) FileToSHA256(file, tmp); else tmp[0] = 0;
       ListView_SetItemText(hlv,ref_item,1,tmp);
       tmp[0] = 0;
       lvi.iItem = ListView_GetItemCount(hlv);
@@ -223,6 +225,9 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
     }
     SetWindowText(h_hexa,file);
   }
+
+  SetWindowText(GetDlgItem(h_hexa,DLG_HEXA_BT_LOAD),"Load");
+  EnableWindow(GetDlgItem(h_hexa,DLG_HEXA_BT_LOAD),TRUE);
 
   h_Hexa = 0;
   return 0;
@@ -409,9 +414,11 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             //load file !!!
             case DLG_HEXA_BT_LOAD:
             {
-              if (h_Hexa != 0)h_Hexa = NULL;
-
-              h_Hexa = CreateThread(NULL,0,LoadHexaFile,0,0,0);
+              if (h_Hexa != 0)
+              {
+                h_Hexa = NULL;
+                EnableWindow(GetDlgItem(h_hexa,DLG_HEXA_BT_LOAD),FALSE);
+              }else h_Hexa = CreateThread(NULL,0,LoadHexaFile,0,0,0);
             }
             break;
             case DLG_HEXA_BT_CLOSE:
@@ -493,6 +500,7 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
       if (h_Hexa != 0)
       {
         h_Hexa = NULL;
+        Sleep(1000);
         //clean LSVs
         ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_INFOS));
         ListView_DeleteAllItems(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA));
@@ -514,6 +522,41 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           }
           DestroyMenu(hmenu);
         }
+      }
+    break;
+    case WM_NOTIFY:
+      switch(((LPNMHDR)lParam)->code)
+      {
+        case NM_DBLCLK:
+          if (LOWORD(wParam) == DLG_HEXA_LV_INFOS || LOWORD(wParam) == DLG_HEXA_LV_HEXA)
+          {
+            HANDLE hlstv = GetDlgItem(hwnd,LOWORD(wParam));
+            long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            if (index > -1)
+            {
+              char tmp[MAX_LINE_SIZE+2];
+              RichEditInit(GetDlgItem(h_info,DLG_INFO_TXT));
+
+              for (i=0;i<10;i++)
+              {
+                tmp[0] = 0;
+                ListView_GetItemText(hlstv,index,i,tmp,MAX_LINE_SIZE);
+                if (strlen(tmp)>0)
+                {
+                  strncat(tmp," \0",MAX_LINE_SIZE);
+                  RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
+                }
+              }
+
+              RichSetTopPos(GetDlgItem(h_info,DLG_INFO_TXT));
+              if(RichEditTextSize(GetDlgItem(h_info,DLG_INFO_TXT)))
+              {
+                ShowWindow (h_info, SW_SHOW);
+                UpdateWindow(h_info);
+              }
+            }
+          }
+        break;
       }
     break;
     case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;

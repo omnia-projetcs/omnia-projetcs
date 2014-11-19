@@ -69,6 +69,9 @@ BOOL CALLBACK DialogProc_proxy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 EnableWindow(GetDlgItem((HWND)hwnd,PROXY_CHK_AUTOCONF),TRUE);
                 EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_USER),TRUE);
                 EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PASSWORD),TRUE);
+
+                if (IsDlgButtonChecked(hwnd,PROXY_CHK_AUTOCONF)==BST_CHECKED) EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),FALSE);
+                else EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),TRUE);
               }else
               {
                 EnableWindow(GetDlgItem((HWND)hwnd,PROXY_CHK_AUTOCONF),FALSE);
@@ -78,8 +81,8 @@ BOOL CALLBACK DialogProc_proxy(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               }
             break;
             case PROXY_CHK_AUTOCONF:
-              if (IsDlgButtonChecked(hwnd,PROXY_CHK_AUTOCONF)==BST_CHECKED) EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),TRUE);
-              else EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),FALSE);
+              if (IsDlgButtonChecked(hwnd,PROXY_CHK_AUTOCONF)==BST_CHECKED) EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),FALSE);
+              else EnableWindow(GetDlgItem((HWND)hwnd,PROXY_ED_PROXY),TRUE);
             break;
             case PROXY_BT_OK:
               addProxyConfig();

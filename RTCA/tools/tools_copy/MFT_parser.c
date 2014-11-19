@@ -49,8 +49,9 @@ BOOL CopyFileFromMFT(HANDLE hfile, char *destination)
 
   //read the 512 first bytes
   DWORD read = 0;
-  char mbr_buffer[MBR_HDR_SZ];
-  if (ReadFile(hfile, mbr_buffer, MBR_HDR_SZ,&read,0))
+  #define MIN_BUFFER_READ 4096
+  char mbr_buffer[MIN_BUFFER_READ/*MBR_HDR_SZ*/];//4096 sz to read min (512 or 4096)
+  if (ReadFile(hfile, mbr_buffer, MIN_BUFFER_READ,&read,0))
   {
     //check if partition or disk
     MBRINFOS_STRUCT infos;
@@ -86,7 +87,6 @@ BOOL CopyFileFromMFT(HANDLE hfile, char *destination)
                                                                       infos.partitions[i].MFT,
                                                                       infos.partitions[i].MFTMirror);
               MessageBox(NULL,tmp,"test",MB_OK|MB_TOPMOST);
-
             }
           }
         }else

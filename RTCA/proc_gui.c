@@ -122,19 +122,40 @@ void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)
 
   ListView_SetItemState(hlv, -1, 0, LVIS_SELECTED); // deselect all
 
-  for (i=0;i<nb_item;i++)
+  if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) != MF_CHECKED)
   {
-    for (j=0;j<nb_col;j++)
+    for (i=0;i<nb_item;i++)
     {
-      //récupération du text
-      tmp[0]=0;
-      ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
-
-      //test si la recherche est présente dedans
-      if (Contient(tmp,search))
+      for (j=0;j<nb_col;j++)
       {
-        //sélection
-        ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
+        //récupération du text
+        tmp[0]=0;
+        ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
+
+        //test si la recherche est présente dedans
+        if (ContientNoCass(tmp,search))
+        {
+          //sélection
+          ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
+        }
+      }
+    }
+  }else
+  {
+    for (i=0;i<nb_item;i++)
+    {
+      for (j=0;j<nb_col;j++)
+      {
+        //récupération du text
+        tmp[0]=0;
+        ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
+
+        //test si la recherche est présente dedans
+        if (Contient(tmp,search))
+        {
+          //sélection
+          ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
+        }
       }
     }
   }

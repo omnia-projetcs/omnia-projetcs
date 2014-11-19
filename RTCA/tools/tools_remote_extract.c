@@ -9,7 +9,7 @@
 
 /*
 - fenêtre avec : ip à distance + login + mdp + domaine : peut être ajouté au nouveau profil
-- modifer la fenêtre DLG_CONF : ok
+- modifier la fenêtre DLG_CONF : ok
 enable_remote
 
 */

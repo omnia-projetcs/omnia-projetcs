@@ -7,88 +7,109 @@
 #include "../RtCA.h"
 #define dd_buffer_size  4096
 //------------------------------------------------------------------------------
-BOOL dd_partition(char drive_letter, char *save_file)
+BOOL dd(char *disk, char *file, LONGLONG file_sz_max, BOOL progress)
 {
   BOOL ret = FALSE;
-  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
+  //different disk formats :
+  //"\\\\?\\C:"
+  //"\\\\.\\PhysicalDrive0"
+
+  //create file to save
+  HANDLE hf_save = CreateFile(file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
   if (hf_save != INVALID_HANDLE_VALUE)
   {
-    char path_disk[7] = "\\\\?\\C:";
-    char ltc[4]       = "C:\\";
-    path_disk[4]      = drive_letter;
-    ltc[0]            = drive_letter;
-
-    //get drive size
-    DWORD cluster=0, secteur=0, Cluster_libre=0, Total_Cluster=0;
-    if (GetDiskFreeSpace(ltc,&cluster,&secteur,&Cluster_libre,&Total_Cluster))
+    //open disk path
+    HANDLE hdisk = CreateFile(disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
+    if (hdisk != INVALID_HANDLE_VALUE)
     {
-      DWORD total_size_to_cp =  Total_Cluster * cluster * secteur;
-      if (total_size_to_cp > 0)
+      //next for type :
+      DWORD dw=0;
+      char bf[dd_buffer_size]="", cprogress[MAX_PATH];
+
+      //all disk
+      if (file_sz_max == 0)
       {
-        HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-        if (hdrive != INVALID_HANDLE_VALUE)
+        LONGLONG bread = 0;
+        do
         {
-          DWORD buffer_size = dd_buffer_size, pos = 0;
-          char buffer[dd_buffer_size], progress[MAX_PATH]="";
-          DWORD cr=0, cp = 0;
-
-          do
+          dw = 0;
+          if(ReadFile(hdisk, bf, dd_buffer_size,&dw,0))
           {
-            if (total_size_to_cp-pos < buffer_size) buffer_size = total_size_to_cp-pos;
+            dw = 0;
+            if (WriteFile(hf_save, bf, dd_buffer_size,&dw,0))
+            {
+              if (dw != 0)
+              {
+                ret = TRUE;
+                bread = bread+dd_buffer_size;
 
-            cr=0;cp=0;
-            ReadFile(hdrive, buffer, buffer_size,&cr,0);
-            /*if (cr == buffer_size) */WriteFile(hf_save,buffer,buffer_size,&cp,0);
-            /*else break; *///erreur : pas de traitement des erreur, permet un accès aux données même si des erreurs de copie/binaire
+                if (progress)
+                {
+                  snprintf(cprogress,MAX_PATH,"DD %llu mo %s -> %s",bread/1048576,disk,file);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)cprogress);
+                  printf("%s\r",cprogress);
+                }
+              }else break;
+            }else break;
+          }else break;
+        }while(dw != 0);
 
-            pos+=buffer_size;
-            snprintf(progress,MAX_PATH,"%lu/%lu mo %c:\\ -> %s",pos/1048510,total_size_to_cp/1048510,drive_letter,save_file);
-            SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
-
-          }while (pos < total_size_to_cp && cr > 0 && cp > 0 && backup_dd);
-
-          if (pos == total_size_to_cp) ret = TRUE;
-        }
-        CloseHandle(hdrive);
-      }
-    }
-    CloseHandle(hf_save);
-  }
-  backup_dd = FALSE;
-  return ret;
-}
-//------------------------------------------------------------------------------
-BOOL dd_disk(char *path_disk, char *save_file)
-{
-  BOOL ret = FALSE;
-  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
-  if (hf_save != INVALID_HANDLE_VALUE)
-  {
-    HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-    if (hdrive != INVALID_HANDLE_VALUE)
-    {
-      DWORD buffer_size = dd_buffer_size, pos = 0;
-      char buffer[dd_buffer_size], progress[MAX_PATH]="";
-      DWORD cr=0, cp = 0;
-      BOOL ret_r, ret_w;
-
-      do
+      //MBR or similar size
+      }else if (file_sz_max < dd_buffer_size)
       {
-        cr=0;cp=0;
-        ret_r = ReadFile(hdrive, buffer, buffer_size,&cr,0);
-        ret_w = WriteFile(hf_save,buffer,buffer_size,&cp,0);
+        if(ReadFile(hdisk, bf, dd_buffer_size,&dw,0))
+        {
+          dw = 0;
+          //if the size < 512 impossible, if the size < 4096 error
+          //no need to test the error but the data read
+          if(WriteFile(hf_save, bf, file_sz_max,&dw,0))
+          {
+            ret = TRUE;
+            if (progress)
+            {
+              snprintf(cprogress,MAX_PATH,"DD %llu b %s -> %s",file_sz_max,disk,file);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)cprogress);
+              printf("%s\n",cprogress);
+            }
+          }
+        }
+      }else
+      {
+        //other size limit
+        LONGLONG bread = 0;
+        unsigned int bu_sz = dd_buffer_size;
+        do
+        {
+          dw = 0;
+          if(ReadFile(hdisk, bf, bu_sz,&dw,0))
+          {
+            dw = 0;
+            if (WriteFile(hf_save, bf, bu_sz,&dw,0))
+            {
+              if (dw != 0)
+              {
+                bread = bread + bu_sz;
+                if (file_sz_max-bread < bu_sz)bu_sz = file_sz_max-bread;
 
-        pos+=buffer_size;
-        snprintf(progress,MAX_PATH,"%lu mo %s -> %s",pos/1048510,path_disk,save_file);
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)progress);
+                if (progress)
+                {
+                  snprintf(cprogress,MAX_PATH,"DD %llu/%llu mo %s -> %s",bread/1048576,file_sz_max/1048576,disk,file);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)cprogress);
+                  printf("%s\r",cprogress);
+                }
+              }
+              else break;
+            }else break;
+          }else break;
+        }while (bread < file_sz_max);
 
-      }while (ret_r && ret_w && cp > 0);
-
-      if (!ret_r) ret = TRUE;
+        if (bread == file_sz_max)ret = TRUE;
+      }
+      CloseHandle(hdisk);
     }
-    CloseHandle(hdrive);
     CloseHandle(hf_save);
   }
+
   return ret;
 }
 //------------------------------------------------------------------------------
@@ -108,58 +129,8 @@ void dd_mbr()
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
-    HANDLE hf_save = CreateFile(file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
-    if (hf_save != INVALID_HANDLE_VALUE)
-    {
-      HANDLE hdrive = CreateFile("\\\\.\\PhysicalDrive0",GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-      if (hdrive != INVALID_HANDLE_VALUE)
-      {
-        DWORD dw=0;
-        char buffer[512];
-        if (ReadFile(hdrive, buffer, 512,&dw,0))
-        {
-          if (WriteFile(hf_save,buffer,512,&dw,0))
-          {
-            snprintf(tmp,MAX_PATH,"MBR copy OK to %s",file);
-            SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
-          }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in writing to file!");
-        }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in reading from \\\\.\\PhysicalDrive0");
-      }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in opening \\\\.\\PhysicalDrive0");
-      CloseHandle(hdrive);
-    }else SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error in creating file to save!");
-    CloseHandle(hf_save);
-  }
-}
-
-//------------------------------------------------------------------------------
-void DDConsole(char *path_disk, DWORD sz, char *save_file)
-{
-  HANDLE hf_save = CreateFile(save_file,GENERIC_WRITE,0,NULL,CREATE_ALWAYS,0,NULL);
-  if (hf_save != INVALID_HANDLE_VALUE)
-  {
-    HANDLE hdrive = CreateFile(path_disk,GENERIC_READ,FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,OPEN_EXISTING,0,NULL);
-    if (hdrive != INVALID_HANDLE_VALUE)
-    {
-      DWORD buffer_size, pos = 0;
-      if (sz != 0)buffer_size = sz;
-      else buffer_size = DBM;
-
-      char buffer[DBM];
-      DWORD cr=0, cp = 0;
-      BOOL ret_r, ret_w;
-
-      do
-      {
-        cr=0;cp=0;
-        ret_r = ReadFile(hdrive, buffer, buffer_size,&cr,0);
-        ret_w = WriteFile(hf_save,buffer,buffer_size,&cp,0);
-
-        pos+=buffer_size;
-        printf("%lu mo %s -> %s",pos/1048510,path_disk,save_file);
-      }while (ret_r && ret_w && cp > 0 && sz != 0);
-    }
-    CloseHandle(hdrive);
-    CloseHandle(hf_save);
+    if(!dd("\\\\.\\PhysicalDrive0", file, 512, TRUE))
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR copy : error!");
   }
 }
 //------------------------------------------------------------------------------
@@ -180,16 +151,8 @@ DWORD WINAPI BackupDrive(LPVOID lParam)
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
-    backup_dd = !backup_dd;
-    if (dd_partition(letter, file))
-    {
-      snprintf(tmp,MAX_PATH,"Drive imagine %c:\\ saved to : %s",letter,file);
-      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
-    }else
-    {
-      snprintf(tmp,MAX_PATH,"Error in imagine drive %c:\\ to file : %s",letter,file);
-      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
-    }
+    snprintf(tmp,MAX_PATH,"\\\\?\\%c:",letter);
+    dd(tmp, file, 0, TRUE);
   }
   return 0;
 }
@@ -214,13 +177,13 @@ DWORD WINAPI BackupDisk(LPVOID lParam)
     char pathdisk[MAX_PATH];
     snprintf(pathdisk,MAX_PATH,"\\\\.\\PhysicalDrive%c",letter);
 
-    if (dd_disk(pathdisk, file))
+    if(dd(pathdisk, file, 0, TRUE))
     {
-      snprintf(tmp,MAX_PATH,"Physical Drive imagine %s saved to : %s",pathdisk,file);
+      snprintf(tmp,MAX_PATH,"Physical Drive imagine %s saved to: %s",pathdisk,file);
       SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
     }else
     {
-      snprintf(tmp,MAX_PATH,"Error in imagine Physical Drive %s to file : %s",pathdisk,file);
+      snprintf(tmp,MAX_PATH,"Error in imagine Physical Drive %s to: %s",pathdisk,file);
       SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp);
     }
   }
@@ -386,6 +349,38 @@ BOOL ConvertDosPathtoReel(char *path, unsigned int max_path)
   return FALSE;
 }
 //------------------------------------------------------------------------------
+void CopyRegistryUSER(char*local_path, char *tmp_path, char *path)
+{
+  char tmp_path2[MAX_PATH],tmp_path_dst[MAX_PATH];
+  WIN32_FIND_DATA data;
+  DWORD copiee;
+  HANDLE hfic = FindFirstFile(tmp_path, &data);
+  if (hfic != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+      else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        //1
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\NTUSER.DAT",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\%s_NTUSER.DAT",local_path,data.cFileName);
+        CopyFilefromPath(path, tmp_path_dst, FALSE);
+
+        //2
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\Local Settings\\Application Data\\Microsoft\\Windows\\UsrClass.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\%s_UsrClass.dat",local_path,data.cFileName);
+        CopyFilefromPath(path, tmp_path_dst, FALSE);
+
+        //3
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\AppData\\Local\\Microsoft\\Windows\\UsrClass.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\%s_UsrClass.dat",local_path,data.cFileName);
+        CopyFilefromPath(path, tmp_path_dst, FALSE);
+      }
+    }while(FindNextFile (hfic,&data));
+  }
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI BackupRegFile(LPVOID lParam)
 {
   //choix du répertoire de destination ^^
@@ -434,69 +429,15 @@ DWORD WINAPI BackupRegFile(LPVOID lParam)
       snprintf(cmd,MAX_PATH*2,"SAVE HKCU \"%s\\HKCU_NTUSER.DAT\"",tmp);
       ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
 
-      //all registry files in direct copy from registry access
-      HKEY CleTmp;
-      unsigned int state = 0;
-      if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\hivelist",&CleTmp)==ERROR_SUCCESS)
-      {
-        DWORD nbValue = 0;
-        if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValue,0,0,0,0)==ERROR_SUCCESS)
-        {
-          DWORD i, valueSize, dataSize;
-          char value[MAX_PATH], data[MAX_PATH];
-          for (i=0;i<nbValue;i++)
-          {
-            value[0]  = 0;
-            data[0]   = 0;
-            valueSize = MAX_PATH;
-            dataSize  = MAX_PATH;
-            if (RegEnumValue (CleTmp,i,(LPTSTR)value,(LPDWORD)&valueSize,0,NULL,(LPBYTE)data,(LPDWORD)&dataSize)==ERROR_SUCCESS)
-            {
-              if (data[0] != 0 && valueSize > 16)
-              {
-                //get SID from value, only for users files
-                if (value[16] == '-')
-                {
-                  snprintf(cmd,MAX_PATH*2,"%s\\%s",tmp,&value[15]);
-                  if (ConvertDosPathtoReel(data,MAX_PATH))
-                  {
-                    state += !CopyFilefromPath(data, cmd, FALSE);
-                  }else state+=1;
-                }
-              }
-            }
-          }
-        }else state = 1;
-        RegCloseKey(CleTmp);
-      }else state = 1;
+      //current users & users
+      CopyRegistryUSER(tmp, "C:\\Documents and Settings\\*.*", "C:\\Documents and Settings");
+      CopyRegistryUSER(tmp, "D:\\Documents and Settings\\*.*", "D:\\Documents and Settings");
+      CopyRegistryUSER(tmp, "E:\\Documents and Settings\\*.*", "E:\\Documents and Settings");
 
-      //registry extract
-      if (state)
-      {
-        if (RegOpenKey(HKEY_USERS,"",&CleTmp)==ERROR_SUCCESS)
-        {
-          DWORD nbSubKey = 0;
-          if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
-          {
-            DWORD i, subkey_size;
-            char subkey[MAX_PATH];
-            for (i=0;i<nbSubKey;i++)
-            {
-              subkey[0]   = 0;
-              subkey_size = MAX_PATH;
-              if (RegEnumKeyEx (CleTmp,i,subkey,&subkey_size,0,0,0,0)==ERROR_SUCCESS)
-              {
-                if (subkey[0] != 0 && subkey_size > 17) //bypass default users_keys
-                {
-                  snprintf(cmd,MAX_PATH*2,"SAVE HKU\\%s \"%s\\%s_NTUSER.DAT\"",subkey,tmp,subkey);
-                  ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
-                }
-              }
-            }
-          }
-          RegCloseKey(CleTmp);
-        }
-      }
+      CopyRegistryUSER(tmp, "C:\\Users\\*.*", "C:\\Users");
+      CopyRegistryUSER(tmp, "D:\\Users\\*.*", "D:\\Users");
+      CopyRegistryUSER(tmp, "E:\\Users\\*.*", "E:\\Users");
+
       SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy registry file's done !!!");
     }
   }
@@ -683,9 +624,9 @@ DWORD WINAPI BackupFile(LPVOID lParam)
       if (SHGetPathFromIDList(lip,path))
       {
         snprintf(path2,MAX_PATH,"%s\\%s",path,extractFileFromPath(file_p, file, MAX_PATH));
-        //save
-        CopyFilefromPath(file_p,path, FALSE);
-        //if(DirectFileCopy(file_p, path)) SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");
+
+        if(DirectFileCopy(file_p, path)) SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file done !!!");
+        else CopyFilefromPath(file_p,path, FALSE);
       }
     }
   }
@@ -1159,7 +1100,6 @@ void CopyRegistryUSERmToZIP(void *hz, char*local_path,char*computername,HANDLE M
     }while(FindNextFile (hfic,&data));
   }
 }
-
 //------------------------------------------------------------------------------
 void CopyRegistryUSERToZIP(void *hz, char*local_path,char*computername,HANDLE MyhFile)
 {
@@ -1170,6 +1110,29 @@ void CopyRegistryUSERToZIP(void *hz, char*local_path,char*computername,HANDLE My
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "C:\\Users\\*.*", "C:\\Users");
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "D:\\Users\\*.*", "D:\\Users");
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "E:\\Users\\*.*", "E:\\Users");
+}
+//------------------------------------------------------------------------------
+void CopyMBRToZip(void *hz, char*local_path,char*computername,HANDLE MyhFile)
+{
+  char tmp_file_to_save[MAX_PATH]="",zip_path_to_save[MAX_PATH]="";
+
+  snprintf(tmp_file_to_save,MAX_PATH,"%s\\mbr.raw",local_path);
+  if(dd("\\\\.\\PhysicalDrive0", tmp_file_to_save, 512, TRUE))
+  {
+    //if(FileExist(tmp_file_to_save))
+    {
+      snprintf(zip_path_to_save,MAX_PATH,"%s\\Disk\\mbr.raw",computername);
+      addSrc((TZIP *)hz,  (void *)zip_path_to_save, (void *)tmp_file_to_save,0, 2);
+      DeleteFile(tmp_file_to_save);
+
+      if (MyhFile != INVALID_HANDLE_VALUE)
+      {
+        DWORD copiee;
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"MBR");
+        WriteFile(MyhFile,"MBR\r\n",5,&copiee,0);
+      }
+    }
+  }
 }
 //------------------------------------------------------------------------------
 void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDLE MyhFile)
@@ -1389,6 +1352,293 @@ void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDL
   }
 }
 //------------------------------------------------------------------------------
+void addProcesstoCSV(char *process, char *pid, char *path, char *cmd,
+                    char *owner, char *rid, char *sid, char *start_date,
+                    char *protocol, char *ip_src, char *port_src,
+                    char *ip_dst, char *port_dst, char *state,
+                    char *hidden,char *parent_process, char *parent_pid, HANDLE filetosave, void *hz, char*computername, HANDLE MyhFile)
+{
+  char h_sha256[MAX_PATH], verified[MAX_PATH], tmp_buff_w[MAX_PATH];
+  char tmp_path[MAX_PATH];
+  DWORD dw;
+
+  snprintf(tmp_path,MAX_PATH,"%s\\Process\\%s_%s",computername,pid,process);
+  strncpy(tmp_buff_w,path,MAX_PATH);
+  ConvertPathFromPath(tmp_buff_w);
+
+  if (GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH))
+  {
+    addSrc((TZIP *)hz,  (void *)tmp_path, (void *)tmp_buff_w,0, 2);
+
+    if (MyhFile != INVALID_HANDLE_VALUE)
+    {
+      snprintf(tmp_buff_w,MAX_PATH,"%s, SHA256:%s, Verified:%s\r\n",path,h_sha256,verified);
+      WriteFile(MyhFile,tmp_buff_w,strlen(tmp_buff_w),&dw,0);
+    }
+  }else if (path[0] == 'P')
+  {
+    if (MyhFile != INVALID_HANDLE_VALUE)WriteFile(MyhFile,path,strlen(path),&dw,0);
+
+    strncpy(h_sha256,"SHA256",MAX_PATH);
+    strncpy(verified,"Verified",MAX_PATH);
+  }
+
+  char request[REQUEST_MAX_SIZE];
+  snprintf(request,REQUEST_MAX_SIZE,
+           "\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\r\n",
+           process,pid,path,cmd,owner,rid,sid,start_date,protocol,ip_src,port_src,ip_dst,port_dst,state,hidden,parent_process,parent_pid,h_sha256,verified);
+  WriteFile(filetosave,request,strlen(request),&dw,0);
+}
+//------------------------------------------------------------------------------
+void EnumProcessAndThreadToFile(DWORD nb_process, PROCESS_INFOS_ARGS *process_info, HANDLE filetosave, void *hz, char*computername, HANDLE MyhFile)
+{
+  HANDLE hProcess;
+  DWORD d_pid, i, j, k, cbNeeded;
+  BOOL ok;
+  LINE_PROC_ITEM port_line[MAX_PATH];
+  HMODULE hMod[MAX_PATH];
+  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
+  char process[DEFAULT_TMP_SIZE],
+       pid[DEFAULT_TMP_SIZE],
+       path[MAX_PATH],
+       cmd[MAX_PATH],
+       owner[DEFAULT_TMP_SIZE],
+       rid[DEFAULT_TMP_SIZE],
+       sid[DEFAULT_TMP_SIZE],
+       start_date[DATE_SIZE_MAX]/*,
+       parent_pid[DEFAULT_TMP_SIZE],
+       parent_path[MAX_PATH]*/;
+
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
+
+  //force enumerate all process by id !
+  for (d_pid=FIRST_PROCESS_ID;d_pid<LAST_PROCESS_ID;d_pid++)
+  {
+    //open process info
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,d_pid);
+    if (hProcess == NULL)continue;
+
+    //cmd
+    cmd[0]=0;
+    GetProcessArg(hProcess, cmd, MAX_PATH);
+
+    if (cmd[0]==0)
+    {
+      ok = FALSE;
+    }else
+    {
+      ok = TRUE;
+      //verify if exist or not
+      for (i=0;i<nb_process;i++)
+      {
+        if (process_info[i].pid == d_pid){ok = FALSE;break;}
+        else if (strcmp(cmd,process_info[i].args) == 0){ok = FALSE;break;}
+      }
+    }
+
+    if (ok)
+    {
+      //process
+      process[0] = 0;
+      GetModuleBaseName(hProcess,NULL,process,DEFAULT_TMP_SIZE);
+
+      //pid
+      snprintf(pid,DEFAULT_TMP_SIZE,"%05lu",d_pid);
+
+      //path
+      path[0]=0;
+      if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded))
+      {
+        if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_PATH) == 0)path[0] = 0;
+      }
+
+      //owner
+      GetProcessOwner(d_pid, owner, rid, sid, DEFAULT_TMP_SIZE);
+
+      //start date process
+      start_date[0] = 0;
+      if (GetProcessTimes(hProcess, &lpCreationTime,&lpExitTime, &lpKernelTime, &lpUserTime))
+      {
+        //traitement de la date
+        if (lpCreationTime.dwHighDateTime != 0 && lpCreationTime.dwLowDateTime != 0)
+        {
+          filetimeToString_GMT(lpCreationTime, start_date, DATE_SIZE_MAX);
+        }
+      }
+
+      //ports !
+      j=GetPortsFromPID(d_pid, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+
+      convertStringToSQL(path, MAX_PATH);
+      convertStringToSQL(cmd, MAX_PATH);
+
+      //add items !
+      if (j == 0)addProcesstoCSV(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "", "X", "", "",filetosave, hz, computername, MyhFile);
+      else
+      {
+        for (k=0;k<j;k++)
+        {
+          if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+          else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+          if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+          else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
+          addProcesstoCSV(process, pid, path, cmd, owner, rid, sid, start_date,
+                                port_line[k].protocol, src_name, port_line[k].Port_src,
+                                dst_name, port_line[k].Port_dst, port_line[k].state, "X", "", "",filetosave, hz, computername, MyhFile);
+        }
+      }
+    }
+    CloseHandle(hProcess);
+  }
+}
+
+//------------------------------------------------------------------------------
+void Scan_process_to_file(HANDLE filetosave, void *hz, char*computername, HANDLE MyhFile)
+{
+  addProcesstoCSV("Process", "PID", "Path", "Command",
+                    "Owner", "RID", "SID", "Start_date",
+                    "Protocol", "IP_src", "Port_src",
+                    "IP_dst", "Port_dst", "State",
+                    "Hidden", "Parent_process", "Parent_pid", filetosave, hz, computername, MyhFile);
+  //init
+  PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
+  HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS|TH32CS_SNAPTHREAD, 0);
+  if (hCT==INVALID_HANDLE_VALUE)return 0;
+
+  DWORD cbNeeded, k, j, nb_process=0;
+  HANDLE hProcess, parent_hProcess;
+  HMODULE hMod[MAX_PATH];
+  FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
+  LINE_PROC_ITEM port_line[MAX_PATH];
+  char process[DEFAULT_TMP_SIZE],
+       pid[DEFAULT_TMP_SIZE],
+       path[MAX_PATH],
+       cmd[MAX_PATH],
+       owner[DEFAULT_TMP_SIZE],
+       rid[DEFAULT_TMP_SIZE],
+       sid[DEFAULT_TMP_SIZE],
+       start_date[DATE_SIZE_MAX],
+       parent_pid[DEFAULT_TMP_SIZE],
+       parent_path[MAX_PATH];
+
+  char src_name[MAX_PATH];
+  char dst_name[MAX_PATH];
+
+  PROCESS_INFOS_ARGS process_infos[MAX_PATH];
+
+  while(Process32Next(hCT, &pe))
+  {
+    //open process info
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,pe.th32ProcessID);
+    if (hProcess == NULL)continue;
+
+    //process
+    process[0] = 0;
+    strncpy(process,pe.szExeFile,DEFAULT_TMP_SIZE);
+
+    //pid
+    snprintf(pid,DEFAULT_TMP_SIZE,"%05lu",pe.th32ProcessID);
+
+    //path
+    path[0]=0;
+    if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded))
+    {
+      if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_PATH) == 0)path[0] = 0;
+    }
+
+    //cmd
+    cmd[0]=0;
+    GetProcessArg(hProcess, cmd, MAX_PATH);
+
+    //owner
+    GetProcessOwner(pe.th32ProcessID, owner, rid, sid, DEFAULT_TMP_SIZE);
+
+    //parent processID
+    snprintf(parent_pid,DEFAULT_TMP_SIZE,"%05lu",pe.th32ParentProcessID);
+
+    //parent name
+    parent_path[0]=0;
+    parent_hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,pe.th32ParentProcessID);
+    if (parent_hProcess != NULL)
+    {
+      if (EnumProcessModules(parent_hProcess,hMod, MAX_PATH,&cbNeeded))
+      {
+        if (GetModuleFileNameEx(parent_hProcess,hMod[0],parent_path,MAX_PATH) == 0)parent_path[0] = 0;
+      }
+      CloseHandle(parent_hProcess);
+    }
+
+    //start date process
+    start_date[0] = 0;
+    if (GetProcessTimes(hProcess, &lpCreationTime,&lpExitTime, &lpKernelTime, &lpUserTime))
+    {
+      //traitement de la date
+      if (lpCreationTime.dwHighDateTime != 0 && lpCreationTime.dwLowDateTime != 0)
+      {
+       filetimeToString_GMT(lpCreationTime, start_date, DATE_SIZE_MAX);
+      }
+    }
+
+    //ports !
+    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+
+    //update list of process
+    if (nb_process<MAX_PATH)
+    {
+      process_infos[nb_process].pid = pe.th32ProcessID;
+      snprintf(process_infos[nb_process].args,MAX_PATH,"%s",cmd);
+      nb_process++;
+    }
+    convertStringToSQL(path, MAX_PATH);
+    convertStringToSQL(cmd, MAX_PATH);
+
+    //add items !
+    if (j == 0)addProcesstoCSV(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "",""  , parent_path, parent_pid,filetosave, hz, computername, MyhFile);
+    else
+    {
+      for (k=0;k<j;k++)
+      {
+        if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+        else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+
+        if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+        else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+
+        addProcesstoCSV(process, pid, path, cmd, owner, rid, sid, start_date,
+                              port_line[k].protocol, src_name, port_line[k].Port_src,
+                              dst_name, port_line[k].Port_dst, port_line[k].state, "", parent_path, parent_pid,filetosave, hz, computername, MyhFile);
+      }
+    }
+    CloseHandle(hProcess);
+  }
+
+  //verify shadow process !!!
+  EnumProcessAndThreadToFile(nb_process, process_infos, filetosave, hz, computername, MyhFile);
+
+  CloseHandle(hCT);
+}
+//------------------------------------------------------------------------------
+void CopyProcessToZip(void *hz, char*local_path, char*computername, HANDLE MyhFile)
+{
+  //extract list of process and backup on csv file
+  char tmp_path[MAX_PATH],tmp_file[MAX_PATH];
+
+  snprintf(tmp_file,MAX_PATH,"%s\\process_list.csv",local_path);
+  HANDLE filetosave = CreateFile(tmp_file, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+  if (filetosave != INVALID_HANDLE_VALUE)
+  {
+    Scan_process_to_file(filetosave,hz,computername, MyhFile);
+    CloseHandle(filetosave);
+  }
+  //backup file on zip file
+  snprintf(tmp_path,MAX_PATH,"%s\\Process\\process_list.csv",computername);
+  addSrc((TZIP *)hz,  (void *)tmp_path, (void *)tmp_file,0, 2);
+  DeleteFile(tmp_file);
+}
+//------------------------------------------------------------------------------
 void SaveALL(char*filetosave, char *computername)
 {
   void *hz;
@@ -1442,6 +1692,11 @@ void SaveALL(char*filetosave, char *computername)
 
     //navigator
     CopyNavigatorHistoryToZIP(hz,local_path,computername,MyhFile);
+
+    //MBR
+    CopyMBRToZip(hz,local_path,computername,MyhFile);
+
+    CopyProcessToZip(hz,local_path,computername,MyhFile);
 
     //list of files
     CloseHandle(MyhFile);
