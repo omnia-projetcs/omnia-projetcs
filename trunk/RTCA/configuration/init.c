@@ -420,7 +420,6 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   enable_magic          = FALSE;
   enable_remote         = FALSE;
   DISABLE_GRID_LV_ALL   = FALSE;
-  backup_dd             = FALSE;
   h_Hexa                = 0;
   last_search_mode      = DEFAULT_MODE_SEARCH_HX;
   last_pos_hex_search   = 0;

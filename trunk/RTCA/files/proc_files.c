@@ -39,7 +39,7 @@ void ConsoleDirectory_sha256deep(char *tmp_path)
       {
         s_sha[0] = 0;
         snprintf(path_ex,MAX_PATH,"%s%s",path,data.cFileName);
-        FileToSHA256(path_ex, s_sha);
+        if ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH)FileToSHA256(path_ex, s_sha);
         if (s_sha[0] != 0)printf("%s  %s\n",s_sha,path_ex);
       }
     }

@@ -27,6 +27,8 @@
 #define DEFAULT_TM_SQLITE_FILE "RtCA.sqlite-journal"
 #define DEFAULT_TOOL_MENU_FILE "tools.cfg"
 
+#define MAX_FILE_SIZE_HASH      1024*1024*50 // 50mo
+
 #define DEFAULT_INI_FILE       "\\RtCA.ini"
 
 #define IDR_VERSION                 1
@@ -74,6 +76,7 @@
 #include <Windns.h>             //DnsQuery
 
 #include <Wincrypt.h>           //FOR DECODE CHROME/CHROMIUM password
+//#include <wintrust.h>           //FOR VERIFY SIGN OF FILES
 #include "crypt/d3des.h"        //Crypto
 #include <lmaccess.h>           //group account list
 #include <wininet.h>            //for VirusTotal + update
@@ -722,7 +725,6 @@ typedef struct
 //for sort in lstv
 BOOL TRI_RESULT_VIEW, TRI_PROCESS_VIEW, TRI_SNIFF_VIEW, TRI_REG_VIEW;
 BOOL TRI_STATE_ALL, TRI_STATE_LOG, TRI_STATE_CRITICAL, TRI_STATE_FILTER, TRI_SQLITE_ED;
-BOOL backup_dd;
 int column_tri;
 
 typedef struct SORT_ST
@@ -1186,8 +1188,10 @@ void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
+int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max);
+BOOL GetSHAandVerifyFromPathFile(char *path, char *sha256, char *verify, unsigned int buffer_max_sz);
 void ConsoleDirectory_sha256deep(char *tmp_path);
-void DDConsole(char *path_disk, DWORD sz, char *save_file);
+BOOL dd(char *disk, char *file, LONGLONG file_sz_max, BOOL progress);
 void loadFile_test(char *file, unsigned int index);
 //MFT
 ULONGLONG HexaToll(char *src, unsigned int nb);
@@ -1195,7 +1199,6 @@ BOOL CopyFileFromMFT(HANDLE hfile, char *destination);
 char *Partition_Type(unsigned int code, char *ctype, unsigned int ctype_sz_max);
 BOOL MBRReadInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos);
 BOOL ReadPartInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos, unsigned int index);
-
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);

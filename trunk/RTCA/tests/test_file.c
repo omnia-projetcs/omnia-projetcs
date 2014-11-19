@@ -164,7 +164,195 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
     CloseHandle(Hfic);
   }
 }
+//------------------------------------------------------------------------------
+//http://msdn.microsoft.com/en-us/library/windows/desktop/aa382384%28v=vs.85%29.aspx
+int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max)
+{
+  int ret = -1;
 
+  typedef struct WINTRUST_FILE_INFO_
+  {
+      DWORD   cbStruct;
+      LPCWSTR pcwszFilePath;
+      HANDLE  hFile;
+      GUID*   pgKnownSubject;
+  } WINTRUST_FILE_INFO, *PWINTRUST_FILE_INFO;
+
+  //convert file path
+  WCHAR wfile[4096];
+	MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)file,(int)-1,(LPWSTR)wfile,(int)4096);
+
+  WINTRUST_FILE_INFO FileData;
+  memset(&FileData, 0, sizeof(FileData));
+  FileData.cbStruct       = sizeof(WINTRUST_FILE_INFO);
+  FileData.pcwszFilePath  = wfile;
+  FileData.hFile          = NULL;
+  FileData.pgKnownSubject = NULL;
+
+  #define WINTRUST_ACTION_GENERIC_VERIFY_V2   { 0xaac56b, 0xcd44, 0x11d0, { 0x8c,0xc2,0x00,0xc0,0x4f,0xc2,0x95,0xee }}
+  GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
+
+  typedef struct _CERT_STRONG_SIGN_SERIALIZED_INFO {
+    DWORD  dwFlags;
+    LPWSTR pwszCNGSignHashAlgids;
+    LPWSTR pwszCNGPubKeyMinBitLengths;
+  } CERT_STRONG_SIGN_SERIALIZED_INFO, *PCERT_STRONG_SIGN_SERIALIZED_INFO;
+
+  typedef struct _CERT_STRONG_SIGN_PARA {
+    DWORD cbSize;
+    DWORD dwInfoChoice;
+    union {
+      void                              *pvInfo;
+      PCERT_STRONG_SIGN_SERIALIZED_INFO pSerializedInfo;
+      LPSTR                             pszOID;
+    } DUMMYUNIONNAME;
+  } CERT_STRONG_SIGN_PARA, *PCERT_STRONG_SIGN_PARA;
+
+  typedef struct WINTRUST_SIGNATURE_SETTINGS_ {
+    DWORD                  cbStruct;
+    DWORD                  dwIndex;
+    DWORD                  dwFlags;
+    DWORD                  cSecondarySigs;
+    DWORD                  dwVerifiedSigIndex;
+    PCERT_STRONG_SIGN_PARA pCryptoPolicy;
+  } WINTRUST_SIGNATURE_SETTINGS, *PWINTRUST_SIGNATURE_SETTINGS;
+
+  typedef struct _WINTRUST_DATA {
+    DWORD                       cbStruct;
+    LPVOID                      pPolicyCallbackData;
+    LPVOID                      pSIPClientData;
+    DWORD                       dwUIChoice;
+    DWORD                       fdwRevocationChecks;
+    DWORD                       dwUnionChoice;
+    union
+    {
+      struct WINTRUST_FILE_INFO_  *pFile;
+      struct WINTRUST_CATALOG_INFO_  *pCatalog;
+      struct WINTRUST_BLOB_INFO_  *pBlob;
+      struct WINTRUST_SGNR_INFO_  *pSgnr;
+      struct WINTRUST_CERT_INFO_  *pCert;
+    };
+    DWORD                       dwStateAction;
+    HANDLE                      hWVTStateData;
+    WCHAR                       *pwszURLReference;
+    DWORD                       dwProvFlags;
+    DWORD                       dwUIContext;
+    WINTRUST_SIGNATURE_SETTINGS *pSignatureSettings;
+  } WINTRUST_DATA, *PWINTRUST_DATA;
+
+  //init struct
+  WINTRUST_DATA WinTrustData;
+  memset(&WinTrustData, 0, sizeof(WinTrustData));
+  WinTrustData.cbStruct             = sizeof(WinTrustData);
+  WinTrustData.pPolicyCallbackData  = NULL;
+  WinTrustData.pSIPClientData       = NULL;
+  WinTrustData.dwUIChoice           = 2; //WTD_UI_NONE;
+  WinTrustData.fdwRevocationChecks  = 0; //WTD_REVOKE_NONE;
+  WinTrustData.dwUnionChoice        = 1; //WTD_CHOICE_FILE;
+  WinTrustData.dwStateAction        = 1; //WTD_STATEACTION_VERIFY;
+  WinTrustData.hWVTStateData        = NULL;
+  WinTrustData.pwszURLReference     = NULL;
+  WinTrustData.dwUIContext          = 0;
+  WinTrustData.pFile                = &FileData;
+
+  //load dll
+  HMODULE hDll;
+  if ((hDll = LoadLibrary( "Wintrust.dll"))!=NULL)
+  {
+    typedef LONG (WINAPI *WINVERIFYTRUST)(HWND hWnd, GUID *pgActionID, LPVOID pWVTData);
+    WINVERIFYTRUST WinVerifyTrust = (WINVERIFYTRUST) GetProcAddress(hDll,"WinVerifyTrust");
+
+    #define TRUST_E_NOSIGNATURE                                _HRESULT_TYPEDEF_(0x800B0100L)
+    #define TRUST_E_SUBJECT_FORM_UNKNOWN                       _HRESULT_TYPEDEF_(0x800B0003L)
+    #define TRUST_E_EXPLICIT_DISTRUST                          _HRESULT_TYPEDEF_(0X800B0111)
+    #define TRUST_E_SUBJECT_NOT_TRUSTED                        _HRESULT_TYPEDEF_(0x800B0004L)
+    #define CRYPT_E_SECURITY_SETTINGS                          _HRESULT_TYPEDEF_(0x80092026L)
+    #define TRUST_E_PROVIDER_UNKNOWN                           _HRESULT_TYPEDEF_(0x800B0001L)
+
+    if (WinVerifyTrust != NULL)
+    {
+      ret = 0;
+      DWORD dwLastError;
+
+      switch(WinVerifyTrust(NULL, &WVTPolicyGUID, &WinTrustData))
+      {
+        case ERROR_SUCCESS:
+          ret = 1;
+          snprintf(msg,msg_sz_max, "WINTRUST_ACTION_GENERIC_VERIFY_V2  OK");
+        break;
+        case TRUST_E_NOSIGNATURE:
+          dwLastError = GetLastError();
+          if (TRUST_E_NOSIGNATURE == dwLastError || TRUST_E_SUBJECT_FORM_UNKNOWN == dwLastError || TRUST_E_PROVIDER_UNKNOWN == dwLastError)
+            snprintf(msg,msg_sz_max, "File not signed!");
+          else
+            snprintf(msg,msg_sz_max, "ERROR in verify the signature!");
+        break;
+        case TRUST_E_EXPLICIT_DISTRUST:snprintf(msg,msg_sz_max, "The signature is present, but disallowed!");break;
+        case TRUST_E_SUBJECT_NOT_TRUSTED:snprintf(msg,msg_sz_max, "The signature is present, but not trusted!");break;
+        case CRYPT_E_SECURITY_SETTINGS:snprintf(msg,msg_sz_max, "The signature is present, but toe subject or publisher are disallowed!");break;
+        default:snprintf(msg,msg_sz_max, "ERROR in verify the signature!");break;
+      }
+    }
+    FreeLibrary(hDll);
+  }
+
+  return ret;
+}
+//------------------------------------------------------------------------------
+char *ConvertPathFromPath(char *path)
+{
+  if (path[0] != 0 && path[0] != 'P' && strlen(path) > 2)
+  {
+    char *c = path;
+    char ok_path[MAX_PATH];
+
+    if (path[1]=='?')
+    {
+      c = path;
+      c = c+4;
+      strncpy(ok_path,c,MAX_PATH);
+      strcpy(path,ok_path);
+    }else if (path[0]=='\\' || path[0]=='/')
+    {
+      path[0]='%';
+      char *c = path;
+      unsigned int i=0;
+      while (*c != '\\' && *c != '/' && *c){c++;i++;}
+      if (*c == '\\' || *c == '/')
+      {
+        char tmp_path[MAX_PATH]="";
+        strncpy(tmp_path,path,MAX_PATH);
+        tmp_path[i]= '%';
+        tmp_path[i+1]= 0;
+        strncat(tmp_path,c,MAX_PATH);
+        strncat(tmp_path,"\0",MAX_PATH);
+        strncpy(ok_path,ReplaceEnv("systemroot", tmp_path, MAX_PATH),MAX_PATH);
+      }
+      strcpy(path,ok_path);
+    }
+  }
+
+  return path;
+}
+//------------------------------------------------------------------------------
+BOOL GetSHAandVerifyFromPathFile(char *path, char *sha256, char *verified, unsigned int buffer_max_sz)
+{
+  //init
+  sha256[0]   = 0;
+  verified[0] = 0;
+
+  char real_path[MAX_PATH];
+  strncpy(real_path, path, MAX_PATH);
+  ConvertPathFromPath(real_path);
+
+  if (real_path[0] != 0 && real_path[0] != 'P' && strlen(real_path) > 2)
+  {
+    FileToSHA256(real_path, sha256);
+    VerifySignFile(real_path, verified, buffer_max_sz);
+    return TRUE;
+  }
+  return FALSE;
+}
 //------------------------------------------------------------------------------
 //from : http://rootkitanalytics.com/userland/Exploring-Alternate-Data-Streams.php
 DWORD EnumADS(char *file, char *resultat, DWORD size)
@@ -260,7 +448,7 @@ void FileToSHA256(char *path, char *csha256)
   if (Hfic != INVALID_HANDLE_VALUE)
   {
     DWORD taille_fic = GetFileSize(Hfic,NULL);
-    if (taille_fic>0 && taille_fic!=INVALID_FILE_SIZE)
+    if (taille_fic>0 && /*taille_fic!=INVALID_FILE_SIZE &&*/ taille_fic<MAX_FILE_SIZE_HASH)
     {
       unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
       if (buffer == NULL)
@@ -589,7 +777,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
           if(ads)EnumADS(file, s_ads, MAX_PATH);
 
           //sha256
-          if(sha)
+          if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
           {
             if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
             FileToSHA256(file, s_sha);
@@ -704,7 +892,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
           if(ads)EnumADS(file, s_ads, MAX_PATH);
 
           //sha256
-          if(sha)
+          if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
           {
             if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
             FileToSHA256(file, s_sha);
@@ -801,7 +989,7 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
         if(ads)EnumADS(path, s_ads, MAX_PATH);
 
         //sha256
-        if(sha)FileToSHA256(path, s_sha);
+        if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))FileToSHA256(path, s_sha);
 
         //acl
         if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);

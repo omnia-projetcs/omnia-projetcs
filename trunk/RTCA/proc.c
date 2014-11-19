@@ -267,13 +267,19 @@ BOOL FileExist(char *file)
 void ReviewWOW64Redirect(PVOID OldValue_W64b)
 {
   typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);
-  WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
 
   HMODULE hDLL = LoadLibrary( "KERNEL32.dll");
   if (hDLL != NULL)
   {
-    Wow64DisableWow64FsRedirect = (WOW64DISABLEREDIRECT) GetProcAddress(hDLL,"Wow64DisableWow64FsRedirection");
-    if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
+    if (OldValue_W64b == FALSE)
+    {
+      WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect = (BOOL (WINAPI *)(PVOID *OldValue)) GetProcAddress(hDLL, "Wow64DisableWow64FsRedirection");
+      if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
+    }else
+    {
+      WOW64DISABLEREDIRECT Wow64RevertWow64FsRedirect  = (BOOL (WINAPI *)(PVOID *OldValue)) GetProcAddress(hDLL, "Wow64RevertWow64FsRedirection");
+      if (Wow64RevertWow64FsRedirect)Wow64RevertWow64FsRedirect(&OldValue_W64b);
+    }
     FreeLibrary(hDLL);
   }
 }

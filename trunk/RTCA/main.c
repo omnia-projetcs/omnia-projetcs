@@ -877,6 +877,20 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH,cps[TXT_OPEN_PATH].c);
             break;
 
+            case INDEX_PROCESS:
+              if (AVIRUSTTAL)
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
+              }else if (VIRUSTTAL) InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
+              else
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
+              }
+              iitem = -1;
+              RemoveMenu(GetSubMenu(hmenu,0),4,MF_BYPOSITION);
+              RemoveMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND);
+            break;
             case INDEX_LOG:
             case INDEX_ENV:
             case INDEX_LAN:
@@ -1070,6 +1084,8 @@ int CmdLine(int argc, char* argv[])
   FILE_ACL            = FALSE;
   FILE_ADS            = FALSE;
   FILE_SHA            = FALSE;
+
+  sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
   SQLITE_FULL_SPEED   = TRUE;
 
   //get text for test : firefox, chrome and android
@@ -1155,7 +1171,7 @@ int CmdLine(int argc, char* argv[])
       case '1': FILE_ADS = TRUE;break;
       //enable SHA hashes for tests files
       case '2': FILE_SHA = TRUE;break;
-      case 'S': sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);SQLITE_FULL_SPEED = FALSE;break;
+      case 'S': sqlite3_exec(db_scan,"PRAGMA journal_mode = ON;", NULL, NULL, NULL);SQLITE_FULL_SPEED = FALSE;break;
       //------------------------------------------------------------------------------
       case 'o'://save alls data session to path
         if (i+1<argc)
@@ -1248,10 +1264,10 @@ int CmdLine(int argc, char* argv[])
           {
             if (argv[i+1][0] == '-' && argv[i+1][1] == '-') // no size limit
             {
-              DDConsole(argv[i], 0, argv[i+2]);
+              dd(argv[i], argv[i+2], 0, TRUE);
             }else
             {
-              DDConsole(argv[i], atol(argv[i+1]), argv[i+2]);
+              dd(argv[i], argv[i+2], atol(&(argv[i+1][1])), TRUE);
             }
             i++;
           }

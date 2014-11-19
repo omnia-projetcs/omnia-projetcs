@@ -231,7 +231,7 @@ BEGIN
   CONTROL "Load"                                      ,DLG_HEXA_BT_LOAD,"Button",0x50010000,2,1,60,11
   CONTROL ""                                          ,DLG_HEXA_LV_INFOS,"SysListView32",0x50810089,2,14,122,212,0x00000200
   CONTROL "Close"                                     ,DLG_HEXA_BT_CLOSE,"Button",0x50010000,64,1,60,11
-  CONTROL "Search"                                    ,DLG_HEXA_BT_SEARCH,"Button",0x50010000,74,251,50,11
+  CONTROL "Search\\Next"                              ,DLG_HEXA_BT_SEARCH,"Button",0x50010000,74,251,50,11
   CONTROL ""                                          ,DLG_HEXA_EDT_SEARCH,"Edit",0x50010000,2,228,122,11,0x00000200
   CONTROL "Unicode "                                  ,DLG_HEXA_CHK_UNICODE,"Button",0x50010003,4,241,54,9
   CONTROL "Hexa"                                      ,DLG_HEXA_CHK_HEXA,"Button",0x50010003,4,252,54,9

@@ -11,6 +11,7 @@ NOTIFYICONDATA TrayIcon;
 HHOOK HHook; // Handle du hook global
 */
 //-----------------------------------------------------------------------------
+//Infos: http://msdn.microsoft.com/en-us/library/dd183402%28v=vs.85%29.aspx
 DWORD WINAPI ImpEcran(LPVOID lParam)
 {
   if (B_SCREENSHOT_START)return 0;
