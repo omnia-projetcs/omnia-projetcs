@@ -130,13 +130,45 @@ void FileToSHA256(HANDLE Hfic, char *csha256)
   }
 }
 //----------------------------------------------------------------
-void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data)
+int FileContient(char * file, char *chaine)
 {
+  int ret = -1;
+
+  HANDLE hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (hfile != INVALID_HANDLE_VALUE)
+  {
+    DWORD dw =0, filesz = 0;
+    filesz = GetFileSize(hfile,NULL);
+    if (filesz > 0)
+    {
+      char *datas = malloc(filesz+1);
+      if (datas != NULL)
+      {
+        if (ReadFile(hfile, datas, filesz, &dw, 0))
+        {
+          if(Contient(charToLowChar(datas), charToLowChar(chaine)) > -1) ret = TRUE;
+          else ret = FALSE;
+        }
+        free(datas);
+      }
+    }
+    CloseHandle(hfile);
+  }
+  return ret;
+}
+//----------------------------------------------------------------
+void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data, char *source)
+{
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckFile START",file);
+  #endif
   char s_sha[SHA256_SIZE]="",s_md5[MAX_PATH], date[MAX_PATH]="\0\0\0";
   HANDLE hfile;
   LARGE_INTEGER filesize;
   FILETIME LocalFileTime;
   SYSTEMTIME SysTimeModification;
+
+  BOOL error = FALSE;
 
   //last modify
   if (data == NULL)
@@ -148,51 +180,66 @@ void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data)
       filesize.HighPart = d0.nFileSizeHigh;
       filesize.LowPart  = d0.nFileSizeLow;
 
-      FileTimeToLocalFileTime(&(d0.ftLastWriteTime), &LocalFileTime);
-      FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-      snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
-                   ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                   ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
-      FindClose(hfind);
+      if (filesize.QuadPart == 0 && d0.ftLastWriteTime.dwHighDateTime == 0 && d0.ftLastWriteTime.dwLowDateTime == 0) error = TRUE;
+      else
+      {
+        FileTimeToLocalFileTime(&(d0.ftLastWriteTime), &LocalFileTime);
+        FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
+        snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
+                     ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
+                     ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
+        FindClose(hfind);
+      }
     }
   }else if (data->ftLastWriteTime.dwHighDateTime != 0 || data->ftLastWriteTime.dwLowDateTime != 0)
   {
     filesize.HighPart = data->nFileSizeHigh;
     filesize.LowPart  = data->nFileSizeLow;
 
-    FileTimeToLocalFileTime(&(data->ftLastWriteTime), &LocalFileTime);
-    FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-    snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
-                 ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                 ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
-  }
+    if (filesize.QuadPart == 0) error = TRUE;
+    else
+    {
+      FileTimeToLocalFileTime(&(data->ftLastWriteTime), &LocalFileTime);
+      FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
+      snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
+                   ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
+                   ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
+    }
+  }else error = TRUE;
 
-  //MD5
-  hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-  if (hfile != INVALID_HANDLE_VALUE)
+  if (!error)
   {
-    FileToMd5(hfile, s_md5);
-    CloseHandle(hfile);
-
-    //SHA256
+    //MD5
     hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
     if (hfile != INVALID_HANDLE_VALUE)
     {
-      FileToSHA256(hfile, s_sha);
+      FileToMd5(hfile, s_md5);
       CloseHandle(hfile);
+
+      //SHA256
+      hfile = CreateFile(file,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+      if (hfile != INVALID_HANDLE_VALUE)
+      {
+        FileToSHA256(hfile, s_sha);
+        CloseHandle(hfile);
+      }
     }
+
+    if (s_sha[0] != 0)
+    {
+      snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
+    }else if (s_md5[0] != 0)
+    {
+      snprintf(file,LINE_SIZE,"%s %s;MD5;%s;;",file,date,s_md5);
+    }else snprintf(file,LINE_SIZE,"%s %s;;;;",file,date);
+
+    AddMsg(h_main,(char*)"FOUND (File1)",source,(char*)file);
+    AddLSTVUpdateItem(file, COL_FILES, iitem);
   }
 
-  if (s_sha[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;%s;%s",file,date,s_md5[0]==0?"":s_md5,SHA1_enable?"SHA1":"SHA256",s_sha[0]==0?"":s_sha);
-  }else if (s_md5[0] != 0)
-  {
-    snprintf(file,LINE_SIZE,"%s %s;MD5;%s;;",file,date,s_md5);
-  }else snprintf(file,LINE_SIZE,"%s %s;;;;",file,date);
-
-  AddMsg(h_main,(char*)"FOUND (File)",file,(char*)"");
-  AddLSTVUpdateItem(file, COL_FILES, iitem);
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckFile END",file);
+  #endif
 }
 //----------------------------------------------------------------
 void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursif)
@@ -211,7 +258,7 @@ void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursi
       hfind = FindFirstFile(tmp_path, &d0);
       if (hfind != INVALID_HANDLE_VALUE)
       {
-        CheckFile(iitem, tmp_path, &d0);
+        CheckFile(iitem, tmp_path, &d0, file);
         FindClose(hfind);
       }
     }
@@ -246,7 +293,7 @@ void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursi
           if (file == NULL)
           {
             snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
-            CheckFile(iitem, tmp_remote_name, &data);
+            CheckFile(iitem, tmp_remote_name, &data, "CURRENT DIRECORY CONTENT");
           }
         }
       }
@@ -255,8 +302,11 @@ void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursi
   }
 }
 //----------------------------------------------------------------
-void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size, char *MD5, char *SHA256, BOOL recursif)
+void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, long long int size, char *MD5, char *SHA256, BOOL recursif, char*source)
 {
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckRecursivFilesFromSizeAndEM START",remote_name);
+  #endif
   WIN32_FIND_DATA data;
   char tmp_path[LINE_SIZE]="", tmp_remote_name[LINE_SIZE]="", date[MAX_PATH]="\0\0\0";
 
@@ -288,7 +338,7 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
         AddMsg(h_main,(char*)"DEBUG D(CheckRecursivFilesFromSizeAndEM)",tmp_remote_name,(char*)"");
         #endif
 
-        CheckRecursivFilesFromSizeAndEM(iitem, tmp_remote_name, size, MD5, SHA256, recursif);
+        CheckRecursivFilesFromSizeAndEM(iitem, tmp_remote_name, size, MD5, SHA256, recursif, source);
         continue;
       }
 
@@ -296,7 +346,7 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
       filesize.HighPart = data.nFileSizeHigh;
       filesize.LowPart  = data.nFileSizeLow;
 
-      if (filesize.QuadPart == size)
+      if (filesize.QuadPart == size || size == -1)
       {
         snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
 
@@ -329,14 +379,14 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
             else if(SHA256[0] != 0 && compare_nocas(SHA256,s_sha))exist = TRUE;
           }
 
-          if (exist)
+          if (exist && (filesize.QuadPart!=0 || (data.ftLastWriteTime.dwHighDateTime != 0 && data.ftLastWriteTime.dwLowDateTime != 0)))
           {
             date[0] = 0;
             FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
             FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-            snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
+            snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%lo]"
                          ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
-                         ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,size);
+                         ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
 
             if (s_sha[0] != 0)
             {
@@ -346,7 +396,7 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
               snprintf(tmp_remote_name,LINE_SIZE,"%s %s;MD5;%s;;",tmp_remote_name,date,s_md5);
             }else snprintf(tmp_remote_name,LINE_SIZE,"%s %s;;;;",tmp_remote_name,date);
 
-            AddMsg(h_main,(char*)"FOUND (File)",tmp_remote_name,(char*)"");
+            AddMsg(h_main,(char*)"FOUND (File2)",tmp_remote_name,(char*)"");
             AddLSTVUpdateItem(tmp_remote_name, COL_FILES, iitem);
           }
         }
@@ -354,10 +404,61 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, DWORD size,
     }while(FindNextFile(hfind, &data) != 0 && scan_start);
     FindClose(hfind);
   }
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckRecursivFilesFromSizeAndEM END",remote_name);
+  #endif
 }
+//----------------------------------------------------------------
+void CheckFileDatas(DWORD iitem, char *remote_name, char *filename, char* chaine)
+{
+  char tmp_path[MAX_PATH], tmp_msg[LINE_SIZE], date[MAX_PATH]="\0\0\0";
+  snprintf(tmp_path, MAX_PATH, "%s\\%s",remote_name,filename);
+
+  WIN32_FIND_DATA data;
+  HANDLE hfind = FindFirstFile(tmp_path, &data);
+  if (hfind != INVALID_HANDLE_VALUE)
+  {
+    FILETIME LocalFileTime;
+    SYSTEMTIME SysTimeModification;
+    LARGE_INTEGER filesize;
+
+    //file attribute
+    filesize.HighPart = data.nFileSizeHigh;
+    filesize.LowPart  = data.nFileSizeLow;
+
+    date[0] = 0;
+    FileTimeToLocalFileTime(&(data.ftLastWriteTime), &LocalFileTime);
+    FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
+    snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%lo]"
+                 ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
+                 ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize.QuadPart);
+
+    switch(FileContient(tmp_path, chaine))
+    {
+      /*case -1:snprintf(tmp_msg,LINE_SIZE,"%s %s;;;;NO FILE ACESS, NO VALUE CHECKED:%s",tmp_path,date,chaine);
+        AddMsg(h_main,(char*)"NOT FOUND (File4)",tmp_msg,(char*)"");
+        AddLSTVUpdateItem(tmp_msg, COL_FILES, iitem);
+      break;*/
+      /*case 0:snprintf(tmp_msg,LINE_SIZE,"%s %s;;;;VALUE NOT PRESENT:%s",tmp_path,date,chaine);
+        AddMsg(h_main,(char*)"FOUND (File4)",tmp_msg,(char*)"");
+        AddLSTVUpdateItem(tmp_msg, COL_FILES, iitem);
+      break;*/
+      case 1:
+        snprintf(tmp_msg,LINE_SIZE,"%s %s;;;;VALUE PRESENT:%s;",tmp_path,date,chaine);
+        AddMsg(h_main,(char*)"FOUND (File4)",tmp_msg,(char*)"");
+        AddLSTVUpdateItem(tmp_msg, COL_FILES, iitem);
+      break;
+    }
+    FindClose(hfind);
+  }
+}
+
 //----------------------------------------------------------------
 void CheckFiles(DWORD iitem, char *remote_name, char *file)
 {
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckFiles START",remote_name);
+  #endif
   char tmp_path[LINE_SIZE]="";
   WIN32_FIND_DATA data;
 
@@ -368,7 +469,7 @@ void CheckFiles(DWORD iitem, char *remote_name, char *file)
     #endif
 
     char s_sha[SHA256_SIZE]="",s_md5[MAX_PATH]="", s_size[MAX_PATH]="";
-    DWORD size = 0;
+    long long int size = -1;
 
     //format= :size on octets:MD5 hash: SHA256 hash:
     char *c = file+1; //pass ':'
@@ -380,7 +481,7 @@ void CheckFiles(DWORD iitem, char *remote_name, char *file)
     }
     *d = 0;
     size = atol(s_size);
-    if (size < 1 )return;
+    if (size < 1 )size = -1;
 
     //MD5
     d = s_md5;
@@ -407,7 +508,36 @@ void CheckFiles(DWORD iitem, char *remote_name, char *file)
     AddMsg(h_main,(char*)"DEBUG (CheckFiles)",remote_name,(char*)"");
     #endif
 
-    CheckRecursivFilesFromSizeAndEM(iitem, remote_name, size, s_md5, s_sha, TRUE);
+    CheckRecursivFilesFromSizeAndEM(iitem, remote_name, size, s_md5, s_sha, TRUE, file);
+    return;
+  }else if (file[0] == ';')
+  {
+    //verify if the file have txt
+    //format:
+    //;fichier.txt;127.0.0.1;
+    char *c = file+1; //pass ';'
+    if (*c == ';')return;
+
+    char filename[MAX_PATH]="", chaine[MAX_PATH]="";
+    char *d = filename;
+    while (*c && *c != ';')
+    {
+      *d++ = *c++;
+    }
+    *d = 0;
+
+    d = chaine;
+    c++;//pass ';'
+    if (*c != ';')
+    {
+      while (*c && *c != ';')
+      {
+        *d++ = *c++;
+      }
+      *d = 0;
+    }
+
+    CheckFileDatas(iitem, remote_name, filename, chaine);
     return;
   }
 
@@ -473,17 +603,23 @@ void CheckFiles(DWORD iitem, char *remote_name, char *file)
           #ifdef DEBUG_MODE_FILES
           AddMsg(h_main,(char*)"DEBUG (CheckFiles)",tmp_path,(char*)"");
           #endif
-          CheckFile(iitem, tmp_path, &data);
+          CheckFile(iitem, tmp_path, &data,file);
           FindClose(hfind);
         }
       }
     }
   }
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:CheckFiles END",remote_name);
+  #endif
 }
 
 //----------------------------------------------------------------
 BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok, DWORD id_cb, BOOL multi)
 {
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan START",ip);
+  #endif
   //check file
   char remote_name[LINE_SIZE], msg[LINE_SIZE];
   snprintf(remote_name,LINE_SIZE,"\\\\%s\\%s",ip,remote_share);
@@ -508,12 +644,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
 
     if (WNetAddConnection2(&NetRes,config->password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
-      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
-
-      snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
-      AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-
       if (multi)
       {
         DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
@@ -524,6 +654,12 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
       }else
       {
+        snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
+        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
+        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+
         //check file
         char file[LINE_SIZE];
         DWORD j=0, _nb_i = SendDlgItemMessage(h_main,id_cb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
@@ -542,6 +678,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         }
       }
       WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan END",ip);
+  #endif
       return TRUE;
     }
   }else if (config->global_ip_file)
@@ -563,12 +702,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
     }
     if (WNetAddConnection2(&NetRes,config->accounts[ip_id].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
-      snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,ip_id);
-      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
-
-      snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
-      AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-
       if (multi)
       {
         DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
@@ -579,6 +712,12 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
       }else
       {
+        snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,ip_id);
+        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
+        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+
         //check file
         char file[LINE_SIZE];
         DWORD j, _nb_i = SendDlgItemMessage(h_main,id_cb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
@@ -597,6 +736,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         }
       }
       WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan END",ip);
+  #endif
       return TRUE;
     }
   }else
@@ -621,12 +763,6 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       }
       if (WNetAddConnection2(&NetRes,config->accounts[i].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
-        snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
-        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
-
-        snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
-        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-
         if (multi)
         {
           DWORD nb_file_check = CheckRecursivFilesList(iitem, remote_name, id_cb);
@@ -637,6 +773,12 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
           AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg);
         }else
         {
+          snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
+          AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+
+          snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+
           //check file
           char file[LINE_SIZE];
           DWORD j, _nb_i = SendDlgItemMessage(h_main,id_cb,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
@@ -656,10 +798,16 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         }
 
         WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan END",ip);
+  #endif
         return TRUE;
       }
     }
   }
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan END",ip);
+  #endif
   return FALSE;
 }
 //----------------------------------------------------------------
@@ -713,7 +861,7 @@ BOOL LocalFilesScan(DWORD iitem, PSCANNE_ST config, long int *id_ok, DWORD cb_id
   return TRUE;
 }
 //----------------------------------------------------------------
-void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, WIN32_FIND_DATA *data, DWORD cb_id)
+void CheckListFile(DWORD iitem, char *file_path, char*filename, long long int filesize, WIN32_FIND_DATA *data, DWORD cb_id)
 {
   DWORD j, _nb_i = SendDlgItemMessage(h_main,cb_id,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
   char file[LINE_SIZE], tmp[LINE_SIZE], date[MAX_PATH];
@@ -725,7 +873,7 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
   BOOL exist = FALSE;
 
   char ss_sha[SHA256_SIZE]="",ss_md5[MAX_PATH]="", s_size[MAX_PATH]="";
-  DWORD d_size = 0;
+  long long int d_size = -1;
 
   BOOL hash_already_done = FALSE;
 
@@ -741,7 +889,7 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
         ss_sha[0] = 0;
         ss_md5[0] = 0;
         s_size[0] = 0;
-        d_size    = 0;
+        d_size    = -1;
 
         //format= :size on octets:MD5 hash: SHA256 hash:
         char *c = file+1; //pass ':'
@@ -753,7 +901,7 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
         }
         *d = 0;
         d_size = atol(s_size);
-        if (d_size < 1 )continue;
+        if (d_size < 1 ) d_size = -1;
 
         //MD5
         d = ss_md5;
@@ -777,7 +925,7 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
         *d = 0;
 
         //check
-        if (d_size == filesize)
+        if (d_size == filesize || d_size == -1)
         {
           if (hash_already_done)
           {
@@ -869,12 +1017,12 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
         }
       }
 
-      if (exist)
+      if (exist && (filesize != 0 || (data->ftLastWriteTime.dwHighDateTime != 0 && data->ftLastWriteTime.dwLowDateTime != 0)))
       {
         date[0] = 0;
         FileTimeToLocalFileTime(&(data->ftLastWriteTime), &LocalFileTime);
         FileTimeToSystemTime(&LocalFileTime, &SysTimeModification);
-        snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%do]"
+        snprintf(date,MAX_PATH,"[Last_modification:%02d/%02d/%02d-%02d:%02d:%02d,Size:%lo]"
                      ,SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay
                      ,SysTimeModification.wHour,SysTimeModification.wMinute,SysTimeModification.wSecond,filesize);
 
@@ -887,7 +1035,7 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, DWORD filesize, 
           snprintf(tmp,LINE_SIZE,"%s %s;MD5;%s;;",file_path,date,s_md5[0]==0?"":s_md5);
         }else snprintf(tmp,LINE_SIZE,"%s %s;;;;",file_path,date);
 
-        AddMsg(h_main,(char*)"FOUND (File)",tmp,(char*)"");
+        AddMsg(h_main,(char*)"FOUND (File3)",tmp,(char*)"");
         AddLSTVUpdateItem(tmp, COL_FILES, iitem);
       }
     }
@@ -970,6 +1118,10 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
   AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan",ip);
   #endif
 
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan START",ip);
+  #endif
+
   if (ipIsLoclahost(ip))
   {
     //disable WOWO64 redirect
@@ -977,31 +1129,70 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
     BOOL disable_wowo64 = FALSE;
     if( Wow64DisableWow64FsRedirect(&OldValue)) disable_wowo64 = TRUE;
 
-    if (!LocalFilesScan(iitem, config, id_ok, CB_T_FILES))
-      AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
+    if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
+    {
+      if (!LocalFilesScan(iitem, config, id_ok, CB_T_FILES))
+        AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
+    }
 
     //localFileScanList!
-    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
-    if (!LocalFilesScanList(iitem, ip, config, CB_T_MULFILES))
-      AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
+    if (SendDlgItemMessage(h_main,CB_T_MULFILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
+    {
+      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
+      if (!LocalFilesScanList(iitem, ip, config, CB_T_MULFILES))
+        AddLSTVUpdateItem((char*)"LOCAL MULTI FILE SCAN FAIL!",COL_FILES,iitem);
+    }
 
     if (disable_wowo64)Wow64RevertWow64FsRedirect(OldValue);
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan END",ip);
+  #endif
     return TRUE;
   }else
   {
-    if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_FILES, FALSE))
+    if (SendDlgItemMessage(h_main,CB_T_FILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
     {
-      nb_files++;
-      RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_FILES, FALSE);
-      RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_FILES, FALSE);
+      if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_FILES, FALSE))
+      {
+        nb_files++;
+        BOOL b_d = RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_FILES, FALSE);
+        BOOL b_e = RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_FILES, FALSE);
 
+        if (SendDlgItemMessage(h_main,CB_T_MULFILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
+        {
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
+          RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_MULFILES, TRUE);
+          if(b_d)RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_MULFILES, TRUE);
+          if(b_e)RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_MULFILES, TRUE);
+        }
+    #ifdef DEBUG_MODE_FILES
+    AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan END",ip);
+    #endif
+        return TRUE;
+      /*}else if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"ADMIN$", config, id_ok, CB_T_FILES, FALSE))
+      {
+        RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"ADMIN$", config, id_ok, CB_T_MULFILES, TRUE);*/
+      #ifndef DEBUG_NOERROR
+      }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+      #else
+      }
+      #endif
+    }else if (SendDlgItemMessage(h_main,CB_T_MULFILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
+    {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
-      RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_MULFILES, TRUE);
-      RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_MULFILES, TRUE);
-      RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_MULFILES, TRUE);
-
-      return TRUE;
-    }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+      if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_MULFILES, TRUE))
+      {
+        RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_MULFILES, TRUE);
+        RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_MULFILES, TRUE);
+      #ifndef DEBUG_NOERROR
+      }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+      #else
+      }
+      #endif
+    }
   }
+  #ifdef DEBUG_MODE_FILES
+  AddMsg(h_main,"DEBUG","files:RemoteConnexionFilesScan END",ip);
+  #endif
   return FALSE;
 }

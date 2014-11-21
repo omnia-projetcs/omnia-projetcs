@@ -3,30 +3,254 @@
 // Author               : Hanteville Nicolas
 // Licence              : GPLv3
 //----------------------------------------------------------------
+
 /*
-#PRIORITE NS:
-* bug thread !!!! ne s'arr�te pas et ne reprend pas !!! : mont� des variables globales et voir ou nous en sommes quand sa bloque !
-  fuite de m�moire au niveau des threads, faire des tests pour v�rifier d'ou provient cette fuite de m�moire
+Last update :
 
-* duplication de l'afichage:
-Login NET 10.126.11.134\IPC$ with mphr11\r11admnh account
+--------------------
+* Vérifier si la connexion direct sans impersonate est possible juste avec IPC$ si le programe est exécut avec les privilèges attendus + exécuter le programme en tant qu'administrateur
 
-* refaire des v�rification pour la base de registre
+* revoir authentification et ajouter Logon user + impersonate en + tester si le null session peut impacter et si le programme fonctionne toujours pour les bancs
+
+* revoir : ReadValue
+
+* revoir pour gestion des noms de fichiers contenant *
+
+* LE BUG viens de files !!!!! (threads bloqués)
+  voir si le remote standard ou l'autre qui déconne
+  retester bancs
+
+* refaire des vérification pour la base de registre
 RemoteRegistryNetConnexion
 RegistryScan
 parseLineToReg
 
-* mettre � jour la doc en ajoutant une rubrique "message d'erreur"
+* mettre à jour la doc en ajoutant une rubrique "message d'erreur"
  ERROR",(char*)"No test select from the left panel!",(char*)"");
  + ajouter la gestion de la ruche HKEY_USERS
- + ajouter la nouvelle gestion des param�tres ini afin de d�sactiver les logs + sauvegarde automatique
+ + ajouter la nouvelle gestion des paramètres ini afin de désactiver les logs + sauvegarde automatique
 
 ** ajouter la possibiliter de recherche de fichier sans taille juste une empreinte SHA1/256 ou MD5!
 
-* ajout de la possibiliter d'ex�cuter des commandes locales � destinations (commande + param�tre + param 2 + param3 (utilisation possible du %IP)
+//----------------------------------------------------------------
+
+
+
+
+
+
+revoir :
+dwRetVal:=RegOpenKeyEx(phkResult,PChar('SOFTWARE\Borland\Delphi\5.0'), REG_OPTION_OPEN_LINK, KEY_QUERY_VALUE, phkResult2);
+http://stackoverflow.com/questions/5972352/is-it-possible-to-read-write-the-registry-of-a-remote-machine-with-different-cre/5973423#5973423
+
+revoir les droits !!!
+http://stackoverflow.com/questions/40769/path-to-program-files-on-remote-computer/45588#45588
+
+http://www.experts-exchange.com/Programming/Languages/CPP/Q_26783944.html
+
+
+REVOIR fonction : NetConnexionAuthenticateTest (impersonnate ou logon user qui déconne ?)
+/*
+
+
+
+
+
+
+
+    Форум: "Прочее";
+    Поиск по всему сайту: www.delphimaster.net;
+    Текущий архив: 2009.03.01;
+    Скачать: [xml.tar.bz2];
+
+
+
+    Вниз
+
+    Как подключиться к удаленному реестру?
+
+    Урсулапов_   (2008-12-30 10:02) [0]
+
+    Делаю так:
+    procedure TForm1.Button1Click(Sender: TObject);
+    begin
+    RegIniFile := TRegIniFile.Create("Software");
+    RegIniFile.RootKey := HKEY_LOCAL_MACHINE;
+    If not (RegIniFile.RegistryConnect("\\Sw_client")) then ShowMessage("Not Connected");
+    RegIniFile.Free;
+    end;
+
+    При выполнении выводится сообщение "Not connected", то есть не подключился к реестру.
+    И еще непонятно, где тут надо было вводить логин и пароль пользователя, под именем которого я подключаюсь к реестру, может проблема в этом?
+    Заранее спасибо.
+
+    Skyle ©   (2008-12-30 10:15) [1]
+
+    В MSDN всё есть
+
+    If the current user does not have proper access to the remote computer, the call to RegConnectRegistry fails. To connect to a remote registry, call LogonUser with LOGON32_LOGON_NEW_CREDENTIALS and ImpersonateLoggedOnUser before calling RegConnectRegistry.
+
+    Читать про функцию RegConnectRegistry
+
+    Урсулапов_   (2008-12-30 14:19) [2]
+
+    Спасибо за RegConnectRegistry.
+    Итак, откопал следующий код:
+    function Logon: Boolean;
+    var
+     hToken: Cardinal;
+     tp, oldtp: TTokenPrivileges;
+     retlen: DWORD;
+    begin
+     Result := ImpersonateSelf(SecurityImpersonation);
+     if Result then begin
+     // Obtain the current process" token
+       Result := OpenProcessToken(GetCurrentProcess(),
+       TOKEN_ADJUST_PRIVILEGES + TOKEN_QUERY, hToken);
+     end;
+     if Result then begin
+       // Obtain the LUID of the SeTcbPrivilege
+       Result := LookupPrivilegeValue(nil, "SeTcbPrivilege", tp.Privileges[0].Luid);
+     end;
+     if Result then begin
+       // Grant the SeTcbPrivilege
+       tp.PrivilegeCount := 1;
+       tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+       Result := AdjustTokenPrivileges(hToken, False, tp, sizeof(TTokenPrivileges), oldtp, retlen);
+     end;
+     if Result then begin
+       // Attempt a logon
+       Result := LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken);
+     end;
+     if not Result then begin
+       // Show the error if any of the above APIs fails
+       raise Exception.Create("The logon failed because "" +
+       SysErrorMessage(GetLastError()) + """);
+     end;
+    end;
+
+    procedure TForm1.Button1Click(Sender: TObject);
+    var
+     Key      : HKEY;
+     SubKey   : HKEY;
+     Buff_key : array[0..1024] of Char;
+     DataType : DWORD;
+     Size     : DWORD;
+    begin
+
+     if not Logon then showMessage("asdaqe");
+
+    //Подключение к реестру удаленного компьютера
+     RegConnectRegistry("remote_computer", HKEY_LOCAL_MACHINE, Key);
+     try
+       //Открытие ключа
+       RegOpenKeyEx(Key, "Software\Microsoft\Windows\CurrentVersion\Uninstall\NOD32",0, KEY_READ, SubKey);
+        try
+         Buff_key := "";
+         Size := SizeOf(Buff_key);
+         //Получение данных
+         RegQueryValueEx(SubKey, "DisplayName", nil, @DataType, @Buff_key, @Size);
+
+         ShowMessage(Buff_key);
+       finally
+         RegCloseKey(SubKey);
+       end;
+     finally
+    //    RegCloseKey(Key);
+     end;
+    end;
+
+    Тут изменил
+    Result := LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken);, но эта функция не выдает ошибку (исключение - Логин и пароль не опознаны) только тогда, когда login равен логину, а password равен паролю в моем компьютере, а изменение значения remote_computer кажется, не играет никакой роли.
+    Что тут неправильно? :(
+
+    Урсулапов_   (2008-12-30 15:40) [3]
+
+    Каким должно быть  значение второго параметра в функции
+    LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken)
+    , если удаленный компьютер не является членом домена, а только является компьютером "remote_computer" в рабочей группе "workgroup"?
+
+    Урсулапов_   (2008-12-31 07:20) [4]
+
+    Хм...
+    http://msdn.microsoft.com/ru-ru/library/aa378184(en-us,VS.85).aspx
+
+    > The LogonUser function attempts to log a user on to the
+    > local computer. The local computer is the computer from
+    > which LogonUser was called. You cannot use LogonUser to
+    > log on to a remote computer.
+
+    ))))Прошу прощения, не заметил.
+    Итак, мне надо было писать
+    LogonUser("login", ".", "password", LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, hToken)
+    где login и password - логин/пароль удаленного компьютера.
+    Delphi 7 выдает ошибку, что не знает такую константу(ну или переменную) - LOGON32_LOGON_NEW_CREDENTIALS.
+    Извините, а вы не знаете, какое числовое значение можно вместо него поставить?
+    Спасибо.
+
+    Skyle ©   (2008-12-31 07:30) [5]
+
+
+    > Извините, а вы не знаете, какое числовое значение можно
+    > вместо него поставить?
+
+    В winbase.h написано
+
+    define LOGON32_LOGON_NEW_CREDENTIALS 9
+
+    Урсулапов_   (2008-12-31 08:33) [6]
+
+    Ура. Вот так - работает.
+    function Logon: Boolean;
+    var
+     hToken: Cardinal;
+     tp, oldtp: TTokenPrivileges;
+     retlen: DWORD;
+    begin
+     Result := ImpersonateSelf(SecurityImpersonation);
+     if Result then begin
+     // Obtain the current process" token
+       Result := OpenProcessToken(GetCurrentProcess(),
+       TOKEN_ADJUST_PRIVILEGES + TOKEN_QUERY, hToken);
+     end;
+     if Result then begin
+       // Obtain the LUID of the SeTcbPrivilege
+       Result := LookupPrivilegeValue(nil, "SeTcbPrivilege", tp.Privileges[0].Luid);
+     end;
+     if Result then begin
+       // Grant the SeTcbPrivilege
+       tp.PrivilegeCount := 1;
+       tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
+       Result := AdjustTokenPrivileges(hToken, False, tp, sizeof(TTokenPrivileges), oldtp, retlen);
+     end;
+     if Result then begin
+       // Attempt a logon
+       Result := LogonUser("login", ".", "password", 9, LOGON32_PROVIDER_WINNT50, hToken);
+     end;
+     if not Result then begin
+       // Show the error if any of the above APIs fails
+       raise Exception.Create("The logon failed because "" +
+       SysErrorMessage(GetLastError()) + """);
+     end;
+    end;
+http://www.delphimaster.net/view/15-1230620523/all
+
+
+
+
+
+#PRIORITE NS:
+* ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
 
 #NEXT STEP:
-* multithread SSH (n�cessite une revue du code complet + des librairies associ�es)
+* multithread SSH (nécessite une revue du code complet + des librairies associées)
+
+
+[NS] v0.5.26
+- review few bugs
+- add port check for remote RPC registry and files
+
+
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 */
@@ -50,7 +274,8 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //#define DEBUG_MODE_SSH                              1
 //#define DEBUG_MODE_REGISTRY                         1
 //#define DEBUG_MODE_FILES                            1
-#define DEBUG_THREADS                               1
+//#define DEBUG_THREADS                               1
+//#define DEBUG_NOERROR                               1
 //----------------------------------------------------------------
 #include <Winsock2.h>
 #include <windows.h>
@@ -89,7 +314,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.26 21/09/2014"
+#define TITLE                                       "NS v0.5.35 21/11/2014"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -131,6 +356,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //----------------------------------------------------------------
 //SSH use custom error message
 #define SSH_DEFAULT_PORT                            22
+#define RPC_DEFAULT_PORT                            445
 
 #define SSH2_SESSION_TIMEOUT                        4000   //4 seconds
 
@@ -320,10 +546,10 @@ BOOL save_done, save_current;
 #define NB_MAX_FILE_THREADS                         5
 #define NB_MAX_REGISTRY_THREADS                     5
 #define NB_MAX_SSH_THREADS                          1
-#define NB_MAX_TCP_TEST_THREADS                     50
+#define NB_MAX_TCP_TEST_THREADS                     100
 #define NB_MAX_THREAD                               400
 
-CRITICAL_SECTION Sync, Sync_item;
+CRITICAL_SECTION Sync, Sync_item, Sync_threads, Sync_threads_end;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 
 long int hs_c_threads, hs_c_disco, hs_c_netbios, hs_c_file, hs_c_registry, hs_c_ssh, hs_c_tcp;
@@ -501,7 +727,7 @@ void FileToMd5(HANDLE Hfic, char *md5);
 void FileToSHA256(HANDLE Hfic, char *csha256);
 BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok, DWORD id_cb, BOOL multi);
 BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok);
-void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data);
+void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data, char*source);
 DWORD CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id);
 BOOL RemoteFilesCopy(DWORD iitem, char *ip, char*remote_share, PSCANNE_ST config, char*pathToSave, char*file);
 

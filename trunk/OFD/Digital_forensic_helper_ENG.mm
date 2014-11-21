@@ -15,7 +15,7 @@
   </body>
 </html></richcontent>
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1352370832912" ID="ID_1543060928" MODIFIED="1395818814157" POSITION="left" TEXT="Before the investigation">
+<node CREATED="1352370832912" FOLDED="true" ID="ID_1543060928" MODIFIED="1401393239113" POSITION="left" TEXT="Before the investigation">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352370845808" ID="ID_418604123" MODIFIED="1395818816315">
 <richcontent TYPE="NODE"><html>
@@ -198,9 +198,9 @@
 </html></richcontent>
 </node>
 </node>
-<node CREATED="1352368047048" ID="ID_277826334" MODIFIED="1395818827138" POSITION="left" TEXT="Data acquisition">
+<node CREATED="1352368047048" FOLDED="true" ID="ID_277826334" MODIFIED="1401393259148" POSITION="left" TEXT="Data acquisition">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
-<node CREATED="1352369905922" ID="ID_496434698" MODIFIED="1395818829125" TEXT="Global acquisition">
+<node CREATED="1352369905922" FOLDED="true" ID="ID_496434698" MODIFIED="1401393241397" TEXT="Global acquisition">
 <node CREATED="1358021271659" ID="ID_627491056" MODIFIED="1395735475952">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -304,8 +304,7 @@
       Network connections
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1353599656512" ID="ID_1557230697" MODIFIED="1395818882133">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -328,8 +327,7 @@
       <font face="Courier New" color="#ff0000"><i>netstat -planetu</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1353599814208" ID="ID_600986694" MODIFIED="1395818909813">
@@ -345,8 +343,7 @@
       <span class="hps">List of processes and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">connected</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">IP</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">addresses.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1352370513583" ID="ID_115386068" MODIFIED="1395735922247">
@@ -612,8 +609,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.moonsols.com/products/">http://www.moonsols.com/products/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358022124385" ID="ID_262549236" MODIFIED="1395736966891">
 <richcontent TYPE="NODE"><html>
@@ -894,7 +890,7 @@
   </body>
 </html></richcontent>
 </node>
-<node CREATED="1358331742519" ID="ID_1726775423" MODIFIED="1395819010356" TEXT="Filesystem copy">
+<node CREATED="1358331742519" FOLDED="true" ID="ID_1726775423" MODIFIED="1401393249619" TEXT="Filesystem copy">
 <node CREATED="1358331014009" ID="ID_437692980" MODIFIED="1367583723630" TEXT="ShadowCopy">
 <node CREATED="1358331020481" ID="ID_244692972" MODIFIED="1395737589375">
 <richcontent TYPE="NODE"><html>
@@ -973,7 +969,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1352370021992" ID="ID_1850741830" MODIFIED="1395819016254">
+<node CREATED="1352370021992" FOLDED="true" ID="ID_1850741830" MODIFIED="1401393256646">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -984,7 +980,7 @@
     </p>
   </body>
 </html></richcontent>
-<node CREATED="1352370078800" ID="ID_1639772773" MODIFIED="1395819018669" TEXT="System files">
+<node CREATED="1352370078800" FOLDED="true" ID="ID_1639772773" MODIFIED="1401393246940" TEXT="System files">
 <node CREATED="1352370096672" ID="ID_1758762977" MODIFIED="1395738409333">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -1498,8 +1494,7 @@
       MessenPass&#160;: <a href="http://www.nirsoft.net/utils/mspass.html">http://www.nirsoft.net/utils/mspass.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688132713" ID="ID_1709658188" MODIFIED="1395819031625" TEXT="Mail client">
 <node CREATED="1353688239225" ID="ID_1308788959" MODIFIED="1395744186417">
@@ -1548,8 +1543,7 @@
       <font color="#0000ff">~/Library/Thunderbird/Profiles/xxxxxxxx.default/</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688246057" ID="ID_679664573" MODIFIED="1395744191809">
 <richcontent TYPE="NODE"><html>
@@ -1591,8 +1585,7 @@
       <font color="#0000ff">HKEY_CURRENT_USER\Software\Microsoft\Windows NT\CurrentVersion\Windows\Messaging Subsystem\Profiles\Outlook</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356614828261" ID="ID_355088094" MODIFIED="1395744031845">
 <richcontent TYPE="NODE"><html>
@@ -1610,8 +1603,7 @@
       <font color="#0000ff" face="SansSerif">C:\Users\&lt;user&gt;\AppData\Local\Microsoft\Windows Mail\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688251137" ID="ID_611887326" MODIFIED="1395743970464">
 <richcontent TYPE="NODE"><html>
@@ -1650,8 +1642,7 @@
       <a href="http://publib.boulder.ibm.com/infocenter/domhelp/v8r0/topic/com.ibm.help.domino.admin.doc/DOC/H_BACKING_UP_NOTES_CLIENT_FILES_1040_STEPS.html">http://publib.boulder.ibm.com/infocenter/domhelp/v8r0/topic/com.ibm.help.<br />domino.admin.doc/DOC/H_BACKING_UP_NOTES_CLIENT_FILES_1040_STEPS.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356613074845" ID="ID_1244958660" MODIFIED="1395744203482">
 <richcontent TYPE="NODE"><html>
@@ -1699,8 +1690,7 @@
       <font color="#0000ff" face="SansSerif">C:\Users\&lt;user&gt;\AppData\Local\Microsoft\Windows\Temporary Internet Files\Low\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1353688140241" ID="ID_1766677233" MODIFIED="1395819035872" TEXT="Mail server">
@@ -1732,8 +1722,7 @@
       <u>Note :</u>&#160;<span class="hps">in some cases</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">the</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">messages can be stored</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">in the database</span><span class="">, check</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">the</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">configuration</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">postfix</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688266400" ID="ID_890256768" MODIFIED="1395743789767">
 <richcontent TYPE="NODE"><html>
@@ -1772,8 +1761,7 @@
       All files NSF, LCA, ID and CONF from the server must be retrived.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358777902752" ID="ID_557415160" MODIFIED="1395743624444">
 <richcontent TYPE="NODE"><html>
@@ -1800,8 +1788,7 @@
       <font face="Courier New" color="#ff0000"><i>esefile.exe /mh *.stm</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -1898,8 +1885,7 @@
       PASCO: <a http-equiv="content-type" href="http://www.mcafee.com/us/downloads/free-tools/index.aspx" content="text/html; charset=utf-8">http://www.mcafee.com/us/downloads/free-tools/index.aspx</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688287544" ID="ID_1241527274" MODIFIED="1395742904692">
 <richcontent TYPE="NODE"><html>
@@ -1995,8 +1981,7 @@
       PasswordFox&#160;: <a href="http://www.nirsoft.net/utils/passwordfox.html">http://www.nirsoft.net/utils/passwordfox.html </a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688291815" ID="ID_898031263" MODIFIED="1395743022969">
 <richcontent TYPE="NODE"><html>
@@ -2081,8 +2066,7 @@
       Internet History Browser: <a http-equiv="content-type" href="http://www.mitec.cz/ihb.html" content="text/html; charset=utf-8">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688303529" ID="ID_1138214650" MODIFIED="1395743278602">
 <richcontent TYPE="NODE"><html>
@@ -2151,8 +2135,7 @@
       Internet History Browser: <a http-equiv="content-type" href="http://www.mitec.cz/ihb.html" content="text/html; charset=utf-8">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356624084647" ID="ID_338646044" MODIFIED="1395743367210">
 <richcontent TYPE="NODE"><html>
@@ -2221,8 +2204,7 @@
       Internet History Browser: <a http-equiv="content-type" href="http://www.mitec.cz/ihb.html" content="text/html; charset=utf-8">http://www.mitec.cz/ihb.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1353688166169" ID="ID_1146404688" MODIFIED="1395819048565" TEXT="Serveur Web">
@@ -2251,8 +2233,7 @@
       <font color="#0000ff">%windir%\system32\inetsrv\config\ApplicationHost.config</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688314017" ID="ID_559306323" MODIFIED="1395743446924">
 <richcontent TYPE="NODE"><html>
@@ -2288,8 +2269,7 @@
       <font color="#0000ff">/etc/apache2/sites-enables/</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688314017" ID="ID_1717278391" MODIFIED="1395743535147">
 <richcontent TYPE="NODE"><html>
@@ -2316,8 +2296,7 @@
       <span class="hps">Management</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">modules</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">and external</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">variables</span>: <font color="#0000ff">/etc/default/tomcatX </font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -2331,8 +2310,7 @@
       Firewall
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1353688361233" ID="ID_1360362919" MODIFIED="1395742750842">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -2364,8 +2342,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows Defender\Exclusions\Processes</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688371721" ID="ID_1697071490" MODIFIED="1395742765599">
 <richcontent TYPE="NODE"><html>
@@ -2422,8 +2399,7 @@
       <font color="#ff0000">ip6tables&#160;-t mangle -L -v --line</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353688378809" ID="ID_1206667610" MODIFIED="1395742784907">
 <richcontent TYPE="NODE"><html>
@@ -2441,8 +2417,7 @@
       <font color="#ff0000">ipchains -L -v</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1356687476099" ID="ID_1244175374" MODIFIED="1395742712545">
@@ -2455,8 +2430,7 @@
       <span class="hps"><b>Antivirus</b></span><span id="result_box" class="" lang="en"><br /></span><span class="hps">Check:</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">It</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">is not disabled</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">The</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">version of the database</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and signature</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">- Date of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">last update</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">- Date of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">last</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">scan</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">machine</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">Users</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">can not</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">disable</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Antivirus</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">Users</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">can not</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">uninstall</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Antivirus</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160; Audit logs</span><span class="hps atn">&#160;(</span><span>set</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">quarentaines</span><span>,</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">users,</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">configuration changes</span><span>,</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">dates</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">related media</span><span class="">)</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -2503,7 +2477,7 @@
 <node CREATED="1352466988481" ID="ID_1133295871" MODIFIED="1395744225470" POSITION="left" TEXT="Investigation">
 <font BOLD="true" NAME="SansSerif" SIZE="12"/>
 <node CREATED="1352467751993" ID="ID_499975759" MODIFIED="1395744246438" TEXT="System">
-<node CREATED="1352467577911" ID="ID_68648110" MODIFIED="1395819065352" TEXT="Memory">
+<node CREATED="1352467577911" FOLDED="true" ID="ID_68648110" MODIFIED="1401393265566" TEXT="Memory">
 <node CREATED="1353597380064" ID="ID_1788451408" MODIFIED="1395819066861">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -2520,8 +2494,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://volatility-labs.blogspot.fr/">http://volatility-labs.blogspot.fr/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358193496092" ID="ID_786047713" MODIFIED="1395819070458" TEXT="Configuration">
 <node CREATED="1358098000412" ID="ID_1857252608" MODIFIED="1395762372168">
 <richcontent TYPE="NODE"><html>
@@ -2548,8 +2521,7 @@
       <font face="Courier New" color="#ff0000"><i>unset VOLATILITY_PROFILE</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358099167286" ID="ID_125362345" MODIFIED="1395762450792">
 <richcontent TYPE="NODE"><html>
@@ -2570,8 +2542,7 @@
       <font face="Courier New" color="#ff0000"><i>./vol.py --profile=Win7SP1x64...</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358101498659" ID="ID_873959032" MODIFIED="1395762513059">
 <richcontent TYPE="NODE"><html>
@@ -2596,8 +2567,7 @@
       <font face="Courier New" color="#ff0000"><i>python vol.py imagecopy -f hiberfil.sys -O hiberfil.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358193529689" ID="ID_946502168" MODIFIED="1395819074771" TEXT="Process list">
@@ -2620,8 +2590,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw pstree</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358193563362" ID="ID_956774888" MODIFIED="1395762617921">
 <richcontent TYPE="NODE"><html>
@@ -2636,8 +2605,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw psscan</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358193822229" ID="ID_678600460" MODIFIED="1395762643503">
 <richcontent TYPE="NODE"><html>
@@ -2649,8 +2617,7 @@
       <span class="hps"><b>Identification of</b></span><b><span id="result_box" class="" lang="en">&#160;</span><span class="hps">hidden processes</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">or</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">evil</span></b><span id="result_box" class="" lang="en"><br /></span><span class="hps">Check:</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">The path and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">name of the executable</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Runtime Settings</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">The parent process</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">- The date and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">start time</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358196820636" ID="ID_747278865" MODIFIED="1395819077428" TEXT="Process informations">
 <node CREATED="1358196711972" ID="ID_1613704864" MODIFIED="1395762841414">
@@ -2666,8 +2633,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw dlllist -p &lt;process_id&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358196836309" ID="ID_13073256" MODIFIED="1395762753109">
 <richcontent TYPE="NODE"><html>
@@ -2682,8 +2648,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw getsids -p &lt;process_id&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358196987486" ID="ID_428945463" MODIFIED="1395762786944">
 <richcontent TYPE="NODE"><html>
@@ -2698,8 +2663,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw handles -p &lt;process_id&gt; -t Mutant</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358197125176" ID="ID_847931021" MODIFIED="1395762822648">
 <richcontent TYPE="NODE"><html>
@@ -2714,8 +2678,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw svcscan</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358881447332" ID="ID_628370216" MODIFIED="1395819079417">
@@ -2728,8 +2691,7 @@
       hidden process (rootkit detection)
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358881461984" ID="ID_113085302" MODIFIED="1395762886721">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -2743,8 +2705,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw malfind --dump-dir /directoryTosave/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_1136269172" MODIFIED="1395762897558">
 <richcontent TYPE="NODE"><html>
@@ -2759,8 +2720,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw psxview</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_1922653840" MODIFIED="1395762917698">
 <richcontent TYPE="NODE"><html>
@@ -2775,8 +2735,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw procmemdump -p &lt;process_id&gt; --dump-dir /directorytosave/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_91572847" MODIFIED="1395762941296">
 <richcontent TYPE="NODE"><html>
@@ -2791,8 +2750,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw memdump -p &lt;process_id&gt; --dump-dir /directorytosave/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_1522218216" MODIFIED="1395762971619">
 <richcontent TYPE="NODE"><html>
@@ -2807,8 +2765,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw ldrmodules -p &lt;process_id&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_101907987" MODIFIED="1395763104886">
 <richcontent TYPE="NODE"><html>
@@ -2838,8 +2795,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw dlldump -r test --dump-dir /directorytosave/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358881830779" ID="ID_34459899" MODIFIED="1395819081711">
@@ -2866,8 +2822,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw driverscan</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881461984" ID="ID_1712266551" MODIFIED="1395763175382">
 <richcontent TYPE="NODE"><html>
@@ -2882,8 +2837,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw moddump -r test --dump-dir /directorytosave/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358881921213" ID="ID_1422641628" MODIFIED="1395819082973" TEXT="Hook">
@@ -2900,8 +2854,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw apihooks </i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358881931053" ID="ID_1264555912" MODIFIED="1395763239725">
 <richcontent TYPE="NODE"><html>
@@ -2916,8 +2869,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw ssdt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -2935,8 +2887,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw connections</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358197348306" ID="ID_176938964" MODIFIED="1395763332185">
 <richcontent TYPE="NODE"><html>
@@ -2951,8 +2902,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw connscan</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358197405619" ID="ID_507696975" MODIFIED="1395763362053">
 <richcontent TYPE="NODE"><html>
@@ -2967,8 +2917,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw sockets</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358197445469" ID="ID_141084614" MODIFIED="1395763405171">
 <richcontent TYPE="NODE"><html>
@@ -2983,8 +2932,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw sockscan</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358882642440" ID="ID_561416551" MODIFIED="1395819085833" TEXT="Registry">
@@ -3001,8 +2949,7 @@
       <font face="Courier New" color="#ff0000"><i>python vol.py -f image.raw hivelist</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358882650256" ID="ID_1493778440" MODIFIED="1395763449593">
 <richcontent TYPE="NODE"><html>
@@ -3017,8 +2964,7 @@
       <font face="Courier New" color="#ff0000"><i>python vol.py -f image.raw printkey -K &quot;Software\Microsoft&quot;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358882650256" ID="ID_1285397832" MODIFIED="1395763512936">
 <richcontent TYPE="NODE"><html>
@@ -3033,8 +2979,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw hivedump -o &lt;offset of the hive, see hivelist&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358882650256" ID="ID_1141536096" MODIFIED="1395763525582">
 <richcontent TYPE="NODE"><html>
@@ -3049,8 +2994,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw userassist</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358882650256" ID="ID_1753725765" MODIFIED="1395763559495">
 <richcontent TYPE="NODE"><html>
@@ -3065,8 +3009,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw hashdump -y &lt;offset SYSTEM since hivelist&gt; -s &lt;offset SAM depuis hivelist&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358883490360" ID="ID_811186436" MODIFIED="1395763572864">
@@ -3082,8 +3025,7 @@
       <font color="#ff0000" face="Courier New"><i>python vol.py -f image.raw timeliner --output-file=result_file.csv</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1356616988414" ID="ID_1289031551" MODIFIED="1395763615274">
@@ -3105,8 +3047,7 @@
       <span class="hps">Search</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">evil</span><span id="result_box" class="short_text" lang="en">&#160;and hidden&#160;</span><span class="hps">programs</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">in memory.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356616358701" ID="ID_1776211996" MODIFIED="1395763653505">
 <richcontent TYPE="NODE"><html>
@@ -3124,8 +3065,7 @@
       Search evil DLL and EXE in memory.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054988352" ID="ID_700958202" MODIFIED="1395763683240">
 <richcontent TYPE="NODE"><html>
@@ -3140,11 +3080,10 @@
       <span class="hps alt-edited">Snapshot</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">memory</span><span id="result_box" class="short_text" lang="en">&#160;from&#160;</span><span class="hps">Windows.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1352467735183" ID="ID_70659825" MODIFIED="1395819089289" TEXT="Process">
+<node CREATED="1352467735183" FOLDED="true" ID="ID_70659825" MODIFIED="1401393266531" TEXT="Process">
 <node CREATED="1358020532697" ID="ID_91072127" LINK="#ID_367871736" MODIFIED="1395761836486" TEXT="Live investigation"/>
 <node CREATED="1358020543043" ID="ID_108772622" LINK="#ID_68648110" MODIFIED="1395761892983" TEXT="Analysis from memory"/>
 <node CREATED="1358498534818" ID="ID_314040980" MODIFIED="1395819090560">
@@ -3157,8 +3096,7 @@
       <span class="hps">State</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">change tracking</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358498548778" ID="ID_706850988" MODIFIED="1395819091802" TEXT="Registry">
 <node CREATED="1358498577466" ID="ID_537410046" MODIFIED="1358498616694">
 <richcontent TYPE="NODE"><html>
@@ -3198,8 +3136,7 @@
       Network communication
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358527029929" ID="ID_659564949" MODIFIED="1395763769761">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -3216,8 +3153,7 @@
       Hook&#160;the&#160;sending&#160;network packets&#160;process and<br />provides access to the&#160;datas.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -3251,8 +3187,7 @@
       <font face="Courier New" color="#ff0000"><i>mount -o loop image.iso /media/img/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1353591126828" ID="ID_1561628894" MODIFIED="1395763892789">
@@ -3268,8 +3203,7 @@
       Open Linux image in read only.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358511120612" ID="ID_1285521339" MODIFIED="1395763932350">
 <richcontent TYPE="NODE"><html>
@@ -3284,8 +3218,7 @@
       Drivers to mout image on Windows.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358506466027" ID="ID_687906581" MODIFIED="1358506510631">
 <richcontent TYPE="NODE"><html>
@@ -3318,8 +3251,7 @@
       <font face="SansSerif" color="#010101"><u>Note :</u>&#160;t</font><span class="hps">he simplest</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">solution is to</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">mount the partition</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">using</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Windows7</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">or higher</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">operating system.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 </node>
@@ -3333,8 +3265,7 @@
       Virtualization
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1353590674975" ID="ID_1987170377" MODIFIED="1395764042071">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -3351,8 +3282,7 @@
       <font color="#ff0000" face="Courier New"><i>vboxmanage convertfromraw image.raw image.vdi --format VDI</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358332064641" ID="ID_911906383" MODIFIED="1395764053045">
 <richcontent TYPE="NODE"><html>
@@ -3370,8 +3300,7 @@
       <font face="Courier New" color="#ff0000"><i>qemu-img convert image.raw -O vmdk image.vmdk</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358517420581" ID="ID_1507426852" MODIFIED="1395764062933">
 <richcontent TYPE="NODE"><html>
@@ -3389,8 +3318,7 @@
       <font face="Courier New" color="#ff0000"><i>VhdTool.exe /convert image.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1353590911072" ID="ID_1779899287" MODIFIED="1395764102323">
 <richcontent TYPE="NODE"><html>
@@ -3408,8 +3336,7 @@
       <font face="Courier New" color="#ff0000"><i>java -jar raw2vmdk.jar image.raw link-to-image.vmdk</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358510966900" ID="ID_1553986060" MODIFIED="1395764260992">
 <richcontent TYPE="NODE"><html>
@@ -3424,8 +3351,7 @@
       <span class="hps">Automatic</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">creation of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">vmware</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">from a</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">RAW</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">disk image</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358332437863" ID="ID_1563762005" MODIFIED="1395764280174">
 <richcontent TYPE="NODE"><html>
@@ -3440,8 +3366,7 @@
       <span class="hps">Windows</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">GUI tool</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">for generating</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">a virtual</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">machine</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">VmWare</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps atn">(</span><span>vmdk)</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">from a</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">RAW image.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358858849582" ID="ID_788257903" LINK="#ID_176922239" MODIFIED="1358858883111" TEXT="SandBox"/>
 </node>
@@ -3455,8 +3380,7 @@
       File carving
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1353591869999" ID="ID_1707552831" MODIFIED="1395764338974">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -3470,8 +3394,7 @@
       <span class="hps">Recovery</span><span id="result_box" class="" lang="en">&#160;deleted files </span><span class="hps">from</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">FAT partitions</span><span>,</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">exFat</span><span class="">, NTFS</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">EXT.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1353592033239" ID="ID_73702333" MODIFIED="1395764405199">
@@ -3490,8 +3413,7 @@
       <font face="Courier New" color="#ff0000"><i>foremost -b &lt;taille de bloack, 512 par d&#233;faut&gt; -i image.raw -c /etc/foremost.conf -o /resultats/ </i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1356620947797" ID="ID_1294495055" MODIFIED="1395819102779">
@@ -3522,8 +3444,7 @@
       NTSF, FAT, UFS1/2, Ext2/3, HFS+.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 <node CREATED="1358342031611" ID="ID_344352824" MODIFIED="1395819104298" TEXT="Partition">
 <node CREATED="1358015673167" ID="ID_1304177187" MODIFIED="1395764573721">
@@ -3542,8 +3463,7 @@
       <font face="Courier New" color="#ff0000"><i>mmls image.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338384514" ID="ID_1834340380" MODIFIED="1395764596272">
 <richcontent TYPE="NODE"><html>
@@ -3561,8 +3481,7 @@
       <font face="Courier New" color="#ff0000"><i>fsstat -f fat image.dd</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358015842041" ID="ID_1552014295" MODIFIED="1395764668600">
 <richcontent TYPE="NODE"><html>
@@ -3580,8 +3499,7 @@
       <font face="Courier New" color="#ff0000"><i>icat -o &lt;Start offset of the partition extract from mmls&gt; image.raw 0 &gt; extracted_partition.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358342064411" ID="ID_1367847895" MODIFIED="1395819105464" TEXT="File">
@@ -3607,8 +3525,7 @@
       <font color="#ff0000" face="Courier New"><i>fls -r -u -m c: -p image.raw &gt; list_of_files_and_directories.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338828947" ID="ID_1217802469" MODIFIED="1395764780688">
 <richcontent TYPE="NODE"><html>
@@ -3626,8 +3543,7 @@
       <font face="Courier New" color="#ff0000"><i>blkstat image.raw 55000</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_163764159" MODIFIED="1395764805992">
 <richcontent TYPE="NODE"><html>
@@ -3645,8 +3561,7 @@
       <font color="#ff0000"><i>blkls image.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_1397991415" MODIFIED="1395764857040">
 <richcontent TYPE="NODE"><html>
@@ -3680,8 +3595,7 @@
       <font color="#0000ff">/etc/foremost.conf</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_835203384" MODIFIED="1395764894964">
 <richcontent TYPE="NODE"><html>
@@ -3699,8 +3613,7 @@
       <font face="Courier New" color="#ff0000"><i>blkcalc -d image.raw -u &lt;bloack number result of blkls or sigfind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_1314494561" MODIFIED="1395764921216">
 <richcontent TYPE="NODE"><html>
@@ -3718,8 +3631,7 @@
       <font face="Courier New" color="#ff0000"><i>blkcat -h image.raw 55000</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358342748547" ID="ID_155367368" MODIFIED="1395819109499" TEXT="Metadata">
@@ -3739,8 +3651,7 @@
       <font face="Courier New" color="#ff0000"><i>ifind image.raw -d &lt;block number of blkls or sigfind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_1825139081" MODIFIED="1395764987502">
 <richcontent TYPE="NODE"><html>
@@ -3758,8 +3669,7 @@
       <font face="Courier New" color="#ff0000"><i>istat image.raw &lt;inode number from ifind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_1960012819" MODIFIED="1395765014467">
 <richcontent TYPE="NODE"><html>
@@ -3777,8 +3687,7 @@
       <font face="Courier New" color="#ff0000"><i>ffind -a -r image.raw &lt;inode number from ifind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_416874251" MODIFIED="1395765064026">
 <richcontent TYPE="NODE"><html>
@@ -3802,8 +3711,7 @@
       <font face="Courier New" color="#ff0000"><i>fls -drpm image.raw &lt;inode number from ifind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358338967410" ID="ID_388880176" MODIFIED="1395765126334">
 <richcontent TYPE="NODE"><html>
@@ -3821,8 +3729,7 @@
       <font face="Courier New" color="#ff0000"><i>icat image.raw -R &lt;inode number from ifind&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358496431593" ID="ID_26086233" MODIFIED="1395819111852" TEXT="Compare hash">
@@ -3851,8 +3758,7 @@
       <font face="Courier New" color="#ff0000"><i>hfind -i md5sum md5_list.txt </i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -3869,8 +3775,7 @@
       <span class="hps">Suite</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">graphical tools</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">including</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Windows</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">file recovery</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">modules</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356618616822" ID="ID_1767568541" MODIFIED="1395765256802">
 <richcontent TYPE="NODE"><html>
@@ -3885,8 +3790,7 @@
       <span class="hps">Suite</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">graphical tools</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">including modules</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">file recovery</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358513711340" ID="ID_290326264" MODIFIED="1395765273980">
 <richcontent TYPE="NODE"><html>
@@ -3901,8 +3805,7 @@
       <span class="hps">Recovery of deleted</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">media files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358525390952" ID="ID_695297281" MODIFIED="1395765292995">
 <richcontent TYPE="NODE"><html>
@@ -3917,8 +3820,7 @@
       <span class="hps">Detection and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">recovery</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">of multimedia</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">files in</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">unallocated</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">storage space</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358500300474" ID="ID_152867284" MODIFIED="1395819115112" TEXT="Files in the recycle bin">
 <node CREATED="1358500310394" ID="ID_1016027610" MODIFIED="1395765337028">
@@ -3937,8 +3839,7 @@
       <font face="Courier New" color="#ff0000"><i>rifuiti INFO2 &gt; results.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -3956,8 +3857,7 @@
       <span class="hps">Graphic</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">tools</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">for hidden</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356621336628" ID="ID_977431116" MODIFIED="1395765384588">
 <richcontent TYPE="NODE"><html>
@@ -3972,8 +3872,7 @@
       <span class="hps">Graphic</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">tools</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">for hidden</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358329750359" ID="ID_1940433418" MODIFIED="1395819117293" TEXT="Restore Points">
@@ -4005,8 +3904,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.mandiant.com/resources/download/research-mandiant-restore-point-analyzer">http://www.mandiant.com/resources/download/research-mandiant-restore-point-analyzer</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1356621405742" ID="ID_574872072" MODIFIED="1395819119527" TEXT="Search encrypted containers">
@@ -4023,8 +3921,7 @@
       Research tools by statistics of&#160;encrypted&#160;container.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358512626277" ID="ID_311901165" MODIFIED="1395818055462">
 <richcontent TYPE="NODE"><html>
@@ -4039,8 +3936,7 @@
       Research tools by statistics of&#160;encrypted&#160;container.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356621551183" ID="ID_400332322" MODIFIED="1395818067521">
 <richcontent TYPE="NODE"><html>
@@ -4055,8 +3951,7 @@
       Research tools by statistics of&#160;encrypted&#160;container.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054543733" ID="ID_779061591" MODIFIED="1395818461494" TEXT="Brute force for TrueCrypt">
 <node CREATED="1366054568280" ID="ID_224907714" MODIFIED="1366054641110">
@@ -4111,8 +4006,7 @@
       Xsearch : <a href="http://www.easexp.com/xsearch/">http://www.easexp.com/xsearch/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1357941905596" ID="ID_1745682755" MODIFIED="1395817975351">
 <richcontent TYPE="NODE"><html>
@@ -4136,11 +4030,10 @@
       - Music : *.mp*, *.wav, *.wma, etc.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1356615393949" ID="ID_460181699" MODIFIED="1395819127279" TEXT="File and MFT date">
+<node CREATED="1356615393949" FOLDED="true" ID="ID_460181699" MODIFIED="1400696853313" TEXT="File and MFT date">
 <node CREATED="1358003781660" ID="ID_1945855716" MODIFIED="1395818522147">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4160,8 +4053,7 @@
       <a href="http://data.linux-ntfs.org/ntfsdoc.pdf">http://data.linux-ntfs.org/ntfsdoc.pdf</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358517264989" ID="ID_469929625" MODIFIED="1395818537979">
 <richcontent TYPE="NODE"><html>
@@ -4176,8 +4068,7 @@
       <span class="hps">Graphic</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">Viewer</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">content</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">of</span><span id="result_box" class="short_text" lang="en">&#160; </span><span class="hps">the</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">MFT</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358526606147" ID="ID_365124404" MODIFIED="1358526627560">
 <richcontent TYPE="NODE"><html>
@@ -4210,8 +4101,7 @@
       <a href="https://www.mandiant.com/blog/striking-gold-incident-response-ntfs-indx-buffers-part-1-extracting-indx/">https://www.mandiant.com/blog/striking-gold-incident-response-ntfs-indx-buffers-part-1-extracting-indx/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358001137786" ID="ID_1434403296" MODIFIED="1395818666493">
 <richcontent TYPE="NODE"><html>
@@ -4238,8 +4128,7 @@
       <a href="http://code.google.com/p/parser-usnjrnl/">http://code.google.com/p/parser-usnjrnl/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1357989586338" ID="ID_835765540" MODIFIED="1395818722299">
 <richcontent TYPE="NODE"><html>
@@ -4260,8 +4149,7 @@
       <a href="http://download.microsoft.com/download/4/3/8/43889780-8d45-4b2e-9d3a-c696a890309f/File%20System%20Behavior%20Overview.pdf">http://download.microsoft.com/download/4/3/8/43889780-8d45-4b2e-9d3a-c696a890309f/File%20System%20Behavior%20Overview.pdf</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358010301003" ID="ID_1092232834" MODIFIED="1395818772600">
 <richcontent TYPE="NODE"><html>
@@ -4273,8 +4161,7 @@
       <span class="hps"><b>Traces</b></span><b><span id="result_box" class="" lang="en">&#160;</span><span class="hps">(NTFS</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">MFT$)</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">after deleting</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">a file</span></b><span id="result_box" class="" lang="en"><br /></span><span class="hps">Filename:</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">$File_Name</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">attribute</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">is</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">preserved to</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">reuse</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Index</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">$I30</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">Meta</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">data</span><span>:</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">- Only</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">one</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">byte of the</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">MFT</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">is changed</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">when deleting</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">a file</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">- $LogFile</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and $UsnJrnl</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">Data</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">file:</span><span id="result_box" class="" lang="en"><br /></span><span class="hps">-</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">Data are</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">not</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">marked as</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">allocated in</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">$Bitmap</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">but are not</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">al&#233;t&#233;r&#233;es</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">as</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">they are not</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">reused.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
@@ -4288,9 +4175,8 @@
       Registry
     </p>
   </body>
-</html>
-</richcontent>
-<node CREATED="1352476785907" ID="ID_1709362191" MODIFIED="1395819133546" TEXT="Editors &amp; frameworks">
+</html></richcontent>
+<node CREATED="1352476785907" FOLDED="true" ID="ID_1709362191" MODIFIED="1400696786681" TEXT="Editors &amp; frameworks">
 <node CREATED="1352476816706" ID="ID_291395886" MODIFIED="1395757067344">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4307,8 +4193,7 @@
       <span class="hps">Opens</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">RAW registry</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">files</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">extract</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">some</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">information</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">such as the list</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">of installed software. Allows</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">export</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">in</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">CSV</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">REGEDIT</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">4</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1352476279498" ID="ID_1013164891" MODIFIED="1395756994568">
 <richcontent TYPE="NODE"><html>
@@ -4326,8 +4211,7 @@
       <span class="hps">Opens</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">RAW</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">files</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">registry</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">key</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">recover</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">deleted and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">view</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">the file structure</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">in</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">hexadecimal</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356620382871" ID="ID_255162006" MODIFIED="1395756943320">
 <richcontent TYPE="NODE"><html>
@@ -4357,8 +4241,7 @@
       Hives types : sam, security, software, system, ntuser
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358503241099" ID="ID_1848174094" MODIFIED="1395756865229">
 <richcontent TYPE="NODE"><html>
@@ -4373,11 +4256,10 @@
       <span class="hps">Acquisition and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">data analysis.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1356620064086" ID="ID_1232535276" MODIFIED="1395819135419" TEXT="Analysis of the configuration">
+<node CREATED="1356620064086" ID="ID_1232535276" MODIFIED="1400696866590" TEXT="Analysis of the configuration">
 <node CREATED="1356620076311" ID="ID_19516866" MODIFIED="1395756598454">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4403,8 +4285,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Component Based Servicing\Packages\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356620086174" ID="ID_1650377494" MODIFIED="1395756621048">
 <richcontent TYPE="NODE"><html>
@@ -4422,8 +4303,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356620094534" ID="ID_295700550" MODIFIED="1395756638195">
 <richcontent TYPE="NODE"><html>
@@ -4438,8 +4318,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358857054221" ID="ID_1456327027" MODIFIED="1395756669453">
 <richcontent TYPE="NODE"><html>
@@ -4460,8 +4339,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356620339190" ID="ID_1908154852" MODIFIED="1395756726695" TEXT="External devices already connected">
 <node CREATED="1358857644109" ID="ID_479971184" MODIFIED="1395756691858">
@@ -4483,8 +4361,7 @@
       <font color="#0000ff">HKEY_LOCAL_MACHINE\SYSTEM\MountedDevices\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358526508744" ID="ID_1376308022" MODIFIED="1358526522720">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4525,8 +4402,7 @@
       <span class="hps">Specifies the list of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">programs</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">configured to</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">automatically started</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">at</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">system startup</span><span>, connections</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">or</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">actions.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358330840384" ID="ID_1436708743" MODIFIED="1395756799453">
@@ -4542,11 +4418,10 @@
       <font face="Courier New" color="#0000ff">HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\BackupRestore\FilesNotSnapshot\</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1358330823145" ID="ID_386981520" MODIFIED="1395819142142" TEXT="Historic">
+<node CREATED="1358330823145" FOLDED="true" ID="ID_386981520" MODIFIED="1400696854432" TEXT="Historic">
 <node CREATED="1358857074061" ID="ID_453347610" MODIFIED="1358857080157" TEXT="UserAssist">
 <node CREATED="1358526361920" ID="ID_577487663" MODIFIED="1358526387748">
 <richcontent TYPE="NODE"><html>
@@ -4668,7 +4543,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1356687035771" ID="ID_333531638" MODIFIED="1395819145621">
+<node CREATED="1356687035771" FOLDED="true" ID="ID_333531638" MODIFIED="1400696855905">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -4728,12 +4603,11 @@
       <font face="Courier New" color="#ff0000"><i>dir c:\windows\prefetch\*.pf /b /s | pf -v -csv &gt; results.csv</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
-<node CREATED="1352468139799" ID="ID_1739065848" MODIFIED="1395819146799">
+<node CREATED="1352468139799" FOLDED="true" ID="ID_1739065848" MODIFIED="1400696876529">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -4743,9 +4617,8 @@
       <font color="#000000">Audit logs</font>
     </p>
   </body>
-</html>
-</richcontent>
-<node CREATED="1358780676934" ID="ID_1633185655" MODIFIED="1395819147781" TEXT="Windows">
+</html></richcontent>
+<node CREATED="1358780676934" FOLDED="true" ID="ID_1633185655" MODIFIED="1400696875034" TEXT="Windows">
 <node CREATED="1356616807414" ID="ID_293838301" MODIFIED="1395819149206">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -4770,8 +4643,7 @@
       <span class="hps">Extraction</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">of audit logs</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">from</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">Windows</span><span id="result_box" class="short_text" lang="en">&#160; </span><span class="hps">Vista</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">XML</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358504426539" ID="ID_862944845" MODIFIED="1358504453479">
 <richcontent TYPE="NODE"><html>
@@ -4798,8 +4670,7 @@
       <span class="hps">Analysis and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">export</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">of</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">event</span><span id="result_box" class="short_text" lang="en">&#160; </span><span class="hps">logs</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">EVTX</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358503485786" ID="ID_376598908" MODIFIED="1395756285082">
 <richcontent TYPE="NODE"><html>
@@ -4820,8 +4691,7 @@
       <font face="Courier New" color="#ff0000"><i>logparser &quot;SELECT * FROM Application.evtx&quot;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358504258739" ID="ID_1653610172" MODIFIED="1395756324108">
 <richcontent TYPE="NODE"><html>
@@ -4836,8 +4706,7 @@
       <a http-equiv="content-type" href="http://www.microsoft.com/en-us/download/details.aspx?id=21561" content="text/html; charset=utf-8">http://www.microsoft.com/en-us/download/details.aspx?id=21561</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358503390131" ID="ID_354016433" MODIFIED="1395819152442" TEXT="Windows EVT">
@@ -4869,8 +4738,7 @@
       <font face="Courier New" color="#ff0000"><i>perl evtrpt.pl log.evt &gt; results.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358505174779" ID="ID_497179144" MODIFIED="1395756381782">
 <richcontent TYPE="NODE"><html>
@@ -4885,8 +4753,7 @@
       <font face="Courier New" color="#ff0000"><i>wevtutil epl journal.evt dest.evtx /lf:true</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358780068349" ID="ID_455512805" MODIFIED="1395756406449">
 <richcontent TYPE="NODE"><html>
@@ -4907,8 +4774,7 @@
       <a http-equiv="content-type" href="http://www.stevebunting.org/udpd4n6/forensics/repaireventlogfile.htm" content="text/html; charset=utf-8">http://www.stevebunting.org/udpd4n6/forensics/repaireventlogfile.htm</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358780553902" ID="ID_88302865" MODIFIED="1395756421871">
@@ -4930,8 +4796,7 @@
       <font color="#0000ff" face="Courier New"><i>%systemroot%\system32\logfiles\firewall\pfirewall.log</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358780716518" ID="ID_1466529528" MODIFIED="1358780840620">
 <richcontent TYPE="NODE"><html>
@@ -4950,6 +4815,20 @@
     </p>
   </body>
 </html></richcontent>
+</node>
+<node CREATED="1400696797333" ID="ID_127705155" MODIFIED="1400696812385" TEXT="Policy">
+<node CREATED="1400696814890" ID="ID_1826466354" MODIFIED="1400696847501">
+<richcontent TYPE="NODE"><html>
+  <head>
+    
+  </head>
+  <body>
+    <p>
+      <font face="Courier New" color="#0000ff">gpresult /z</font>
+    </p>
+  </body>
+</html></richcontent>
+</node>
 </node>
 </node>
 <node CREATED="1358504880275" ID="ID_1183090048" MODIFIED="1395819154634" TEXT="Linux/Unix">
@@ -4972,8 +4851,7 @@
       <font face="Courier New" color="#ff0000"><i>egrep &quot;Aug 21 11:|Aug 21 12:&quot; messages &gt; fichier_resultat.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1372174596234" ID="ID_1420941348" MODIFIED="1372174619806">
 <richcontent TYPE="NODE"><html>
@@ -5004,11 +4882,10 @@
       <span class="hps">Processing</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">export</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">graphics from</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">newspapers</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
-<node CREATED="1352467765569" ID="ID_1051920774" MODIFIED="1395819156882">
+<node CREATED="1352467765569" FOLDED="true" ID="ID_1051920774" MODIFIED="1400696879596">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -5030,8 +4907,7 @@
       <a href="http://nirsoft.net/">http://securityxploded.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1352467585225" ID="ID_1021868050" MODIFIED="1395819158022" TEXT="Browser">
 <node CREATED="1356623598303" ID="ID_1531425829" MODIFIED="1395752148355">
 <richcontent TYPE="NODE"><html>
@@ -5058,8 +4934,7 @@
       <font face="Courier New" color="#0000ff"><i>HKEY_CLASSES_ROOT\.html\OpenWithProgIDs\*</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356623598303" ID="ID_1156577725" MODIFIED="1395752175288">
 <richcontent TYPE="NODE"><html>
@@ -5077,8 +4952,7 @@
       <font face="Courier New" color="#0000ff"><i>HKEY_CLASSES_ROOT\https\shell\open\command</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358499956762" ID="ID_827005377" LINK="#ID_1750292902" MODIFIED="1395752199520" TEXT="Data exploitation"/>
 </node>
@@ -5092,8 +4966,7 @@
       Mail
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1356685445131" ID="ID_1272705121" MODIFIED="1395756106098">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5116,8 +4989,7 @@
       <font color="#0000ff">HKEY_CLASSES_ROOT\mailto\shell\open\command</font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356612283535" ID="ID_282686712" MODIFIED="1395756040328">
 <richcontent TYPE="NODE"><html>
@@ -5135,8 +5007,7 @@
       Kernel OST Viewer : OST file reader.
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356612107733" ID="ID_1979560352" MODIFIED="1395755988951">
 <richcontent TYPE="NODE"><html>
@@ -5151,8 +5022,7 @@
       <span class="hps">Reader</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">for MS</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Outlook</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Express,</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">Windows</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Mail</span><span class="">, Mozilla</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">Thunderbird</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">EML</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1367583120526" ID="ID_1998156813" MODIFIED="1367583199855">
 <richcontent TYPE="NODE"><html>
@@ -5182,8 +5052,7 @@
       <font face="Courier New" color="#ff0000"><i>pffexport -q -f all -m all mails.pst</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356611685159" ID="ID_557229042" MODIFIED="1395755967660">
 <richcontent TYPE="NODE"><html>
@@ -5201,8 +5070,7 @@
       <font color="#ff0000" face="Courier New"><i>readpst archive.pst -o DirectoryToSave</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356613074845" ID="ID_1645995736" MODIFIED="1395755958349">
 <richcontent TYPE="NODE"><html>
@@ -5226,8 +5094,7 @@
       <b>gmail-offline-parser</b>&#160;<a href="http://redwolfcomputerforensics.com/index.php?option=com_content&amp;task=view&amp;id=42&amp;Itemid=55">http://redwolfcomputerforensics.com/index.php?option=com_content&amp;task=view&amp;id=42&amp;Itemid=55</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356683300266" ID="ID_1998222626" MODIFIED="1395755858696">
 <richcontent TYPE="NODE"><html>
@@ -5242,8 +5109,7 @@
       <span class="hps">The conversion of</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">PST format</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">MSF</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">files</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">(Outlook)</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">is possible with</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">the tool:</span>&#160; &#160;<a href="http://www.lotusnotestooutlook.net/convert-lotus-notes-to-outlook.html"><font size="3" color="#0000ff"><u>http://www.lotusnotestooutlook.net/convert-lotus-notes-to-outlook.html</u></font></a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358515814045" ID="ID_517123765" MODIFIED="1395755783020">
 <richcontent TYPE="NODE"><html>
@@ -5258,8 +5124,7 @@
       <span class="hps">Converting a</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">large number of formats</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps alt-edited">messaging</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358515814045" ID="ID_1938610487" MODIFIED="1395755767253">
 <richcontent TYPE="NODE"><html>
@@ -5274,8 +5139,7 @@
       <span class="hps">Convert all</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">formats</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps alt-edited">messaging</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1370606086720" ID="ID_1944258638" MODIFIED="1395755733979">
 <richcontent TYPE="NODE"><html>
@@ -5344,8 +5208,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://searchitchannel.techtarget.com/feature/Monitoring-Exchange-Server-2010-Using-event-logs-ExBPA">http://searchitchannel.techtarget.com/feature/Monitoring-Exchange-Server-2010-Using-event-logs-ExBPA</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1352467830233" ID="ID_1713117046" MODIFIED="1395819163339" TEXT="Office">
@@ -5363,8 +5226,7 @@
       <span class="hps">Structure Analysis</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">of</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">Office files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358514061405" ID="ID_431195754" MODIFIED="1395819165834">
@@ -5394,8 +5256,7 @@
       <font face="Courier New" color="#ff0000"><i>python pdf-parser.py -s test file.pdf</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358514265349" ID="ID_674133090" MODIFIED="1395752046309">
 <richcontent TYPE="NODE"><html>
@@ -5413,8 +5274,7 @@
       <font face="Courier New" color="#ff0000"><i>python pdfis.py file.pdf</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358514211541" ID="ID_1844239029" MODIFIED="1395752027126">
 <richcontent TYPE="NODE"><html>
@@ -5429,8 +5289,7 @@
       <span class="hps">Pdf</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">generation</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">with JavaScript code</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358515527773" ID="ID_947005740" MODIFIED="1395752012155">
 <richcontent TYPE="NODE"><html>
@@ -5445,8 +5304,7 @@
       <span class="hps">Graphic Editor</span><span id="result_box" class="short_text" lang="en">&#160;of </span><span class="hps">PDF</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">format.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054773488" ID="ID_581606455" MODIFIED="1395751995508">
 <richcontent TYPE="NODE"><html>
@@ -5461,8 +5319,7 @@
       <span class="hps">Framework</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">for manipulating</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">PDF</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1366054776599" ID="ID_1568414080" MODIFIED="1366054897661">
 <richcontent TYPE="NODE"><html>
@@ -5518,8 +5375,7 @@
       ExtractNow (<span class="hps">test</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">with</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">password</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">dictionary</span>) <a http-equiv="content-type" href="http://www.extractnow.com/" content="text/html; charset=utf-8">http://www.extractnow.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358502536106" ID="ID_272501708" MODIFIED="1395819168675" TEXT="Metadata">
@@ -5536,8 +5392,7 @@
       <span class="hps">Metadata</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">of multimedia files.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358513836812" ID="ID_94859861" MODIFIED="1395751717410">
 <richcontent TYPE="NODE"><html>
@@ -5552,8 +5407,7 @@
       <span class="hps">Read</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">OLE</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">content.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358501119250" ID="ID_548862246" MODIFIED="1395751766171">
 <richcontent TYPE="NODE"><html>
@@ -5577,8 +5431,7 @@
       <font face="Courier New" color="#ff0000"><i>perl wmd.pl fichier.doc &gt; resultats.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358502497962" ID="ID_336339074" MODIFIED="1395751779898">
 <richcontent TYPE="NODE"><html>
@@ -5593,8 +5446,7 @@
       <span class="hps">Perl</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">library</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">for reading</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and editing</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">of file formats</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358506342769" ID="ID_1759405603" MODIFIED="1395751851534">
 <richcontent TYPE="NODE"><html>
@@ -5609,8 +5461,7 @@
       <span class="hps">Python</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">library</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">for extracting</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">metadata.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1367584035734" ID="ID_1533357171" MODIFIED="1395819170556">
@@ -5623,8 +5474,7 @@
       Data base
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1367584046326" ID="ID_404593123" MODIFIED="1367584073556">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5639,7 +5489,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1352468026615" ID="ID_710213636" MODIFIED="1395819171846" TEXT="Malware search">
+<node CREATED="1352468026615" FOLDED="true" ID="ID_710213636" MODIFIED="1400696881526" TEXT="Malware search">
 <node CREATED="1352468037409" ID="ID_569718388" MODIFIED="1395819173353">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5674,8 +5524,7 @@
       <font face="Courier New" color="#fc0000"><i>clamscan -r -i /r&#233;pertoire/</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 </node>
@@ -5710,8 +5559,7 @@
       - Emsisoft Emergency Kit <a http-equiv="content-type" href="http://www.emsisoft.com/en/software/eek/" content="text/html; charset=utf-8">http://www.emsisoft.com/en/software/eek/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358511293108" ID="ID_1030662033" MODIFIED="1395819174690" TEXT="Online">
 <node CREATED="1356619436910" ID="ID_543328653" MODIFIED="1395750465240">
@@ -5736,8 +5584,7 @@
       <a href="https://www.virustotal.com/file/">https://www.virustotal.com/file/</a>&lt;hash_sha256&gt;
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358851652603" ID="ID_1525227620" MODIFIED="1395750479815">
 <richcontent TYPE="NODE"><html>
@@ -5755,8 +5602,7 @@
       <a http-equiv="content-type" href="http://virusscan.jotti.org/fr" content="text/html; charset=utf-8">http://virusscan.jotti.org/fr</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358023114047" ID="ID_478421161" MODIFIED="1395750505677">
 <richcontent TYPE="NODE"><html>
@@ -5774,8 +5620,7 @@
       <a http-equiv="content-type" href="https://fileadvisor.bit9.com/Services/search.aspx" content="text/html; charset=utf-8">https://fileadvisor.bit9.com/Services/search.aspx</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358023114047" ID="ID_1025577586" MODIFIED="1395750547463">
 <richcontent TYPE="NODE"><html>
@@ -5799,8 +5644,7 @@
       <a http-equiv="content-type" href="http://www.norman.com.sg/page.php?page=SMA" content="text/html; charset=utf-8">http://www.norman.com.sg/page.php?page=SMA</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358851873844" ID="ID_1397712903" MODIFIED="1395750562993">
 <richcontent TYPE="NODE"><html>
@@ -5818,8 +5662,7 @@
       <a http-equiv="content-type" href="http://mobilesandbox.org/" content="text/html; charset=utf-8">http://mobilesandbox.org/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1373036706599" ID="ID_1567682474" MODIFIED="1395750641691">
@@ -5874,8 +5717,7 @@
       <a http-equiv="content-type" content="text/html; charset=utf-8" href="http://www.selectrealsecurity.com/public-block-lists">http://www.selectrealsecurity.com/public-block-lists</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358018534111" ID="ID_1648292851" MODIFIED="1395819176744" TEXT="Valid programs (whitelist files)">
@@ -5920,8 +5762,7 @@
       <font face="Courier New" color="#ff0000"><i>ssdeep -bm empreinte_partir_fichier_cherche.txt fichier</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358021867192" ID="ID_752785583" MODIFIED="1395819178653">
@@ -5937,8 +5778,7 @@
       <font color="#ff0000" face="Courier New"><i>file &lt;filename&gt;</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358497308217" ID="ID_1769129097" MODIFIED="1395750155873">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -5961,8 +5801,7 @@
       winzf32.dll
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358012851492" ID="ID_659114988" MODIFIED="1395819179797">
@@ -5975,8 +5814,7 @@
       Programs run
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358012863612" ID="ID_1169889120" MODIFIED="1395750078345" TEXT="In startup">
 <node CREATED="1358018329955" ID="ID_877921242" LINK="#ID_168690351" MODIFIED="1395750098395" TEXT="Registry"/>
 </node>
@@ -6002,8 +5840,7 @@
       <a href="http://mirror1.malwaredomains.com/files/domains.txt">http://mirror1.malwaredomains.com/files/domains.txt</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356616001365" ID="ID_884037289" MODIFIED="1395819181860" TEXT="By string">
 <node CREATED="1358333271801" ID="ID_5682600" MODIFIED="1395749980802">
@@ -6022,8 +5859,7 @@
       <font face="Courier New" color="#ff0000"><i>grep -i -f dico.txt -A image.raw</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356616010838" ID="ID_1216994389" MODIFIED="1395749948638">
 <richcontent TYPE="NODE"><html>
@@ -6047,8 +5883,7 @@
       <font color="#ff0000" face="Courier New"><i>strings.exe image.raw | findstr /i text_to_search</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1356711708704" ID="ID_1089772264" MODIFIED="1395749925812">
 <richcontent TYPE="NODE"><html>
@@ -6072,8 +5907,7 @@
       <font color="#ff0000" face="Courier New"><i>srch_strings -e l -t d -a image.raw &gt; results.txt</i></font>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1358333457865" ID="ID_548550340" MODIFIED="1395749822294">
@@ -6107,8 +5941,7 @@
       <span class="hps">Java</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">GUI utility</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">operating</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">results.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358516569740" ID="ID_1441269879" MODIFIED="1395819183857" TEXT="Network capture">
@@ -6137,8 +5970,7 @@
       <span class="hps">Captures</span><span class="">,</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">extract data</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">and make</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">usage graphs</span><span class="">.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358516794781" ID="ID_1511105897" MODIFIED="1395744961980">
 <richcontent TYPE="NODE"><html>
@@ -6153,8 +5985,7 @@
       <span class="hps">File extraction</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">from</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">free</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">FTP /</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">HTTP.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358516794781" ID="ID_785423660" MODIFIED="1395744955592">
 <richcontent TYPE="NODE"><html>
@@ -6169,8 +6000,7 @@
       <span class="hps">File extraction</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">from</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">free</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">FTP /</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">HTTP.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358516852413" ID="ID_1370547765" MODIFIED="1395744940121">
 <richcontent TYPE="NODE"><html>
@@ -6185,8 +6015,7 @@
       <span class="hps alt-edited">Extracting</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">accounts and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">passwords.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358516663709" ID="ID_518128324" MODIFIED="1395744927002">
 <richcontent TYPE="NODE"><html>
@@ -6201,8 +6030,7 @@
       <span class="hps alt-edited">Extracting</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">accounts and</span><span id="result_box" class="short_text" lang="en">&#160;</span><span class="hps">passwords.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358851251677" ID="ID_176922239" MODIFIED="1395819185504">
@@ -6264,7 +6092,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1358525588761" ID="ID_1072770550" MODIFIED="1395819188645">
+<node CREATED="1358525588761" FOLDED="true" ID="ID_1072770550" MODIFIED="1400696882993">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6274,8 +6102,7 @@
       Password search
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1358848766059" ID="ID_1514074027" MODIFIED="1395819189624">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -6357,8 +6184,7 @@
       <a http-equiv="content-type" href="http://www.pccmos.com/" content="text/html; charset=utf-8">http://www.pccmos.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 <node CREATED="1358848772515" ID="ID_29240396" MODIFIED="1395819190852" TEXT="System">
@@ -6399,8 +6225,7 @@
       <a http-equiv="content-type" href="http://sourceforge.net/projects/ophcrack/files/?source=navbar" content="text/html; charset=utf-8">http://sourceforge.net/projects/ophcrack/files/?source=navbar</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358851127844" ID="ID_313306743" MODIFIED="1358851150408">
 <richcontent TYPE="NODE"><html>
@@ -6444,8 +6269,7 @@
       <a http-equiv="content-type" href="http://securityxploded.com/" content="text/html; charset=utf-8">http://securityxploded.com/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358525853376" ID="ID_1792381258" MODIFIED="1395744700760">
 <richcontent TYPE="NODE"><html>
@@ -6466,8 +6290,7 @@
       - OperaPassView <a http-equiv="content-type" href="http://www.nirsoft.net/utils/opera_password_recovery.html" content="text/html; charset=utf-8">http://www.nirsoft.net/utils/opera_password_recovery.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 <node CREATED="1358525605792" ID="ID_1086126004" MODIFIED="1395744684543">
 <richcontent TYPE="NODE"><html>
@@ -6482,12 +6305,11 @@
       <span class="hps">Search</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">encrypted</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">container</span><span id="result_box" class="" lang="en">&#160;</span><span class="hps">and</span><span id="result_box" class="" lang="en">&#160; </span><span class="hps">associated passwords</span><span>.</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>
-<node CREATED="1356622015775" ID="ID_151592017" MODIFIED="1395819194297" TEXT="Time line">
+<node CREATED="1356622015775" FOLDED="true" ID="ID_151592017" MODIFIED="1400696884064" TEXT="Time line">
 <node CREATED="1356703167761" HGAP="60" ID="ID_1473436411" MODIFIED="1395744645775" VSHIFT="13">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -6559,8 +6381,7 @@
       For calc: <a href="http://journeyintoir.blogspot.fr/2010/11/reviewing-timelines-with-calc.html">http://journeyintoir.blogspot.fr/2010/11/reviewing-timelines-with-calc.html</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1356710496270" ID="ID_1598775629" MODIFIED="1395744493721">
@@ -6621,8 +6442,7 @@
       l2t-tools: <a href="http://code.google.com/p/l2t-tools/">http://code.google.com/p/l2t-tools/</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <icon BUILTIN="penguin"/>
 </node>
 <node CREATED="1358512340860" ID="ID_682373127" MODIFIED="1358512530856">
@@ -6788,7 +6608,7 @@
 </node>
 </node>
 </node>
-<node CREATED="1366055195376" ID="ID_532412078" MODIFIED="1395819200874">
+<node CREATED="1366055195376" FOLDED="true" ID="ID_532412078" MODIFIED="1400696885371">
 <richcontent TYPE="NODE"><html>
   <head>
     
@@ -6988,8 +6808,7 @@
       <span class="hps">Resource Editor</span>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 <node CREATED="1367582806873" ID="ID_40668860" MODIFIED="1367582841943">
 <richcontent TYPE="NODE"><html>
   <head>
@@ -7014,8 +6833,7 @@
       <b>Hopper</b>&#160;(not free) <a http-equiv="content-type" href="http://www.hopperapp.com/" content="text/html; charset=utf-8">http://www.hopperapp.com</a>
     </p>
   </body>
-</html>
-</richcontent>
+</html></richcontent>
 </node>
 </node>
 </node>

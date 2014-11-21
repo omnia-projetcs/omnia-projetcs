@@ -104,23 +104,51 @@ DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
   HKEY CleTmp=0;
 
   //open key
-  if (RegOpenKey(hk,path,&CleTmp)!=ERROR_SUCCESS)
-     return FALSE;
+  if (RegOpenKey(hk,path,&CleTmp)!=ERROR_SUCCESS)return FALSE;
+
+ // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegOpenKey)",path,(char*)value);
+/*
+  data_size_read = data_size;
+  long r = RegQueryValue(CleTmp,value,data,&data_size_read);
+  if (r!=ERROR_SUCCESS && r!=ERROR_MORE_DATA)
+  {
+    RegCloseKey(CleTmp);
+    return FALSE;
+  }*/
 
   //size of data
-  if (RegQueryValueEx(CleTmp, value, 0, 0, 0, &data_size_read)!=ERROR_SUCCESS)
+  long r = RegQueryValueEx(CleTmp, value, 0, 0, 0, &data_size_read);
+  if (r!=ERROR_SUCCESS && r!=ERROR_MORE_DATA)
   {
     RegCloseKey(CleTmp);
     return FALSE;
   }
 
+  //RegQueryValue(CleTmp,value,0,&data_size_read);
+/*
+      long re = 0;
+      DWORD data_sz = LINE_SIZE;
+      if (reg_st->data_dword)re = RegQueryValue(CleTmp,reg_st->value,&dw_datas,&data_sz);
+      else re = RegQueryValue(CleTmp,reg_st->value,ch_datas,&data_sz);
+
+      if (re == ERROR_SUCCESS || re == ERROR_MORE_DATA)
+      {
+      }else return;*/
+
+
+
+ // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegQueryValueEx)",path,(char*)value);
+
   //alloc
-  char *c = (char *)malloc(data_size_read+1);
+  data_size_read = data_size_read+1;
+  char *c = (char *)malloc(data_size_read);
   if (c == NULL)
   {
     RegCloseKey(CleTmp);
     return FALSE;
   }
+
+ // AddMsg(h_main,(char*)"DEBUG (ReadValue:malloc)",path,(char*)value);
 
   //read value
   if (RegQueryValueEx(CleTmp, value, 0, 0, (LPBYTE)c, &data_size_read)!=ERROR_SUCCESS)
@@ -128,6 +156,9 @@ DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
     RegCloseKey(CleTmp);
     return FALSE;
   }
+
+   // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegQueryValueEx2)",path,(char*)value);
+
 
   if (data_size_read<data_size) memcpy(data,c,data_size_read);
   else memcpy(data,c,data_size);
@@ -281,22 +312,22 @@ BOOL RegistryOS(DWORD iitem,HKEY hkey)
   return ret;
 }
 //----------------------------------------------------------------
-void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST *reg_st)
+void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST *reg_st, char *newpath)
 {
   char msg[LINE_SIZE];
   HKEY CleTmp;
   DWORD dw_datas, ok;
   char ch_datas[LINE_SIZE];
 
-  if (RegOpenKey(hkey,reg_st->path,&CleTmp)==ERROR_SUCCESS)
+  if (RegOpenKey(hkey,newpath!=NULL?newpath:reg_st->path,&CleTmp)==ERROR_SUCCESS)
   {
     #ifdef DEBUG_MODE_REGISTRY
-    AddMsg(h_main,(char*)"DEBUG (RegOpenKey)","OK",(char*)reg_st.path);
+    AddMsg(h_main,(char*)"DEBUG (RegistryScanCheck:RegOpenKey)",newpath!=NULL?newpath:reg_st->path,(char*)reg_st->value);
     #endif // DEBUG_MODE_REGISTRY
 
     if (reg_st->check_no_value)
     {
-      snprintf(msg,LINE_SIZE,"%s\\%s\\%s (%s)",ip,chkey,reg_st->path,reg_st->description);
+      snprintf(msg,LINE_SIZE,"%s\\%s\\%s (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->description);
       AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"Registry Key Exist");
       AddLSTVUpdateItem(msg, COL_REG, iitem);
     }else
@@ -305,15 +336,19 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
       dw_datas    = 0;
       ch_datas[0] = 0;
 
-      if (reg_st->data_dword)ok = ReadValue(hkey,reg_st->path,reg_st->value,&dw_datas, sizeof(DWORD));
-      else ok = ReadValue(hkey,reg_st->path,reg_st->value,ch_datas, LINE_SIZE);
+      if (reg_st->data_dword)ok = ReadValue(hkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,&dw_datas, sizeof(DWORD));
+      else ok = ReadValue(hkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas, MAX_PATH);
       if (!ok)return;
+
+      #ifdef DEBUG_MODE_REGISTRY
+      AddMsg(h_main,(char*)"DEBUG (RegistryScanCheck)",newpath!=NULL?newpath:reg_st->path,ch_datas);
+      #endif // DEBUG_MODE_REGISTRY
 
       //check
       if (reg_st->check_no_data)
       {
-        if (reg_st->data_dword)snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->description);
-        else snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->description);
+        if (reg_st->data_dword)snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->description);
+        else snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->description);
 
         AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
         AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -323,10 +358,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
         {
           if (atol(reg_st->data) == dw_datas)
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[=%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[=%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
           }else
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[=%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[=%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
           }
           AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
           AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -334,10 +369,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
         {
           if (!strcmp(reg_st->data,ch_datas))
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[=%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[=%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
           }else
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[=%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[=%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
           }
           AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
           AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -348,10 +383,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
         {
           if (atol(reg_st->data) != dw_datas)
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[!=%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[!=%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
           }else
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[!=%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[!=%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
           }
           AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
           AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -359,10 +394,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
         {
           if (strcmp(reg_st->data,ch_datas))
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[!=%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[!=%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
           }else
           {
-            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[!=%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+            snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[!=%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
           }
           AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
           AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -371,10 +406,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
       {
         if (atol(reg_st->data) > dw_datas)
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[<%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[<%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
         }else
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[<%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[<%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
         }
         AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
         AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -382,10 +417,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
       {
         if (atol(reg_st->data) < dw_datas)
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[>%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[>%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
         }else
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[>%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%lu[>%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,dw_datas,reg_st->data,reg_st->description);
         }
         AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
         AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -393,10 +428,10 @@ void RegistryScanCheck(DWORD iitem,char *ip, HKEY hkey, char* chkey, REG_LINE_ST
       {
         if (Contient(charToLowChar(ch_datas),charToLowChar(reg_st->data))>-1)
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[?%s:OK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[?%s:OK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
         }else
         {
-          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[?%s:NOK] (%s)",ip,chkey,reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
+          snprintf(msg,LINE_SIZE,"%s\\%s\\%s%s=%s[?%s:NOK] (%s)",ip,chkey,newpath!=NULL?newpath:reg_st->path,reg_st->value,ch_datas,reg_st->data,reg_st->description);
         }
         AddMsg(h_main,(char*)"FOUND (Registry)",msg,(char*)"");
         AddLSTVUpdateItem(msg, COL_REG, iitem);
@@ -421,7 +456,7 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users)
 
   DWORD j,nbSubKey = 0;
   DWORD key_size;
-  char key[LINE_SIZE],key_path[LINE_SIZE];
+  char key[LINE_SIZE],key_path[LINE_SIZE], newpath[LINE_SIZE];
 
   for (i=0;i<_nb_i && scan_start;i++)
   {
@@ -435,7 +470,7 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users)
       if (parseLineToReg(buffer,&reg_st,FALSE))
       {
         #ifdef DEBUG_MODE_REGISTRY
-        AddMsg(h_main,(char*)"DEBUG (parseLineToReg)","OK",(char*)reg_st.path);
+        AddMsg(h_main,(char*)"DEBUG (parseLineToReg)",reg_st.path,(char*)reg_st.value);
         #endif // DEBUG_MODE_REGISTRY
 
         //check if in ".DEFAULT" or not
@@ -459,17 +494,17 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users)
               key[0]    = 0;
               if (RegEnumKeyEx (hkey,j,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
               {
-                snprintf(reg_st.path,LINE_SIZE,"%s%s\\",reg_st.path,key);
+                snprintf(newpath,LINE_SIZE,"%s\\%s",key,reg_st.path);
 
                 //check !
-                RegistryScanCheck(iitem,ip, hkey, chkey, &reg_st);
+                RegistryScanCheck(iitem,ip, hkey, chkey, &reg_st, newpath);
               }
             }
           }
         }else
         {
           //check !
-          RegistryScanCheck(iitem,ip, hkey, chkey, &reg_st);
+          RegistryScanCheck(iitem,ip, hkey, chkey, &reg_st, NULL);
         }
       }
     }
@@ -974,12 +1009,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
 
         //other check
         HKEY hkey2;
-        if (RegConnectRegistry(tmp,HKEY_CLASSES_ROOT,&hkey2)==ERROR_SUCCESS)
+        /*if (RegConnectRegistry(tmp,HKEY_CLASSES_ROOT,&hkey2)==ERROR_SUCCESS)
         {
           RegistryScan(iitem,ip,hkey2,(char*)"HKCR", FALSE);
           if (config->write_key && scan_start)RegistryWriteKey(ip,hkey2,(char*)"HKCR");
           RegCloseKey(hkey2);
-        }
+        }*/
         if (RegConnectRegistry(tmp,HKEY_USERS,&hkey2)==ERROR_SUCCESS)
         {
           RegistryScan(iitem,ip,hkey2,(char*)"HKU", TRUE);
@@ -1100,10 +1135,12 @@ BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, 
   }else if(RemoteRegistryNetConnexion(iitem, ip, ip_id, config, windows_OS, id_ok))return TRUE;
   else
   {
+    #ifndef DEBUG_NOERROR
     if (config->check_registry)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);
     if (config->check_services)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SERVICE,iitem);
     if (config->check_software)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SOFTWARE,iitem);
     if (config->check_USB)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_USB,iitem);
+    #endif
   }
   return FALSE;
 }

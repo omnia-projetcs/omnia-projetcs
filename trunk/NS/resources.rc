@@ -29,7 +29,7 @@ BEGIN
   CONTROL "Save"                          ,BT_SAVE          ,"Button"         ,0x50010000,335,18 ,46 ,11
 
   CONTROL "Start"                         ,BT_START         ,"Button"         ,0x50010000,390,1  ,88 ,32
-  CONTROL "Remote Extract"                ,BT_RE            ,"Button"         ,0x50010000,480,19  ,60 ,13
+  CONTROL "Remote Extract"                ,BT_RE            ,"Button"         ,0x50010000,480,19  ,55 ,13
 
   CONTROL ""                              ,CB_infos         ,"ListBox"        ,0x50300141,114,241,364,56,0x00000200
   CONTROL ""                              ,LV_results       ,"SysListView32"  ,0x10000000|0x4081008D,114,35,364,203,0x00000200

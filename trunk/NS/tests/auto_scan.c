@@ -17,8 +17,10 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
 {
   char remote_name[MAX_PATH]="", tmp[MAX_PATH]="";
   HANDLE connect = 0;
+  //EnterCriticalSection(&Sync_threads);
   WaitForSingleObject(hs_netbios,INFINITE);
   hs_c_netbios++;
+  //LeaveCriticalSection(&Sync_threads);
 
   if (scan_start)connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,&config, iitem, FALSE, id_ok);
 
@@ -289,8 +291,10 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
     WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
     if (connect != (HANDLE)1)CloseHandle(connect);
   }
+  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_netbios,1,NULL);
   hs_c_netbios--;
+  //LeaveCriticalSection(&Sync_threads_end);
 }
 //----------------------------------------------------------------
 void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *id_ok)
@@ -402,8 +406,10 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
 
   if (id_ok != NULL && *id_ok > ID_ERROR) i = *id_ok;
 
+  //EnterCriticalSection(&Sync_threads);
   WaitForSingleObject(hs_netbios,INFINITE);
   hs_c_netbios++;
+  //LeaveCriticalSection(&Sync_threads);
 
   //MCAFEE_UPDATE_DAYS_INTERVAL
   for (; i<config.nb_accounts && scan_start;i++)
@@ -496,7 +502,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
             snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
           }
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
+          AddMsg(h_main, (char*)"FOUND (File0)",ip,msg);
           FindClose(hfic);
         }
       }
@@ -505,8 +511,10 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
       break;
     }
   }
+  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_netbios,1,NULL);
   hs_c_netbios--;
+  //LeaveCriticalSection(&Sync_threads_end);
 }
 //----------------------------------------------------------------
 DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
@@ -518,8 +526,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   char ip[MAX_PATH]="", dsc[MAX_PATH], dns[MAX_PATH]="", ttl_s[MAX_PATH]="", os_s[MAX_PATH]="",cfg[MAX_LINE_SIZE]="",test_title[MAX_PATH],msg[MAX_PATH];
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
+    //EnterCriticalSection(&Sync_threads_end);
     ReleaseSemaphore(hs_threads,1,NULL);
     hs_c_threads--;
+    //LeaveCriticalSection(&Sync_threads_end);
 
     //tracking
     if (scan_start)
@@ -541,8 +551,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
   if (ip[0]!=0 && scan_start)
   {
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_disco,INFINITE);
     hs_c_disco++;
+    //LeaveCriticalSection(&Sync_threads);
 
     if ((ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.')) && scan_start)
     {
@@ -564,10 +576,15 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       }else
       {
         iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_disco,1,NULL);
         hs_c_disco--;
+        //LeaveCriticalSection(&Sync_threads_end);
+
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_threads,1,NULL);
         hs_c_threads--;
+        //LeaveCriticalSection(&Sync_threads_end);
 
         //tracking
         EnterCriticalSection(&Sync);
@@ -628,8 +645,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     }
 
     if (iitem == ID_ERROR)exist = FALSE;
+    //EnterCriticalSection(&Sync_threads_end);
     ReleaseSemaphore(hs_disco,1,NULL);
     hs_c_disco--;
+    //LeaveCriticalSection(&Sync_threads_end);
 
     BOOL windows_OS = FALSE;
     //tests !!!
@@ -638,8 +657,10 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     if (exist && scan_start)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_netbios,INFINITE);
       hs_c_netbios++;
+      //LeaveCriticalSection(&Sync_threads);
 
       //get OS
       if (dns[0] == 0 && scan_start)
@@ -697,30 +718,54 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       }
       RemoteConnexionScan_auto_scan(iitem, ip, index, &id_ok);
 
+      //EnterCriticalSection(&Sync_threads_end);
       ReleaseSemaphore(hs_netbios,1,NULL);
       hs_c_netbios--;
+      //LeaveCriticalSection(&Sync_threads_end);
     }
 
     if (exist && scan_start)
     {
-      //registry
-      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
-      WaitForSingleObject(hs_registry,INFINITE);
-      hs_c_registry++;
-      RemoteConnexionRegistryScan_auto_scan(iitem, ip, index, windows_OS, &id_ok);
-      ReleaseSemaphore(hs_registry,1,NULL);
-      hs_c_registry--;
-    }
+      if (TCP_port_open(iitem, ip, RPC_DEFAULT_PORT, FALSE))
+      {
+        //registry
+        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
+        //EnterCriticalSection(&Sync_threads);
+        WaitForSingleObject(hs_registry,INFINITE);
+        hs_c_registry++;
+        //LeaveCriticalSection(&Sync_threads);
 
-    //add file test !!!
-    if (exist && scan_start && auto_scan_config.MCAFEE_SCAN)
-    {
-      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-      WaitForSingleObject(hs_file,INFINITE);
-      hs_c_file++;
-      RemoteConnexionScanFiles_auto_scan(iitem, ip, &id_ok);
-      ReleaseSemaphore(hs_file,1,NULL);
-      hs_c_file--;
+        RemoteConnexionRegistryScan_auto_scan(iitem, ip, index, windows_OS, &id_ok);
+        //EnterCriticalSection(&Sync_threads_end);
+        ReleaseSemaphore(hs_registry,1,NULL);
+        hs_c_registry--;
+        //LeaveCriticalSection(&Sync_threads_end);
+
+        //add file test !!!
+        if (scan_start && auto_scan_config.MCAFEE_SCAN)
+        {
+          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
+          //EnterCriticalSection(&Sync_threads);
+          WaitForSingleObject(hs_file,INFINITE);
+          hs_c_file++;
+          //LeaveCriticalSection(&Sync_threads);
+
+          RemoteConnexionScanFiles_auto_scan(iitem, ip, &id_ok);
+          //EnterCriticalSection(&Sync_threads_end);
+          ReleaseSemaphore(hs_file,1,NULL);
+          hs_c_file--;
+          //LeaveCriticalSection(&Sync_threads_end);
+        }
+      }else
+      {
+        #ifndef DEBUG_NOERROR
+        if (config.check_files)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_FILES, iitem);
+        if (config.check_registry)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_REG, iitem);
+        if (config.check_services)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SERVICE, iitem);
+        if (config.check_software)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SOFTWARE, iitem);
+        if (config.check_USB)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_USB, iitem);
+        #endif
+      }
     }
 
     if (exist && scan_start)
@@ -730,8 +775,11 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
       if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
       {
+        //EnterCriticalSection(&Sync_threads);
         WaitForSingleObject(hs_ssh,INFINITE);
         hs_c_ssh++;
+        //LeaveCriticalSection(&Sync_threads);
+
         if (config.nb_accounts == 0)
         {
           snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s",config.login);
@@ -805,16 +853,19 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
             first_msg = FALSE;
           }
         }
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_ssh,1,NULL);
         hs_c_ssh--;
+        //LeaveCriticalSection(&Sync_threads_end);
       }
     }
 
     if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
   }
-
+  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_threads,1,NULL);
   hs_c_threads--;
+  //LeaveCriticalSection(&Sync_threads_end);
 
   //tracking
   if (scan_start)
@@ -1305,8 +1356,11 @@ DWORD WINAPI auto_scan(LPVOID lParam)
 
     for (i=0;(i<nb_i) && scan_start;i++)
     {
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_threads,INFINITE);
       hs_c_threads++;
+      //LeaveCriticalSection(&Sync_threads);
+
       CreateThread(NULL,0,ScanIp_auto_scan,(PVOID)i,0,0);
     }
 
@@ -1319,18 +1373,34 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       while (nb_test_ip < i && end < THE_END_THREAD_WAIT){Sleep(100);end++;}
     }else
     {
+      //EnterCriticalSection(&Sync_threads);
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
+      //LeaveCriticalSection(&Sync_threads);
 
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_netbios,INFINITE);
       hs_c_netbios++;
+      //LeaveCriticalSection(&Sync_threads);
+
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_file,INFINITE);
       hs_c_file++;
+      //LeaveCriticalSection(&Sync_threads);
+
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_registry,INFINITE);
       hs_c_registry++;
+      //LeaveCriticalSection(&Sync_threads);
+
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_tcp,INFINITE);
       hs_c_tcp++;
+      //LeaveCriticalSection(&Sync_threads);
+
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_ssh,INFINITE);
       hs_c_ssh++;
+      //LeaveCriticalSection(&Sync_threads);
     }
 
     WSACleanup();
