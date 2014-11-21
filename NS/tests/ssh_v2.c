@@ -546,8 +546,10 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 {
   if (!scan_start) return FALSE;
 
+  //EnterCriticalSection(&Sync_threads);
   WaitForSingleObject(hs_tcp,INFINITE);
   hs_c_tcp++;
+  //LeaveCriticalSection(&Sync_threads);
 
   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock != INVALID_SOCKET)
@@ -586,8 +588,10 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 
         FD_CLR(sock, &read);
         closesocket(sock);
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_tcp,1,NULL);
         hs_c_tcp--;
+        //LeaveCriticalSection(&Sync_threads_end);
         return TRUE;
       }
       //clean
@@ -606,14 +610,18 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
         }
 
         closesocket(sock);
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_tcp,1,NULL);
         hs_c_tcp--;
+        //LeaveCriticalSection(&Sync_threads_end);
         return TRUE;
       }
     }
     closesocket(sock);
   }
+  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_tcp,1,NULL);
   hs_c_tcp--;
+  //LeaveCriticalSection(&Sync_threads_end);
   return FALSE;
 }

@@ -291,6 +291,8 @@ void init(HWND hwnd)
   //critical section
   InitializeCriticalSection(&Sync);
   InitializeCriticalSection(&Sync_item);
+  InitializeCriticalSection(&Sync_threads);
+  InitializeCriticalSection(&Sync_threads_end);
 
   LOG_DISABLE = FALSE;
   auto_scan_config.DNS_DISCOVERY = TRUE;
@@ -1384,19 +1386,212 @@ BOOL LSBExist(DWORD lsb, char *sst)
   return FALSE;
 }
 //----------------------------------------------------------------
-HANDLE NetConnexionAuthenticateTest(char *ip, DWORD id_ip, char*remote_name, PSCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok)
+/*HANDLE NetConnexionAuthenticateTest(char *ip, DWORD id_ip, char*remote_name, PSCANNE_ST config, DWORD iitem, BOOL message, long int *idm_ok)
 {
   HANDLE htoken = NULL;
   char msg[LINE_SIZE];
   char user_netbios[LINE_SIZE] = "";
 
-  if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*/9, /*LOGON32_PROVIDER_WINNT50*/3, &htoken))
+  if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*//*9, /*LOGON32_PROVIDER_WINNT50*//*3, &htoken))
   {
     if (htoken != 0)
     {
       ImpersonateLoggedOnUser(htoken);
     }
   }
+
+  if (config->nb_accounts == 0)
+  {
+    snprintf(msg,LINE_SIZE,"NET ACCOUNT TEST:%s",config->login);
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+    if (config->domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config->domain,config->login);
+    else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config->login);
+
+    snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+    NETRESOURCE NetRes;
+    NetRes.dwScope      = RESOURCE_GLOBALNET;
+    NetRes.dwType	      = RESOURCETYPE_ANY;
+    NetRes.lpLocalName  = (LPSTR)"";
+    NetRes.lpProvider   = (LPSTR)"";
+    NetRes.lpRemoteName	= remote_name;
+    if (WNetAddConnection2(&NetRes,config->password,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+    {
+      if (message)
+      {
+        snprintf(msg,LINE_SIZE,"%s\\IPC$ with %s account.",ip,user_netbios);
+        AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"Login NET %s\\IPC$ with %s account",ip,user_netbios);
+        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+      }
+      if (htoken == 0) htoken = (HANDLE)0;
+    }else if (htoken != NULL)
+    {
+      CloseHandle(htoken);
+      htoken = FALSE;
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+      #endif
+    }
+
+  }else if (config->global_ip_file)
+  {
+    snprintf(msg,LINE_SIZE,"NET ACCOUNT TEST:%s (%02d)",config->accounts[id_ip].login,id_ip);
+    ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+    if (config->accounts[id_ip].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config->accounts[id_ip].domain,config->accounts[id_ip].login);
+    else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config->accounts[id_ip].login);
+
+    snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+    NETRESOURCE NetRes;
+    NetRes.dwScope      = RESOURCE_GLOBALNET;
+    NetRes.dwType	      = RESOURCETYPE_ANY;
+    NetRes.lpLocalName  = (LPSTR)"";
+    NetRes.lpProvider   = (LPSTR)"";
+    NetRes.lpRemoteName	= remote_name;
+    if (WNetAddConnection2(&NetRes,config->accounts[id_ip].password,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+    {
+      if (message)
+      {
+        snprintf(msg,LINE_SIZE,"%s\\IPC$ with %s (%02d) account.",ip,config->accounts[id_ip].login,id_ip);
+        AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+
+        snprintf(msg,LINE_SIZE,"Login NET %s with (%02d) account",user_netbios,id_ip);
+        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+      }
+      if (htoken == 0) htoken = (HANDLE)0;
+    }else if (htoken != NULL)
+    {
+      CloseHandle(htoken);
+      htoken = FALSE;
+      #ifdef DEBUG_MODE
+      AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+      #endif
+    }
+  }else
+  {
+    unsigned int i = 0;
+    if (id_ok != NULL && *id_ok > ID_ERROR) i = *id_ok;
+
+    for (; i<config->nb_accounts ;i++)
+    {
+      snprintf(msg,LINE_SIZE,"NET ACCOUNT TEST:%s (%02d)",config->accounts[i].login,i);
+      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)msg);
+
+      if (config->accounts[i].domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config->accounts[i].domain,config->accounts[i].login);
+      else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config->accounts[i].login);
+
+      snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+      NETRESOURCE NetRes;
+      NetRes.dwScope      = RESOURCE_GLOBALNET;
+      NetRes.dwType	      = RESOURCETYPE_ANY;
+      NetRes.lpLocalName  = (LPSTR)"";
+      NetRes.lpProvider   = (LPSTR)"";
+      NetRes.lpRemoteName	= remote_name;
+      if (WNetAddConnection2(&NetRes,config->accounts[i].password,user_netbios,CONNECT_PROMPT)==NO_ERROR)
+      {
+        if (message)
+        {
+          snprintf(msg,LINE_SIZE,"%s\\IPC$ with %s (%02d) account.",ip,config->accounts[i].login,i);
+          AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+
+          snprintf(msg,LINE_SIZE,"Login NET %s with (%02d) account",user_netbios,i);
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+        }
+        if (id_ok != NULL) *id_ok = i;
+        if (htoken == 0) return (HANDLE)1;
+        else return htoken;
+
+      }else if (htoken != NULL)
+      {
+        CloseHandle(htoken);
+        htoken = NULL;
+        #ifdef DEBUG_MODE
+        AddMsg(h_main,"DEBUG","registry:NetConnexionAuthenticate=FAIL",ip);
+        #endif
+      }
+    }
+  }
+
+  return htoken;
+}*/
+//----------------------------------------------------------------
+HANDLE NetConnexionAuthenticateTest(char *ip, DWORD id_ip, char*remote_name, PSCANNE_ST config, DWORD iitem, BOOL message, long int *id_ok)
+{
+  HANDLE htoken = NULL;
+  char msg[LINE_SIZE];
+  char user_netbios[LINE_SIZE] = "";
+  char user_netbios_n[LINE_SIZE] = "";
+
+  snprintf(remote_name,LINE_SIZE,"\\\\%s\\ipc$",ip);
+  NETRESOURCE NetRes;
+
+  memset(&NetRes,0,sizeof(NETRESOURCE));
+  NetRes.dwType	      = RESOURCETYPE_ANY;
+  NetRes.lpRemoteName	= remote_name;
+
+  if (config->domain[0] != 0)snprintf(user_netbios,LINE_SIZE,"%s\\%s",config->domain,config->login);
+  else snprintf(user_netbios,LINE_SIZE,"%s\\%s",ip,config->login);
+
+  snprintf(user_netbios_n,LINE_SIZE,"%s\\%s",ip,config->login);
+
+ /* if (WNetAddConnection2(&NetRes,config->password,user_netbios,CONNECT_UPDATE_PROFILE)==NO_ERROR)
+  {
+    AddMsg(h_main,"DEBUG","WNetAddConnection2:OK",ip);
+
+    if (LogonUser((LPTSTR)user_netbios, NULL, (LPTSTR)config->password, 9,3, &htoken))
+    {
+      AddMsg(h_main,"DEBUG","LogonUser:OK",ip);
+      if (htoken != 0)
+      {
+        ImpersonateLoggedOnUser(htoken);
+      }
+    }
+  }*/
+
+  if (LogonUser((LPTSTR)user_netbios, NULL, (LPTSTR)config->password,9,3, &htoken))
+  {
+    //AddMsg(h_main,"DEBUG","LogonUser:OK0",ip);
+    if (htoken != 0)
+    {
+      ImpersonateLoggedOnUser(htoken);
+    }else
+    {
+      if (LogonUser((LPTSTR)user_netbios_n, (LPTSTR)config->domain, (LPTSTR)config->password, 9,3, &htoken))
+      {
+        //AddMsg(h_main,"DEBUG","LogonUser:OK1",ip);
+        if (htoken != 0)
+        {
+          ImpersonateLoggedOnUser(htoken);
+        }else
+        {
+          if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*/9, /*LOGON32_PROVIDER_WINNT50*/3, &htoken))
+          {
+            //AddMsg(h_main,"DEBUG","LogonUser:OK2",ip);
+            if (htoken != 0)
+            {
+              ImpersonateLoggedOnUser(htoken);
+            }
+          }
+        }
+      }
+    }
+  }
+/*
+  if (WNetAddConnection2(&NetRes,config->password,user_netbios,CONNECT_UPDATE_PROFILE)==NO_ERROR)
+  {
+    //AddMsg(h_main,"DEBUG","WNetAddConnection2:OK",ip);
+  }*/
+
+/*
+  if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*//*9, /*LOGON32_PROVIDER_WINNT50*//*3, &htoken))
+  {
+    if (htoken != 0)
+    {
+      ImpersonateLoggedOnUser(htoken);
+    }
+  }*/
 
   if (config->nb_accounts == 0)
   {
@@ -1533,8 +1728,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
+    //EnterCriticalSection(&Sync_threads_end);
     ReleaseSemaphore(hs_threads,1,NULL);
     hs_c_threads--;
+    //LeaveCriticalSection(&Sync_threads_end);
 
     //tracking
     if (scan_start)
@@ -1567,8 +1764,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
     //check if exist + NetBIOS
     if (config.disco_icmp||config.disco_dns||config.disco_netbios)
     {
+      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_disco,INFINITE);
       hs_c_disco++;
+      //LeaveCriticalSection(&Sync_threads);
+
       #ifdef DEBUG_MODE
       AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_disco",ip);
       #endif
@@ -1594,10 +1794,15 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         }else
         {
           iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
+          //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_disco,1,NULL);
           hs_c_disco--;
+          //LeaveCriticalSection(&Sync_threads_end);
+
+          //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_threads,1,NULL);
           hs_c_threads--;
+          //LeaveCriticalSection(&Sync_threads_end);
 
           #ifdef DEBUG_MODE
           AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_disco",ip);
@@ -1671,8 +1876,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","DNS:END",ip);
         #endif
       }
+      //EnterCriticalSection(&Sync_threads_end);
       ReleaseSemaphore(hs_disco,1,NULL);
       hs_c_disco--;
+      //LeaveCriticalSection(&Sync_threads_end);
 
       //NetBIOS
       if (exist && (iitem > ID_ERROR) && (dnsok || !config.disco_dns) && config.disco_netbios && scan_start)
@@ -1681,8 +1888,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         AddMsg(h_main,"DEBUG","NetBIOS:BEGIN",ip);
         #endif
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
+        //EnterCriticalSection(&Sync_threads);
         WaitForSingleObject(hs_netbios,INFINITE);
         hs_c_netbios++;
+        //LeaveCriticalSection(&Sync_threads);
 
         char domain[MAX_PATH] = "";
         char os[MAX_PATH]     = "";
@@ -1759,8 +1968,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
           if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
         }
 
+        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_netbios,1,NULL);
         hs_c_netbios--;
+        //LeaveCriticalSection(&Sync_threads_end);
 
         #ifdef DEBUG_MODE
         AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_netbios",ip);
@@ -1768,61 +1979,85 @@ DWORD WINAPI ScanIp(LPVOID lParam)
         #endif
       }
 
+      //check if TCP 445 for Registry and file is open:
       if(((!config.disco_netbios)||(config.disco_netbios && netBIOS) || (ttl > 64) || (dnsok && ttl < 1)) && scan_start && exist)
       {
-        //registry
-        BOOL registry_remote = FALSE;
-        if (config.check_registry || config.check_services || config.check_software || config.check_USB || config.write_key || config.disco_netbios_policy)
+        if (TCP_port_open(iitem, ip, RPC_DEFAULT_PORT, FALSE))
         {
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
-          #endif
-          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
-          WaitForSingleObject(hs_registry,INFINITE);
-          hs_c_registry++;
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
-          #endif
-          registry_remote = RemoteConnexionScan(iitem, ip, index, &config, windows_OS, &id_ok);
-          if (registry_remote)nb_registry++;
-          ReleaseSemaphore(hs_registry,1,NULL);
-          hs_c_registry--;
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
-          AddMsg(h_main,"DEBUG","registry:END",ip);
-          #endif
-        }
+          //registry
+          BOOL registry_remote = FALSE;
+          if (config.check_registry || config.check_services || config.check_software || config.check_USB || config.write_key || config.disco_netbios_policy)
+          {
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","registry:BEGIN",ip);
+            #endif
+            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Registry");
+            //EnterCriticalSection(&Sync_threads);
+            WaitForSingleObject(hs_registry,INFINITE);
+            hs_c_registry++;
+            //LeaveCriticalSection(&Sync_threads);
 
-        //files
-        if (config.check_files && scan_start)
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_registry",ip);
+            #endif
+            registry_remote = RemoteConnexionScan(iitem, ip, index, &config, windows_OS, &id_ok);
+            if (registry_remote)nb_registry++;
+            //EnterCriticalSection(&Sync_threads_end);
+            ReleaseSemaphore(hs_registry,1,NULL);
+            hs_c_registry--;
+            //LeaveCriticalSection(&Sync_threads_end);
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_registry",ip);
+            AddMsg(h_main,"DEBUG","registry:END",ip);
+            #endif
+          }
+
+          //files
+          if (config.check_files && scan_start)
+          {
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","files:BEGIN",ip);
+            #endif
+
+            ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
+            //EnterCriticalSection(&Sync_threads);
+            WaitForSingleObject(hs_file,INFINITE);
+            hs_c_file++;
+            //LeaveCriticalSection(&Sync_threads);
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
+            #endif
+
+            RemoteConnexionFilesScan(iitem, ip, index, &config, &id_ok);
+
+            //EnterCriticalSection(&Sync_threads_end);
+            ReleaseSemaphore(hs_file,1,NULL);
+            hs_c_file--;
+            //LeaveCriticalSection(&Sync_threads_end);
+            #ifdef DEBUG_MODE
+            AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
+            AddMsg(h_main,"DEBUG","files:END",ip);
+            #endif
+          }
+        }else if (exist)
         {
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","files:BEGIN",ip);
-          #endif
-
-          ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-          WaitForSingleObject(hs_file,INFINITE);
-          hs_c_file++;
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","WaitForSingleObject-hs_file",ip);
-          #endif
-
-          RemoteConnexionFilesScan(iitem, ip, index, &config, &id_ok);
-
-          ReleaseSemaphore(hs_file,1,NULL);
-          hs_c_file--;
-          #ifdef DEBUG_MODE
-          AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
-          AddMsg(h_main,"DEBUG","files:END",ip);
+          #ifndef DEBUG_NOERROR
+          if (config.check_files)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_FILES, iitem);
+          if (config.check_registry)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_REG, iitem);
+          if (config.check_services)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SERVICE, iitem);
+          if (config.check_software)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SOFTWARE, iitem);
+          if (config.check_USB)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_USB, iitem);
           #endif
         }
       }else if(exist)
       {
+        #ifndef DEBUG_NOERROR
         if (config.check_files)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_FILES, iitem);
         if (config.check_registry)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_REG, iitem);
         if (config.check_services)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_SERVICE, iitem);
         if (config.check_software)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_SOFTWARE, iitem);
         if (config.check_USB)AddLSTVUpdateItem((char*)"NOT TESTED!", COL_USB, iitem);
+        #endif
       }
 
       //SSH
@@ -1835,8 +2070,11 @@ DWORD WINAPI ScanIp(LPVOID lParam)
 
         if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
         {
+          //EnterCriticalSection(&Sync_threads);
           WaitForSingleObject(hs_ssh,INFINITE);
           hs_c_ssh++;
+          //LeaveCriticalSection(&Sync_threads);
+
           if (config.nb_accounts == 0)
           {
             snprintf(msg,MAX_PATH,"SSH ACCOUNT TEST:%s",config.login);
@@ -1967,9 +2205,15 @@ DWORD WINAPI ScanIp(LPVOID lParam)
               first_msg = FALSE;
             }
           }
+          //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_ssh,1,NULL);
           hs_c_ssh--;
+          //LeaveCriticalSection(&Sync_threads_end);
+        #ifndef DEBUG_NOERROR
+        }else AddLSTVUpdateItem((char*)"NOT TESTED! (port 22/TCP not open)", COL_SSH, iitem);
+        #else
         }
+        #endif
       }
 
       #ifdef DEBUG_MODE
@@ -1979,8 +2223,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
     }
   }
+  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_threads,1,NULL);
   hs_c_threads--;
+  //LeaveCriticalSection(&Sync_threads_end);
 
   //tracking
   if (scan_start)
@@ -2179,8 +2425,10 @@ DWORD WINAPI scan(LPVOID lParam)
   for (i=0;(i<nb_i) && scan_start;i++)
   {
     //ScanIp((LPVOID)i);
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_threads,INFINITE);
     hs_c_threads++;
+    //LeaveCriticalSection(&Sync_threads);
 
     CreateThread(NULL,0,ScanIp,(PVOID)i,0,0);
   }
@@ -2194,19 +2442,35 @@ DWORD WINAPI scan(LPVOID lParam)
     while ((nb_test_ip < i) && (end < THE_END_THREAD_WAIT)){Sleep(100);end++;}
   }else
   {
+    //EnterCriticalSection(&Sync_threads);
     for(i=0;i<NB_MAX_THREAD;i++){WaitForSingleObject(hs_threads,INFINITE);hs_c_threads++;}
     //for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,THREAD_MAX_TIMEOUT);
+    //LeaveCriticalSection(&Sync_threads);
 
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_netbios,INFINITE);
     hs_c_netbios++;
+    //LeaveCriticalSection(&Sync_threads);
+
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_file,INFINITE);
     hs_c_file++;
+    //LeaveCriticalSection(&Sync_threads);
+
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_registry,INFINITE);
     hs_c_registry++;
+    //LeaveCriticalSection(&Sync_threads);
+
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_tcp,INFINITE);
     hs_c_tcp++;
+    //LeaveCriticalSection(&Sync_threads);
+
+    //EnterCriticalSection(&Sync_threads);
     WaitForSingleObject(hs_ssh,INFINITE);
     hs_c_ssh++;
+    //LeaveCriticalSection(&Sync_threads);
   }
 
   WSACleanup();
@@ -2396,6 +2660,8 @@ BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         scan_start = FALSE;
         DeleteCriticalSection(&Sync);
         DeleteCriticalSection(&Sync_item);
+        DeleteCriticalSection(&Sync_threads);
+        DeleteCriticalSection(&Sync_threads_end);
 
         if (h_log != INVALID_HANDLE_VALUE)CloseHandle(h_log);
         if (hndlIcmp != 0)FreeLibrary((HMODULE)hndlIcmp);
