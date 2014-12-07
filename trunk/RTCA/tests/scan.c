@@ -136,7 +136,8 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   h_thread_test[j++] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);nb_current_test++;
   h_thread_test[j++] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0);nb_current_test++;
+
+  if (safe_mode == FALSE){h_thread_test[j++] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0);nb_current_test++;}
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);

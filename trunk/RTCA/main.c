@@ -1084,6 +1084,7 @@ int CmdLine(int argc, char* argv[])
   FILE_ACL            = FALSE;
   FILE_ADS            = FALSE;
   FILE_SHA            = FALSE;
+  enable_magic        = FALSE;
 
   sqlite3_exec(db_scan,"PRAGMA journal_mode = OFF;", NULL, NULL, NULL);
   SQLITE_FULL_SPEED   = TRUE;
@@ -1171,6 +1172,7 @@ int CmdLine(int argc, char* argv[])
       case '1': FILE_ADS = TRUE;break;
       //enable SHA hashes for tests files
       case '2': FILE_SHA = TRUE;break;
+      case '3': enable_magic = TRUE;break;
       case 'S': sqlite3_exec(db_scan,"PRAGMA journal_mode = ON;", NULL, NULL, NULL);SQLITE_FULL_SPEED = FALSE;break;
       //------------------------------------------------------------------------------
       case 'o'://save alls data session to path
@@ -1223,7 +1225,7 @@ int CmdLine(int argc, char* argv[])
         enable_LNK = TRUE;
         CMDScan((LPVOID)FALSE);
       break;
-      //scan with all tests in safe mode with no log and no file test
+      //scan with all tests in safe mode with no log and no file test and no LDAP AD extraction.
       case 'A': CMDScan((LPVOID)TRUE);break;
       case 't'://list of all tests
         printf("*******************************************************\n"
@@ -1302,11 +1304,12 @@ int CmdLine(int argc, char* argv[])
                "\t-0  Enable ACL check in files test.\n"
                "\t-1  Enable ADS check in files test.\n"
                "\t-2  Enable SHA in files test.\n"
+               "\t-3  Enable MagicNumber in files test.\n"
                "\t-T  Export in UTC time.\n"
                "\t-S  Disable SQLITE FULL SPEED.\n"
                "\n"
                "\t-a  Start all tests.\n\n"
-               "\t-A  Start all tests in safe mode with no Files and no Logs test.\n"
+               "\t-A  Start all tests in safe mode with no Files, no Logs and LDAP AD extraction test.\n"
                "\t-s  Select test to start.\n\t    Exemple: -s 0 1 2 3 4 5 6\n"
                "\n"
                "\t-o  Export all data to path.\n\t    Exemple: -o \"c:\\\"\n"
