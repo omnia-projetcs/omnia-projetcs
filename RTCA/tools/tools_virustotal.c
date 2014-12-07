@@ -5,6 +5,7 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
+#define MAX_VST_ERROR 5
 DWORD vt_error;
 //------------------------------------------------------------------------------
 //use for update
@@ -32,6 +33,7 @@ void GetCSRFToken(VIRUSTOTAL_STR *vts)
   if (!use_other_proxy)M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
   else M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PROXY, proxy_ch_auth, NULL, 0);
 
+  if (M_connexion==NULL)M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
   if (M_connexion==NULL)return;
 
   //init connexion
@@ -46,6 +48,7 @@ void GetCSRFToken(VIRUSTOTAL_STR *vts)
   HINTERNET M_requete = HttpOpenRequest(M_session,"GET","www.virustotal.com",NULL,"",NULL,
                                         INTERNET_FLAG_NO_CACHE_WRITE|INTERNET_FLAG_SECURE
                                         |INTERNET_FLAG_IGNORE_CERT_CN_INVALID|INTERNET_FLAG_IGNORE_CERT_DATE_INVALID,0);
+
   if (use_proxy_advanced_settings)
   {
     InternetSetOption(M_requete,INTERNET_OPTION_PROXY_USERNAME,proxy_ch_user,sizeof(proxy_ch_user));
@@ -84,6 +87,7 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
   if (!use_other_proxy)M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
   else M_connexion = InternetOpen("",/*INTERNET_OPEN_TYPE_DIRECT*/INTERNET_OPEN_TYPE_PROXY, proxy_ch_auth, NULL, 0);
 
+  if (M_connexion==NULL)M_connexion = InternetOpen("",INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, INTERNET_FLAG_NO_CACHE_WRITE);
   if (M_connexion==NULL)return;
 
   HINTERNET M_session = InternetConnect(M_connexion, "www.virustotal.com",443,"","",INTERNET_SERVICE_HTTP,0,0);
@@ -197,8 +201,10 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
   InternetCloseHandle(M_connexion);
 }
 //------------------------------------------------------------------------------
-void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items)
+BOOL CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items)
 {
+  BOOL ret = FALSE;
+
   //init
   VIRUSTOTAL_STR vts;
   vts.token[0]              = 0;
@@ -214,12 +220,22 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   //if (vts.sha256[0] == 0 || (check && (tmp[0] != 0)/* || tmp[0] == 'R' || (tmp[0] == 'U' && tmp[7] == 'R')))*/)return;
   if (vts.sha256[0] == 0 || (check && (tmp[0] != 0 && tmp[0] != 'R' && tmp[0] != 'U')))return;
 
-  //lecture du token
-  if (token == NULL)GetCSRFToken(&vts);
-  else strncpy(vts.token,token,MAX_PATH);
+  if (token != NULL)
+  {
+    if (token[0] != 0)strcpy(vts.token,token);
+    else
+    {
+      GetCSRFToken(&vts);
+      if (vts.token[0] != 0)
+        strcpy(token,vts.token);
+    }
+  }else GetCSRFToken(&vts);
 
-  //test du hash
-  GetSHA256Info(&vts);
+  if (vts.token[0] != 0)
+  {
+    //test du hash
+    GetSHA256Info(&vts);
+  }
 
   //résultats
   char resultats[MAX_LINE_SIZE];
@@ -228,6 +244,7 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
     case -1:strcpy(resultats,"Connection error");vt_error++;break;
     case -2:strcpy(resultats,"Unkown datas");break;
     case 0:
+      ret = TRUE;
       if (vts.last_analysis_date[0] != 0 && vts.detection_ratio[0] != 0)
       {
         snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
@@ -238,6 +255,7 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
       }else snprintf(resultats,MAX_LINE_SIZE,"Unknow");
     break;
     case 1:
+      ret = TRUE;
       snprintf(resultats,MAX_LINE_SIZE,"Ratio : %s (Last analysis : %s) Url : https://www.virustotal.com/file/%s/analysis/",vts.detection_ratio,vts.last_analysis_date,vts.sha256);
       UpdateDataBaseWithVirusTotal(vts.sha256, resultats);
     break;
@@ -245,6 +263,7 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   ListView_SetItemText(hlv,item,colum_sav,resultats);//owner
 
   //check all others files identical
+  // too slow
   /*if (check_all_lv_items)
   {
     DWORD i, nb_items = SendMessage(hlv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);
@@ -262,6 +281,7 @@ void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
       }
     }
   }*/
+  return ret;
 }
 //------------------------------------------------------------------------------
 typedef struct
@@ -269,6 +289,7 @@ typedef struct
   DWORD id;
   HANDLE hlv;
   char token[MAX_PATH];
+  DWORD error;
 }ST_VIRUSTOTAL;
 HANDLE hSemaphore, hSemaphoreItem;
 
@@ -278,10 +299,14 @@ DWORD WINAPI TCheckFileToVirusTotal(LPVOID lParam)
   ST_VIRUSTOTAL *s = (ST_VIRUSTOTAL *)lParam;
   DWORD item = s->id;
   HANDLE hlv = s->hlv;
-  char token[MAX_PATH];
-  strncpy(token,s->token,MAX_PATH);
   ReleaseSemaphore(hSemaphoreItem,1,NULL);
-  CheckItemToVirusTotal(hlv, item, COLUMN_SHA256, COLUMN_VIRUSTOTAL,token,TRUE, TRUE);
+  if (s->error >= MAX_VST_ERROR)
+  {
+    s->token[0] = 0;
+    s->error = 0;
+  }
+
+  s->error = s->error + CheckItemToVirusTotal(hlv, item, COLUMN_SHA256, COLUMN_VIRUSTOTAL,(char*)(s->token),TRUE, TRUE);
   ReleaseSemaphore(hSemaphore,1,NULL);
   return 0;
 }
@@ -291,10 +316,16 @@ DWORD WINAPI TCheckFileToVirusTotalProcess(LPVOID lParam)
   ST_VIRUSTOTAL *s = (ST_VIRUSTOTAL *)lParam;
   DWORD item = s->id;
   HANDLE hlv = s->hlv;
-  char token[MAX_PATH];
-  strncpy(token,s->token,MAX_PATH);
+  //char token[MAX_PATH];
+  //strncpy(token,s->token,MAX_PATH);
   ReleaseSemaphore(hSemaphoreItem,1,NULL);
-  CheckItemToVirusTotal(hlv, item, 18, 18,token,FALSE, FALSE);
+  if (s->error >= MAX_VST_ERROR)
+  {
+    s->token[0] = 0;
+    s->error = 0;
+  }
+
+  s->error = s->error + CheckItemToVirusTotal(hlv, item, 18, 18,(char*)(s->token),FALSE, FALSE);
   ReleaseSemaphore(hSemaphore,1,NULL);
   return 0;
 }
@@ -302,36 +333,50 @@ DWORD WINAPI TCheckFileToVirusTotalProcess(LPVOID lParam)
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
 {
   //init semaphore
-  ST_VIRUSTOTAL sv;
-  sv.hlv = hlstv;
+  #define MAX_THREADS_CK_VT 10
+  ST_VIRUSTOTAL sv[MAX_THREADS_CK_VT];
+
   vt_error = 0;
   //Ratio : 0, 43 (Last analysis : UKtF/RH/IW-VLofR_62) Url : https://www.virustotal.com/file/2842973d15a14323e08598be1dfb87e54bf88a76be8c7bc94c56b079446edf38/analysis/
-  hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS,NB_VIRUTOTAL_THREADS,NULL);
+  hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS*MAX_THREADS_CK_VT,NB_VIRUTOTAL_THREADS*MAX_THREADS_CK_VT,NULL);
+
   hSemaphoreItem=CreateSemaphore(NULL,1,1,NULL);
+
+  char msg[MAX_PATH];
+  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"Loading key for VirusTotal check...");
 
   //la gestion du nombre en lecture continue permet d'effectuer un scan pendant l'énumération
   //et de gérer la suppression d'items
-  DWORD i;
-	sv.token[0] = 0;
-  for (i=0;i<SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);i++)
+  DWORD i, j;
+  for (j=0;j<MAX_THREADS_CK_VT;j++)
+  {
+    sv[j].hlv      = hlstv;
+    sv[j].token[0] = 0;
+    sv[j].error    = 0;
+  }
+
+  char s_sha[MAX_PATH]="";
+  for (i=0,j=0;i<SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);i++)
   {
     WaitForSingleObject(hSemaphore,INFINITE);
     WaitForSingleObject(hSemaphoreItem,INFINITE);
-    sv.id = i;
 
-    char s_sha[MAX_PATH]="";
-    ListView_GetItemText(hlstv_process,i,18,s_sha,MAX_PATH);
-    if (s_sha[0] != 0 && s_sha[0] != 'U' && s_sha[0] != 'R')
+    if ((i%NB_VIRUTOTAL_THREADS) == 0)
     {
-      //connexion error or bad token!!
-      if (vt_error >= NB_VIRUTOTAL_ERROR_MAX)
-      {
-        sv.token[0] = 0;
-        vt_error=0;
-      }
+      j++;
+      if (j>=MAX_THREADS_CK_VT)j=0;
+    }
 
-      //if (i%NB_VIRUTOTAL_THREADS_REF == 0)sv.token[0] = 0;
-      CreateThread(NULL,0,TCheckFileToVirusTotal,&sv,0,0);
+    sv[j].id = i;
+
+    s_sha[0] = 0;
+    ListView_GetItemText(hlstv,i,18,s_sha,MAX_PATH);
+    if (s_sha[0] != 'U' && s_sha[0] != 'R')
+    {
+      snprintf(msg,MAX_PATH,"Load Item %d/%d (%d/%d) for VirusTotal check...",i,SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0),j,MAX_THREADS_CK_VT);
+      SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)msg);
+
+      CreateThread(NULL,0,TCheckFileToVirusTotal,&(sv[j]),0,0);
     }else
     {
       ReleaseSemaphore(hSemaphoreItem,1,NULL);
@@ -340,7 +385,7 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
   }
 
   unsigned int a;
-  for (a=0;a<NB_VIRUTOTAL_THREADS;a++)WaitForSingleObject(hSemaphore,INFINITE);
+  for (a=0;a<NB_VIRUTOTAL_THREADS*MAX_THREADS_CK_VT;a++)WaitForSingleObject(hSemaphore,INFINITE);
   CloseHandle(hSemaphore);
   CloseHandle(hSemaphoreItem);
 

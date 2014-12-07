@@ -495,8 +495,8 @@ BOOL SELECT_SESSION, SELECT_TEST;
 BOOL AVIRUSTTAL,VIRUSTTAL;
 HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
 
-#define NB_VIRUTOTAL_THREADS_REF                  8
-#define NB_VIRUTOTAL_THREADS                      NB_VIRUTOTAL_THREADS_REF//100
+#define NB_VIRUTOTAL_THREADS_REF                  5//8
+#define NB_VIRUTOTAL_THREADS                      NB_VIRUTOTAL_THREADS_REF
 #define NB_VIRUTOTAL_ERROR_MAX                    5
 #define COLUMN_SHA256                            17
 #define COLUMN_PATH                               0
@@ -1258,7 +1258,7 @@ void InitDlgRegfile();
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);
 DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam);
 DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
-void CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items);
+BOOL CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items);
 
 //DNS malware
 void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size);
