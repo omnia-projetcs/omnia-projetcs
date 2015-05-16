@@ -241,29 +241,30 @@ BOOL BackupRegistryKey(HKEY hkey, char *key_path, char*pathtosave, char *file, c
   return ret;
 }
 //----------------------------------------------------------------
-BOOL BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
+int BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
 {
   HKEY hkey_tmp;
-  BOOL ret = FALSE;
-  char msg[LINE_SIZE];
+  int ret = -1;
+  char msg[LINE_SIZE], tmp_line[MAX_LINE_SIZE],tmp[MAX_PATH];
 
   if (RegOpenKey(hkey,ckey,&hkey_tmp)==ERROR_SUCCESS)
   {
     DWORD i, nbSubKey = 0, copiee=0;
     if (RegQueryInfoKey (hkey_tmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
+      ret = 0;
+      FILETIME LastWriteTime;
+      SYSTEMTIME SysTime;
+      char key[MAX_PATH],key_path[MAX_PATH];
+      DWORD d_tmp;
+      DWORD key_size;
+      char lastupdate[MAX_PATH], name[MAX_PATH], path[MAX_PATH], state[MAX_PATH], type[MAX_PATH], description[MAX_PATH];
+
       HANDLE hfile = CreateFile(fileToSave, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
       if (hfile != INVALID_HANDLE_VALUE)
       {
         char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<NS>\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
-
-        FILETIME LastWriteTime;
-        SYSTEMTIME SysTime;
-        char key[MAX_PATH],key_path[MAX_PATH], tmp_line[MAX_LINE_SIZE];
-        DWORD d_tmp;
-        DWORD key_size;
-        char lastupdate[MAX_PATH], name[MAX_PATH], path[MAX_PATH], state[MAX_PATH], type[MAX_PATH], description[MAX_PATH];
 
         for (i=0;i<nbSubKey && scan_start;i++)
         {
@@ -271,7 +272,7 @@ BOOL BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD ii
           key[0]    = 0;
           if (RegEnumKeyEx (hkey_tmp,i,key,&key_size,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
           {
-            ret = TRUE;
+            ret++;
             name[0]       = 0;
             path[0]       = 0;
             description[0]= 0;
@@ -304,36 +305,40 @@ BOOL BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD ii
               ReadValue(hkey,key_path,"Group",description, MAX_PATH);
 
             d_tmp = 0;
-            ReadValue(hkey,key_path,"Start",&d_tmp, sizeof(d_tmp));
-            switch(d_tmp)
+            if (ReadValue(hkey,key_path,"Start",&d_tmp, sizeof(d_tmp)) != 0)
             {
-              case 0: strcpy(state,"Kernel module");break;
-              case 1: strcpy(state,"Start by system");break;
-              case 2: strcpy(state,"Automatic start ");break;
-              case 3: strcpy(state,"Manual start ");break;
-              case 4: strcpy(state,"Disable");break;
-              default:strcpy(state,"Unknow");break;
+              switch(d_tmp)
+              {
+                case 0: strcpy(state,"Start in Boot");break;
+                case 1: strcpy(state,"Start by system");break;
+                case 2: strcpy(state,"Automatic start ");break;
+                case 3: strcpy(state,"Manual start ");break;
+                case 4: strcpy(state,"Disable");break;
+                default:strcpy(state,"Unknow");break;
+              }
             }
 
             d_tmp = 0;
-            ReadValue(hkey,key_path,"Type",&d_tmp, sizeof(d_tmp));
-            if (d_tmp == 1)strcpy(type,"Service");
-            else strcpy(type,"Driver");
+            if (ReadValue(hkey,key_path,"Type",&d_tmp, sizeof(d_tmp)) != 0)
+            {
+              if (d_tmp == 1)strcpy(type,"Service");
+              else strcpy(type,"Driver");
+            }
 
             snprintf(tmp_line,MAX_LINE_SIZE,
                      " <Data>\r\n"
-                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]><Key/>\r\n"
-                     "  <Name><![CDATA[%s]]><Name/>\r\n"
-                     "  <Command><![CDATA[%s]]><Command/>\r\n"
-                     "  <LastKeyUpdate><![CDATA[%s]]><LastKeyUpdate/>\r\n"
-                     "  <State><![CDATA[%s]]><State/>\r\n"
-                     "  <Type><![CDATA[%s]]><Type/>\r\n"
-                     "  <Description><![CDATA[%s]]><Description/>\r\n"
-                     " <Data/>\r\n"
+                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]></Key>\r\n"
+                     "  <Name><![CDATA[%s]]></Name>\r\n"
+                     "  <Command><![CDATA[%s]]></Command>\r\n"
+                     "  <LastKeyUpdate><![CDATA[%s]]></LastKeyUpdate>\r\n"
+                     "  <State><![CDATA[%s]]></State>\r\n"
+                     "  <Type><![CDATA[%s]]></Type>\r\n"
+                     "  <Description><![CDATA[%s]]></Description>\r\n"
+                     " </Data>\r\n"
                      ,ip,key_path,name,path,lastupdate,state,type,description);
             WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
 
-            snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s",ip,key_path,path);
+            snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s (State:%s)",ip,key_path,path,state);
             AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
             AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
           }
@@ -343,13 +348,83 @@ BOOL BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD ii
       }
     }
     RegCloseKey(hkey_tmp);
+  }else
+  {
+    //Netbios_List_service(iitem, ip, TRUE);
+    SC_HANDLE hm = OpenSCManager(ip, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ENUMERATE_SERVICE|SC_MANAGER_CONNECT);
+    if (hm != NULL)
+    {
+      ENUM_SERVICE_STATUS service_data, *lpservice = NULL;
+      DWORD bytesNeeded,srvCount=0,resumeHandle = 0;
+
+      BOOL retVal = EnumServicesStatus(hm,SERVICE_WIN32|SERVICE_DRIVER,SERVICE_STATE_ALL,&service_data,sizeof(service_data),&bytesNeeded,&srvCount,&resumeHandle);
+      DWORD i, err = GetLastError();
+
+      //Check if EnumServicesStatus needs more memory space
+      if ((retVal == FALSE) || err == ERROR_MORE_DATA)
+      {
+        DWORD dwBytes = bytesNeeded + sizeof(ENUM_SERVICE_STATUS)+1;
+
+        lpservice = (ENUM_SERVICE_STATUS*) malloc(dwBytes);
+        if (lpservice != NULL)
+        {
+          if(EnumServicesStatus (hm,SERVICE_WIN32,SERVICE_STATE_ALL,lpservice,dwBytes,&bytesNeeded,&srvCount,&resumeHandle)==FALSE)
+            srvCount = 0;
+        }
+      }
+
+      if (srvCount)
+      {
+        ret = 0;
+        DWORD copiee=0;
+        HANDLE hfile = CreateFile(fileToSave, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+        if (hfile != INVALID_HANDLE_VALUE)
+        {
+          char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<NS>\r\n";
+          WriteFile(hfile,head,strlen(head),&copiee,0);
+
+          for(i=0;i<srvCount && scan_start;i++)
+          {
+            ret++;
+            switch(lpservice[i].ServiceStatus.dwCurrentState)
+            {
+              case SERVICE_CONTINUE_PENDING:  snprintf(tmp,MAX_PATH,"CONTINUE_PENDING");break;
+              case SERVICE_START_PENDING:     snprintf(tmp,MAX_PATH,"START_PENDING");break;
+              case SERVICE_RUNNING:           snprintf(tmp,MAX_PATH,"RUNNING");break;
+              case SERVICE_PAUSE_PENDING:     snprintf(tmp,MAX_PATH,"PAUSE_PENDING");break;
+              case SERVICE_PAUSED:            snprintf(tmp,MAX_PATH,"PAUSED");break;
+              case SERVICE_STOP_PENDING:      snprintf(tmp,MAX_PATH,"STOP_PENDING");break;
+              case SERVICE_STOPPED:           snprintf(tmp,MAX_PATH,"STOPPED");break;
+              default:                        snprintf(tmp,MAX_PATH,"UNKNOW");break;
+            }
+
+            snprintf(tmp_line,MAX_LINE_SIZE,
+            " <Data>\r\n"
+            "  <Ip><![CDATA[%s]]></Ip>\r\n"
+            "  <Name><![CDATA[%s]]></Name>\r\n"
+            "  <Description><![CDATA[%s]]></Description>\r\n"
+            "  <State><![CDATA[%s]]></State>\r\n"
+            " </Data>\r\n"
+            ,ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName,tmp);
+            WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
+
+            snprintf(tmp_line,MAX_LINE_SIZE,"%s %s (%s;State:%s)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName,tmp);
+            AddMsg(h_main,(char*)"FOUND (Service)",tmp_line,"");
+            AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
+          }
+          WriteFile(hfile,"</NS>",5,&copiee,0);
+          CloseHandle(hfile);
+        }
+      }
+      CloseServiceHandle(hm);
+    }
   }
   return ret;
 }//----------------------------------------------------------------
-BOOL BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
+int BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
 {
   HKEY hkey_tmp;
-  BOOL ret = FALSE;
+  int ret = -1;
   char msg[LINE_SIZE];
 
   if (RegOpenKey(hkey,ckey,&hkey_tmp)==ERROR_SUCCESS)
@@ -357,6 +432,7 @@ BOOL BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD i
     DWORD i, nbSubKey = 0, copiee=0;
     if (RegQueryInfoKey (hkey_tmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
+      ret = 0;
       HANDLE hfile = CreateFile(fileToSave, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
       if (hfile != INVALID_HANDLE_VALUE)
       {
@@ -375,7 +451,7 @@ BOOL BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD i
           key[0]    = 0;
           if (RegEnumKeyEx (hkey_tmp,i,key,&key_size,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
           {
-            ret = TRUE;
+            ret++;
             name[0]       = 0;
             path[0]       = 0;
             location[0]   = 0;
@@ -424,12 +500,12 @@ BOOL BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD i
 
             snprintf(tmp_line,MAX_LINE_SIZE,
                      " <Data>\r\n"
-                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]><Key/>\r\n"
-                     "  <Name><![CDATA[%s]]><Name/>\r\n"
-                     "  <Publisher><![CDATA[%s]]><Publisher/>\r\n"
-                     "  <LastKeyUpdate><![CDATA[%s]]><LastKeyUpdate/>\r\n"
-                     "  <Location><![CDATA[%s]]><Location/>\r\n"
-                     " <Data/>\r\n"
+                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]></Key>\r\n"
+                     "  <Name><![CDATA[%s]]></Name>\r\n"
+                     "  <Publisher><![CDATA[%s]]></Publisher>\r\n"
+                     "  <LastKeyUpdate><![CDATA[%s]]></LastKeyUpdate>\r\n"
+                     "  <Location><![CDATA[%s]]></Location>\r\n"
+                     " </Data>\r\n"
                      ,ip,key_path,name,path,lastupdate,location);
             WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
           }
@@ -443,10 +519,10 @@ BOOL BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD i
   return ret;
 }
 //----------------------------------------------------------------
-BOOL BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
+int BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
 {
   HKEY hkey_tmp, CleTmp2;
-  BOOL ret = FALSE;
+  int ret = -1;
   char msg[LINE_SIZE];
 
   if (RegOpenKey(hkey,ckey,&hkey_tmp)==ERROR_SUCCESS)
@@ -454,6 +530,7 @@ BOOL BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
     DWORD i,j, nbSubKey = 0, nbSubKey2, copiee=0;
     if (RegQueryInfoKey (hkey_tmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
+      ret = 0;
       HANDLE hfile = CreateFile(fileToSave, GENERIC_WRITE, FILE_SHARE_WRITE, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
       if (hfile != INVALID_HANDLE_VALUE)
       {
@@ -471,7 +548,7 @@ BOOL BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
           key[0]    = 0;
           if (RegEnumKeyEx (hkey_tmp,i,key,&key_size,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
           {
-            ret = TRUE;
+            ret++;
             snprintf(key_tmp_path,MAX_PATH,"%s%s\\",ckey,key);
             if (RegOpenKey(hkey,key_tmp_path,&CleTmp2)!=ERROR_SUCCESS)continue;
 
@@ -493,10 +570,10 @@ BOOL BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
 
                     snprintf(tmp_line,MAX_LINE_SIZE,
                      " <Data>\r\n"
-                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]><Key/>\r\n"
-                     "  <Name><![CDATA[%s]]><Name/>\r\n"
-                     "  <LastKeyUpdateUTC><![CDATA[%02d/%02d/%02d-%02d:%02d:%02d]]><LastKeyUpdateUTC/>\r\n"
-                     " <Data/>\r\n"
+                     "  <Key><![CDATA[%s\\HKEY_LOCAL_MACHINE\\%s]]></Key>\r\n"
+                     "  <Name><![CDATA[%s]]></Name>\r\n"
+                     "  <LastKeyUpdateUTC><![CDATA[%02d/%02d/%02d-%02d:%02d:%02d]]></LastKeyUpdateUTC>\r\n"
+                     " </Data>\r\n"
                      ,ip,key_path,key2,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
                     WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
 
@@ -1366,6 +1443,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           {
             exist = TRUE;
             iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+            AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
           }
         }else
         {
@@ -1422,6 +1500,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         {
           if (!exist)
           {
+            AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
             if (auto_scan_config.DNS_DISCOVERY)
             {
               iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1478,7 +1557,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           hs_c_file++;
           //LeaveCriticalSection(&Sync_threads);
 
-          RemoteFilesExtract(iitem, ip, index, &config, path_to_save, CB_T_FILES);
+          RemoteFilesExtract(iitem, ip, index, &config, path_to_save, CB_T_MULFILES);
           //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_file,1,NULL);
           hs_c_file--;
@@ -1520,6 +1599,34 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   ReleaseSemaphore(hs_threads,1,NULL);
   hs_c_threads--;
   //LeaveCriticalSection(&Sync_threads_end);
+
+  if (exist)
+  {
+    //check if Computer OK
+    ttl_s[0] = 0;
+    ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,ttl_s,MAX_PATH);
+    if (ttl_s != 0)
+    {
+      if (!strcmp(ttl_s, "Firewall"))
+      {
+        //check all datas if no data proved : Firewall?
+        ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_s,MAX_PATH);
+        if (ttl_s[0] == 0)
+        {
+          ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_CONFIG,ttl_s,MAX_PATH);
+          if (ttl_s[0] == 0)
+          {
+            ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SSH,ttl_s,MAX_PATH);
+            if (ttl_s[0] == 0 || !strcmp(ttl_s,"NOT TESTED! (port 22/TCP not open)"))
+            {
+              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,(LPSTR)"FW?");
+              nb_unknow++;
+            }
+          }
+        }
+      }
+    }
+  }
 
   //tracking
   if (scan_start)
@@ -1590,28 +1697,24 @@ DWORD WINAPI remote_extract(LPVOID lParam)
   }
 
   //get configuration
-  unsigned int ref  = 0;
+  config.disco_icmp           = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_ICMP,(LPARAM)NULL);
+  config.disco_dns            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_DNS,(LPARAM)NULL);
 
-  config.disco_icmp           = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.disco_dns            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  ref+=3;
-  config.check_files          = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.check_registry       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.check_services       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.check_software       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.check_USB            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-  config.check_ssh            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)ref++,(LPARAM)NULL);
-
-  if (config.check_files)   config.check_files    = (BOOL)load_file_list(CB_T_FILES,(char*)DEFAULT_LIST_FILES);
+  config.check_files          = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_FILES,(LPARAM)NULL);
+  config.check_registry       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_REGISTRY,(LPARAM)NULL);
+  config.check_services       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_SERVICES,(LPARAM)NULL);
+  config.check_software       = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_SOFTWARE,(LPARAM)NULL);
+  config.check_USB            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_USB,(LPARAM)NULL);
+  config.check_ssh            = SendDlgItemMessage(h_main,CB_tests,LB_GETSEL,(WPARAM)CHK_TEST_SSH,(LPARAM)NULL);
 
   //load files
   if (config.check_files)
   {
-    config.check_files    = (BOOL)load_file_list(CB_T_FILES,     (char*)DEFAULT_LIST_FILES);
-    config.check_files    += (BOOL)load_file_list(CB_T_MULFILES, (char*)DEFAULT_LIST_MULFILES);
+    config.check_files    = (BOOL)load_file_list(CB_T_MULFILES,     (char*)DEFAULT_LIST_FILES, TRUE);
+    config.check_files    += (BOOL)load_file_list(CB_T_MULFILES, (char*)DEFAULT_LIST_MULFILES, FALSE);
   }
 
-  if (config.check_ssh)     config.check_ssh      = (BOOL)load_file_list(CB_T_SSH,   (char*)DEFAULT_LIST_SSH);
+  if (config.check_ssh)     config.check_ssh      = (BOOL)load_file_list(CB_T_SSH,   (char*)DEFAULT_LIST_SSH, TRUE);
 
   //where save the datas ?
   if (GetPathToSAve(path_to_save))
@@ -1629,6 +1732,7 @@ DWORD WINAPI remote_extract(LPVOID lParam)
     WSADATA WSAData;
     WSAStartup(0x02, &WSAData );
     nb_test_ip = 0;
+    nb_unknow  = 0;
 
     nb_i = SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
 
@@ -1691,6 +1795,8 @@ DWORD WINAPI remote_extract(LPVOID lParam)
 
   AddMsg(h_main,(char*)"INFORMATION",(char*)"End of remote extract!",(char*)"");
   snprintf(tmp,MAX_PATH,"Ip view:%lu/%lu in %lu.%lu minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  snprintf(tmp,MAX_PATH,"Computer Unknow (valide?):%lu/%lu",nb_unknow,nb_i);
   AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
 
   //autosave

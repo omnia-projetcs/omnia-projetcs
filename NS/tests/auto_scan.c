@@ -10,6 +10,16 @@ char* GetLocalPath(char *path, unsigned int sizeMax)
   char *c = path+GetModuleFileName(0, path,sizeMax);
   while(*c != '\\') c--;
   *c = 0;
+
+  /*
+  char tmp[MAX_PATH]="";
+  snprintf(tmp,MAX_PATH,"%s",GetCommandLine()+1);
+  c = tmp+strlen(tmp)-2; //bypass "
+  while(*c != '\\') c--;
+  *c = 0;
+  AddMsg(h_main, (char*)"DEBUG (actual->future)",path,tmp);
+  */
+
   return path;
 }
 //----------------------------------------------------------------
@@ -502,7 +512,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
             snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
           }
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (File0)",ip,msg);
+          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
           FindClose(hfic);
         }
       }
@@ -572,6 +582,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         {
           exist = TRUE;
           iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+          AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
         }
       }else
       {
@@ -631,6 +642,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       {
         if (!exist)
         {
+          AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
           if (auto_scan_config.DNS_DISCOVERY)
           {
             iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -693,8 +705,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
           if (auto_scan_config.REVERS_SID)
           {
-            cfg[0] = 0;
-            CheckReversSID(ip, cfg, MAX_LINE_SIZE);
+            //cfg[0] = 0;
+            //CheckReversSID(ip, cfg, MAX_LINE_SIZE);
+            Netbios_List_users_reversSID(iitem, ip, TRUE, cfg, MAX_LINE_SIZE);
 
             if (cfg[0] != 0)
             {
@@ -798,6 +811,8 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
               }
             }
+
+            if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.login, config.password);
           }
         }else if(config.global_ip_file)
         {
@@ -817,6 +832,8 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
                 ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,tmp_os);
               }
             }
+
+            if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[index].login, config.accounts[index].password);
           }
         }else
         {
@@ -825,7 +842,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           BOOL first_msg = TRUE;
           BOOL msg_auth  = TRUE;
           char msg[MAX_LINE_SIZE];
-          for (j=0;j<config.nb_accounts;j++)
+          for (j=0;j<config.nb_accounts&& scan_start;j++)
           {
             //OS rescue
             tmp_os[0] = 0;
@@ -849,6 +866,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
                   break;
                 }
               }
+              if (config.check_ssh)ssh_exec(iitem, ip, SSH_DEFAULT_PORT, config.accounts[j].login, config.accounts[j].password);
             }
             first_msg = FALSE;
           }
@@ -866,6 +884,34 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   ReleaseSemaphore(hs_threads,1,NULL);
   hs_c_threads--;
   //LeaveCriticalSection(&Sync_threads_end);
+
+  if (exist)
+  {
+    //check if Computer OK
+    ttl_s[0] = 0;
+    ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,ttl_s,MAX_PATH);
+    if (ttl_s != 0)
+    {
+      if (!strcmp(ttl_s, "Firewall"))
+      {
+        //check all datas if no data proved : Firewall?
+        ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_TTL,ttl_s,MAX_PATH);
+        if (ttl_s[0] == 0)
+        {
+          ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_CONFIG,ttl_s,MAX_PATH);
+          if (ttl_s[0] == 0)
+          {
+            ListView_GetItemText(GetDlgItem(h_main,LV_results),iitem,COL_SSH,ttl_s,MAX_PATH);
+            if (ttl_s[0] == 0 || !strcmp(ttl_s,"NOT TESTED! (port 22/TCP not open)"))
+            {
+              ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_OS,(LPSTR)"FW?");
+              nb_unknow++;
+            }
+          }
+        }
+      }
+    }
+  }
 
   //tracking
   if (scan_start)
@@ -895,9 +941,23 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","DNS_DISCOVERY","",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')auto_scan_config.DNS_DISCOVERY = TRUE;
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.DNS_DISCOVERY = TRUE;
     else auto_scan_config.DNS_DISCOVERY = FALSE;
   }else auto_scan_config.DNS_DISCOVERY = TRUE;
+
+  //disable extract of hash
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","NO_HASH_CHECK","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')config.no_hash_check = TRUE;
+  }else config.no_hash_check = FALSE;
+
+  //no GUI
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","NO_GUI","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.NO_GUI = TRUE;
+  }else auto_scan_config.NO_GUI = FALSE;
 
   //LOG
   tmp_check[0] = 0;
@@ -911,7 +971,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SAVE","CSV","",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
     {
       auto_scan_config.save_CSV = TRUE;
     }else auto_scan_config.save_CSV = FALSE;
@@ -921,7 +981,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SAVE","XML","",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
     {
       auto_scan_config.save_XML = TRUE;
     }
@@ -931,12 +991,102 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SAVE","HTML","",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
     {
       auto_scan_config.save_HTML = TRUE;
     }
     else auto_scan_config.save_HTML = FALSE;
   }else auto_scan_config.save_HTML = FALSE;
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SAVE","AUTO_CLOSE_AFTER_SAVE","NO",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
+    {
+      auto_scan_config.auto_close_after_save = TRUE;
+    }else auto_scan_config.auto_close_after_save = FALSE;
+  }else auto_scan_config.auto_close_after_save = FALSE;
+
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("CHECK","REVERS_SID","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
+    {
+      auto_scan_config.REVERS_SID = TRUE;
+      config.config_revers_SID    = TRUE;
+    }else
+    {
+      auto_scan_config.REVERS_SID = FALSE;
+      config.config_revers_SID    = FALSE;
+    }
+  }else
+  {
+    auto_scan_config.REVERS_SID = FALSE;
+    config.config_revers_SID    = FALSE;
+  }
+  tmp_check[0] = 0;
+  config.disco_netbios_users  = FALSE;
+  if(GetPrivateProfileString("CHECK","DISCO_NETBIOS_USERS","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
+    {
+      config.disco_netbios_users  = TRUE;
+    }
+  }
+  tmp_check[0] = 0;
+  config.disco_users  = FALSE;
+  if(GetPrivateProfileString("CHECK","DISCO_USERS","",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
+    {
+      config.disco_users  = TRUE;
+    }
+  }
+
+  //global threads vars
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_THREADS","400",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_THREAD = atol(tmp_check);
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_DISCO","400",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_DISCO_THREADS = atol(tmp_check);
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_TCP_SCAN","100",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_TCP_TEST_THREADS = atol(tmp_check);
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_NETBIOS","10",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_NETBIOS_THREADS = atol(tmp_check);
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_FILES","5",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_FILE_THREADS = atol(tmp_check);
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_REGISTRY","5",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_REGISTRY_THREADS = atol(tmp_check);
+  }
+
+  /*tmp_check[0] = 0;
+  if(GetPrivateProfileString("THREAD","NB_MAX_TH_SSH","1",tmp_check,LINE_SIZE,ini_path))
+  {
+    NB_MAX_SSH_THREADS = atol(tmp_check);
+  }*/
+  NB_MAX_SSH_THREADS      = 1;
 
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","TYPE","",tmp_check,LINE_SIZE,ini_path))
@@ -953,67 +1103,73 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_ICMP","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)0);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_ICMP);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_DNS","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)1);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_DNS);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_NETBIOS","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)2);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_NETBIOS_POLICY","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)3);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS_POLICY);
+      }
+
+      tmp_check[0] = 0;
+      if(GetPrivateProfileString("SCAN","DISCO_NETBIOS_USERS","",tmp_check,LINE_SIZE,ini_path))
+      {
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS_USERS);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_FILES","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)5);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_FILES);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_REGISTRY","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)6);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_REGISTRY);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_SERVICES","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)7);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SERVICES);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_SOFTWARE","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)8);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SOFTWARE);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_USB","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)9);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_USB);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_CHECK_SSH","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)10);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SSH);
       }
 
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_WRITE_KEY","",tmp_check,LINE_SIZE,ini_path))
       {
-        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)12);
+        if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_WRITE_KEY);
       }
       EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
       scan_start = FALSE;
@@ -1055,73 +1211,80 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (tmp_check[0] == 'A' || tmp_check[0] == 'a') //AUTO mode
       {
 
+
       }else if (tmp_check[0] == 'S' || tmp_check[0] == 's') //SIMPLE mode
       {
         //check test if enable !!
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_ICMP","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)0);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_ICMP);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_DNS","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)1);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_DNS);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_NETBIOS","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)2);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_NETBIOS_POLICY","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)3);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS_POLICY);
+        }
+
+        tmp_check[0] = 0;
+        if(GetPrivateProfileString("SCAN","DISCO_NETBIOS_USERS","",tmp_check,LINE_SIZE,ini_path))
+        {
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_NETBIOS_USERS);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_FILES","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)5);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_FILES);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_REGISTRY","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)6);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_REGISTRY);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_SERVICES","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)7);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SERVICES);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_SOFTWARE","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)8);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SOFTWARE);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_USB","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)9);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_USB);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_CHECK_SSH","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)10);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_SSH);
         }
 
         tmp_check[0] = 0;
         if(GetPrivateProfileString("SCAN","DISCO_WRITE_KEY","",tmp_check,LINE_SIZE,ini_path))
         {
-          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)12);
+          if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')SendDlgItemMessage(h_main,CB_tests,LB_SETSEL,(WPARAM)TRUE,(LPARAM)CHK_TEST_WRITE_KEY);
         }
 
         EnableWindow(GetDlgItem(h_main,ED_NET_DOMAIN),FALSE);
@@ -1173,54 +1336,64 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     config.disco_netbios_policy = TRUE;
     config.check_files          = TRUE;
     config.check_registry       = TRUE;
+    config.check_ssh            = FALSE;
 
     //CHECK
     tmp_check[0] = 0;
+    if(GetPrivateProfileString("CHECK","DISCO_CHECK_SSH","",tmp_check,LINE_SIZE,ini_path))
+    {
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
+      {
+        config.check_ssh      = (BOOL)load_file_list(CB_T_SSH,(char*)DEFAULT_LIST_SSH, TRUE);
+      }
+    }
+
+    tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","M_SEC","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.M_SEC = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.M_SEC = TRUE;
       else auto_scan_config.M_SEC = FALSE;
     }else auto_scan_config.M_SEC = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","PATCH_UPDATED","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.PATCH_UPDATED = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.PATCH_UPDATED = TRUE;
       else auto_scan_config.PATCH_UPDATED = FALSE;
     }else auto_scan_config.PATCH_UPDATED = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","WSUS_WORKS","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.WSUS_WORKS = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.WSUS_WORKS = TRUE;
       else auto_scan_config.WSUS_WORKS = FALSE;
     }else auto_scan_config.WSUS_WORKS = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","MCAFEE_INSTALLED","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.MCAFEE_INSTALLED = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.MCAFEE_INSTALLED = TRUE;
       else auto_scan_config.MCAFEE_INSTALLED = FALSE;
     }else auto_scan_config.MCAFEE_INSTALLED = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","MCAFEE_UPDATED","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.MCAFEE_UPDATED = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.MCAFEE_UPDATED = TRUE;
       else auto_scan_config.MCAFEE_UPDATED = FALSE;
     }else auto_scan_config.MCAFEE_UPDATED = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","MCAFEE_SCAN","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.MCAFEE_SCAN = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.MCAFEE_SCAN = TRUE;
       else auto_scan_config.MCAFEE_SCAN = FALSE;
     }else auto_scan_config.MCAFEE_SCAN = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","PASSWORD_POLICY","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.PASSWORD_POLICY = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.PASSWORD_POLICY = TRUE;
       else auto_scan_config.PASSWORD_POLICY = FALSE;
     }else auto_scan_config.PASSWORD_POLICY = FALSE;
 
@@ -1228,7 +1401,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     auto_scan_config.C_ADMIN_ACCOUNT[0] = 0;
     if(GetPrivateProfileString("CHECK","ADMIN_ACCOUNT","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')
       {
         auto_scan_config.ADMIN_ACCOUNT = TRUE;
         GetPrivateProfileString("CHECK_OPTIONS","ADMIN_ACCOUNT","",auto_scan_config.C_ADMIN_ACCOUNT,MAX_PATH,ini_path);
@@ -1241,28 +1414,21 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","NULL_SESSION","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.NULL_SESSION = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.NULL_SESSION = TRUE;
       else auto_scan_config.NULL_SESSION = FALSE;
     }else auto_scan_config.NULL_SESSION = FALSE;
 
     tmp_check[0] = 0;
-    if(GetPrivateProfileString("CHECK","REVERS_SID","",tmp_check,LINE_SIZE,ini_path))
-    {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.REVERS_SID = TRUE;
-      else auto_scan_config.REVERS_SID = FALSE;
-    }else auto_scan_config.REVERS_SID = FALSE;
-
-    tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","AUTORUN","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.AUTORUN = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.AUTORUN = TRUE;
       else auto_scan_config.AUTORUN = FALSE;
     }else auto_scan_config.AUTORUN = FALSE;
 
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK","SHARE_ACCESS","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.SHARE_ACCESS = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.SHARE_ACCESS = TRUE;
       else auto_scan_config.SHARE_ACCESS = FALSE;
     }else auto_scan_config.SHARE_ACCESS = FALSE;
 
@@ -1275,7 +1441,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     tmp_check[0] = 0;
     if(GetPrivateProfileString("CHECK_OPTIONS","PASSWORD_POLICY_COMPLEXITY_ENABLE","",tmp_check,LINE_SIZE,ini_path))
     {
-      if (tmp_check[0] == 'o' || tmp_check[0] == 'O')auto_scan_config.PASSWORD_POLICY_COMPLEXITY_ENABLE = TRUE;
+      if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.PASSWORD_POLICY_COMPLEXITY_ENABLE = TRUE;
       else auto_scan_config.PASSWORD_POLICY_COMPLEXITY_ENABLE = FALSE;
     }else auto_scan_config.PASSWORD_POLICY_COMPLEXITY_ENABLE = FALSE;
 
@@ -1345,6 +1511,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     WSADATA WSAData;
     WSAStartup(0x02, &WSAData );
     nb_test_ip = 0;
+    nb_unknow  = 0;
 
     if (nb_i == 1)
     {
@@ -1413,6 +1580,9 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
     snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS:%lu/%lu",nb_windows,nb_i);
     AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+    snprintf(tmp,MAX_PATH,"Computer Unknow (valide?):%lu/%lu",nb_unknow,nb_i);
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+
 
     //close
     CloseHandle(hs_threads);
@@ -1494,9 +1664,19 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     SetWindowText(GetDlgItem(h_main,BT_START),"Start");
     SetWindowText(h_main,TITLE);
     h_thread_scan = 0;
+
+    if (auto_scan_config.auto_close_after_save && save_done)
+    {
+      SendMessage(h_main, WM_CLOSE, 0, 0);
+    }
+
     return 0;
   }
 
   h_thread_scan = 0;
+  if (auto_scan_config.auto_close_after_save && save_done)
+  {
+    SendMessage(h_main, WM_CLOSE, 0, 0);
+  }
   return 0;
 }

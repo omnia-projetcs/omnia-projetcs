@@ -98,67 +98,114 @@ BOOL StartRemoteRegistryService(char *ip, BOOL start)
   return ret;
 }
 //----------------------------------------------------------------
+BOOL CheckServiceOpenSC(DWORD iitem, char *ip)
+{
+  BOOL ret = FALSE;
+
+  //Open RPC
+  SC_HANDLE hm = OpenSCManager(ip, NULL, GENERIC_READ|SERVICE_QUERY_CONFIG);
+  if (hm != NULL)
+  {
+    DWORD rd = 0, sz = 0;
+    SC_HANDLE hos;
+    QUERY_SERVICE_CONFIG *psc;
+    char state[MAX_PATH],msg[LINE_SIZE];
+
+    //get all service name to test one by one
+    char service_name[LINE_SIZE];
+    DWORD i, _nb_i = SendDlgItemMessage(h_main,CB_T_SERVICES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
+    for (i=0;i<_nb_i;i++)
+    {
+      if (SendDlgItemMessage(h_main,CB_T_SERVICES,LB_GETTEXTLEN,(WPARAM)i,(LPARAM)NULL) < LINE_SIZE)
+      {
+        if (SendDlgItemMessage(h_main,CB_T_SERVICES,LB_GETTEXT,(WPARAM)i,(LPARAM)service_name))
+        {
+          //Open the service
+          hos = OpenService(hm, service_name, GENERIC_READ|SERVICE_QUERY_CONFIG);
+          if(hos != NULL)
+          {
+            //get size for buffer
+            QueryServiceConfig(hos, NULL, 0, &sz);
+            if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+            {
+              if (sz > 0)
+              {
+                psc = malloc(sz+1);
+                if (psc != NULL)
+                {
+                  //get informations
+                  if (QueryServiceConfig(hos, psc, sz, &rd))
+                  {
+                    switch(psc->dwStartType)
+                    {
+                      case 0: strcpy(state,"Start in Boot");break;
+                      case 1: strcpy(state,"Start by system");break;
+                      case 2: strcpy(state,"Automatic start ");break;
+                      case 3: strcpy(state,"Manual start ");break;
+                      case 4: strcpy(state,"Disable");break;
+                      default:strcpy(state,"Unknow");break;
+                    }
+
+                    snprintf(msg,LINE_SIZE,"%s\\RPC\\ImagePath=%s (state:%s)",ip,psc->lpBinaryPathName,state);
+                    AddMsg(h_main,(char*)"FOUND (Service)",msg,service_name);
+                    AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
+                    ret = TRUE;
+                  }
+                  free(psc);
+                }
+              }
+            }
+            CloseServiceHandle(hos);
+          }
+        }
+      }
+    }
+    CloseServiceHandle(hm);
+  }
+
+  return ret;
+}
+//----------------------------------------------------------------
 DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size)
 {
   DWORD data_size_read = 0;
   HKEY CleTmp=0;
 
   //open key
-  if (RegOpenKey(hk,path,&CleTmp)!=ERROR_SUCCESS)return FALSE;
-
- // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegOpenKey)",path,(char*)value);
-/*
-  data_size_read = data_size;
-  long r = RegQueryValue(CleTmp,value,data,&data_size_read);
-  if (r!=ERROR_SUCCESS && r!=ERROR_MORE_DATA)
+  if (RegOpenKey(hk,path,&CleTmp)!=ERROR_SUCCESS)
   {
-    RegCloseKey(CleTmp);
+    //AddMsg(h_main,(char*)"DEBUG (Registry:ReadValue)",(char*)"Bad Key",(char*)"");
     return FALSE;
-  }*/
+  }
 
   //size of data
   long r = RegQueryValueEx(CleTmp, value, 0, 0, 0, &data_size_read);
   if (r!=ERROR_SUCCESS && r!=ERROR_MORE_DATA)
   {
     RegCloseKey(CleTmp);
+//    char tmp[MAX_PATH];
+//    snprintf(tmp,MAX_PATH,"%d/%d : r:%d, %s %s",data_size_read,data_size,r,path,value);
+//    AddMsg(h_main,(char*)"DEBUG (Registry:ReadValue)",(char*)"Bad Data size",(char*)tmp);
     return FALSE;
   }
-
-  //RegQueryValue(CleTmp,value,0,&data_size_read);
-/*
-      long re = 0;
-      DWORD data_sz = LINE_SIZE;
-      if (reg_st->data_dword)re = RegQueryValue(CleTmp,reg_st->value,&dw_datas,&data_sz);
-      else re = RegQueryValue(CleTmp,reg_st->value,ch_datas,&data_sz);
-
-      if (re == ERROR_SUCCESS || re == ERROR_MORE_DATA)
-      {
-      }else return;*/
-
-
-
- // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegQueryValueEx)",path,(char*)value);
 
   //alloc
   data_size_read = data_size_read+1;
   char *c = (char *)malloc(data_size_read);
   if (c == NULL)
   {
+    //AddMsg(h_main,(char*)"DEBUG (Registry:ReadValue)",(char*)"Bad malloc",(char*)"");
     RegCloseKey(CleTmp);
     return FALSE;
   }
-
- // AddMsg(h_main,(char*)"DEBUG (ReadValue:malloc)",path,(char*)value);
 
   //read value
   if (RegQueryValueEx(CleTmp, value, 0, 0, (LPBYTE)c, &data_size_read)!=ERROR_SUCCESS)
   {
+    //AddMsg(h_main,(char*)"DEBUG (Registry:ReadValue)",(char*)"Bad query value",(char*)"");
     RegCloseKey(CleTmp);
     return FALSE;
   }
-
-   // AddMsg(h_main,(char*)"DEBUG (ReadValue:RegQueryValueEx2)",path,(char*)value);
-
 
   if (data_size_read<data_size) memcpy(data,c,data_size_read);
   else memcpy(data,c,data_size);
@@ -196,7 +243,7 @@ BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write)
 
   //get data
   s = reg_st->data;
-  while (*s && *s != '\"' && *(s+1)!= ';')s++;
+  while (*s && *s != '\"' || *(s+1)!= ';')s++;
   if (*s != '\"')return FALSE;
 
   char tmp_format[LINE_SIZE];
@@ -511,16 +558,18 @@ void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users)
   }
 }
 //------------------------------------------------------------------------------
-void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
+int RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 {
   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Services");
   HKEY CleTmp;
+  int ok = -1;
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
-    DWORD i,nbSubKey = 0;
+    DWORD i,nbSubKey = 0, d_tmp = 0;
     if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
-      char key[LINE_SIZE],key_path[LINE_SIZE],name[LINE_SIZE],msg[LINE_SIZE],ImagePath[LINE_SIZE];
+      ok = 0;
+      char key[LINE_SIZE],key_path[LINE_SIZE],name[LINE_SIZE],msg[LINE_SIZE],ImagePath[LINE_SIZE],state[MAX_PATH];
       DWORD key_size;
 
       for (i=0;i<nbSubKey && scan_start;i++)
@@ -540,27 +589,57 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SERVICES, key))
             {
+              ok++;
+              state[0] = 0;
+              if(ReadValue(hkey,key_path,(char*)"Start",&d_tmp, sizeof(d_tmp))!= 0)
+              {
+                switch(d_tmp)
+                {
+                  case 0: strcpy(state,"Start in Boot");break;
+                  case 1: strcpy(state,"Start by system");break;
+                  case 2: strcpy(state,"Automatic start ");break;
+                  case 3: strcpy(state,"Manual start ");break;
+                  case 4: strcpy(state,"Disable");break;
+                  default:strcpy(state,"Unknow");break;
+                }
+              }
+
               if (ReadValue(hkey,key_path,(char*)"ImagePath",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s (state:%s)",ip,key_path,ImagePath,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (state:%s)",ip,key_path,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
             }else if (LSBExist(CB_T_SERVICES, name))
             {
+              ok++;
+              state[0] = 0;
+              if(ReadValue(hkey,key_path,(char*)"Start",&d_tmp, sizeof(d_tmp))!= 0)
+              {
+                switch(d_tmp)
+                {
+                  case 0: strcpy(state,"Start in Boot");break;
+                  case 1: strcpy(state,"Start by system");break;
+                  case 2: strcpy(state,"Automatic start ");break;
+                  case 3: strcpy(state,"Manual start ");break;
+                  case 4: strcpy(state,"Disable");break;
+                  default:strcpy(state,"Unknow");break;
+                }
+              }
+
               if (ReadValue(hkey,key_path,(char*)"ImagePath",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s (state:%s)",ip,key_path,ImagePath,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,name);
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (state:%s)",ip,key_path,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,name);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
@@ -569,14 +648,29 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SERVICES, key))
             {
+              state[0] = 0;
+              if(ReadValue(hkey,key_path,(char*)"Start",&d_tmp, sizeof(d_tmp))!= 0)
+              {
+                switch(d_tmp)
+                {
+                  case 0: strcpy(state,"Start in Boot");break;
+                  case 1: strcpy(state,"Start by system");break;
+                  case 2: strcpy(state,"Automatic start ");break;
+                  case 3: strcpy(state,"Manual start ");break;
+                  case 4: strcpy(state,"Disable");break;
+                  default:strcpy(state,"Unknow");break;
+                }
+              }
+
+              ok++;
               if (ReadValue(hkey,key_path,(char*)"ImagePath",ImagePath, LINE_SIZE) != 0)
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s",ip,key_path,ImagePath);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s (state:%s)",ip,key_path,ImagePath,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
               }else
               {
-                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path);
+                snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (state:%s)",ip,key_path,state);
                 AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
                 AddLSTVUpdateItem(key_path, COL_SERVICE, iitem);
               }
@@ -587,12 +681,14 @@ void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey)
     }
     RegCloseKey(CleTmp);
   }
+  return ok;
 }
 //----------------------------------------------------------------
-void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
+int RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 {
   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"Softwares");
   HKEY CleTmp;
+  int ok = -1;
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
     DWORD i,nbSubKey = 0;
@@ -603,6 +699,7 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
     {
       char key[LINE_SIZE],key_path[LINE_SIZE],name[LINE_SIZE],msg[LINE_SIZE],ImagePath[LINE_SIZE],lastWriteDate[MAX_PATH];
       DWORD key_size;
+      ok =0;
 
       for (i=0;i<nbSubKey && scan_start;i++)
       {
@@ -621,6 +718,7 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SOFTWARE, key))
             {
+              ok++;
               if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
                 snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
               else lastWriteDate[0] = 0;
@@ -648,6 +746,7 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
               }
             }else if (LSBExist(CB_T_SOFTWARE, name))
             {
+              ok++;
               if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
                 snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
               else lastWriteDate[0] = 0;
@@ -678,6 +777,7 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
           {
             if (LSBExist(CB_T_SOFTWARE, key))
             {
+              ok++;
               if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
                 snprintf(lastWriteDate,MAX_PATH," (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
               else lastWriteDate[0] = 0;
@@ -700,17 +800,88 @@ void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey)
     }
     RegCloseKey(CleTmp);
   }
+  return ok;
 }
 //----------------------------------------------------------------
-void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
+//V2
+int RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
 {
   ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"USB");
   HKEY CleTmp,CleTmp2;
+  int ok = -1;
+
   if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
   {
     DWORD i,j,nbSubKey = 0, nbSubKey2;
     if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
     {
+      ok = 0;
+      char key[LINE_SIZE],key2[LINE_SIZE],key_path[LINE_SIZE],key_path2[LINE_SIZE],msg[LINE_SIZE];
+      DWORD key_size, key_size2;
+      FILETIME LastWriteTime;// dernière mise a jour ou creation de la cle
+      SYSTEMTIME SysTime;
+
+      for (i=0;i<nbSubKey && scan_start;i++)
+      {
+        //init datas to read
+        key_size  = LINE_SIZE;
+        key[0]    = 0;
+
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          #ifdef DEBUG_MODE
+          AddMsg(h_main,"DEBUG","registry:RegistryUSBScan:RegEnumKeyEx=OK",ip);
+          #endif
+          snprintf(key_path,LINE_SIZE,"%s%s\\",path,key);
+          if (RegOpenKey(hkey,key_path,&CleTmp2)!=ERROR_SUCCESS)continue;
+
+          nbSubKey2 = 0;
+          if (RegQueryInfoKey (CleTmp2,0,0,0,&nbSubKey2,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+          {
+            for (j=0;j<nbSubKey2 && scan_start;j++)
+            {
+              key_size2 = LINE_SIZE;
+              key2[0]   = 0;
+              if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
+              {
+                snprintf(key_path2,LINE_SIZE,"%s%s",key_path,key2);
+
+                if (LSBExistC(CB_T_USB, key2))
+                {
+                  ok++;
+                  if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
+                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (UTC? Last Write Time [Add/remove])%02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path2,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                  else
+                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path2);
+
+                  AddMsg(h_main,(char*)"FOUND (USB)",msg,key2);
+                  AddLSTVUpdateItem(msg, COL_USB, iitem);
+                }
+              }
+            }
+          }
+          RegCloseKey(CleTmp2);
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+  return ok;
+}
+/*
+//----------------------------------------------------------------
+int RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
+{
+  ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"USB");
+  HKEY CleTmp,CleTmp2;
+  int ok = -1;
+
+  if (RegOpenKey(hkey,path,&CleTmp)==ERROR_SUCCESS)
+  {
+    DWORD i,j,nbSubKey = 0, nbSubKey2;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      ok = 0;
       char key[LINE_SIZE],key2[LINE_SIZE],key_path[LINE_SIZE],key_path2[LINE_SIZE],msg[LINE_SIZE];
       DWORD key_size, key_size2;
       FILETIME LastWriteTime0,LastWriteTime;// dernière mise a jour ou creation de la cle
@@ -740,23 +911,25 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
               if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,&LastWriteTime)==ERROR_SUCCESS)
               {
                 snprintf(key_path2,LINE_SIZE,"%s%s",key_path,key2);
-                if (LSBExist(CB_T_USB, key))
+                if (LSBExist(CB_T_USB, key2))
                 {
-                  if (FileTimeToSystemTime(&LastWriteTime0, &SysTime) != 0)
-                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path2,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
-                  else
-                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path2);
-
-                  AddMsg(h_main,(char*)"FOUND (USB)",msg,key);
-                  AddLSTVUpdateItem(msg, COL_USB, iitem);
-                }else if (LSBExist(CB_T_USB, key2))
-                {
+                  ok++;
                   if (FileTimeToSystemTime(&LastWriteTime, &SysTime) != 0)
                     snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (Last Write Time %02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path2,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
                   else
                     snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path2);
 
                   AddMsg(h_main,(char*)"FOUND (USB)",msg,key2);
+                  AddLSTVUpdateItem(msg, COL_USB, iitem);
+                }else if (LSBExist(CB_T_USB, key))
+                {
+                  ok++;
+                  if (FileTimeToSystemTime(&LastWriteTime0, &SysTime) != 0)
+                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s (Last Write Time. %02d/%02d/%02d-%02d:%02d:%02d)",ip,key_path2,SysTime.wYear,SysTime.wMonth,SysTime.wDay,SysTime.wHour,SysTime.wMinute,SysTime.wSecond);
+                  else
+                    snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path2);
+
+                  AddMsg(h_main,(char*)"FOUND (USB)",msg,key);
                   AddLSTVUpdateItem(msg, COL_USB, iitem);
                 }
               }
@@ -768,7 +941,9 @@ void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey)
     }
     RegCloseKey(CleTmp);
   }
+  return ok;
 }
+*/
 //----------------------------------------------------------------
 void RegistryWriteKey(char *ip, HKEY hkey, char *chkey)
 {
@@ -935,7 +1110,193 @@ void RegistryWriteKey(char *ip, HKEY hkey, char *chkey)
   }
 }
 //----------------------------------------------------------------
-BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok)
+BOOL Registry_List_users(DWORD iitem, char *ip, HKEY hkey)
+{
+  BOOL ret = FALSE;
+ /* char  msg[LINE_SIZE] = "",
+        user[MAX_PATH] = "",
+        key[MAX_PATH] = "",
+        tmp[MAX_PATH] = "";
+
+  DWORD i,nbSubKey = 0, key_size = 0;
+  HKEY CleTmp = NULL;
+
+  //read list of local users !
+  if (RegOpenKey(hkey,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI\\SessionData\\",&CleTmp)!=ERROR_SUCCESS)
+  {
+    nbSubKey = 0;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      for (i=0;i<nbSubKey && scan_start;i++)
+      {
+        key[0]   = 0;
+        key_size = 0;
+
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          snprintf(tmp,LINE_SIZE,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Authentication\\LogonUI\\SessionData\\%s\\",key);
+
+          user[0] = 0;
+          if (ReadValue(hkey,tmp,(char*)"LoggedOnUsername",user, MAX_PATH))
+          {
+            if (strlen(user)>2)
+            {
+              ret = TRUE;
+              snprintf(msg,LINE_SIZE,"%s\\%s\\LoggedOnUsername=%s",ip,tmp,user);
+              AddMsg(h_main,(char*)"FOUND (Registry:LoggedOnUsername)",msg,(char*)"");
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            }
+          }else
+          {
+            user[0] = 0;
+            if (ReadValue(hkey,tmp,(char*)"LoggedOnSAMUser",user, MAX_PATH))
+            {
+              if (strlen(user)>2)
+              {
+                ret = TRUE;
+                snprintf(msg,LINE_SIZE,"%s\\%s\\LoggedOnSAMUser=%s",ip,tmp,user);
+                AddMsg(h_main,(char*)"FOUND (Registry:LoggedOnSAMUser)",msg,(char*)"");
+                AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+              }
+            }
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+
+  CleTmp = NULL;
+  //read list of local users !
+  if (RegOpenKey(hkey,"SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\",&CleTmp)!=ERROR_SUCCESS)
+  {
+    nbSubKey = 0;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      for (i=0;i<nbSubKey && scan_start;i++)
+      {
+        key[0]   = 0;
+        key_size = 0;
+
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          snprintf(tmp,LINE_SIZE,"SOFTWARE\\Wow6432Node\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%s\\",key);
+          user[0] = 0;
+          if (ReadValue(hkey,tmp,(char*)"ProfileImagePath",user, MAX_PATH))
+          {
+            if (strlen(user)>2)
+            {
+              ret = TRUE;
+              snprintf(msg,LINE_SIZE,"%s\\%s\\ProfileImagePath=%s",ip,tmp,user);
+              AddMsg(h_main,(char*)"FOUND (Registry:ProfileImagePath)",msg,(char*)"");
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            }
+          }else
+          {
+            ret = TRUE;
+            snprintf(msg,LINE_SIZE,"%s\\%s",ip,tmp);
+            AddMsg(h_main,(char*)"FOUND (Registry:User Full SID)",msg,(char*)"");
+            AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+
+  if (RegOpenKey(hkey,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\",&CleTmp)!=ERROR_SUCCESS)
+  {
+    nbSubKey = 0;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      for (i=0;i<nbSubKey && scan_start;i++)
+      {
+        key[0]   = 0;
+        key_size = 0;
+
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          snprintf(tmp,LINE_SIZE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%s\\",key);
+          user[0] = 0;
+          if (ReadValue(hkey,tmp,(char*)"ProfileImagePath",user, MAX_PATH))
+          {
+            if (strlen(user)>2)
+            {
+              ret = TRUE;
+              snprintf(msg,LINE_SIZE,"%s\\%s\\ProfileImagePath=%s",ip,tmp,user);
+              AddMsg(h_main,(char*)"FOUND (Registry:ProfileImagePath)",msg,(char*)"");
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            }
+          }else
+          {
+            ret = TRUE;
+            snprintf(msg,LINE_SIZE,"%s\\%s",ip,tmp);
+            AddMsg(h_main,(char*)"FOUND (Registry:User Full SID)",msg,(char*)"");
+            AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+
+  DWORD nbValues = 0, value_size = LINE_SIZE, data_size = LINE_SIZE, type;
+  char value[LINE_SIZE], data[LINE_SIZE];
+
+  if (RegOpenKey(hkey,"SYSTEM\\CurrentControlSet\\Control\\hivelist\\",&CleTmp)!=ERROR_SUCCESS)
+  {
+    if (RegQueryInfoKey (CleTmp,0,0,0,0,0,0,&nbValues,0,0,0,0)==ERROR_SUCCESS)
+    {
+      for (i=0;i<nbValues && scan_start;i++)
+      {
+        value_size  = LINE_SIZE;
+        value[0]    = 0;
+        data_size   = LINE_SIZE;
+        data[0]     = 0;
+        type        = 0;
+
+        if (RegEnumValue (CleTmp,i,value,&value_size,0,&type,(LPBYTE)data,&data_size)==ERROR_SUCCESS)
+        {
+          ret = TRUE;
+          snprintf(msg,LINE_SIZE,"%s\\SYSTEM\\CurrentControlSet\\Control\\hivelist\\%s=%s",ip,value,data);
+          AddMsg(h_main,(char*)"FOUND (Registry:Hive list)",msg,(char*)"");
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+        }
+
+       /*
+        key[0]   = 0;
+        key_size = 0;
+
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          snprintf(tmp,LINE_SIZE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\ProfileList\\%s\\",key);
+          user[0] = 0;
+          if (ReadValue(hkey,tmp,(char*)"ProfileImagePath",user, MAX_PATH))
+          {
+            if (strlen(user)>2)
+            {
+              ret = TRUE;
+              snprintf(msg,LINE_SIZE,"%s\\%s\\ProfileImagePath=%s",ip,tmp,user);
+              AddMsg(h_main,(char*)"FOUND (Config:ProfileImagePath)",msg,(char*)"");
+              AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+            }
+          }else
+          {
+            ret = TRUE;
+            snprintf(msg,LINE_SIZE,"%s\\%s",ip,tmp);
+            AddMsg(h_main,(char*)"FOUND (Config:User Full SID)",msg,(char*)"");
+            AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          }
+        }*//*
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+*/
+  return ret;
+}
+//----------------------------------------------------------------
+BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok, BOOL users_check, BOOL os_check)
 {
   BOOL ret            = FALSE;
   HANDLE connect      = 0;
@@ -960,7 +1321,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
     //ReleaseSemaphore(hs_netbios,1,NULL);
   }
 
-  if ((config->check_registry || config->check_services || config->check_software || config->check_USB || config->write_key) && scan_start)
+  if (config->disco_netbios_users && scan_start && users_check)
+  {
+    Netbios_List_users(iitem, ip);
+  }
+
+  if ((config->check_registry || config->check_services || config->check_software || config->check_USB || config->write_key || os_check || (users_check && config->disco_users)) && scan_start)
   {
     //net
     HKEY hkey;
@@ -1002,6 +1368,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
         if (!windows_OS)nb_windows++;
       }
 
+      //get user list + curent user
+      if (config->disco_users && scan_start && users_check)
+      {
+        Registry_List_users(iitem, ip, hkey);
+      }
+
       //work
       if (config->check_registry && scan_start)
       {
@@ -1023,18 +1395,28 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
         }
       }
 
-      if (config->check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
+      if (config->check_services && scan_start)
+      {
+        if (RegistryServiceScan(iitem, ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey) == -1)
+          if(Netbios_List_service(iitem, ip, TRUE) < 1)
+            CheckServiceOpenSC(iitem, ip);
+      }
       if (config->check_software && scan_start)
       {
         RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
         RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
       }
-      if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+      //if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+      if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Control\\DeviceClasses\\",hkey);
 
       if (config->write_key && scan_start)RegistryWriteKey(ip,hkey,(char*)"HKLM");
 
       RegCloseKey(hkey);
       ret = TRUE;
+    }else if (config->check_services && scan_start)
+    {
+      if(Netbios_List_service(iitem, ip, TRUE) < 1)
+        CheckServiceOpenSC(iitem, ip);
     }
 
     if (start_remote_registry)
@@ -1072,6 +1454,11 @@ BOOL LocalRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST co
     //ReleaseSemaphore(hs_netbios,1,NULL);
   }
 
+  if (config->disco_netbios_users && scan_start)
+  {
+    Netbios_List_users(iitem, ip);
+  }
+
   HKEY hkey;
   if (RegOpenKey(HKEY_LOCAL_MACHINE,"",&hkey)==ERROR_SUCCESS)
   {
@@ -1079,6 +1466,11 @@ BOOL LocalRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST co
     if (RegistryOS(iitem,hkey))
     {
       nb_windows++;
+    }
+
+    if (config->disco_users && scan_start)
+    {
+      Registry_List_users(iitem, ip, hkey);
     }
 
     if (config->check_registry && scan_start)
@@ -1107,22 +1499,33 @@ BOOL LocalRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST co
       }
     }
 
-    if (config->check_services && scan_start)RegistryServiceScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey);
+    if (config->check_services && scan_start)
+    {
+      if (RegistryServiceScan(iitem, ip,(char*)"SYSTEM\\CurrentControlSet\\Services\\",hkey) == -1)
+        if(Netbios_List_service(iitem, ip, TRUE) < 1)
+          CheckServiceOpenSC(iitem, ip);
+    }
+
     if (config->check_software && scan_start)
     {
       RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
       RegistrySoftwareScan(iitem,ip,(char*)"SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\",hkey);
     }
-    if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+    //if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Enum\\USBSTOR\\",hkey);
+    if (config->check_USB && scan_start)RegistryUSBScan(iitem,ip,(char*)"SYSTEM\\CurrentControlSet\\Control\\DeviceClasses\\",hkey);
 
     if (config->write_key && scan_start)RegistryWriteKey(ip,hkey,(char*)"HKLM");
 
     RegCloseKey(hkey);
+  }else if (config->check_services && scan_start)
+  {
+    if(Netbios_List_service(iitem, ip, TRUE) < 1)
+      CheckServiceOpenSC(iitem, ip);
   }
   return TRUE;
 }
 //----------------------------------------------------------------
-BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok)
+BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok, BOOL users_check, BOOL os_check)
 {
   #ifdef DEBUG_MODE
   AddMsg(h_main,"DEBUG","registry:RemoteConnexionScan",ip);
@@ -1132,7 +1535,7 @@ BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, 
     if (LocalRegistryNetConnexion(iitem, ip, ip_id, config, id_ok))return TRUE;
     else AddLSTVUpdateItem((char*)"LOCAL REG SCAN FAIL!",COL_FILES,iitem);
 
-  }else if(RemoteRegistryNetConnexion(iitem, ip, ip_id, config, windows_OS, id_ok))return TRUE;
+  }else if(RemoteRegistryNetConnexion(iitem, ip, ip_id, config, windows_OS, id_ok, users_check, os_check))return TRUE;
   else
   {
     #ifndef DEBUG_NOERROR

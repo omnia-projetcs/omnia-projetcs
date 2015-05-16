@@ -138,7 +138,7 @@ BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_nu
       ret = TRUE;
       p   = BufPtr;
 
-      for(i=1;i<=er;i++)
+      for(i=1;i<=er&& scan_start;i++)
       {
         //check if we can connect in null session
         snprintf(tmp_share,MAX_PATH,"%S",p->shi1_netname);
@@ -157,7 +157,7 @@ BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_nu
         {
           if (Netbios_NULLSession(ip, tmp_share))
           {
-            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION]",ip,p->shi1_netname,p->shi1_remark);
+            snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)[NULL SESSION READ ACCESS]",ip,p->shi1_netname,p->shi1_remark);
           }else
           {
             snprintf(msg,MAX_PATH,"\\\\%s\\%S (%S)",ip,p->shi1_netname,p->shi1_remark);
@@ -170,7 +170,7 @@ BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_nu
       }
      NetApiBufferFree(BufPtr);
     }
-  }while(res==ERROR_MORE_DATA);
+  }while(res==ERROR_MORE_DATA&& scan_start);
   return ret;
 }
 //----------------------------------------------------------------
@@ -352,6 +352,335 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
         return TRUE;
       }
     }
+  }
+
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+int Netbios_List_service(DWORD iitem, char *ip, BOOL check)
+{
+  //check with current rights
+  SC_HANDLE hm = OpenSCManager(ip, SERVICES_ACTIVE_DATABASE, SC_MANAGER_ENUMERATE_SERVICE|SC_MANAGER_CONNECT);
+  int ok = -1;
+  if (hm != NULL)
+  {
+    char tmp[MAX_PATH], tmp2[MAX_PATH];
+    ENUM_SERVICE_STATUS service_data, *lpservice = NULL;
+    BOOL retVal;
+    DWORD bytesNeeded,srvCount,resumeHandle = 0;
+
+    //Call EnumServicesStatus using the handle returned by OpenSCManager
+    retVal = EnumServicesStatus(hm,SERVICE_WIN32|SERVICE_DRIVER,SERVICE_STATE_ALL,&service_data,sizeof(service_data),&bytesNeeded,&srvCount,&resumeHandle);
+    DWORD err = GetLastError();
+
+    //Check if EnumServicesStatus needs more memory space
+    if ((retVal == FALSE) || err == ERROR_MORE_DATA)
+    {
+        DWORD dwBytes = bytesNeeded + sizeof(ENUM_SERVICE_STATUS)+1;
+
+        lpservice = (ENUM_SERVICE_STATUS*) malloc(dwBytes);
+        if (lpservice != NULL)
+        {
+          if(EnumServicesStatus (hm,SERVICE_WIN32,SERVICE_STATE_ALL,lpservice,dwBytes,&bytesNeeded,&srvCount,&resumeHandle)==FALSE)
+            srvCount = 0;
+        }
+    }
+
+    //get datas
+    int i;
+    if (srvCount)
+    {
+      ok = 0;
+      if (check)
+      {
+        for(i=0;i<srvCount && scan_start;i++)
+        {
+          if (LSBExist(CB_T_SERVICES, lpservice[i].lpDisplayName) || LSBExist(CB_T_SERVICES, lpservice[i].lpServiceName))
+          {
+            ok++;
+            switch(lpservice[i].ServiceStatus.dwCurrentState)
+            {
+              case SERVICE_CONTINUE_PENDING:  snprintf(tmp,MAX_PATH,"%s %s (%s;State:CONTINUE_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_START_PENDING:     snprintf(tmp,MAX_PATH,"%s %s (%s;State:START_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_RUNNING:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:RUNNING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_PAUSE_PENDING:     snprintf(tmp,MAX_PATH,"%s %s (%s;State:PAUSE_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_PAUSED:            snprintf(tmp,MAX_PATH,"%s %s (%s;State:PAUSED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_STOP_PENDING:      snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOP_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              case SERVICE_STOPPED:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOPPED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+              default:                        snprintf(tmp,MAX_PATH,"%s %s (%s;State:UNKNOW)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            }
+            AddMsg(h_main,(char*)"FOUND (Service)",tmp,"");
+            AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
+          }
+        }
+      }else
+      {
+        for(i=0;i<srvCount && scan_start;i++)
+        {
+          ok++;
+          switch(lpservice[i].ServiceStatus.dwCurrentState)
+          {
+            case SERVICE_CONTINUE_PENDING:  snprintf(tmp,MAX_PATH,"%s %s (%s;State:CONTINUE_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_START_PENDING:     snprintf(tmp,MAX_PATH,"%s %s (%s;State:START_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_RUNNING:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:RUNNING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_PAUSE_PENDING:     snprintf(tmp,MAX_PATH,"%s %s (%s;State:PAUSE_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_PAUSED:            snprintf(tmp,MAX_PATH,"%s %s (%s;State:PAUSED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_STOP_PENDING:      snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOP_PENDING)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            case SERVICE_STOPPED:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOPPED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+            default:                        snprintf(tmp,MAX_PATH,"%s %s (%s;State:UNKNOW)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
+          }
+          AddMsg(h_main,(char*)"FOUND (Service)",tmp,"");
+          AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
+        }
+      }
+    }
+    CloseServiceHandle(hm);
+  }
+  return ok;
+}
+//----------------------------------------------------------------
+BOOL EnumTestReversSID(DWORD iitem, char *ip, BOOL check_only, char* user, char* results, unsigned int sz_results)
+{
+  #define MAX_SID_ERROR_COUNT   100
+
+  UCHAR domain[MAX_PATH];
+  UCHAR BSid[MAX_PATH];
+  SID_NAME_USE peUse;
+
+  int MySid[8]   = {0,0,0,0,0,0,0,0};
+  PSID Sid        = (PSID) BSid;
+  DWORD sz_Sid    = MAX_PATH;
+  DWORD sz_domain = MAX_PATH;
+
+  if (LookupAccountName((LPSTR)ip,(LPSTR)user, (PSID)Sid, &sz_Sid,(LPSTR)domain, &sz_domain,&peUse) != 0)
+  {
+    //check if valid SID!
+    DWORD i, Dtmp=0;
+    PSID_IDENTIFIER_AUTHORITY SidIdentAuthority = GetSidIdentifierAuthority(Sid);
+
+    if (SidIdentAuthority->Value[0] == 0 && SidIdentAuthority->Value[1] == 0) //alors valeurs en hexa
+      Dtmp = (int)(unsigned long)SidIdentAuthority->Value[5]+ (SidIdentAuthority->Value[4]<<8) + (SidIdentAuthority->Value[3]<<16) + (SidIdentAuthority->Value[2]<<24);//nombre d'authorités
+    else return TRUE;
+
+    //nb values of the SID!
+    unsigned char ucMax = *GetSidSubAuthorityCount(Sid);
+    if (ucMax < 1 || ucMax > 8) return TRUE;
+    for (i=0;i<ucMax;++i)MySid[i] = *GetSidSubAuthority(Sid,i);
+
+    if (check_only)
+    {
+      if (results != NULL)
+      {
+        if (Dtmp == 5)snprintf(results,sz_results     ,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4]);
+        else if (Dtmp == 6)snprintf(results,sz_results,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5]);
+        else if (Dtmp == 7)snprintf(results,sz_results,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6]);
+        else if (Dtmp == 8)snprintf(results,sz_results,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7]);
+      }
+    }else //enum all
+    {
+      char tmp[MAX_PATH]="";
+
+      if (Dtmp == 5)snprintf(tmp,MAX_PATH     ,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4]);
+      else if (Dtmp == 6)snprintf(tmp,MAX_PATH,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5]);
+      else if (Dtmp == 7)snprintf(tmp,MAX_PATH,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6]);
+      else if (Dtmp == 8)snprintf(tmp,MAX_PATH,"Revers SID:Enable (OK with %s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d-%d)",domain,user,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7]);
+
+      if (tmp[0] != 0)
+      {
+        AddMsg(h_main, (char*)"FOUND (Config)",ip,tmp);
+        AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+      }
+
+      //enums users accounts
+      unsigned int err = 0;
+      for (i=500; err < MAX_SID_ERROR_COUNT && scan_start && i < (520); i++)
+      {
+        MySid[ucMax-1] = i;
+        SID_IDENTIFIER_AUTHORITY sia = {0,0,0,0,0,Dtmp};
+        PSID pSid;
+        if (AllocateAndInitializeSid(&sia,ucMax,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7],&pSid)!=0)
+        {
+          sz_Sid = sz_domain = MAX_PATH;
+          if(LookupAccountSid(ip,pSid,BSid,&sz_Sid,domain,&sz_domain,&peUse))
+          {
+            err = 0;
+
+            //account type
+            /*
+            typedef enum _SID_NAME_USE {
+            SidTypeUser            = 1,
+            SidTypeGroup,
+            SidTypeDomain,
+            SidTypeAlias,
+            SidTypeWellKnownGroup,
+            SidTypeDeletedAccount,
+            SidTypeInvalid,
+            SidTypeUnknown,
+            SidTypeComputer,
+            SidTypeLabel
+          } SID_NAME_USE, *PSID_NAME_USE;
+            */
+            if (peUse == 1) //user enable only
+            {
+              tmp[0] = 0;
+
+              if (Dtmp == 5)snprintf(tmp,MAX_PATH     ,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4]);
+              else if (Dtmp == 6)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5]);
+              else if (Dtmp == 7)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6]);
+              else if (Dtmp == 8)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7]);
+
+              if (tmp[0] != 0)
+              {
+                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp);
+                AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+              }
+            }
+          }else err++;
+        }else err++;
+      }
+
+      //enum all users :)
+      err = 0;
+      for (i=1000; err < MAX_SID_ERROR_COUNT && scan_start && i < (1020); i++)
+      {
+        MySid[ucMax-1] = i;
+        SID_IDENTIFIER_AUTHORITY sia = {0,0,0,0,0,Dtmp};
+        PSID pSid;
+        if (AllocateAndInitializeSid(&sia,ucMax,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7],&pSid)!=0)
+        {
+          sz_Sid = sz_domain = MAX_PATH;
+          if(LookupAccountSid(ip,pSid,BSid,&sz_Sid,domain,&sz_domain,&peUse))
+          {
+            err = 0;
+
+            //account type
+            if (peUse == 1) //user enable only
+            {
+              tmp[0] = 0;
+
+              if (Dtmp == 5)snprintf(tmp,MAX_PATH     ,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4]);
+              else if (Dtmp == 6)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5]);
+              else if (Dtmp == 7)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6]);
+              else if (Dtmp == 8)snprintf(tmp,MAX_PATH,"%s\\%s SID:S-1-%d-%d-%d-%d-%d-%d-%d-%d-%d",domain,BSid,Dtmp,MySid[0],MySid[1],MySid[2],MySid[3],MySid[4],MySid[5],MySid[6],MySid[7]);
+
+              if (tmp[0] != 0)
+              {
+                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp);
+                AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+              }
+            }
+          }else err++;
+        }else err++;
+      }
+    }
+    return TRUE;
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL Netbios_List_users_reversSID(DWORD iitem, char *ip, BOOL check_only, char*results, unsigned int max_size_results)
+{
+  char users_test[][256]={"invité","guest","HelpAssistant","ASPNET","krbtgt","administrateur","administrator","admin","gast","invitado"};
+  if (results != NULL)results[0] = 0;
+
+  int i;
+  for (i=0;i<10 && scan_start;i++)
+  {
+    if(EnumTestReversSID(iitem,ip,check_only,users_test[i],results,max_size_results)) return TRUE;
+  }
+
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL Netbios_List_users_Netbios(DWORD iitem, char *ip, DWORD limit)
+{
+  #define UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED      0x000080
+  wchar_t serveur[MAX_PATH];
+  char tmp[MAX_PATH],tmp2[MAX_PATH],tmp3[MAX_PATH];
+
+  //init
+  snprintf(tmp, MAX_PATH,"\\\\%s",ip);
+  if (mbstowcs(serveur, tmp, MAX_PATH) >0)
+  {
+    NET_API_STATUS res;
+    PNET_DISPLAY_USER  uBuff    = 0, u;
+    DWORD i=0,nb                = 0,
+                             er = 0,
+                              j = 0;
+
+    LPGROUP_USERS_INFO_0 gBuff  = NULL, g;
+    DWORD dwPrefMaxLen          = MAX_PREFERRED_LENGTH;
+    DWORD dwEntriesRead         = 0;
+    DWORD dwTotalEntries        = 0;
+
+    do
+    {
+      res = NetQueryDisplayInformation(serveur, 1, i++, 100, MAX_PREFERRED_LENGTH, &er,(PVOID*)&uBuff);
+      if(((res==ERROR_SUCCESS) || (res==ERROR_MORE_DATA))&& uBuff!=NULL && er>0)
+      {
+        u = uBuff;
+        for (;er>0;er--,u++)
+        {
+          tmp2[0] = 0;
+          if (u->usri1_flags & UF_ACCOUNTDISABLE)strncat(tmp2,"UF_ACCOUNTDISABLE,\0",MAX_PATH);
+          if (u->usri1_flags & UF_PASSWD_NOTREQD)strncat(tmp2,"UF_PASSWD_NOTREQD,\0",MAX_PATH);
+          if (u->usri1_flags & UF_PASSWD_CANT_CHANGE)strncat(tmp2,"UF_PASSWD_CANT_CHANGE,\0",MAX_PATH);
+          if (u->usri1_flags & UF_LOCKOUT)strncat(tmp2,"UF_LOCKOUT,\0",MAX_PATH);
+          if (u->usri1_flags & UF_DONT_EXPIRE_PASSWD)strncat(tmp2,"UF_DONT_EXPIRE_PASSWD,\0",MAX_PATH);
+          if (u->usri1_flags & UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED)strncat(tmp2,"UF_ENCRYPTED_TEXT_PASSWORD_ALLOWED,\0",MAX_PATH);
+          if (u->usri1_flags & UF_PASSWORD_EXPIRED)strncat(tmp2,"UF_PASSWORD_EXPIRED,\0",MAX_PATH);
+
+          strncat(tmp2,"\0",MAX_PATH);
+
+          memset(tmp3,0,MAX_PATH);
+          WideCharToMultiByte(CP_ACP,0,u->usri1_comment,lstrlenW(u->usri1_comment),tmp3,MAX_PATH,NULL,NULL);
+
+          snprintf(tmp,MAX_PATH,"%S (%S:ID:%u,%s) [%s]",u->usri1_name,u->usri1_full_name,u->usri1_user_id,tmp3,tmp2);
+          AddMsg(h_main, (char*)"FOUND (Config:Users)",ip,tmp);
+          AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+          nb++;
+
+          //get user group ?
+          if(NetUserGetGroups(serveur,u->usri1_name,0,(LPBYTE*)&gBuff,dwPrefMaxLen,&dwEntriesRead,&dwTotalEntries) == NERR_Success)
+          {
+            g = gBuff;
+            tmp[0] = 0;
+            for (j=0; j<dwEntriesRead && g != NULL && scan_start;j++)
+            {
+              sprintf(tmp2,"%S,",g->grui0_name);
+              if (!strcmp(tmp2,"None,") || !strcmp(tmp2,"Aucun,")){}
+              else strncat(tmp,tmp2,MAX_PATH);
+              g++;
+            }
+
+            if (tmp[0] != 0)
+            {
+              strncat(tmp,"\0",MAX_PATH);
+              AddMsg(h_main, (char*)"FOUND (Config:Users groups)",ip,tmp);
+              AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
+            }
+
+            if (gBuff != NULL)NetApiBufferFree(gBuff);
+          }
+        }
+      }
+
+      if (uBuff != NULL)NetApiBufferFree(uBuff);
+    }while(res==ERROR_MORE_DATA && scan_start && nb<limit);
+  }
+
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL Netbios_List_users(DWORD iitem, char *ip)
+{
+  //check user (null-session and authenticate)
+  if(Netbios_List_users_Netbios(iitem, ip, 50)) return TRUE;
+
+  if (config.config_revers_SID == TRUE)
+  {
+    //check user (null-session + revers SID)
+    if(Netbios_List_users_reversSID(iitem, ip, FALSE, NULL, 0)) return TRUE;
   }
 
   return FALSE;

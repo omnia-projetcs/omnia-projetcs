@@ -4,256 +4,6 @@
 // Licence              : GPLv3
 //----------------------------------------------------------------
 
-/*
-Last update :
-
---------------------
-* Vérifier si la connexion direct sans impersonate est possible juste avec IPC$ si le programe est exécut avec les privilèges attendus + exécuter le programme en tant qu'administrateur
-
-* revoir authentification et ajouter Logon user + impersonate en + tester si le null session peut impacter et si le programme fonctionne toujours pour les bancs
-
-* revoir : ReadValue
-
-* revoir pour gestion des noms de fichiers contenant *
-
-* LE BUG viens de files !!!!! (threads bloqués)
-  voir si le remote standard ou l'autre qui déconne
-  retester bancs
-
-* refaire des vérification pour la base de registre
-RemoteRegistryNetConnexion
-RegistryScan
-parseLineToReg
-
-* mettre à jour la doc en ajoutant une rubrique "message d'erreur"
- ERROR",(char*)"No test select from the left panel!",(char*)"");
- + ajouter la gestion de la ruche HKEY_USERS
- + ajouter la nouvelle gestion des paramètres ini afin de désactiver les logs + sauvegarde automatique
-
-** ajouter la possibiliter de recherche de fichier sans taille juste une empreinte SHA1/256 ou MD5!
-
-//----------------------------------------------------------------
-
-
-
-
-
-
-revoir :
-dwRetVal:=RegOpenKeyEx(phkResult,PChar('SOFTWARE\Borland\Delphi\5.0'), REG_OPTION_OPEN_LINK, KEY_QUERY_VALUE, phkResult2);
-http://stackoverflow.com/questions/5972352/is-it-possible-to-read-write-the-registry-of-a-remote-machine-with-different-cre/5973423#5973423
-
-revoir les droits !!!
-http://stackoverflow.com/questions/40769/path-to-program-files-on-remote-computer/45588#45588
-
-http://www.experts-exchange.com/Programming/Languages/CPP/Q_26783944.html
-
-
-REVOIR fonction : NetConnexionAuthenticateTest (impersonnate ou logon user qui déconne ?)
-/*
-
-
-
-
-
-
-
-    Форум: "Прочее";
-    Поиск по всему сайту: www.delphimaster.net;
-    Текущий архив: 2009.03.01;
-    Скачать: [xml.tar.bz2];
-
-
-
-    Вниз
-
-    Как подключиться к удаленному реестру?
-
-    Урсулапов_   (2008-12-30 10:02) [0]
-
-    Делаю так:
-    procedure TForm1.Button1Click(Sender: TObject);
-    begin
-    RegIniFile := TRegIniFile.Create("Software");
-    RegIniFile.RootKey := HKEY_LOCAL_MACHINE;
-    If not (RegIniFile.RegistryConnect("\\Sw_client")) then ShowMessage("Not Connected");
-    RegIniFile.Free;
-    end;
-
-    При выполнении выводится сообщение "Not connected", то есть не подключился к реестру.
-    И еще непонятно, где тут надо было вводить логин и пароль пользователя, под именем которого я подключаюсь к реестру, может проблема в этом?
-    Заранее спасибо.
-
-    Skyle ©   (2008-12-30 10:15) [1]
-
-    В MSDN всё есть
-
-    If the current user does not have proper access to the remote computer, the call to RegConnectRegistry fails. To connect to a remote registry, call LogonUser with LOGON32_LOGON_NEW_CREDENTIALS and ImpersonateLoggedOnUser before calling RegConnectRegistry.
-
-    Читать про функцию RegConnectRegistry
-
-    Урсулапов_   (2008-12-30 14:19) [2]
-
-    Спасибо за RegConnectRegistry.
-    Итак, откопал следующий код:
-    function Logon: Boolean;
-    var
-     hToken: Cardinal;
-     tp, oldtp: TTokenPrivileges;
-     retlen: DWORD;
-    begin
-     Result := ImpersonateSelf(SecurityImpersonation);
-     if Result then begin
-     // Obtain the current process" token
-       Result := OpenProcessToken(GetCurrentProcess(),
-       TOKEN_ADJUST_PRIVILEGES + TOKEN_QUERY, hToken);
-     end;
-     if Result then begin
-       // Obtain the LUID of the SeTcbPrivilege
-       Result := LookupPrivilegeValue(nil, "SeTcbPrivilege", tp.Privileges[0].Luid);
-     end;
-     if Result then begin
-       // Grant the SeTcbPrivilege
-       tp.PrivilegeCount := 1;
-       tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
-       Result := AdjustTokenPrivileges(hToken, False, tp, sizeof(TTokenPrivileges), oldtp, retlen);
-     end;
-     if Result then begin
-       // Attempt a logon
-       Result := LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken);
-     end;
-     if not Result then begin
-       // Show the error if any of the above APIs fails
-       raise Exception.Create("The logon failed because "" +
-       SysErrorMessage(GetLastError()) + """);
-     end;
-    end;
-
-    procedure TForm1.Button1Click(Sender: TObject);
-    var
-     Key      : HKEY;
-     SubKey   : HKEY;
-     Buff_key : array[0..1024] of Char;
-     DataType : DWORD;
-     Size     : DWORD;
-    begin
-
-     if not Logon then showMessage("asdaqe");
-
-    //Подключение к реестру удаленного компьютера
-     RegConnectRegistry("remote_computer", HKEY_LOCAL_MACHINE, Key);
-     try
-       //Открытие ключа
-       RegOpenKeyEx(Key, "Software\Microsoft\Windows\CurrentVersion\Uninstall\NOD32",0, KEY_READ, SubKey);
-        try
-         Buff_key := "";
-         Size := SizeOf(Buff_key);
-         //Получение данных
-         RegQueryValueEx(SubKey, "DisplayName", nil, @DataType, @Buff_key, @Size);
-
-         ShowMessage(Buff_key);
-       finally
-         RegCloseKey(SubKey);
-       end;
-     finally
-    //    RegCloseKey(Key);
-     end;
-    end;
-
-    Тут изменил
-    Result := LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken);, но эта функция не выдает ошибку (исключение - Логин и пароль не опознаны) только тогда, когда login равен логину, а password равен паролю в моем компьютере, а изменение значения remote_computer кажется, не играет никакой роли.
-    Что тут неправильно? :(
-
-    Урсулапов_   (2008-12-30 15:40) [3]
-
-    Каким должно быть  значение второго параметра в функции
-    LogonUser("login", "remote_computer", "password", LOGON32_LOGON_INTERACTIVE, LOGON32_PROVIDER_DEFAULT, hToken)
-    , если удаленный компьютер не является членом домена, а только является компьютером "remote_computer" в рабочей группе "workgroup"?
-
-    Урсулапов_   (2008-12-31 07:20) [4]
-
-    Хм...
-    http://msdn.microsoft.com/ru-ru/library/aa378184(en-us,VS.85).aspx
-
-    > The LogonUser function attempts to log a user on to the
-    > local computer. The local computer is the computer from
-    > which LogonUser was called. You cannot use LogonUser to
-    > log on to a remote computer.
-
-    ))))Прошу прощения, не заметил.
-    Итак, мне надо было писать
-    LogonUser("login", ".", "password", LOGON32_LOGON_NEW_CREDENTIALS, LOGON32_PROVIDER_WINNT50, hToken)
-    где login и password - логин/пароль удаленного компьютера.
-    Delphi 7 выдает ошибку, что не знает такую константу(ну или переменную) - LOGON32_LOGON_NEW_CREDENTIALS.
-    Извините, а вы не знаете, какое числовое значение можно вместо него поставить?
-    Спасибо.
-
-    Skyle ©   (2008-12-31 07:30) [5]
-
-
-    > Извините, а вы не знаете, какое числовое значение можно
-    > вместо него поставить?
-
-    В winbase.h написано
-
-    define LOGON32_LOGON_NEW_CREDENTIALS 9
-
-    Урсулапов_   (2008-12-31 08:33) [6]
-
-    Ура. Вот так - работает.
-    function Logon: Boolean;
-    var
-     hToken: Cardinal;
-     tp, oldtp: TTokenPrivileges;
-     retlen: DWORD;
-    begin
-     Result := ImpersonateSelf(SecurityImpersonation);
-     if Result then begin
-     // Obtain the current process" token
-       Result := OpenProcessToken(GetCurrentProcess(),
-       TOKEN_ADJUST_PRIVILEGES + TOKEN_QUERY, hToken);
-     end;
-     if Result then begin
-       // Obtain the LUID of the SeTcbPrivilege
-       Result := LookupPrivilegeValue(nil, "SeTcbPrivilege", tp.Privileges[0].Luid);
-     end;
-     if Result then begin
-       // Grant the SeTcbPrivilege
-       tp.PrivilegeCount := 1;
-       tp.Privileges[0].Attributes := SE_PRIVILEGE_ENABLED;
-       Result := AdjustTokenPrivileges(hToken, False, tp, sizeof(TTokenPrivileges), oldtp, retlen);
-     end;
-     if Result then begin
-       // Attempt a logon
-       Result := LogonUser("login", ".", "password", 9, LOGON32_PROVIDER_WINNT50, hToken);
-     end;
-     if not Result then begin
-       // Show the error if any of the above APIs fails
-       raise Exception.Create("The logon failed because "" +
-       SysErrorMessage(GetLastError()) + """);
-     end;
-    end;
-http://www.delphimaster.net/view/15-1230620523/all
-
-
-
-
-
-#PRIORITE NS:
-* ajout de la possibiliter d'exécuter des commandes locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
-
-#NEXT STEP:
-* multithread SSH (nécessite une revue du code complet + des librairies associées)
-
-
-[NS] v0.5.26
-- review few bugs
-- add port check for remote RPC registry and files
-
-
-
-MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
-*/
 //----------------------------------------------------------------
 #define _WIN32_IE                               0x0501  // IE5 min
 
@@ -314,7 +64,7 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.35 21/11/2014"
+#define TITLE                                       "NS v0.5.39 16/05/2015"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -349,10 +99,10 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 //----------------------------------------------------------------
 //couleur
 #define ROUGE RGB(255, 0, 0)
-#define NOIR RGB(0  ,  0, 0)
-#define VERT RGB(51 ,153, 0)
-#define BLEU RGB(0  ,  0,255)
-#define GRIS RGB(153,153,153)
+#define NOIR  RGB(0  ,  0, 0)
+#define VERT  RGB(51 ,153, 0)
+#define BLEU  RGB(0  ,  0,255)
+#define GRIS  RGB(153,153,153)
 //----------------------------------------------------------------
 //SSH use custom error message
 #define SSH_DEFAULT_PORT                            22
@@ -400,10 +150,10 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define CB_T_SERVICES                               1042
 #define CB_T_SOFTWARE                               1043
 #define CB_T_USB                                    1044
-#define CB_T_FILES                                  1045
+//#define CB_T_FILES                                  1045
 #define CB_T_REGISTRY_W                             1046
 #define CB_T_SSH                                    1047
-#define CB_T_MULFILES                                  1048
+#define CB_T_MULFILES                               1048
 #define CB_DSC                                      1050
 
 
@@ -433,6 +183,21 @@ MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
 #define COL_STATE                                   14
 
 #define NB_COLUMN                                   15
+//----------------------------------------------------------------
+#define CHK_TEST_ICMP                               0
+#define CHK_TEST_DNS                                1
+#define CHK_TEST_NETBIOS                            2
+#define CHK_TEST_NETBIOS_POLICY                     3
+#define CHK_TEST_NETBIOS_USERS                      4
+#define SEPARATOR_1                                 5
+#define CHK_TEST_FILES                              6
+#define CHK_TEST_REGISTRY                           7
+#define CHK_TEST_SERVICES                           8
+#define CHK_TEST_SOFTWARE                           9
+#define CHK_TEST_USB                                10
+#define CHK_TEST_SSH                                11
+#define SEPARATOR_2                                 12
+#define CHK_TEST_WRITE_KEY                          13
 //----------------------------------------------------------------
 typedef struct sort_st
 {
@@ -488,9 +253,11 @@ typedef struct scanne_st
   BOOL disco_dns;
   BOOL disco_netbios;
   BOOL disco_netbios_policy;
+  BOOL disco_users;
+  BOOL disco_netbios_users;
 
   BOOL config_service;
-  BOOL config_user;
+  //BOOL config_user;
   BOOL config_software;
   BOOL config_USB;
   BOOL config_start;
@@ -506,6 +273,8 @@ typedef struct scanne_st
   BOOL write_key;
   BOOL check_ssh;
   BOOL check_ssh_os;
+
+  BOOL no_hash_check;
 
   BOOL global_ip_file; // = IP + desc + domain + login + mdp par ligne !!!
 
@@ -541,13 +310,13 @@ BOOL save_done, save_current;
 #define MACH_ROUTEUR                                256
 
 //Threads
-#define NB_MAX_DISCO_THREADS                        400
-#define NB_MAX_NETBIOS_THREADS                      10
-#define NB_MAX_FILE_THREADS                         5
-#define NB_MAX_REGISTRY_THREADS                     5
-#define NB_MAX_SSH_THREADS                          1
-#define NB_MAX_TCP_TEST_THREADS                     100
-#define NB_MAX_THREAD                               400
+DWORD NB_MAX_DISCO_THREADS;
+DWORD NB_MAX_NETBIOS_THREADS;
+DWORD NB_MAX_FILE_THREADS;
+DWORD NB_MAX_REGISTRY_THREADS;
+DWORD NB_MAX_SSH_THREADS;
+DWORD NB_MAX_TCP_TEST_THREADS;
+DWORD NB_MAX_THREAD;
 
 CRITICAL_SECTION Sync, Sync_item, Sync_threads, Sync_threads_end;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
@@ -566,6 +335,9 @@ typedef struct auto_scanne_st
   BOOL save_CSV;
   BOOL save_XML;
   BOOL save_HTML;
+  BOOL auto_close_after_save;
+
+  BOOL NO_GUI;
 
   //check
   BOOL M_SEC;
@@ -644,7 +416,7 @@ HMODULE hDLL_kernel32;
 BOOL (WINAPI *Wow64DisableWow64FsRedirect)(PVOID *OldValue);
 BOOL (WINAPI *Wow64RevertWow64FsRedirect)(PVOID *OldValue);
 //----------------------------------------------------------------
-DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows;
+DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows, nb_unknow;
 //----------------------------------------------------------------
 //GUI
 void init(HWND hwnd);
@@ -654,6 +426,7 @@ long int AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
 BOOL LSBExist(DWORD lsb, char *sst);
+BOOL LSBExistC(DWORD lsb, char *sst);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
 //RicheEdit
@@ -666,7 +439,7 @@ void RichEditCouleurGras(HWND HRichEdit,COLORREF couleur,char* txt);
 BOOL compare_nocas(char *a, char *d);
 char *ConvertLinuxToWindows(char *src, DWORD max_size);
 char *charToLowChar(char *src);
-long int Contient(char*data, char*chaine);
+long long int Contient(char*data, char*chaine);
 BOOL Contient_nocas(char *data, char *chaine);
 void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, char chreplace);
 BOOL LinuxStart_msgOK(char *msg, char*cmd);
@@ -681,7 +454,7 @@ BOOL SaveLV(HWND hlv, char *file);
 char* GetLocalPath(char *path, unsigned int sizeMax);
 void loadFileIp(char *file);
 DWORD WINAPI load_file_ip(LPVOID lParam);
-DWORD load_file_list(DWORD lsb, char *file);
+DWORD load_file_list(DWORD lsb, char *file, BOOL reset);
 void LoadAuthFile(char *file);
 DWORD WINAPI load_file_accounts(LPVOID lParam);
 DWORD WINAPI scan(LPVOID lParam);
@@ -702,25 +475,35 @@ BOOL Netbios_NULLSession(char *ip, char *share);
 BOOL Netbios_NULLSessionStart(char *ip, char *share);
 void Netbios_NULLSessionStop(char *ip, char *share);
 
-BOOL TestReversSID(char *ip, char* user);
-void CheckReversSID(char *ip, char *results, DWORD max_size_results);
+//BOOL TestReversSID(char *ip, char* user);
+//void CheckReversSID(char *ip, char *results, DWORD max_size_results);
 BOOL Netbios_Time(wchar_t *server, char *time, unsigned int sz_max);
 BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_null_session);
 BOOL Netbios_Policy(wchar_t *server, char *pol, unsigned int sz_max);
 BOOL Netbios_OS(char *ip, char*txtOS, char *name, char *domain, unsigned int sz_max);
 
+int Netbios_List_service(DWORD iitem, char *ip, BOOL check);
+BOOL Netbios_List_users(DWORD iitem, char *ip);
+
+BOOL EnumTestReversSID(DWORD iitem, char *ip, BOOL check_only, char* user, char* results, unsigned int sz_results);
+BOOL Netbios_List_users_reversSID(DWORD iitem, char *ip, BOOL check_only, char*results, unsigned int max_size_results);
+
 //Registry
 BOOL StartRemoteRegistryService(char *ip, BOOL start);
 BOOL parseLineToReg(char *line, REG_LINE_ST *reg_st, BOOL reg_write);
 BOOL RegistryOS(DWORD iitem,HKEY hkey);
+BOOL Registry_List_users(DWORD iitem, char *ip, HKEY hkey);
+
 void RegistryScan(DWORD iitem,char *ip, HKEY hkey, char* chkey, BOOL hkey_users);
 DWORD ReadValue(HKEY hk,char *path,char *value,void *data, DWORD data_size);
-void RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
-void RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
-void RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+int RegistryServiceScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+int RegistrySoftwareScan(DWORD iitem,char *ip, char *path, HKEY hkey);
+int RegistryUSBScan(DWORD iitem,char *ip, char *path, HKEY hkey);
 void RegistryWriteKey(char *ip, HKEY hkey, char *chkey);
-BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok);
-BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok);
+BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok, BOOL users_check, BOOL os_check);
+BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, BOOL windows_OS, long int *id_ok, BOOL users_check, BOOL os_check);
+
+BOOL CheckServiceOpenSC(DWORD iitem, char *ip);
 
 //File
 void FileToMd5(HANDLE Hfic, char *md5);
@@ -728,8 +511,15 @@ void FileToSHA256(HANDLE Hfic, char *csha256);
 BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *remote_share, PSCANNE_ST config, long int *id_ok, DWORD id_cb, BOOL multi);
 BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, long int *id_ok);
 void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data, char*source);
+void CheckFileName(DWORD iitem, char*remote_name, char*chaine);
 DWORD CheckRecursivFilesList(DWORD iitem, char *remote_name, DWORD cb_id);
 BOOL RemoteFilesCopy(DWORD iitem, char *ip, char*remote_share, PSCANNE_ST config, char*pathToSave, char*file);
+
+//backup
+void backupRegKey(HKEY hkey, char *chkey,char *ckey, char *filetosave, HANDLE hfile, BOOL createf);
+int BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem);
+int BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem);
+int BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem);
 
 //SSH
 BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK);
