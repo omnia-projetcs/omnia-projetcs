@@ -443,14 +443,14 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
                 if (id_account == -1)
                 {
                   snprintf(msg,sizeof(msg),"%s:%d with %s account.",ip,port,username);
-                  AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
 
                   snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s account.",ip,port,username);
                   AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
                 }else
                 {
                   snprintf(msg,sizeof(msg),"%s:%d with %s (%02d) account.",ip,port,username,(unsigned int)id_account);
-                  AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
 
                   snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s (%02d) account.",ip,port,username,(unsigned int)id_account);
                   AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -546,10 +546,10 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 {
   if (!scan_start) return FALSE;
 
-  //EnterCriticalSection(&Sync_threads);
   WaitForSingleObject(hs_tcp,INFINITE);
+  EnterCriticalSection(&Sync_threads);
   hs_c_tcp++;
-  //LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads);
 
   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock != INVALID_SOCKET)
@@ -588,10 +588,10 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
 
         FD_CLR(sock, &read);
         closesocket(sock);
-        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_tcp,1,NULL);
+        EnterCriticalSection(&Sync_threads);
         hs_c_tcp--;
-        //LeaveCriticalSection(&Sync_threads_end);
+        LeaveCriticalSection(&Sync_threads);
         return TRUE;
       }
       //clean
@@ -610,18 +610,18 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
         }
 
         closesocket(sock);
-        //EnterCriticalSection(&Sync_threads_end);
         ReleaseSemaphore(hs_tcp,1,NULL);
+        EnterCriticalSection(&Sync_threads);
         hs_c_tcp--;
-        //LeaveCriticalSection(&Sync_threads_end);
+        LeaveCriticalSection(&Sync_threads);
         return TRUE;
       }
     }
     closesocket(sock);
   }
-  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_tcp,1,NULL);
+  EnterCriticalSection(&Sync_threads);
   hs_c_tcp--;
-  //LeaveCriticalSection(&Sync_threads_end);
+  LeaveCriticalSection(&Sync_threads);
   return FALSE;
 }

@@ -64,7 +64,7 @@
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.39 16/05/2015"
+#define TITLE                                       "NS v0.5.40 02/06/2015"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -92,7 +92,7 @@
 
 #define ICMP_TIMEOUT                                6000            //6 seconds
 #define THREAD_MAX_TIMEOUT                          100000          //100 secondes
-#define THE_END_THREAD_WAIT                         1000//*100ms
+#define THE_END_THREAD_WAIT                         100//*100ms
 #define DIXM                                        10*1024*1024    //10mo
 //----------------------------------------------------------------
 #define ID_ERROR                                    -1
@@ -326,7 +326,11 @@ HANDLE hs_count;
 
 SCANNE_ST config;
 HINSTANCE richDll;
-BOOL LOG_DISABLE;
+BOOL LOG_DISABLE, LOG_DNS_DISABLE, LOG_LOGIN_DISABLE, LOG_ERROR_VIEW_DISABLE;
+
+long long int emp_MIN_SZ;
+long long int emp_MAX_SZ;
+
 //----------------------------------------------------------------
 //AUTO-SCAN
 typedef struct auto_scanne_st
@@ -425,6 +429,7 @@ void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
 long int AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
+void SetMainTitle(char *date);
 BOOL LSBExist(DWORD lsb, char *sst);
 BOOL LSBExistC(DWORD lsb, char *sst);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

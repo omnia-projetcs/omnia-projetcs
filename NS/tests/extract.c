@@ -1058,7 +1058,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
     if (WNetAddConnection2(&NetRes,config->password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
-      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1106,7 +1106,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
     if (WNetAddConnection2(&NetRes,config->accounts[ip_id].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,ip_id);
-      AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1155,7 +1155,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
       if (WNetAddConnection2(&NetRes,config->accounts[i].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
         snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
-        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
         snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1194,7 +1194,7 @@ void RemoteFilesExtract(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, c
     RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"D$", config, pathToSave, cb_id);
     RemoteFilesAutenthicateForExtract(iitem, ip, ip_id, (char*)"E$", config, pathToSave, cb_id);
   #ifndef DEBUG_NOERROR
-  }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+  }else if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
   #else
   }
   #endif
@@ -1395,19 +1395,22 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   //get IP
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
-    //EnterCriticalSection(&Sync_threads_end);
+
     ReleaseSemaphore(hs_threads,1,NULL);
+    EnterCriticalSection(&Sync_threads);
     hs_c_threads--;
-    //LeaveCriticalSection(&Sync_threads_end);
+    LeaveCriticalSection(&Sync_threads);
 
     //tracking
     if (scan_start)
     {
+      SetMainTitle(NULL);
+    }else
+    {
       EnterCriticalSection(&Sync);
-      snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+      nb_test_ip++;
       LeaveCriticalSection(&Sync);
-      SetWindowText(h_main,test_title);
-    }else nb_test_ip++;
+    }
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -1422,10 +1425,10 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
     //disco mode !
     if (config.disco_icmp||config.disco_dns)
     {
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_disco,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_disco++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
 
       if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))
       {
@@ -1443,26 +1446,24 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           {
             exist = TRUE;
             iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
           }
         }else
         {
           iitem = AddLSTVItem((char*)"[ERROR DNS]", ip, dsc, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, (char*)"OK");
-          //EnterCriticalSection(&Sync_threads_end);
-          ReleaseSemaphore(hs_disco,1,NULL);
-          hs_c_disco--;
-          //LeaveCriticalSection(&Sync_threads_end);
 
-          //EnterCriticalSection(&Sync_threads_end);
+          ReleaseSemaphore(hs_disco,1,NULL);
+          EnterCriticalSection(&Sync_threads);
+          hs_c_disco--;
+          LeaveCriticalSection(&Sync_threads);
+
           ReleaseSemaphore(hs_threads,1,NULL);
+          EnterCriticalSection(&Sync_threads);
           hs_c_threads--;
-          //LeaveCriticalSection(&Sync_threads_end);
+          LeaveCriticalSection(&Sync_threads);
 
           //tracking
-          EnterCriticalSection(&Sync);
-          snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
-          LeaveCriticalSection(&Sync);
-          SetWindowText(h_main,test_title);
+          SetMainTitle(NULL);
           return 0;
         }
       }
@@ -1500,7 +1501,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         {
           if (!exist)
           {
-            AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
             if (auto_scan_config.DNS_DISCOVERY)
             {
               iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1512,10 +1513,11 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           }
         }
       }
-      //EnterCriticalSection(&Sync_threads_end);
+
       ReleaseSemaphore(hs_disco,1,NULL);
+      EnterCriticalSection(&Sync_threads);
       hs_c_disco--;
-      //LeaveCriticalSection(&Sync_threads_end);
+      LeaveCriticalSection(&Sync_threads);
     }else
     {
       if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))exist = FALSE;
@@ -1536,40 +1538,43 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         if ((config.check_registry || config.check_services || config.check_software  || config.check_USB) && scan_start)
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Registry");
-          //EnterCriticalSection(&Sync_threads);
           WaitForSingleObject(hs_registry,INFINITE);
+          EnterCriticalSection(&Sync_threads);
           hs_c_registry++;
-          //LeaveCriticalSection(&Sync_threads);
+          LeaveCriticalSection(&Sync_threads);
 
           RemoteRegistryExtract(iitem, ip, index, &config, path_to_save);
-          //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_registry,1,NULL);
+          EnterCriticalSection(&Sync_threads);
           hs_c_registry--;
-          //LeaveCriticalSection(&Sync_threads_end);
+          LeaveCriticalSection(&Sync_threads);
         }
 
         //files
         if(config.check_files && scan_start)
         {
           ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files");
-          //EnterCriticalSection(&Sync_threads);
+
           WaitForSingleObject(hs_file,INFINITE);
+          EnterCriticalSection(&Sync_threads);
           hs_c_file++;
-          //LeaveCriticalSection(&Sync_threads);
+          LeaveCriticalSection(&Sync_threads);
 
           RemoteFilesExtract(iitem, ip, index, &config, path_to_save, CB_T_MULFILES);
-          //EnterCriticalSection(&Sync_threads_end);
+
           ReleaseSemaphore(hs_file,1,NULL);
+          EnterCriticalSection(&Sync_threads);
           hs_c_file--;
+          LeaveCriticalSection(&Sync_threads);
         }
       }else
       {
         #ifndef DEBUG_NOERROR
-        if (config.check_files)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_FILES, iitem);
-        if (config.check_registry)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_REG, iitem);
-        if (config.check_services)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SERVICE, iitem);
-        if (config.check_software)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SOFTWARE, iitem);
-        if (config.check_USB)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_USB, iitem);
+        if (config.check_files)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_FILES, iitem);
+        if (config.check_registry)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_REG, iitem);
+        if (config.check_services)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SERVICE, iitem);
+        if (config.check_software)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_SOFTWARE, iitem);
+        if (config.check_USB)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"NOT TESTED! (port 445/TCP not open)", COL_USB, iitem);
         #endif
       }
       //SSH
@@ -1578,16 +1583,16 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"SSH");
         if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
         {
-          //EnterCriticalSection(&Sync_threads);
           WaitForSingleObject(hs_ssh,INFINITE);
+          EnterCriticalSection(&Sync_threads);
           hs_c_ssh++;
-          //LeaveCriticalSection(&Sync_threads);
+          LeaveCriticalSection(&Sync_threads);
           RemoteSSHExtract(iitem, ip, index, &config, path_to_save);
 
-          //EnterCriticalSection(&Sync_threads_end);
           ReleaseSemaphore(hs_ssh,1,NULL);
+          EnterCriticalSection(&Sync_threads);
           hs_c_ssh--;
-          //LeaveCriticalSection(&Sync_threads_end);
+          LeaveCriticalSection(&Sync_threads);
         }
       }
 
@@ -1595,10 +1600,10 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
     }
   }
 
-  //EnterCriticalSection(&Sync_threads_end);
   ReleaseSemaphore(hs_threads,1,NULL);
+  EnterCriticalSection(&Sync_threads);
   hs_c_threads--;
-  //LeaveCriticalSection(&Sync_threads_end);
+  LeaveCriticalSection(&Sync_threads);
 
   if (exist)
   {
@@ -1631,11 +1636,13 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   //tracking
   if (scan_start)
   {
+    SetMainTitle(NULL);
+  }else
+  {
     EnterCriticalSection(&Sync);
-    snprintf(test_title,MAX_PATH,"%s %lu/%lu",TITLE,++nb_test_ip,nb_i);
+    nb_test_ip++;
     LeaveCriticalSection(&Sync);
-    SetWindowText(h_main,test_title);
-  }else nb_test_ip++;
+  }
   return 0;
 }
 //----------------------------------------------------------------
@@ -1747,10 +1754,10 @@ DWORD WINAPI remote_extract(LPVOID lParam)
     DWORD i;
     for (i=0;(i<nb_i) && scan_start;i++)
     {
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_threads,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_threads++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
       CreateThread(NULL,0,remote_extractIP,(PVOID)i,0,0);
     }
 
@@ -1763,29 +1770,27 @@ DWORD WINAPI remote_extract(LPVOID lParam)
       while (nb_test_ip < i && end < THE_END_THREAD_WAIT){Sleep(100);end++;}
     }else
     {
-      //EnterCriticalSection(&Sync_threads);
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
-      //LeaveCriticalSection(&Sync_threads);
 
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_file,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_file++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
 
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_registry,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_registry++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
 
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_tcp,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_tcp++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
 
-      //EnterCriticalSection(&Sync_threads);
       WaitForSingleObject(hs_ssh,INFINITE);
+      EnterCriticalSection(&Sync_threads);
       hs_c_ssh++;
-      //LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads);
     }
     WSACleanup();
   }

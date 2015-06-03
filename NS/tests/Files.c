@@ -257,6 +257,7 @@ void CheckFile(DWORD iitem, char *file, WIN32_FIND_DATA *data, char *source)
   #ifdef DEBUG_MODE_FILES
   AddMsg(h_main,"DEBUG","files:CheckFile END",file);
   #endif
+
 }
 //----------------------------------------------------------------
 void CheckRecursivFiles(DWORD iitem, char *remote_name, char *file, BOOL recursif)
@@ -451,18 +452,40 @@ void CheckRecursivFilesFromSizeAndEM(DWORD iitem, char *remote_name, long long i
           //MD5
           if (config.no_hash_check == FALSE)
           {
-            hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
+            if (emp_MAX_SZ!= 0)
             {
-              FileToMd5(hfile, s_md5);
-              CloseHandle(hfile);
+              if (filesize.QuadPart >= emp_MIN_SZ && filesize.QuadPart <= emp_MAX_SZ)
+              {
+                hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToMd5(hfile, s_md5);
+                  CloseHandle(hfile);
 
-              //SHA256
+                  //SHA256
+                  hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    FileToSHA256(hfile, s_sha);
+                    CloseHandle(hfile);
+                  }
+                }
+              }
+            }else
+            {
               hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                FileToSHA256(hfile, s_sha);
+                FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
+
+                //SHA256
+                hfile = CreateFile(tmp_remote_name,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
               }
             }
           }
@@ -854,7 +877,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       }else
       {
         snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
-        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
         snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -916,7 +939,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       }else
       {
         snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,ip_id);
-        AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
         snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -981,7 +1004,7 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         }else
         {
           snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
-          AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+          if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
 
           snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1156,17 +1179,38 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, long long int fi
 
             if (config.no_hash_check == FALSE)
             {
-              hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-              if (hfile != INVALID_HANDLE_VALUE)
+              if (emp_MAX_SZ!= 0)
               {
-                FileToMd5(hfile, s_md5);
-                CloseHandle(hfile);
+                if (filesize >= emp_MIN_SZ && filesize <= emp_MAX_SZ)
+                {
+                  hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    FileToMd5(hfile, s_md5);
+                    CloseHandle(hfile);
 
+                    hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                    if (hfile != INVALID_HANDLE_VALUE)
+                    {
+                      FileToSHA256(hfile, s_sha);
+                      CloseHandle(hfile);
+                    }
+                  }
+                }
+              }else
+              {
                 hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
                 if (hfile != INVALID_HANDLE_VALUE)
                 {
-                  FileToSHA256(hfile, s_sha);
+                  FileToMd5(hfile, s_md5);
                   CloseHandle(hfile);
+
+                  hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    FileToSHA256(hfile, s_sha);
+                    CloseHandle(hfile);
+                  }
                 }
               }
             }
@@ -1193,17 +1237,38 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, long long int fi
 
           if (config.no_hash_check == FALSE)
           {
-            hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
+            if (emp_MAX_SZ!= 0)
             {
-              FileToMd5(hfile, s_md5);
-              CloseHandle(hfile);
+              if (filesize >= emp_MIN_SZ && filesize <= emp_MAX_SZ)
+              {
+                hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToMd5(hfile, s_md5);
+                  CloseHandle(hfile);
 
+                  hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    FileToSHA256(hfile, s_sha);
+                    CloseHandle(hfile);
+                  }
+                }
+              }
+            }else
+            {
               hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                FileToSHA256(hfile, s_sha);
+                FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
+
+                hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
               }
             }
           }
@@ -1219,17 +1284,38 @@ void CheckListFile(DWORD iitem, char *file_path, char*filename, long long int fi
 
           if (config.no_hash_check == FALSE)
           {
-            hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-            if (hfile != INVALID_HANDLE_VALUE)
+            if (emp_MAX_SZ!= 0)
             {
-              FileToMd5(hfile, s_md5);
-              CloseHandle(hfile);
+              if (filesize >= emp_MIN_SZ && filesize <= emp_MAX_SZ)
+              {
+                hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToMd5(hfile, s_md5);
+                  CloseHandle(hfile);
 
+                  hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                  if (hfile != INVALID_HANDLE_VALUE)
+                  {
+                    FileToSHA256(hfile, s_sha);
+                    CloseHandle(hfile);
+                  }
+                }
+              }
+            }else
+            {
               hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
               if (hfile != INVALID_HANDLE_VALUE)
               {
-                FileToSHA256(hfile, s_sha);
+                FileToMd5(hfile, s_md5);
                 CloseHandle(hfile);
+
+                hfile = CreateFile(file_path,GENERIC_READ,FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+                if (hfile != INVALID_HANDLE_VALUE)
+                {
+                  FileToSHA256(hfile, s_sha);
+                  CloseHandle(hfile);
+                }
               }
             }
           }
@@ -1360,9 +1446,9 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
     //localFileScanList!
     if (SendDlgItemMessage(h_main,CB_T_MULFILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
     {
-      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
+      //ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
       if (!LocalFilesScanList(iitem, ip, config, CB_T_MULFILES))
-        AddLSTVUpdateItem((char*)"LOCAL MULTI FILE SCAN FAIL!",COL_FILES,iitem);
+        AddLSTVUpdateItem((char*)"LOCAL FILE SCAN FAIL!",COL_FILES,iitem);
     }
 
     if (disable_wowo64)Wow64RevertWow64FsRedirect(OldValue);
@@ -1377,7 +1463,7 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
       if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_MULFILES, FALSE))
       {
         nb_files++;
-        ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
+        //ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
         RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_MULFILES, FALSE);
         RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_MULFILES, FALSE);
 
@@ -1389,19 +1475,19 @@ BOOL RemoteConnexionFilesScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST con
       {
         RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"ADMIN$", config, id_ok, CB_T_MULFILES, TRUE);*/
       #ifndef DEBUG_NOERROR
-      }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+      }else if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
       #else
       }
       #endif
     }else if (SendDlgItemMessage(h_main,CB_T_MULFILES,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL) > 0)
     {
-      ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
+      //ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)(LPSTR)"Files (List)");
       if(RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"C$", config, id_ok, CB_T_MULFILES, TRUE))
       {
         RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"D$", config, id_ok, CB_T_MULFILES, TRUE);
         RemoteAuthenticationFilesScan(iitem, ip, ip_id, (char*)"E$", config, id_ok, CB_T_MULFILES, TRUE);
       #ifndef DEBUG_NOERROR
-      }else AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
+      }else if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_FILES,iitem);
       #else
       }
       #endif

@@ -1351,11 +1351,11 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
       if (config->local_account)
       {
         //snprintf(msg,LINE_SIZE,"%s with current session account.",ip);
-        //AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+        //if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
       }else if (!connect)
       {
         snprintf(msg,LINE_SIZE,"%s with NULL session account.",ip);
-        AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
+        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Registry:NET)",msg,(char*)"");
       }
 
       #ifdef DEBUG_MODE
@@ -1539,10 +1539,10 @@ BOOL RemoteConnexionScan(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config, 
   else
   {
     #ifndef DEBUG_NOERROR
-    if (config->check_registry)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);
-    if (config->check_services)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SERVICE,iitem);
-    if (config->check_software)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SOFTWARE,iitem);
-    if (config->check_USB)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_USB,iitem);
+    if (config->check_registry)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_REG,iitem);
+    if (config->check_services)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SERVICE,iitem);
+    if (config->check_software)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_SOFTWARE,iitem);
+    if (config->check_USB)if(!LOG_ERROR_VIEW_DISABLE)AddLSTVUpdateItem((char*)"CONNEXION FAIL!",COL_USB,iitem);
     #endif
   }
   return FALSE;
