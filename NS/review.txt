@@ -1,29 +1,54 @@
+[NS] vX.X.XX
+	- review search for remote user (file and registry)
 
-/*
+
 
 
 //----------------------------------------------------------------
+	* update documentation (faire pour les paramètres LOG)
+  * add INI option for disable log file or DNS log messages or Authentication messages
+  * review bug for global scan
+  * adding option for global size of file check by MD5/SHA1/SHA256 (size range)
+  * add for last update from test the date and time on the title
+
+
+
+- bug de gestion des états et threads_count
+- bug de fermeture des services de registre
+- ajouter un paramètre dans le ini pour désactiver la fermeture du registre à distance si ouvert
+- ajouter une taille min et max pour les md5
+- bug de fermeture de thread
+
+emp_MAX_SZ = emp_MIN_SZ;
+
+bug ici :
+arrêt thread + bug de suivie des threads
+ScanIp : réactiver la zone désactive !!!
+
+revoir la gestion des threads en mutex afin de gérer l'atet de fin du thread et de gérer les différents états'
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms686927%28v=vs.85%29.aspx
+
+
+
+
 OK:
-
-* revoir recherche des users avec prise en compte des chemins des profils users + recherche comptes locaux + registre + netbios + Ajouter une fonction pour énumérer les users dans le groupe admin local à distance !
-CheckFilesUser
-
 ???
 * mettre à jour la documentation + spécifier que les fihciers de configuration sont gérés en chemin relatifs !
 le chemin dans le .ini est relatif, donc si je suis dans C:\A et j'exécute NS.exe avec par exemple C:\A\B\NS.EXE, il ba de base aller chercher le fichier dans C:\A\ip_test.csv et non C:\A\B\ip_test.csv
-il prend le répertoire d'éxécution courant et non celui où se trouve le binaire, et ça si tu ne l'as
+il prend le répertoire d'exécution courant et non celui où se trouve le binaire, et ça si tu ne l'as
 
 * ajouter un mode sans GUI tout automatique ! (lancer un périmètre définis + compte mdp possible + tests)
 //----------------------------------------------------------------
+###
 
+- ajouter un * dans les recherches de clés de registre !
+- Ajouter avec file en cas de non détection os une tentative d'estimation de l'OS
+- Ajouter un menu avec état des paramètres ini
+
+
+//----------------------------------------------------------------
 * voir plantage empreintes MD5?!
 - attention : bug lors du scann si des connexion en cours pour login revoir pour mis en place de timeout !
-
-
-
-
-
-
 
 
 - voir possibilité d'uploader un fichier et l'exécuter.
@@ -35,7 +60,7 @@ Registry_List_users(iitem, ip, hkey);
 
 * ajouter recherche de fichier sur partages réseau si pas d'accès disk !
 
-* Vérifier si la connexion direct sans impersonate est possible juste avec IPC$ si le programe est exécut avec les privilèges attendus + exécuter le programme en tant qu'administrateur
+* Vérifier si la connexion direct sans impersonate est possible juste avec IPC$ si le programme est exécuté avec les privilèges attendus + exécuter le programme en tant qu'administrateur
 
 * revoir pour utilisation du seul fichier de check multi c'est tout
 * revoir pour gestion des noms de fichiers contenant *
@@ -48,8 +73,10 @@ Registry_List_users(iitem, ip, hkey);
  + ajouter la gestion de la ruche HKEY_USERS
  + ajouter la nouvelle gestion des paramètres ini afin de désactiver les logs + sauvegarde automatique
 
+* SSH sans les librairies et multithread
+
 #PRIORITE NS:
-* ajout de la possibiliter d'exécuter des commandes/injecter des binnaires locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
+* ajout de la possibilité d'exécuter des commandes/injecter des binaires locales à destinations (commande + paramètre + param 2 + param3 (utilisation possible du %IP)
 
 #NEXT STEP:
 * multithread SSH (nécessite une revue du code complet + des librairies associées)
@@ -58,4 +85,3 @@ Registry_List_users(iitem, ip, hkey);
 - review few bugs
 
 MessageBox(h_main,"test","?",MB_OK|MB_TOPMOST);
-*/
