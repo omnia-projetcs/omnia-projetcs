@@ -64,7 +64,7 @@
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.40 02/06/2015"
+#define TITLE                                       "NS v0.5.44 05/06/2015"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"
@@ -278,7 +278,7 @@ typedef struct scanne_st
 
   BOOL global_ip_file; // = IP + desc + domain + login + mdp par ligne !!!
 
-  unsigned int nb_accounts;
+  int nb_accounts;
   ACCOUNTS_ST accounts[MAX_ACCOUNTS];
 
   //use or not local account
@@ -311,6 +311,7 @@ BOOL save_done, save_current;
 
 //Threads
 DWORD NB_MAX_DISCO_THREADS;
+#define NB_MAX_DNS_THREADS                          100
 DWORD NB_MAX_NETBIOS_THREADS;
 DWORD NB_MAX_FILE_THREADS;
 DWORD NB_MAX_REGISTRY_THREADS;
@@ -318,7 +319,7 @@ DWORD NB_MAX_SSH_THREADS;
 DWORD NB_MAX_TCP_TEST_THREADS;
 DWORD NB_MAX_THREAD;
 
-CRITICAL_SECTION Sync, Sync_item, Sync_threads, Sync_threads_end;
+CRITICAL_SECTION Sync, Sync_item, Sync_threads, Sync_threads_tcp, Sync_threads_end, Sync_threads_disco, Sync_threads_netbios, Sync_threads_registry, Sync_threads_files, Sync_threads_ssh;
 HANDLE hs_threads,hs_disco,hs_netbios,hs_file,hs_registry,hs_ssh,hs_tcp;
 
 long int hs_c_threads, hs_c_disco, hs_c_netbios, hs_c_file, hs_c_registry, hs_c_ssh, hs_c_tcp;
@@ -326,7 +327,7 @@ HANDLE hs_count;
 
 SCANNE_ST config;
 HINSTANCE richDll;
-BOOL LOG_DISABLE, LOG_DNS_DISABLE, LOG_LOGIN_DISABLE, LOG_ERROR_VIEW_DISABLE;
+BOOL LOG_DISABLE, LOG_DNS_DISABLE, LOG_LOGIN_DISABLE, LOG_ERROR_VIEW_DISABLE,REG_REMOTE_SERVICE_STOP;
 
 long long int emp_MIN_SZ;
 long long int emp_MAX_SZ;
@@ -424,12 +425,14 @@ DWORD nb_test_ip, nb_i, nb_files, nb_registry, nb_windows, nb_unknow;
 //----------------------------------------------------------------
 //GUI
 void init(HWND hwnd);
-void AddMsg(HWND hwnd, char *type, char *txt, char *info);
+void initthreadings();
+
+void AddMsg(HWND hwnd, char *type, char *txt, char *info, BOOL inc);
 void AddLSTVUpdateItem(char *add, DWORD column, DWORD iitem);
 long int AddLSTVItem(char *ip, char *dsc, char *dns, char *ttl, char *os, char *config, char *share, char*policy, char *files, char *registry, char *Services, char *software, char *USB, char *state);
 void c_Tri(HWND hlv, unsigned short colonne_ref, BOOL sort);
 int CALLBACK CompareStringTri(LPARAM lParam1, LPARAM lParam2, LPARAM lParam3);
-void SetMainTitle(char *date);
+void SetMainTitle( char *date, BOOL inc);
 BOOL LSBExist(DWORD lsb, char *sst);
 BOOL LSBExistC(DWORD lsb, char *sst);
 BOOL CALLBACK DlgMain(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);

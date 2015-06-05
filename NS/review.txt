@@ -5,30 +5,23 @@
 
 
 //----------------------------------------------------------------
-	* update documentation (faire pour les paramètres LOG)
+[NS] UPDATE to v0.5.44 05/06/2015
+  * update documentation (faire pour les paramètres LOG)
   * add INI option for disable log file or DNS log messages or Authentication messages
+  * add INI optoin for not stop remote registry service after start it
   * review bug for global scan
   * adding option for global size of file check by MD5/SHA1/SHA256 (size range)
   * add for last update from test the date and time on the title
+  * review critical section multi-init bug
+  * review multi thread (can be fastest and )
+  * review few bug
 
 
-
-- bug de gestion des états et threads_count
 - bug de fermeture des services de registre
-- ajouter un paramètre dans le ini pour désactiver la fermeture du registre à distance si ouvert
-- ajouter une taille min et max pour les md5
-- bug de fermeture de thread
-
-emp_MAX_SZ = emp_MIN_SZ;
 
 bug ici :
-arrêt thread + bug de suivie des threads
-ScanIp : réactiver la zone désactive !!!
 
-revoir la gestion des threads en mutex afin de gérer l'atet de fin du thread et de gérer les différents états'
-https://msdn.microsoft.com/en-us/library/windows/desktop/ms686927%28v=vs.85%29.aspx
-
-
+* bug possible en mode debug !!!
 
 
 OK:

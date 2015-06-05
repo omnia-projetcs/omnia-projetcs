@@ -35,7 +35,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
   {
     #ifdef DEBUG_MODE_SSH
     char debug_msg[MAX_PATH];
-    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_init");
+    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_init",FALSE);
     #endif // DEBUG_MODE_SSH
 
     //connexion
@@ -43,7 +43,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
     if (sock != INVALID_SOCKET)
     {
       #ifdef DEBUG_MODE_SSH
-      AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"socket");
+      AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"socket",FALSE);
       #endif // DEBUG_MODE_SSH
 
       //connect
@@ -54,7 +54,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
       if (connect(sock, (struct sockaddr*)(&sin),sizeof(struct sockaddr_in)) != SOCKET_ERROR)
       {
         #ifdef DEBUG_MODE_SSH
-        AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"connect:TCP 22");
+        AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"connect:TCP 22",FALSE);
         #endif // DEBUG_MODE_SSH
 
         //init a session sshv2
@@ -68,7 +68,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
           libssh2_session_set_timeout(session, SSH2_SESSION_TIMEOUT);
 
           #ifdef DEBUG_MODE_SSH
-          AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_init");
+          AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_init",FALSE);
           #endif // DEBUG_MODE_SSH
 
           //start real session, pass welcome banners...
@@ -76,7 +76,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
           if (!libssh2_session_handshake(session, sock))
           {
             #ifdef DEBUG_MODE_SSH
-            AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_startup/libssh2_session_handshake");
+            AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_startup/libssh2_session_handshake",FALSE);
             #endif // DEBUG_MODE_SSH
 
             //authentication
@@ -84,7 +84,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
             {
               #ifdef DEBUG_MODE_SSH
               snprintf(debug_msg,MAX_PATH,"libssh2_userauth_password %s:%s",username,password);
-              AddMsg(h_main,(char*)"DEBUG (SSH)",ip,debug_msg);
+              AddMsg(h_main,(char*)"DEBUG (SSH)",ip,debug_msg,FALSE);
               #endif // DEBUG_MODE_SSH
 
               for (i=0;i<_nb_i && scan_start;i++)
@@ -99,7 +99,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
                   if ((channel = libssh2_channel_open_session(session)) != 0)
                   {
                     #ifdef DEBUG_MODE_SSH
-                    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_channel_open_session");
+                    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_channel_open_session",FALSE);
                     #endif // DEBUG_MODE_SSH
 
                     //send command and read results
@@ -107,7 +107,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
                     {
                       #ifdef DEBUG_MODE_SSH
                       snprintf(debug_msg,MAX_PATH,"libssh2_channel_exec %s",cmd);
-                      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg);
+                      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg,FALSE);
                       #endif // DEBUG_MODE_SSH
 
                       buffer[0] = 0;
@@ -126,7 +126,7 @@ int ssh_exec(DWORD iitem, char *ip, unsigned int port, char*username, char*passw
 
                           ConvertLinuxToWindows(buffer, MAX_MSG_SIZE);
 
-                          AddMsg(h_main,(char*)"FOUND (SSH)",msg,buffer);
+                          AddMsg(h_main,(char*)"FOUND (SSH)",msg,buffer,FALSE);
                           AddLSTVUpdateItem(buffer, COL_SSH, iitem);
                           buffer[0] = 0;
                         }while((rc = libssh2_channel_read(channel, buffer, MAX_MSG_SIZE)) && (z++ < MAX_COUNT_MSG));
@@ -209,7 +209,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
   {
     #ifdef DEBUG_MODE_SSH
     char debug_msg[MAX_PATH];
-    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_init");
+    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_init",FALSE);
     #endif // DEBUG_MODE_SSH
 
     //connexion
@@ -217,7 +217,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
     if (sock != INVALID_SOCKET)
     {
       #ifdef DEBUG_MODE_SSH
-      AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"socket");
+      AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"socket",FALSE);
       #endif // DEBUG_MODE_SSH
 
       //connect
@@ -228,7 +228,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
       if (connect(sock, (struct sockaddr*)(&sin),sizeof(struct sockaddr_in)) != SOCKET_ERROR)
       {
         #ifdef DEBUG_MODE_SSH
-        AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"connect:TCP 22");
+        AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"connect:TCP 22",FALSE);
         #endif // DEBUG_MODE_SSH
 
         //init a session sshv2
@@ -242,7 +242,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
           libssh2_session_set_timeout(session, SSH2_SESSION_TIMEOUT);
 
           #ifdef DEBUG_MODE_SSH
-          AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_init");
+          AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_init",FALSE);
           #endif // DEBUG_MODE_SSH
 
           //start real session, pass welcome banners...
@@ -250,7 +250,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
           if (!libssh2_session_handshake(session, sock))
           {
             #ifdef DEBUG_MODE_SSH
-            AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_startup/libssh2_session_handshake");
+            AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_session_startup/libssh2_session_handshake",FALSE);
             #endif // DEBUG_MODE_SSH
 
             //authentication
@@ -258,7 +258,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
             {
               #ifdef DEBUG_MODE_SSH
               snprintf(debug_msg,MAX_PATH,"libssh2_userauth_password %s:%s",username,password);
-              AddMsg(h_main,(char*)"DEBUG (SSH)",ip,debug_msg);
+              AddMsg(h_main,(char*)"DEBUG (SSH)",ip,debug_msg,FALSE);
               #endif // DEBUG_MODE_SSH
 
               for (i=0;i<_nb_i && scan_start;i++)
@@ -273,7 +273,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
                   if ((channel = libssh2_channel_open_session(session)) != 0)
                   {
                     #ifdef DEBUG_MODE_SSH
-                    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_channel_open_session");
+                    AddMsg(h_main,(char*)"DEBUG (SSH)",ip,"libssh2_channel_open_session",FALSE);
                     #endif // DEBUG_MODE_SSH
 
                     //send command and read results
@@ -281,7 +281,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
                     {
                       #ifdef DEBUG_MODE_SSH
                       snprintf(debug_msg,MAX_PATH,"libssh2_channel_exec %s",cmd);
-                      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg);
+                      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg,FALSE);
                       #endif // DEBUG_MODE_SSH
 
                       buffer[0] = 0;
@@ -301,7 +301,7 @@ int ssh_exec_to_file(DWORD iitem, char *ip, unsigned int port, char*username, ch
 
                           ConvertLinuxToWindows(buffer, MAX_MSG_SIZE);
 
-                          AddMsg(h_main,(char*)"FOUND (SSH)",msg,buffer);
+                          AddMsg(h_main,(char*)"FOUND (SSH)",msg,buffer,FALSE);
                           AddLSTVUpdateItem(buffer, COL_SSH, iitem);
                           WriteFile(hfile,buffer,strlen(buffer),&copiee,0);
                           buffer[0] = 0;
@@ -385,14 +385,14 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
   {
     #ifdef DEBUG_MODE_SSH
     char debug_msg[MAX_PATH];
-    AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_init");
+    AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_init",FALSE);
     #endif // DEBUG_MODE_SSH
     //connexion
     SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
     if (sock != INVALID_SOCKET)
     {
       #ifdef DEBUG_MODE_SSH
-      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"socket");
+      AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"socket",FALSE);
       #endif // DEBUG_MODE_SSH
       //connect
       struct sockaddr_in sin;
@@ -402,7 +402,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
       if (connect(sock, (struct sockaddr*)(&sin),sizeof(struct sockaddr_in)) != SOCKET_ERROR)
       {
         #ifdef DEBUG_MODE_SSH
-        AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"connect:TCP 22");
+        AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"connect:TCP 22",FALSE);
         #endif // DEBUG_MODE_SSH
 
         //init a session sshv2
@@ -410,7 +410,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
         if (session != 0)
         {
           #ifdef DEBUG_MODE_SSH
-          AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_session_init");
+          AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_session_init",FALSE);
           #endif // DEBUG_MODE_SSH
 
           //set session timeout for bad ssh server (hold or not real server)
@@ -421,12 +421,12 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
           if (!libssh2_session_handshake(session, sock))
           {
             #ifdef DEBUG_MODE_SSH
-            AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_session_startup/libssh2_session_handshake");
+            AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_session_startup/libssh2_session_handshake",FALSE);
             #endif // DEBUG_MODE_SSH
             if (msg_OK)
             {
               snprintf(msg,MAX_MSG_SIZE,"(SSH) Enable on %s:%d",ip,port);
-              AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+              AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"",FALSE);
               AddLSTVUpdateItem(msg, COL_SSH, iitem);
             }
 
@@ -435,7 +435,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
             {
               #ifdef DEBUG_MODE_SSH
               snprintf(debug_msg,MAX_PATH,"libssh2_userauth_password %s:%s",username,password);
-              AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg);
+              AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg,FALSE);
               #endif // DEBUG_MODE_SSH
 
               if (msg_auth)
@@ -443,14 +443,14 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
                 if (id_account == -1)
                 {
                   snprintf(msg,sizeof(msg),"%s:%d with %s account.",ip,port,username);
-                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"",FALSE);
 
                   snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s account.",ip,port,username);
                   AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
                 }else
                 {
                   snprintf(msg,sizeof(msg),"%s:%d with %s (%02d) account.",ip,port,username,(unsigned int)id_account);
-                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"");
+                  if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (SSH)",msg,(char*)"",FALSE);
 
                   snprintf(msg,sizeof(msg),"Login SSH %s:%d with %s (%02d) account.",ip,port,username,(unsigned int)id_account);
                   AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -462,7 +462,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
               {
                 #ifdef DEBUG_MODE_SSH
 
-                AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_channel_open_session");
+                AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,"libssh2_channel_open_session",FALSE);
                 #endif // DEBUG_MODE_SSH
 
                 //send command and read results
@@ -470,7 +470,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
                 {
                   #ifdef DEBUG_MODE_SSH
                   snprintf(debug_msg,MAX_PATH,"libssh2_channel_exec %s",cmd);
-                  AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg);
+                  AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,debug_msg,FALSE);
                   #endif // DEBUG_MODE_SSH
 
                   rc = libssh2_channel_read(channel, buffer, buffer_size);
@@ -482,7 +482,7 @@ int ssh_exec_cmd(DWORD iitem, char *ip, unsigned int port, char*username, char*p
                     ConvertLinuxToWindows(buffer, buffer_size);
 
                     #ifdef DEBUG_MODE_SSH
-                    AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,buffer);
+                    AddMsg(h_main,(char*)"DEBUG (SSH CMD)",ip,buffer,FALSE);
                     #endif // DEBUG_MODE_SSH
                   }
 
@@ -547,9 +547,9 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
   if (!scan_start) return FALSE;
 
   WaitForSingleObject(hs_tcp,INFINITE);
-  EnterCriticalSection(&Sync_threads);
+  EnterCriticalSection(&Sync_threads_tcp);
   hs_c_tcp++;
-  LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads_tcp);
 
   SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
   if (sock != INVALID_SOCKET)
@@ -582,16 +582,16 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
         {
           char msg[MAX_PATH];
           snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
-          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"",FALSE);
           AddLSTVUpdateItem(msg, COL_SSH, iitem);
         }
 
         FD_CLR(sock, &read);
         closesocket(sock);
         ReleaseSemaphore(hs_tcp,1,NULL);
-        EnterCriticalSection(&Sync_threads);
+        EnterCriticalSection(&Sync_threads_tcp);
         hs_c_tcp--;
-        LeaveCriticalSection(&Sync_threads);
+        LeaveCriticalSection(&Sync_threads_tcp);
         return TRUE;
       }
       //clean
@@ -605,23 +605,23 @@ BOOL TCP_port_open(DWORD iitem, char *ip, unsigned int port, BOOL msg_OK)
         {
           char msg[MAX_PATH];
           snprintf(msg,sizeof(msg),"(SSH) Enable on %s:%d",ip,port);
-          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"");
+          AddMsg(h_main,(char*)"INFORMATION",msg,(char*)"",FALSE);
           AddLSTVUpdateItem(msg, COL_SSH, iitem);
         }
 
         closesocket(sock);
         ReleaseSemaphore(hs_tcp,1,NULL);
-        EnterCriticalSection(&Sync_threads);
+        EnterCriticalSection(&Sync_threads_tcp);
         hs_c_tcp--;
-        LeaveCriticalSection(&Sync_threads);
+        LeaveCriticalSection(&Sync_threads_tcp);
         return TRUE;
       }
     }
     closesocket(sock);
   }
   ReleaseSemaphore(hs_tcp,1,NULL);
-  EnterCriticalSection(&Sync_threads);
+  EnterCriticalSection(&Sync_threads_tcp);
   hs_c_tcp--;
-  LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads_tcp);
   return FALSE;
 }

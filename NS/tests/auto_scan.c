@@ -17,7 +17,7 @@ char* GetLocalPath(char *path, unsigned int sizeMax)
   c = tmp+strlen(tmp)-2; //bypass "
   while(*c != '\\') c--;
   *c = 0;
-  AddMsg(h_main, (char*)"DEBUG (actual->future)",path,tmp);
+  AddMsg(h_main, (char*)"DEBUG (actual->future)",path,tmp,FALSE);
   */
 
   return path;
@@ -29,9 +29,9 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
   HANDLE connect = 0;
 
   WaitForSingleObject(hs_netbios,INFINITE);
-  EnterCriticalSection(&Sync_threads);
+  EnterCriticalSection(&Sync_threads_netbios);
   hs_c_netbios++;
-  LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads_netbios);
 
   if (scan_start)connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,&config, iitem, FALSE, id_ok);
 
@@ -75,11 +75,11 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
           if (DWORD_tmp == 1)
           {
             AddLSTVUpdateItem("Password complexity:OK (Enable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",(char*)"Password complexity:OK (Enable)",value);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",(char*)"Password complexity:OK (Enable)",value,FALSE);
           }else
           {
             AddLSTVUpdateItem("Password complexity:NOK (Disable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",(char*)"Password complexity:NOK (Disable)",value);
+            AddMsg(h_main, (char*)"FOUND (Account policy)",(char*)"Password complexity:NOK (Disable)",value,FALSE);
           }
         }
       }
@@ -93,11 +93,11 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
           if (DWORD_tmp == 0xFF)
           {
             AddLSTVUpdateItem("AUTORUN:OK (Disable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"AUTORUN:OK (Disable)",value);
+            AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"AUTORUN:OK (Disable)",value,FALSE);
           }else
           {
             AddLSTVUpdateItem("AUTORUN:NOK (Enable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"AUTORUN:NOK (Enable)",value);
+            AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"AUTORUN:NOK (Enable)",value,FALSE);
           }
         }
       }
@@ -111,7 +111,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
 
           snprintf(tmp,MAX_PATH,"MSEC:OK (installed:%s)",tmp_value);
           AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Registry)",(char*)tmp,value);
+          AddMsg(h_main, (char*)"FOUND (Registry)",(char*)tmp,value,FALSE);
         }
       }
 
@@ -127,7 +127,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
         {
           snprintf(value,MAX_PATH,"%s\\HKLM\\SOFTWARE\\Mcafee\\AVEngine\\AvDatDate=%s",ip,tmp_value);
           AddLSTVUpdateItem("McAfee:OK (installed)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"McAfee:OK (installed)",value);
+          AddMsg(h_main, (char*)"FOUND (Registry)",(char*)"McAfee:OK (installed)",value,FALSE);
 
           //check version
           tmp[0] = tmp_value[0];
@@ -193,7 +193,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
             snprintf(msg,MAX_PATH,"McAfee:NOK (last update:%s)",tmp_value);
           }
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
+          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg,FALSE);
         }
       }
 
@@ -214,7 +214,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
             }
           }else snprintf(msg,MAX_PATH,"WSUS:NOK (not used, server:%s)",tmp_value);
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
+          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg,FALSE);
 
           //patch update
           tmp_value[0]=0;
@@ -285,7 +285,7 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
             }
           }else snprintf(msg,MAX_PATH,"WSUS UPDATE:NOK (never updated)");
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg);
+          AddMsg(h_main, (char*)"FOUND (Registry)",ip,(char*)msg,FALSE);
         }
       }
       RegCloseKey(hkey);
@@ -304,9 +304,9 @@ void RemoteConnexionRegistryScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, BO
   }
 
   ReleaseSemaphore(hs_netbios,1,NULL);
-  EnterCriticalSection(&Sync_threads);
+  EnterCriticalSection(&Sync_threads_netbios);
   hs_c_netbios--;
-  LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads_netbios);
 }
 //----------------------------------------------------------------
 void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *id_ok)
@@ -340,7 +340,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *
                                     ,pUmI_0->usrmod0_password_hist_len>=auto_scan_config.PASSWORD_POLICY_HISTORY?"OK":"NOK",pUmI_0->usrmod0_password_hist_len);
         NetApiBufferFree(pUmI_0);
         AddLSTVUpdateItem(tmp_pUmI_0, COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_0);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_0,FALSE);
       }
     }
     if (NERR_Success == NetUserModalsGet(server,3,(LPBYTE *)&pUmI_3))
@@ -351,7 +351,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *
                                     ,pUmI_3->usrmod3_lockout_threshold<=auto_scan_config.PASSWORD_POLICY_LOCKOUT_COUNT?"OK":"NOK",pUmI_3->usrmod3_lockout_threshold);
         NetApiBufferFree(pUmI_3);
         AddLSTVUpdateItem(tmp_pUmI_3, COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_3);
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,tmp_pUmI_3,FALSE);
       }
     }
   }
@@ -363,13 +363,13 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *
       if (!strcmp(auto_scan_config.C_ADMIN_ACCOUNT, config.accounts[*id_ok].login))
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)",FALSE);
       }else
       {
         if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
         {
           AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but bad state or bad password)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but bad state or bad password)");
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but bad state or bad password)",FALSE);
         }
       }
     }else
@@ -377,7 +377,7 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *
       if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but bad state or bad password)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but bad state or bad password)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but bad state or bad password)",FALSE);
       }
     }
 
@@ -389,13 +389,13 @@ void RemoteConnexionScan_auto_scan(DWORD iitem, char*ip, DWORD ip_id, long int *
       if (TestReversSID(ip, auto_scan_config.C_ADMIN_ACCOUNT))
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available untested)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available untested)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available untested)",FALSE);
       }else
       {
         if (connect != FALSE)
         {
           AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not available)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not available)");
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not available),FALSE");
         }
       }
     }*/
@@ -444,7 +444,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
     if (WNetAddConnection2(&NetRes,config.accounts[i].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s with %s (%02d) account.",remote_name,config.accounts[i].login,i);
-      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
 
       if (id_ok != NULL)*id_ok = i;
 
@@ -514,7 +514,7 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
             snprintf(msg,MAX_PATH,"McAfee last scan:NOK (last update:%02d/%02d/%02d)",SysTimeModification.wYear,SysTimeModification.wMonth,SysTimeModification.wDay);
           }
           AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (File)",ip,msg);
+          AddMsg(h_main, (char*)"FOUND (File)",ip,msg,FALSE);
           FindClose(hfic);
         }
       }
@@ -525,9 +525,9 @@ void RemoteConnexionScanFiles_auto_scan(DWORD iitem, char*ip, long int *id_ok)
   }
 
   ReleaseSemaphore(hs_netbios,1,NULL);
-  EnterCriticalSection(&Sync_threads);
+  EnterCriticalSection(&Sync_threads_netbios);
   hs_c_netbios--;
-  LeaveCriticalSection(&Sync_threads);
+  LeaveCriticalSection(&Sync_threads_netbios);
 }
 //----------------------------------------------------------------
 DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
@@ -546,15 +546,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     LeaveCriticalSection(&Sync_threads);
 
     //tracking
-    if (scan_start)
-    {
-      SetMainTitle(NULL);
-    }else
-    {
-      EnterCriticalSection(&Sync);
-      nb_test_ip++;
-      LeaveCriticalSection(&Sync);
-    }
+    SetMainTitle(NULL, TRUE);
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -568,9 +560,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   if (ip[0]!=0 && scan_start)
   {
     WaitForSingleObject(hs_disco,INFINITE);
-    EnterCriticalSection(&Sync_threads);
+    EnterCriticalSection(&Sync_threads_disco);
     hs_c_disco++;
-    LeaveCriticalSection(&Sync_threads);
+    LeaveCriticalSection(&Sync_threads_disco);
 
     if ((ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.')) && scan_start)
     {
@@ -588,7 +580,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         {
           exist = TRUE;
           iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-          if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+          if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns,FALSE);
         }
       }else
       {
@@ -599,14 +591,13 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         hs_c_disco--;
         LeaveCriticalSection(&Sync_threads);
 
-
         ReleaseSemaphore(hs_threads,1,NULL);
         EnterCriticalSection(&Sync_threads);
         hs_c_threads--;
         LeaveCriticalSection(&Sync_threads);
 
         //tracking
-        SetMainTitle(NULL);
+        SetMainTitle(NULL,TRUE);
         return 0;
       }
     }
@@ -647,7 +638,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       {
         if (!exist)
         {
-          if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+          if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns,FALSE);
           if (auto_scan_config.DNS_DISCOVERY)
           {
             iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -676,9 +667,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
     {
       ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"NetBIOS");
       WaitForSingleObject(hs_netbios,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_netbios);
       hs_c_netbios++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_netbios);
 
       //get OS
       if (dns[0] == 0 && scan_start)
@@ -706,7 +697,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
         if(null_session)
         {
           snprintf(cfg,MAX_LINE_SIZE,"NULL Session:Enable");
-          AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+          AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg,FALSE);
           AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
 
           if (auto_scan_config.REVERS_SID)
@@ -717,7 +708,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
 
             if (cfg[0] != 0)
             {
-              AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg);
+              AddMsg(h_main, (char*)"FOUND (Config)",ip,cfg,FALSE);
               AddLSTVUpdateItem(cfg, COL_CONFIG, iitem);
             }
           }
@@ -738,9 +729,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       RemoteConnexionScan_auto_scan(iitem, ip, index, &id_ok);
 
       ReleaseSemaphore(hs_netbios,1,NULL);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_netbios);
       hs_c_netbios--;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_netbios);
     }
 
     if (exist && scan_start)
@@ -795,9 +786,9 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
       if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
       {
         WaitForSingleObject(hs_ssh,INFINITE);
-        EnterCriticalSection(&Sync_threads);
+        EnterCriticalSection(&Sync_threads_ssh);
         hs_c_ssh++;
-        LeaveCriticalSection(&Sync_threads);
+        LeaveCriticalSection(&Sync_threads_ssh);
 
         if (config.nb_accounts == 0)
         {
@@ -878,14 +869,15 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
           }
         }
         ReleaseSemaphore(hs_ssh,1,NULL);
-        EnterCriticalSection(&Sync_threads);
+        EnterCriticalSection(&Sync_threads_ssh);
         hs_c_ssh--;
-        LeaveCriticalSection(&Sync_threads);
+        LeaveCriticalSection(&Sync_threads_ssh);
       }
     }
 
     if (exist)ListView_SetItemText(GetDlgItem(h_main,LV_results),iitem,COL_STATE,(LPSTR)"OK");
   }
+
   ReleaseSemaphore(hs_threads,1,NULL);
   EnterCriticalSection(&Sync_threads);
   hs_c_threads--;
@@ -920,15 +912,7 @@ DWORD WINAPI ScanIp_auto_scan(LPVOID lParam)
   }
 
   //tracking
-  if (scan_start)
-  {
-    SetMainTitle(NULL);
-  }else
-  {
-    EnterCriticalSection(&Sync);
-    nb_test_ip++;
-    LeaveCriticalSection(&Sync);
-  }
+  SetMainTitle(NULL,TRUE);
   return 0;
 }
 //----------------------------------------------------------------
@@ -971,22 +955,28 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   tmp_check[0] = 0;
   if(GetPrivateProfileString("LOG","LOG","ENABLE",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_DISABLE = TRUE;
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd'||tmp_check[0] == 'N' || tmp_check[0] == 'n')LOG_DISABLE = TRUE;
   }
   tmp_check[0] = 0;
   if(GetPrivateProfileString("LOG","LOG_DNS","ENABLE",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_DNS_DISABLE = TRUE;
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd'||tmp_check[0] == 'N' || tmp_check[0] == 'n')LOG_DNS_DISABLE = TRUE;
   }
   tmp_check[0] = 0;
   if(GetPrivateProfileString("LOG","LOG_LOGIN","ENABLE",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_LOGIN_DISABLE = TRUE;
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd'||tmp_check[0] == 'N' || tmp_check[0] == 'n')LOG_LOGIN_DISABLE = TRUE;
   }
   tmp_check[0] = 0;
   if(GetPrivateProfileString("LOG","LOG_ERROR_VIEW","ENABLE",tmp_check,LINE_SIZE,ini_path))
   {
-    if (tmp_check[0] == 'D' || tmp_check[0] == 'd')LOG_ERROR_VIEW_DISABLE = TRUE;
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd'||tmp_check[0] == 'N' || tmp_check[0] == 'n')LOG_ERROR_VIEW_DISABLE = TRUE;
+  }
+
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","REG_REMOTE_SERVICE_STOP","YES",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'D' || tmp_check[0] == 'd'||tmp_check[0] == 'N' || tmp_check[0] == 'n')REG_REMOTE_SERVICE_STOP = FALSE;
   }
 
   tmp_check[0] = 0;
@@ -1137,9 +1127,13 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
       scan_start = FALSE;
       h_thread_scan = 0;
+      if (auto_scan_config.NO_GUI) auto_scan_config.NO_GUI = FALSE;
+
       return 0;
     }else if (tmp_check[0] == 'M' || tmp_check[0] == 'm') //MANUAL mode
     {
+      if (auto_scan_config.NO_GUI) auto_scan_config.NO_GUI = FALSE;
+
       //check test if enable !!
       tmp_check[0] = 0;
       if(GetPrivateProfileString("SCAN","DISCO_ICMP","",tmp_check,LINE_SIZE,ini_path))
@@ -1238,9 +1232,9 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     {
       //loads accounts
       tmp_check[0] = 0;
+      config.nb_accounts = 0;
       if(GetPrivateProfileString("SCAN","ACCOUNT_FILE","",tmp_check,LINE_SIZE,ini_path))
       {
-        config.nb_accounts = 0;
         LoadAuthFile(tmp_check);
       }
     }
@@ -1344,7 +1338,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
 
         EnableWindow(GetDlgItem(h_main,BT_START),TRUE);
         SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
-        AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
+        AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"",FALSE);
         h_thread_scan = CreateThread(NULL,0,scan,(LPVOID)TRUE,0,0);
         return 0;
       }
@@ -1368,7 +1362,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     EnableWindow(GetDlgItem(h_main,BT_RE),FALSE);
 
     SetWindowText(GetDlgItem(h_main,BT_START),"Stop");
-    AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"");
+    AddMsg(h_main, (char*)"INFORMATION",(char*)"Start scan",(char*)"",FALSE);
 
     //check test minimals
     config.disco_icmp           = TRUE;
@@ -1540,6 +1534,9 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     DWORD i;
     nb_i = SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL);
 
+    //init all criticals sections !!!
+    initthreadings();
+
     hs_threads  = CreateSemaphore(NULL,NB_MAX_THREAD,NB_MAX_THREAD,NULL);
     hs_disco    = CreateSemaphore(NULL,NB_MAX_DISCO_THREADS,NB_MAX_DISCO_THREADS,NULL);
     hs_netbios  = CreateSemaphore(NULL,NB_MAX_NETBIOS_THREADS,NB_MAX_NETBIOS_THREADS,NULL);
@@ -1573,7 +1570,7 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     }
 
     //wait
-    AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"",FALSE);
 
     if (!scan_start)
     {
@@ -1584,29 +1581,29 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
 
       WaitForSingleObject(hs_netbios,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_netbios);
       hs_c_netbios++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_netbios);
 
       WaitForSingleObject(hs_file,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_files);
       hs_c_file++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_files);
 
       WaitForSingleObject(hs_registry,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_registry);
       hs_c_registry++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_registry);
 
       WaitForSingleObject(hs_tcp,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_tcp);
       hs_c_tcp++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_tcp);
 
       WaitForSingleObject(hs_ssh,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_ssh);
       hs_c_ssh++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_ssh);
     }
 
     WSACleanup();
@@ -1614,13 +1611,13 @@ DWORD WINAPI auto_scan(LPVOID lParam)
     //calcul run time
     time(&exec_time_end);
 
-    AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)"End of scan!",(char*)"",FALSE);
     snprintf(tmp,MAX_PATH,"Ip view:%lu/%lu in %d.%0d minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
-    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"",FALSE);
     snprintf(tmp,MAX_PATH,"Computer in Microsoft Windows OS:%lu/%lu",nb_windows,nb_i);
-    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"",FALSE);
     snprintf(tmp,MAX_PATH,"Computer Unknow (valide?):%lu/%lu",nb_unknow,nb_i);
-    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"",FALSE);
 
 
     //close
@@ -1650,8 +1647,8 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (auto_scan_config.save_CSV)
       {
         snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.csv",cpath,date);
-        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
-        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2,FALSE);
+        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2,FALSE);
 
         save_done = TRUE;
       }
@@ -1659,8 +1656,8 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (auto_scan_config.save_XML)
       {
         snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.xml",cpath,date);
-        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
-        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2,FALSE);
+        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2,FALSE);
 
         save_done = TRUE;
       }
@@ -1668,8 +1665,8 @@ DWORD WINAPI auto_scan(LPVOID lParam)
       if (auto_scan_config.save_HTML)
       {
         snprintf(file2,LINE_SIZE,"%s\\[%s]_auto_scan_NS.html",cpath,date);
-        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
-        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+        if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_HTML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2,FALSE);
+        else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2,FALSE);
 
         save_done = TRUE;
       }

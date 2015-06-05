@@ -164,7 +164,7 @@ BOOL Netbios_Share(wchar_t *server, DWORD iitem, DWORD col, char*ip, BOOL IPC_nu
           }
         }
 
-        AddMsg(h_main,"FOUND (Share)",msg,"");
+        AddMsg(h_main,"FOUND (Share)",msg,"",FALSE);
         AddLSTVUpdateItem(msg, col, iitem);
         p++;
       }
@@ -272,7 +272,7 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
   if (net_res == NERR_UserNotFound)
   {
     AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-    AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+    AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)",FALSE);
     return TRUE;
   }else if (net_res==NERR_Success)
   {
@@ -281,16 +281,16 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
       if (p1Buf->usri1_flags&UF_PASSWORD_EXPIRED)
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)",FALSE);
       }else
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)",FALSE);
       }
     }else
     {
       AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)",FALSE);
     }
     NetApiBufferFree(p1Buf);
     return TRUE;
@@ -300,7 +300,7 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
     if (net_res == NERR_UserNotFound)
     {
       AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+      AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)",FALSE);
       return TRUE;
     }else if (net_res==NERR_Success)
     {
@@ -309,16 +309,16 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
         if (p2Buf->usri2_flags&UF_PASSWORD_EXPIRED)
         {
           AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)",FALSE);
         }else
         {
           AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)",FALSE);
         }
       }else
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)",FALSE);
       }
       NetApiBufferFree(p2Buf);
       return TRUE;
@@ -328,7 +328,7 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
       if (net_res == NERR_UserNotFound)
       {
         AddLSTVUpdateItem("ADMIN_ACCOUNT:NOK (Not found)", COL_CONFIG, iitem);
-        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)");
+        AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:NOK (Not found)",FALSE);
         return TRUE;
       }else if (net_res==NERR_Success)
       {
@@ -337,16 +337,16 @@ BOOL Netbios_check_user(DWORD iitem, char *ip, char*username)
           if (p3Buf->usri3_flags&UF_PASSWORD_EXPIRED || p3Buf->usri3_password_expired)
           {
             AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable, password expired)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)");
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable, password expired)",FALSE);
           }else
           {
             AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Exist but disable)", COL_CONFIG, iitem);
-            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)");
+            AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Exist but disable)",FALSE);
           }
         }else
         {
           AddLSTVUpdateItem("ADMIN_ACCOUNT:OK (Available)", COL_CONFIG, iitem);
-          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)");
+          AddMsg(h_main, (char*)"FOUND (Account policy)",ip,(char*)"ADMIN_ACCOUNT:OK (Available)",FALSE);
         }
         NetApiBufferFree(p3Buf);
         return TRUE;
@@ -409,7 +409,7 @@ int Netbios_List_service(DWORD iitem, char *ip, BOOL check)
               case SERVICE_STOPPED:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOPPED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
               default:                        snprintf(tmp,MAX_PATH,"%s %s (%s;State:UNKNOW)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
             }
-            AddMsg(h_main,(char*)"FOUND (Service)",tmp,"");
+            AddMsg(h_main,(char*)"FOUND (Service)",tmp,"",FALSE);
             AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
           }
         }
@@ -429,7 +429,7 @@ int Netbios_List_service(DWORD iitem, char *ip, BOOL check)
             case SERVICE_STOPPED:           snprintf(tmp,MAX_PATH,"%s %s (%s;State:STOPPED)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
             default:                        snprintf(tmp,MAX_PATH,"%s %s (%s;State:UNKNOW)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName);break;
           }
-          AddMsg(h_main,(char*)"FOUND (Service)",tmp,"");
+          AddMsg(h_main,(char*)"FOUND (Service)",tmp,"",FALSE);
           AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
         }
       }
@@ -487,7 +487,7 @@ BOOL EnumTestReversSID(DWORD iitem, char *ip, BOOL check_only, char* user, char*
 
       if (tmp[0] != 0)
       {
-        AddMsg(h_main, (char*)"FOUND (Config)",ip,tmp);
+        AddMsg(h_main, (char*)"FOUND (Config)",ip,tmp,FALSE);
         AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
       }
 
@@ -531,7 +531,7 @@ BOOL EnumTestReversSID(DWORD iitem, char *ip, BOOL check_only, char* user, char*
 
               if (tmp[0] != 0)
               {
-                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp);
+                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp,FALSE);
                 AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
               }
             }
@@ -565,7 +565,7 @@ BOOL EnumTestReversSID(DWORD iitem, char *ip, BOOL check_only, char* user, char*
 
               if (tmp[0] != 0)
               {
-                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp);
+                AddMsg(h_main, (char*)"FOUND (Config:ReversSID)",ip,tmp,FALSE);
                 AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
               }
             }
@@ -636,7 +636,7 @@ BOOL Netbios_List_users_Netbios(DWORD iitem, char *ip, DWORD limit)
           WideCharToMultiByte(CP_ACP,0,u->usri1_comment,lstrlenW(u->usri1_comment),tmp3,MAX_PATH,NULL,NULL);
 
           snprintf(tmp,MAX_PATH,"%S (%S:ID:%u,%s) [%s]",u->usri1_name,u->usri1_full_name,u->usri1_user_id,tmp3,tmp2);
-          AddMsg(h_main, (char*)"FOUND (Config:Users)",ip,tmp);
+          AddMsg(h_main, (char*)"FOUND (Config:Users)",ip,tmp,FALSE);
           AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
           nb++;
 
@@ -656,7 +656,7 @@ BOOL Netbios_List_users_Netbios(DWORD iitem, char *ip, DWORD limit)
             if (tmp[0] != 0)
             {
               strncat(tmp,"\0",MAX_PATH);
-              AddMsg(h_main, (char*)"FOUND (Config:Users groups)",ip,tmp);
+              AddMsg(h_main, (char*)"FOUND (Config:Users groups)",ip,tmp,FALSE);
               AddLSTVUpdateItem(tmp, COL_CONFIG, iitem);
             }
 

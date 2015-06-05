@@ -47,15 +47,15 @@ BOOL cpfile(char *src, char*dst, BOOL replace, BOOL msg, DWORD iitem, WIN32_FIND
         AddLSTVUpdateItem(src, COL_FILES, iitem);
       }else
       {
-        if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad file size",src,dst);
+        if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad file size",src,dst,FALSE);
         DeleteFile(dst);
       }
       CloseHandle(h_dst);
-    }else if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad destination file",src,dst);
+    }else if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad destination file",src,dst,FALSE);
     CloseHandle(h_src);
 
     CheckFile(iitem, src, data, "FILE COPY");
-  }else if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad source file",src,dst);
+  }else if(msg)AddMsg(h_main,(char*)"ERROR COPY (File):bad source file",src,dst,FALSE);
   return ret;
 }
 //----------------------------------------------------------------
@@ -122,7 +122,7 @@ void Copyfiles(char *pathsrc, char*pathdst, char *ext, BOOL resursiv, BOOL msg, 
         ok = cpfile(tmp,tmp2,TRUE,FALSE,iitem,&data);
         if (ok && msg)
         {
-          AddMsg(h_main,(char*)"INFORMATION (CopyFile)",(char*)tmp,(char*)tmp2);
+          AddMsg(h_main,(char*)"INFORMATION (CopyFile)",(char*)tmp,(char*)tmp2,FALSE);
         }
       }while(FindNextFile(hfind, &data) != 0);
       FindClose(hfind);
@@ -168,7 +168,7 @@ void Copyfiles(char *pathsrc, char*pathdst, char *ext, BOOL resursiv, BOOL msg, 
           ok = cpfile(tmp,tmp2,TRUE,FALSE,iitem,&data);
           if (ok && msg)
           {
-            AddMsg(h_main,(char*)"INFORMATION (CopyFile)",(char*)tmp,(char*)tmp2);
+            AddMsg(h_main,(char*)"INFORMATION (CopyFile)",(char*)tmp,(char*)tmp2,FALSE);
           }
         }
       }while(FindNextFile(hfind, &data) != 0);
@@ -339,7 +339,7 @@ int BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iit
             WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
 
             snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sImagePath=%s (State:%s)",ip,key_path,path,state);
-            AddMsg(h_main,(char*)"FOUND (Service)",msg,key);
+            AddMsg(h_main,(char*)"FOUND (Service)",msg,key,FALSE);
             AddLSTVUpdateItem(msg, COL_SERVICE, iitem);
           }
         }
@@ -409,7 +409,7 @@ int BackupServiceList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iit
             WriteFile(hfile,tmp_line,strlen(tmp_line),&copiee,0);
 
             snprintf(tmp_line,MAX_LINE_SIZE,"%s %s (%s;State:%s)\n",ip,lpservice[i].lpDisplayName,lpservice[i].lpServiceName,tmp);
-            AddMsg(h_main,(char*)"FOUND (Service)",tmp_line,"");
+            AddMsg(h_main,(char*)"FOUND (Service)",tmp_line,"",FALSE);
             AddLSTVUpdateItem(tmp, COL_SERVICE, iitem);
           }
           WriteFile(hfile,"</NS>",5,&copiee,0);
@@ -479,22 +479,22 @@ int BackupSoftwareList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD ii
             if (ReadValue(hkey,key_path,"InstallLocation",location, MAX_PATH) != 0)
             {
               snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sInstallLocation=%s %s",ip,key_path,location,lastupdate);
-              AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
+              AddMsg(h_main,(char*)"FOUND (Software)",msg,key,FALSE);
               AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
             }else if (ReadValue(hkey,key_path,"Inno Setup: App Path",location, MAX_PATH) != 0)
             {
               snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sInno Setup: App Path=%s %s",ip,key_path,location,lastupdate);
-              AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
+              AddMsg(h_main,(char*)"FOUND (Software)",msg,key,FALSE);
               AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
             }else if(ReadValue(hkey,key_path,"RegistryLocation",location, MAX_PATH) != 0)
             {
               snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sRegistryLocation=%s %s",ip,key_path,location,lastupdate);
-              AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
+              AddMsg(h_main,(char*)"FOUND (Software)",msg,key,FALSE);
               AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
             }else if(ReadValue(hkey,key_path,"UninstallString",location, MAX_PATH) != 0)
             {
               snprintf(msg,LINE_SIZE,"%s\\HKLM\\%sUninstallString=%s %s",ip,key_path,location,lastupdate);
-              AddMsg(h_main,(char*)"FOUND (Software)",msg,key);
+              AddMsg(h_main,(char*)"FOUND (Software)",msg,key,FALSE);
               AddLSTVUpdateItem(msg, COL_SOFTWARE, iitem);
             }
 
@@ -582,7 +582,7 @@ int BackupUSBList(HKEY hkey, char *ckey, char*fileToSave, char*ip, DWORD iitem)
                     snprintf(msg,LINE_SIZE,"%s\\HKLM\\%s",ip,key_path);
                   }
 
-                  AddMsg(h_main,(char*)"FOUND (USB)",msg,key_path);
+                  AddMsg(h_main,(char*)"FOUND (USB)",msg,key_path,FALSE);
                   AddLSTVUpdateItem(msg, COL_USB, iitem);
                 }
               }
@@ -769,7 +769,7 @@ void RemoteRegistryExtract(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config
     if (config->check_registry && scan_start)
     {
       /*snprintf(tmp_path,MAX_PATH,"%s_HKLM_SOFTWARE.RAW",ip);
-      if (BackupRegistryKey(hkey, "SOFTWARE", pathToSave, tmp_path, ip, iitem, config)){}//AddMsg(h_main,(char*)"INFORMATION (Remote registry)","Backup HKLM\\SOFTWARE from ",(char*)ip);
+      if (BackupRegistryKey(hkey, "SOFTWARE", pathToSave, tmp_path, ip, iitem, config)){}//AddMsg(h_main,(char*)"INFORMATION (Remote registry)","Backup HKLM\\SOFTWARE from ",(char*)ip,FALSE);
       else if (scan_start)
       {
         char chkey[MAX_PATH];
@@ -781,7 +781,7 @@ void RemoteRegistryExtract(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST config
       if (scan_start)
       {
         snprintf(tmp_path,MAX_PATH,"%s_HKLM_SYSTEM.RAW",ip);
-        if (BackupRegistryKey(hkey, "SYSTEM", pathToSave, tmp_path, ip, iitem, config)){}//AddMsg(h_main,(char*)"INFORMATION (Remote registry)","Backup HKLM\\SYSTEM from ",(char*)ip);
+        if (BackupRegistryKey(hkey, "SYSTEM", pathToSave, tmp_path, ip, iitem, config)){}//AddMsg(h_main,(char*)"INFORMATION (Remote registry)","Backup HKLM\\SYSTEM from ",(char*)ip,FALSE);
         else if (scan_start)
         {
           char chkey[MAX_PATH];
@@ -921,7 +921,7 @@ void CheckRecursivCpFiles(DWORD iitem, char *remote_name, char *file, BOOL recur
       if (hfind != INVALID_HANDLE_VALUE)
       {
         snprintf(tmp_path2,LINE_SIZE,"%s%s_%s",pathToSave,ip,extractFileFromPath(file, filename, MAX_PATH));
-        if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, &d0)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
+        if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, &d0)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2,FALSE);
         //CheckFile(iitem, tmp_path, &d0);
         FindClose(hfind);
       }
@@ -964,7 +964,7 @@ void CheckRecursivCpFiles(DWORD iitem, char *remote_name, char *file, BOOL recur
           {
             snprintf(tmp_remote_name,LINE_SIZE,"%s\\%s",remote_name,data.cFileName);
             snprintf(tmp_path2,LINE_SIZE,"%s%s_%s",pathToSave,ip,extractFileFromPath(file, filename, MAX_PATH));
-            if (cpfile(tmp_remote_name, tmp_path2, TRUE, FALSE, iitem, &data)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
+            if (cpfile(tmp_remote_name, tmp_path2, TRUE, FALSE, iitem, &data)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2,FALSE);
             //CheckFile(iitem, tmp_remote_name, &data);
           }
         }
@@ -1021,7 +1021,7 @@ void CheckCpFiles(DWORD iitem, char *remote_name, char *file, char*pathToSave, c
           char filename[MAX_PATH]="",tmp_path2[MAX_PATH]="";
           snprintf(tmp_path2,LINE_SIZE,"%s%s_%s",pathToSave,ip,extractFileFromPath(file, filename, MAX_PATH));
 
-          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, &data)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
+          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, &data)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2,FALSE);
           FindClose(hfind);
         }
       }
@@ -1058,7 +1058,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
     if (WNetAddConnection2(&NetRes,config->password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
-      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
 
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1077,8 +1077,8 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
           snprintf(tmp_path2,LINE_SIZE,"%s%s_%s",pathToSave,ip,extractFileFromPath(file, filename, MAX_PATH));
 
           //Copyfiles(tmp_path, tmp_path2, NULL, TRUE, TRUE, iitem);
-          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, NULL)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
-          //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2);
+          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, NULL)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2,FALSE);
+          //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2,FALSE);
           */
         }
       }
@@ -1106,7 +1106,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
     if (WNetAddConnection2(&NetRes,config->accounts[ip_id].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
     {
       snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,ip_id);
-      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+      if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
 
       snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,ip_id);
       AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1124,8 +1124,8 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
           snprintf(tmp_path2,LINE_SIZE,"%s%s_%s",pathToSave,ip,extractFileFromPath(file, filename, MAX_PATH));
 
           //Copyfiles(tmp_path, tmp_path2, NULL, TRUE, TRUE, iitem);
-          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, NULL)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
-          //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2);
+          if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, NULL)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2,FALSE);
+          //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2,FALSE);
           */
         }
       }
@@ -1155,7 +1155,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
       if (WNetAddConnection2(&NetRes,config->accounts[i].password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
       {
         snprintf(msg,LINE_SIZE,"%s\\%s with %s (%02d) account.",ip,remote_share,tmp_login,i);
-        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"");
+        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
 
         snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s (%02d) account",ip,remote_share,tmp_login,i);
         AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
@@ -1174,7 +1174,7 @@ BOOL RemoteFilesAutenthicateForExtract(DWORD iitem, char *ip, DWORD ip_id, char*
 
             //Copyfiles(tmp_path, tmp_path2, NULL, TRUE, TRUE, iitem);
             if (cpfile(tmp_path, tmp_path2, TRUE, FALSE, iitem, NULL)) AddMsg(h_main,(char*)"COPY (File)",tmp_path,tmp_path2);
-            //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2);
+            //else AddMsg(h_main,(char*)"ERROR COPY (File)",tmp_path,tmp_path2,FALSE);
             */
           }
         }
@@ -1395,22 +1395,13 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   //get IP
   if (SendDlgItemMessage(h_main, CB_IP, LB_GETTEXTLEN, (WPARAM)index,(LPARAM)NULL) > MAX_PATH)
   {
-
     ReleaseSemaphore(hs_threads,1,NULL);
     EnterCriticalSection(&Sync_threads);
     hs_c_threads--;
     LeaveCriticalSection(&Sync_threads);
 
     //tracking
-    if (scan_start)
-    {
-      SetMainTitle(NULL);
-    }else
-    {
-      EnterCriticalSection(&Sync);
-      nb_test_ip++;
-      LeaveCriticalSection(&Sync);
-    }
+    SetMainTitle(NULL,TRUE);
     return 0;
   }
   SendDlgItemMessage(h_main, CB_IP, LB_GETTEXT, (WPARAM)index,(LPARAM)ip);
@@ -1426,9 +1417,9 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
     if (config.disco_icmp||config.disco_dns)
     {
       WaitForSingleObject(hs_disco,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_disco);
       hs_c_disco++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_disco);
 
       if (ip[0]> '9' || ip[0]< '0' || ((ip[1]> '9' || ip[1]< '0') && ip[1] != '.'))
       {
@@ -1446,7 +1437,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           {
             exist = TRUE;
             iitem = AddLSTVItem(ip, dsc, dns, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns,FALSE);
           }
         }else
         {
@@ -1463,7 +1454,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
           LeaveCriticalSection(&Sync_threads);
 
           //tracking
-          SetMainTitle(NULL);
+          SetMainTitle(NULL,TRUE);
           return 0;
         }
       }
@@ -1501,7 +1492,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         {
           if (!exist)
           {
-            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns);
+            if (!LOG_DNS_DISABLE)AddMsg(h_main, (char*)"DNS (IP->Name)",ip,dns,FALSE);
             if (auto_scan_config.DNS_DISCOVERY)
             {
               iitem = AddLSTVItem(ip, dsc, dns, NULL, (char*)"Firewall", NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
@@ -1584,15 +1575,15 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
         if (TCP_port_open(iitem, ip, SSH_DEFAULT_PORT, FALSE))
         {
           WaitForSingleObject(hs_ssh,INFINITE);
-          EnterCriticalSection(&Sync_threads);
+          EnterCriticalSection(&Sync_threads_ssh);
           hs_c_ssh++;
-          LeaveCriticalSection(&Sync_threads);
+          LeaveCriticalSection(&Sync_threads_ssh);
           RemoteSSHExtract(iitem, ip, index, &config, path_to_save);
 
           ReleaseSemaphore(hs_ssh,1,NULL);
-          EnterCriticalSection(&Sync_threads);
+          EnterCriticalSection(&Sync_threads_ssh);
           hs_c_ssh--;
-          LeaveCriticalSection(&Sync_threads);
+          LeaveCriticalSection(&Sync_threads_ssh);
         }
       }
 
@@ -1634,15 +1625,7 @@ DWORD WINAPI remote_extractIP(LPVOID lParam)
   }
 
   //tracking
-  if (scan_start)
-  {
-    SetMainTitle(NULL);
-  }else
-  {
-    EnterCriticalSection(&Sync);
-    nb_test_ip++;
-    LeaveCriticalSection(&Sync);
-  }
+  SetMainTitle(NULL,TRUE);
   return 0;
 }
 //----------------------------------------------------------------
@@ -1650,6 +1633,9 @@ DWORD WINAPI remote_extract(LPVOID lParam)
 {
   time_t exec_time_start, exec_time_end;
   time(&exec_time_start);
+
+  //init all criticals sections !!!
+  initthreadings();
 
   //load IP
   if (IsDlgButtonChecked(h_main,CHK_LOAD_IP_FILE)!=BST_CHECKED)
@@ -1695,12 +1681,12 @@ DWORD WINAPI remote_extract(LPVOID lParam)
 
   char tmp[MAX_PATH];
   snprintf(tmp,LINE_SIZE,"Loaded %lu IP",SendDlgItemMessage(h_main,CB_IP,LB_GETCOUNT,(WPARAM)NULL,(LPARAM)NULL));
-  AddMsg(h_main,(char*)"INFORMATION",tmp,(char*)"");
+  AddMsg(h_main,(char*)"INFORMATION",tmp,(char*)"",FALSE);
 
   //check if no tests enable
   if (SendDlgItemMessage(h_main,CB_tests,LB_GETSELCOUNT,(WPARAM)NULL,(LPARAM)NULL) == 0)
   {
-    AddMsg(h_main,(char*)"ERROR",(char*)"No test select from the left panel!",(char*)"");
+    AddMsg(h_main,(char*)"ERROR",(char*)"No test select from the left panel!",(char*)"",FALSE);
   }
 
   //get configuration
@@ -1726,7 +1712,7 @@ DWORD WINAPI remote_extract(LPVOID lParam)
   //where save the datas ?
   if (GetPathToSAve(path_to_save))
   {
-    AddMsg(h_main,(char*)"INFORMATION",(char*)"Save directory:",path_to_save);
+    AddMsg(h_main,(char*)"INFORMATION",(char*)"Save directory:",path_to_save,FALSE);
 
     hs_threads  = CreateSemaphore(NULL,NB_MAX_THREAD,NB_MAX_THREAD,NULL);
     hs_disco    = CreateSemaphore(NULL,NB_MAX_DISCO_THREADS,NB_MAX_DISCO_THREADS,NULL);
@@ -1762,7 +1748,7 @@ DWORD WINAPI remote_extract(LPVOID lParam)
     }
 
     //wait
-    AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"");
+    AddMsg(h_main,(char*)"INFORMATION",(char*)"Start waiting threads.",(char*)"",FALSE);
 
     if (!scan_start)
     {
@@ -1773,24 +1759,24 @@ DWORD WINAPI remote_extract(LPVOID lParam)
       for(i=0;i<NB_MAX_THREAD;i++)WaitForSingleObject(hs_threads,INFINITE);
 
       WaitForSingleObject(hs_file,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_files);
       hs_c_file++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_files);
 
       WaitForSingleObject(hs_registry,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_registry);
       hs_c_registry++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_registry);
 
       WaitForSingleObject(hs_tcp,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_tcp);
       hs_c_tcp++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_tcp);
 
       WaitForSingleObject(hs_ssh,INFINITE);
-      EnterCriticalSection(&Sync_threads);
+      EnterCriticalSection(&Sync_threads_ssh);
       hs_c_ssh++;
-      LeaveCriticalSection(&Sync_threads);
+      LeaveCriticalSection(&Sync_threads_ssh);
     }
     WSACleanup();
   }
@@ -1798,11 +1784,11 @@ DWORD WINAPI remote_extract(LPVOID lParam)
   //calcul run time
   time(&exec_time_end);
 
-  AddMsg(h_main,(char*)"INFORMATION",(char*)"End of remote extract!",(char*)"");
+  AddMsg(h_main,(char*)"INFORMATION",(char*)"End of remote extract!",(char*)"",FALSE);
   snprintf(tmp,MAX_PATH,"Ip view:%lu/%lu in %lu.%lu minutes",ListView_GetItemCount(GetDlgItem(h_main,LV_results)),nb_i,(exec_time_end - exec_time_start)/60,(exec_time_end - exec_time_start)%60);
-  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"",FALSE);
   snprintf(tmp,MAX_PATH,"Computer Unknow (valide?):%lu/%lu",nb_unknow,nb_i);
-  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"");
+  AddMsg(h_main,(char*)"INFORMATION",(char*)tmp,(char*)"",FALSE);
 
   //autosave
   if (ListView_GetItemCount(GetDlgItem(h_main,LV_results)) >0)
@@ -1820,12 +1806,12 @@ DWORD WINAPI remote_extract(LPVOID lParam)
     GetLocalPath(cpath, LINE_SIZE);
 
     snprintf(file2,LINE_SIZE,"%s\\[%s]_extract_scan_NS.csv",cpath,date);
-    if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
-    else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+    if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_CSV, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2,FALSE);
+    else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2,FALSE);
 
     snprintf(file2,LINE_SIZE,"%s\\[%s]_extract_scan_NS.xml",cpath,date);
-    if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2);
-    else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2);
+    if(SaveLSTV(GetDlgItem(h_main,LV_results), file2, SAVE_TYPE_XML, NB_COLUMN)) AddMsg(h_main, (char*)"INFORMATION",(char*)"Recorded data",file2,FALSE);
+    else AddMsg(h_main, (char*)"ERROR",(char*)"No data saved to!",file2,FALSE);
 
     save_done = TRUE;
   }

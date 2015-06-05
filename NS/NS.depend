@@ -772,3 +772,222 @@
 1423055533 source:c:\users\g570165\documents\vm_partage\ns\tests\ssh_v2.c
 	"../resources.h"
 
+1432021158 source:z:\git\omnia-projetcs\ns\crypt\md5.c
+	"../resources.h"
+
+1433349041 z:\git\omnia-projetcs\ns\resources.h
+	<Winsock2.h>
+	<windows.h>
+	<Windowsx.h>
+	<commctrl.h>
+	<stdio.h>
+	<time.h>
+	<lm.h>
+	<Winnetwk.h>
+	<iphlpapi.h>
+	<math.h>
+	<Shlobj.h>
+	<richedit.h>
+	"crypt/sha2.h"
+	"crypt/sha1.h"
+	"crypt/md5.h"
+	<gpg-error.h>
+	<gcrypt.h>
+	<libssh2.h>
+
+1432021158 z:\git\omnia-projetcs\ns\crypt\sha2.h
+	<limits.h>
+
+1432021158 z:\git\omnia-projetcs\ns\crypt\sha1.h
+
+1432021158 z:\git\omnia-projetcs\ns\crypt\md5.h
+
+1432021158 source:z:\git\omnia-projetcs\ns\crypt\sha1.c
+	"sha1.h"
+
+1432021158 source:z:\git\omnia-projetcs\ns\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
+
+1432021158 source:z:\git\omnia-projetcs\ns\resources.rc
+	"resources.h"
+
+1433349651 source:z:\git\omnia-projetcs\ns\tests\auto_scan.c
+	"../resources.h"
+
+1432021158 source:z:\git\omnia-projetcs\ns\tests\disco.c
+	"../resources.h"
+
+1433349827 source:z:\git\omnia-projetcs\ns\tests\extract.c
+	"../resources.h"
+
+1433349919 source:z:\git\omnia-projetcs\ns\tests\files.c
+	"../resources.h"
+
+1433350005 source:z:\git\omnia-projetcs\ns\tests\netbios.c
+	"../resources.h"
+
+1433350272 source:z:\git\omnia-projetcs\ns\tests\registry.c
+	"../resources.h"
+
+1433350398 source:z:\git\omnia-projetcs\ns\tests\ssh_v2.c
+	"../resources.h"
+
+1433356709 source:z:\git\omnia-projetcs\ns\main.c
+	"resources.h"
+
+1432021156 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\md5.c
+	"../resources.h"
+
+1433498181 c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\resources.h
+	<Winsock2.h>
+	<windows.h>
+	<Windowsx.h>
+	<commctrl.h>
+	<stdio.h>
+	<time.h>
+	<lm.h>
+	<Winnetwk.h>
+	<iphlpapi.h>
+	<math.h>
+	<Shlobj.h>
+	<richedit.h>
+	"crypt/sha2.h"
+	"crypt/sha1.h"
+	"crypt/md5.h"
+	<gpg-error.h>
+	<gcrypt.h>
+	<libssh2.h>
+
+1432021156 c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\sha2.h
+	<limits.h>
+
+1432021156 c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\sha1.h
+
+1432021156 c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\md5.h
+
+1432021156 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\sha1.c
+	"sha1.h"
+
+1432021156 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
+
+1432021158 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\resources.rc
+	"resources.h"
+
+1432021158 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\disco.c
+	"../resources.h"
+
+1433499971 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\main.c
+	"resources.h"
+
+1433485779 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\auto_scan.c
+	"../resources.h"
+
+1433420399 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\extract.c
+	"../resources.h"
+
+1433420332 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\files.c
+	"../resources.h"
+
+1433350004 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\netbios.c
+	"../resources.h"
+
+1433420228 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\registry.c
+	"../resources.h"
+
+1433495283 source:c:\users\g570165\documents\vm_partage\git\omnia-projetcs\ns\tests\ssh_v2.c
+	"../resources.h"
+
+1432021158 source:e:\git\omnia-projetcs\ns\crypt\md5.c
+	"../resources.h"
+
+1433510666 e:\git\omnia-projetcs\ns\resources.h
+	<Winsock2.h>
+	<windows.h>
+	<Windowsx.h>
+	<commctrl.h>
+	<stdio.h>
+	<time.h>
+	<lm.h>
+	<Winnetwk.h>
+	<iphlpapi.h>
+	<math.h>
+	<Shlobj.h>
+	<richedit.h>
+	"crypt/sha2.h"
+	"crypt/sha1.h"
+	"crypt/md5.h"
+	<gpg-error.h>
+	<gcrypt.h>
+	<libssh2.h>
+
+1432021158 e:\git\omnia-projetcs\ns\crypt\sha2.h
+	<limits.h>
+
+1432021158 e:\git\omnia-projetcs\ns\crypt\sha1.h
+
+1432021158 e:\git\omnia-projetcs\ns\crypt\md5.h
+
+1432021158 source:e:\git\omnia-projetcs\ns\crypt\sha1.c
+	"sha1.h"
+
+1432021158 source:e:\git\omnia-projetcs\ns\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
+
+1433509672 source:e:\git\omnia-projetcs\ns\main.c
+	"resources.h"
+
+1432021158 source:e:\git\omnia-projetcs\ns\resources.rc
+	"resources.h"
+
+1433508986 source:e:\git\omnia-projetcs\ns\tests\auto_scan.c
+	"../resources.h"
+
+1432021158 source:e:\git\omnia-projetcs\ns\tests\disco.c
+	"../resources.h"
+
+1433509046 source:e:\git\omnia-projetcs\ns\tests\extract.c
+	"../resources.h"
+
+1433420334 source:e:\git\omnia-projetcs\ns\tests\files.c
+	"../resources.h"
+
+1433350004 source:e:\git\omnia-projetcs\ns\tests\netbios.c
+	"../resources.h"
+
+1433420230 source:e:\git\omnia-projetcs\ns\tests\registry.c
+	"../resources.h"
+
+1433495284 source:e:\git\omnia-projetcs\ns\tests\ssh_v2.c
+	"../resources.h"
+
