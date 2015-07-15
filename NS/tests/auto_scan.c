@@ -930,13 +930,19 @@ DWORD WINAPI auto_scan(LPVOID lParam)
   char tmp_check[LINE_SIZE]="";
 
   //specials tests
-  tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","DNS_DISCOVERY","",tmp_check,LINE_SIZE,ini_path))
   {
     if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')auto_scan_config.DNS_DISCOVERY = TRUE;
     else auto_scan_config.DNS_DISCOVERY = FALSE;
   }else auto_scan_config.DNS_DISCOVERY = TRUE;
 
+  //mode no_auth
+  tmp_check[0] = 0;
+  if(GetPrivateProfileString("SCAN","USE_CURRENT_USER_RIGHT","NO",tmp_check,LINE_SIZE,ini_path))
+  {
+    if (tmp_check[0] == 'Y' || tmp_check[0] == 'y' || tmp_check[0] == 'O' || tmp_check[0] == 'o')config.local_account = TRUE;
+    else config.local_account = FALSE;
+  }else config.local_account = FALSE;
   //disable extract of hash
   tmp_check[0] = 0;
   if(GetPrivateProfileString("SCAN","NO_HASH_CHECK","",tmp_check,LINE_SIZE,ini_path))

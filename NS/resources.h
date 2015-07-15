@@ -64,7 +64,7 @@
 #ifndef RESOURCES
 #define RESOURCES
 //----------------------------------------------------------------
-#define TITLE                                       "NS v0.5.44 05/06/2015"
+#define TITLE                                       "NS v0.5.46 15/07/2015"
 #define ICON_APP                                    100
 //----------------------------------------------------------------
 #define DEFAULT_LIST_FILES                          "\\conf_files.txt"

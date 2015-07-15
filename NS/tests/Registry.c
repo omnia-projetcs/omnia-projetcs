@@ -1302,7 +1302,13 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
   HANDLE connect      = 0;
   char tmp[MAX_PATH]  = "", remote_name[MAX_PATH]  = "", msg[LINE_SIZE];
 
-  connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,config, iitem, TRUE, id_ok);
+  if (config->local_account)
+  {
+    connect = (HANDLE)1;
+  }else
+  {
+    connect = NetConnexionAuthenticateTest(ip, ip_id, remote_name,config, iitem, TRUE, id_ok);
+  }
 
   //for testing account policy
   if (config->disco_netbios_policy && scan_start)
@@ -1335,6 +1341,18 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
     LONG reg_access = RegConnectRegistry(tmp, HKEY_LOCAL_MACHINE, &hkey);
     BOOL start_remote_registry = FALSE;
 
+    /*if(reg_access!=ERROR_SUCCESS && config->local_account)
+    {
+      if (LogonUser((LPTSTR)"NETWORK SERVICE", (LPTSTR)"NT AUTHORITY", NULL, /*LOGON32_LOGON_NEW_CREDENTIALS*//*9, /*LOGON32_PROVIDER_WINNT50*//*3, &connect))
+      {
+        if (connect != 0)
+        {
+          ImpersonateLoggedOnUser(connect);
+        }
+      }
+      if (connect == 0) connect = (HANDLE)1;
+    }*/
+	
     if (reg_access!=ERROR_SUCCESS && connect != 0)
     {
       if (StartRemoteRegistryService(ip, TRUE))
@@ -1427,7 +1445,12 @@ BOOL RemoteRegistryNetConnexion(DWORD iitem, char *ip, DWORD ip_id, PSCANNE_ST c
 
   if(connect)
   {
-    WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+    if (config->local_account)
+    {
+    }else
+    {
+      WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+    }
     if (connect != (HANDLE)1)CloseHandle(connect);
   }
 

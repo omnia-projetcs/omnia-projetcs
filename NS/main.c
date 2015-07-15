@@ -2660,6 +2660,12 @@ DWORD WINAPI ScanIp(LPVOID lParam)
       {
         if (local_test || TCP_port_open(iitem, ip, RPC_DEFAULT_PORT, FALSE))
         {
+          BOOL null_session = FALSE;
+
+          if (config.local_account)
+          {
+            null_session = Netbios_NULLSessionStart(ip, "IPC$");
+          }
           //registry
           BOOL registry_remote = FALSE;
           if (config.check_registry || config.check_services || config.check_software || config.check_USB || config.write_key || config.disco_netbios_policy ||config.disco_users||config.disco_netbios)
@@ -2715,6 +2721,10 @@ DWORD WINAPI ScanIp(LPVOID lParam)
             AddMsg(h_main,"DEBUG","ReleaseSemaphore-hs_file",ip);
             AddMsg(h_main,"DEBUG","files:END",ip);
             #endif
+          }
+          if (config.local_account)
+          {
+            if(null_session)Netbios_NULLSessionStop(ip, "IPC$");
           }
         }else if (exist)
         {

@@ -864,7 +864,14 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       if (!config->local_account)snprintf(tmp_login,MAX_PATH,"%s\\%s",ip,config->login);
     }
 
-    if (WNetAddConnection2(&NetRes,config->password,tmp_login,CONNECT_PROMPT)==NO_ERROR)
+    BOOL auth = FALSE;
+
+    if (config->local_account)
+    {
+      auth = TRUE;
+    }else if (WNetAddConnection2(&NetRes,config->password,tmp_login,CONNECT_PROMPT)==NO_ERROR)auth = TRUE;
+
+    if (auth)
     {
       if (multi)
       {
@@ -876,11 +883,25 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
         AddMsg(h_main,(char*)"INFORMATION (Files)",source,msg,FALSE);
       }else
       {
-        snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
-        if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
+        if (config->local_account)
+        {
+          snprintf(msg,LINE_SIZE,"%s\\%s with current account.",ip,remote_share);
+          if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
 
-        snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
-        AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+          snprintf(msg,LINE_SIZE,"Login NET %s\\%s with current account",ip,remote_share);
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+
+        }else
+        {
+          snprintf(msg,LINE_SIZE,"%s\\%s with %s account.",ip,remote_share,tmp_login);
+          if(!LOG_LOGIN_DISABLE)AddMsg(h_main,(char*)"LOGIN (Files:NET)",msg,(char*)"",FALSE);
+
+          snprintf(msg,LINE_SIZE,"Login NET %s\\%s with %s account",ip,remote_share,tmp_login);
+          AddLSTVUpdateItem(msg, COL_CONFIG, iitem);
+        }
+
+
+
 
         //check file
         char file[LINE_SIZE];
@@ -903,7 +924,9 @@ BOOL RemoteAuthenticationFilesScan(DWORD iitem, char *ip, DWORD ip_id, char *rem
       //check list of local users
       if(config->disco_users)CheckFilesUser(iitem, remote_name);
 
-      WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
+      if (config->local_account)
+      {
+      }else WNetCancelConnection2(remote_name,CONNECT_UPDATE_PROFILE,1);
   #ifdef DEBUG_MODE_FILES
   AddMsg(h_main,"DEBUG","files:RemoteAuthenticationFilesScan END",ip,FALSE);
   #endif
