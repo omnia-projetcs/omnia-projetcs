@@ -182,7 +182,7 @@ void CalculDate(DWORD bt)
 
     //Windows NT time
     DWORD ds = (date/1000000)-11644473600+sec_UTC;
-    struct tm * t = gmtime(&ds);
+    struct tm * t = gmtime((const time_t*)&ds);
     if (t != NULL)
     {
       buffer[0] = 0;
@@ -192,7 +192,7 @@ void CalculDate(DWORD bt)
 
     //Chrome/Firefox date
     ds = (date/1000000)+sec_UTC;
-    t = gmtime(&ds);
+    t = gmtime((const time_t*)&ds);
     if (t != NULL)
     {
       buffer[0] = 0;
@@ -202,7 +202,7 @@ void CalculDate(DWORD bt)
 
     //Android date
     ds = (date/1000)+sec_UTC;
-    t = gmtime(&ds);
+    t = gmtime((const time_t*)&ds);
     if (t != NULL)
     {
       buffer[0] = 0;
@@ -214,7 +214,7 @@ void CalculDate(DWORD bt)
     {
       //time_t 32 bit (Unix Big Endian)
       ds = d2+sec_UTC;
-      t = gmtime(&ds);
+      t = gmtime((const time_t*)&ds);
       if (t != NULL)
       {
         buffer[0] = 0;
@@ -233,7 +233,7 @@ void CalculDate(DWORD bt)
       reversHexa[7] = hexa[1];
       reversHexa[8] = 0;
       DWORD d = HexToll(reversHexa, 8)+sec_UTC;
-      t = gmtime(&d);
+      t = gmtime((const time_t*)&d);
       if (t != NULL)
       {
         buffer[0] = 0;
@@ -243,7 +243,7 @@ void CalculDate(DWORD bt)
 
       //MAC absolute time
       ds = date+978307200+sec_UTC;
-      t = gmtime(&ds);
+      t = gmtime((const time_t*)&ds);
       if (t != NULL)
       {
         buffer[0] = 0;
@@ -253,7 +253,7 @@ void CalculDate(DWORD bt)
 
       //HFS big endian
       ds = date-2082844800+sec_UTC; //time difference between 1904-01-01 00:00:00 and 1970-01-01 00:00:00
-      t = gmtime(&ds);
+      t = gmtime((const time_t*)&ds);
       if (t != NULL)
       {
         buffer[0] = 0;
@@ -263,7 +263,7 @@ void CalculDate(DWORD bt)
 
       //HFS little endian
       ds = d-2082844800+sec_UTC; //time difference between 1904-01-01 00:00:00 and 1970-01-01 00:00:00
-      t = gmtime(&ds);
+      t = gmtime((const time_t*)&ds);
       if (t != NULL)
       {
         buffer[0] = 0;

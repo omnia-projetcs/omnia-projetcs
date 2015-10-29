@@ -122,7 +122,7 @@ void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)
 
   ListView_SetItemState(hlv, -1, 0, LVIS_SELECTED); // deselect all
 
-  if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) != MF_CHECKED)
+  if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)
   {
     for (i=0;i<nb_item;i++)
     {
@@ -133,7 +133,7 @@ void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)
         ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
 
         //test si la recherche est présente dedans
-        if (ContientNoCass(tmp,search))
+        if (Contient(tmp,search))
         {
           //sélection
           ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
@@ -151,7 +151,7 @@ void LVAllSearch(HANDLE hlv, unsigned short nb_col, char *search)
         ListView_GetItemText(hlv,i,j,tmp,MAX_LINE_SIZE);
 
         //test si la recherche est présente dedans
-        if (Contient(tmp,search))
+        if (ContientNoCass(tmp,search))
         {
           //sélection
           ListView_SetItemState(hlv,i,LVIS_SELECTED,LVIS_SELECTED);
@@ -410,11 +410,11 @@ void DisableGrid(HANDLE hlv, BOOL disable, int menu)
   if (disable)
   {
     CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_CHECKED);
-    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,LVS_EX_GRIDLINES,0);
+    SendMessage(hlv,LVM_SETEXTENDEDLISTVIEWSTYLE,LVS_EX_GRIDLINES,0);
   }else
   {
     CheckMenuItem(GetMenu(h_main),menu,MF_BYCOMMAND|MF_UNCHECKED);
-    SendMessage(hlstv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_GRIDLINES);
+    SendMessage(hlv,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_GRIDLINES);
   }
 }
 //-----------------------------------------------------------------------------

@@ -82,84 +82,65 @@ DWORD WINAPI GUIScan(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD WINAPI CMDScan(LPVOID lParam)
 {
-  BOOL safe_mode = (BOOL)lParam;
-  unsigned int j = 0;
+  BOOL safe_mode            = (BOOL)lParam;
+  start_scan                = TRUE;
+  LOCAL_SCAN                = TRUE;
+  enable_LNK                = TRUE;
+  _SYSKEY[0]                = 0;
 
-  //generate new session !!!
-  start_scan          = TRUE;
-  nb_current_test     = 0;
-  enable_LNK          = TRUE;
+  WINE_OS                   = isWine();
+  SetDebugPrivilege(TRUE);
+
   AddNewSession(LOCAL_SCAN,db_scan);
 
-  //test all test on by on
-  for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
-  j=0;
+  CMDScanNum((LPVOID)INDEX_DISK);
+  CMDScanNum((LPVOID)INDEX_CLIPBOARD);
+  CMDScanNum((LPVOID)INDEX_ENV);
+  CMDScanNum((LPVOID)INDEX_TASK);
+  CMDScanNum((LPVOID)INDEX_PIPE);
+  CMDScanNum((LPVOID)INDEX_LAN);
+  CMDScanNum((LPVOID)INDEX_ROUTE);
+  CMDScanNum((LPVOID)INDEX_DNS);
+  CMDScanNum((LPVOID)INDEX_ARP);
+  CMDScanNum((LPVOID)INDEX_SHARE);
+  CMDScanNum((LPVOID)INDEX_REG_CONF);
+  CMDScanNum((LPVOID)INDEX_REG_SERVICES);
+  CMDScanNum((LPVOID)INDEX_REG_USB);
+  CMDScanNum((LPVOID)INDEX_REG_SOFTWARE);
+  CMDScanNum((LPVOID)INDEX_REG_UPDATE);
+  CMDScanNum((LPVOID)INDEX_REG_START);
+  CMDScanNum((LPVOID)INDEX_REG_USERS);
+  CMDScanNum((LPVOID)INDEX_REG_USERASSIST);
+  CMDScanNum((LPVOID)INDEX_REG_MRU);
+  CMDScanNum((LPVOID)INDEX_REG_SHELLBAGS);
+  CMDScanNum((LPVOID)INDEX_REG_PASSWORD);
+  CMDScanNum((LPVOID)INDEX_REG_PATH);
+  CMDScanNum((LPVOID)INDEX_REG_GUIDE);
+  CMDScanNum((LPVOID)INDEX_ANTIVIRUS);
+  CMDScanNum((LPVOID)INDEX_REG_FIREWALL);
+  CMDScanNum((LPVOID)INDEX_NAV_FIREFOX);
+  CMDScanNum((LPVOID)INDEX_NAV_CHROME);
+  CMDScanNum((LPVOID)INDEX_NAV_IE);
+  CMDScanNum((LPVOID)INDEX_PREFETCH);
+  CMDScanNum((LPVOID)INDEX_PROCESS);
 
-  sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
-  TEST_REG_PASSWORD_ENABLE = TRUE;
-
-  if (safe_mode == FALSE)
+  if(!safe_mode)
   {
-    h_thread_test[j++] = CreateThread(NULL,0,Scan_files,(void*)nb_current_test,0,0);  nb_current_test++;
-    h_thread_test[j++] = CreateThread(NULL,0,Scan_log,(void*)nb_current_test,0,0);    nb_current_test++;
+    CMDScanNum((LPVOID)INDEX_LOG);
+    CMDScanNum((LPVOID)INDEX_FILE);
   }
 
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_disk,(void*)nb_current_test,0,0);     nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_clipboard,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_env,(void*)nb_current_test,0,0);      nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_task,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_process,(void*)nb_current_test,0,0);  nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_prefetch,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_pipe,(void*)nb_current_test,0,0);     nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_network,(void*)nb_current_test,0,0);  nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_route,(void*)nb_current_test,0,0);    nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_dns,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_arp,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_share,(void*)nb_current_test,0,0);    nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_setting,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_service,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_usb,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_software,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_update,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_start,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_user,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_userassist,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_mru,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_ShellBags,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_password,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_path,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_guide,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_registry_deletedKey,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_antivirus,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_firewall,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_firefox_history,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_chrome_history,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0);nb_current_test++;
-  h_thread_test[j++] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0);nb_current_test++;
-
-  if (safe_mode == FALSE){h_thread_test[j++] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0);nb_current_test++;}
-
-  //wait !
-  for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
-
-  sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
-
-  //the end
-  start_scan          = FALSE;
+  start_scan = FALSE;
   return 0;
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI CMDScanNum(LPVOID lParam)
 {
   unsigned int test = (unsigned int)lParam;
-  unsigned int j;
-  for (j=0;j<NB_TESTS;j++)h_thread_test[j] = 0;
-
   sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);//optimizations
+  TEST_REG_PASSWORD_ENABLE = TRUE;
 
   nb_current_test = 0;
-  start_scan = TRUE;
-
   switch(test)
   {
     case INDEX_FILE_NK        :enable_LNK= TRUE;break;
@@ -186,7 +167,7 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
     case INDEX_REG_USERASSIST :Scan_registry_userassist(0);break;
     case INDEX_REG_MRU        :Scan_registry_mru(0);break;
     case INDEX_REG_SHELLBAGS  :Scan_registry_ShellBags(0);break;
-    case INDEX_REG_PASSWORD   :TEST_REG_PASSWORD_ENABLE = TRUE;Scan_registry_password(0);break;
+    case INDEX_REG_PASSWORD   :Scan_registry_password(0);break;
     case INDEX_REG_PATH       :Scan_registry_path(0);break;
     case INDEX_REG_GUIDE      :Scan_guide(0);break;
     case INDEX_REG_DELETED_KEY:Scan_registry_deletedKey(0);break;
@@ -201,8 +182,5 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
   }
 
   sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);//optimizations
-
-  //the end
-  start_scan          = FALSE;
   return 0;
 }

@@ -23,7 +23,7 @@ void addShellBags(char *source, char*key, char*value, char*data, char *sid, char
 }
 //------------------------------------------------------------------------------
 //http://www.williballenthin.com/forensics/shellbags/index.html
-void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value, char*data, DWORD dataSize, unsigned int session_id, sqlite3 *db)
+void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value, char*data, char *pathcmd, char *file, DWORD file_sz, DWORD dataSize, unsigned int session_id, sqlite3 *db)
 {
   //read date
   typedef struct
@@ -36,7 +36,7 @@ void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value,
   }START_SHELLBAG;
 
   START_SHELLBAG *ss = (START_SHELLBAG *)data;
-  char file[MAX_PATH]="";
+  //char file[MAX_PATH]="";
 
   if (ss->type == 0x31 || ss->type == 0x32) //0x31 = directory, 0x32 = file
   {
@@ -44,7 +44,7 @@ void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value,
     char *c = data + sizeof(START_SHELLBAG);
     c = c+(strlen(c)+22);
     if (*c == 0x00)c--;
-    snprintf(file,MAX_PATH,"%S",c);
+    snprintf(file,file_sz,"%S",c);
     if (strlen(file) < 2)
     {
       c = data + sizeof(START_SHELLBAG);
@@ -52,18 +52,23 @@ void Read_ShellBags_Datas(char *ckey, char *SID, char *last_update, char *value,
       {
         c=c-2;
         snprintf(file,MAX_PATH,"%s",c);
-      }else snprintf(file,MAX_PATH,"%s",c);
+      }else snprintf(file,file_sz,"%s",c);
     }
   }else
   {
     //direct share path
-    snprintf(file,MAX_PATH,"%s",&data[5]);
+    snprintf(file,file_sz,"%s",&data[5]);
   }
 
-  addShellBags("HKEY_USERS", ckey, value, file, SID, last_update,session_id, db);
+  if (pathcmd != NULL)
+  {
+    char globalpath[MAX_LINE_SIZE]="";
+    snprintf(globalpath,MAX_LINE_SIZE,"%s\\%s",pathcmd,file);
+    addShellBags("HKEY_USERS", ckey, value, globalpath, SID, last_update,session_id, db);
+  }else addShellBags("HKEY_USERS", ckey, value, file, SID, last_update,session_id, db);
 }
 //------------------------------------------------------------------------------
-void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite3 *db)
+void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, char *pathcmd, unsigned int session_id, sqlite3 *db)
 {
   //exist or not in the file ?
   HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, ckey);
@@ -77,6 +82,7 @@ void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, unsigned int sessi
   //enumerate values
   DWORD i, dataSize, nbSubValue = GetValueData(hks->buffer,hks->taille_fic, nk_h, (hks->pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
   char value[MAX_PATH], data[MAX_LINE_SIZE];
+  char pathcmdtmp[MAX_LINE_SIZE] = "", tmpfile[MAX_LINE_SIZE]="";
   for (i=0;i<nbSubValue && start_scan;i++)
   {
     dataSize  = MAX_LINE_SIZE;
@@ -88,7 +94,12 @@ void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, unsigned int sessi
       if (value[0] != 0 && data[0] != 0 && dataSize > 40)
       {
         if (strcmp(value,"MRUListEx")!=0 && strcmp(value,"NodeSlot")!=0 && strcmp(value,"NodeSlots")!=0)
-          Read_ShellBags_Datas(ckey, SID, last_update, value, data, dataSize, session_id, db);
+        {
+          Read_ShellBags_Datas(ckey, SID, last_update, value, data, pathcmd, tmpfile, MAX_LINE_SIZE ,dataSize, session_id, db);
+
+          if (pathcmd == NULL)snprintf(pathcmdtmp,MAX_LINE_SIZE,"%s",tmpfile);
+          else snprintf(pathcmdtmp,MAX_LINE_SIZE,"%s\\%s",pathcmd, tmpfile);
+        }
       }
     }
   }
@@ -103,13 +114,13 @@ void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, unsigned int sessi
       if (tmp_key[0] != 0)
       {
         snprintf(tmp_ckey,MAX_PATH,"%s\\%s",ckey,tmp_key);
-        Scan_registry_ShellBags_file(hks, tmp_ckey, session_id, db);
+        Scan_registry_ShellBags_file(hks, tmp_ckey, pathcmdtmp, session_id, db);
       }
     }
   }
 }
 //------------------------------------------------------------------------------
-void Enum_ShellBags(char *ckey, char *SID, unsigned int session_id, sqlite3 *db)
+void Enum_ShellBags(char *ckey, char *SID, char *pathcmd, unsigned int session_id, sqlite3 *db)
 {
   HKEY CleTmp;
   if (RegOpenKey((HKEY)HKEY_USERS,ckey,&CleTmp)!=ERROR_SUCCESS)return;
@@ -130,6 +141,7 @@ void Enum_ShellBags(char *ckey, char *SID, unsigned int session_id, sqlite3 *db)
   //read values
   DWORD valueSize,dataSize;
   char value[MAX_LINE_SIZE], data[MAX_LINE_SIZE];
+  char pathcmdtmp[MAX_LINE_SIZE] = "", tmpfile[MAX_LINE_SIZE]="";
   for (i=0;i<nbSubValue && start_scan;i++)
   {
     valueSize = MAX_LINE_SIZE;
@@ -143,7 +155,12 @@ void Enum_ShellBags(char *ckey, char *SID, unsigned int session_id, sqlite3 *db)
       if (value[0] != 0 && data[0] != 0 && dataSize > 40 && valueSize)
       {
         if (strcmp(value,"MRUListEx")!=0 && strcmp(value,"NodeSlot")!=0 && strcmp(value,"NodeSlots")!=0)
-          Read_ShellBags_Datas(ckey, SID, date, value, data, dataSize, session_id, db);
+        {
+          Read_ShellBags_Datas(ckey, SID, date, value, data, pathcmd, tmpfile, MAX_LINE_SIZE, dataSize, session_id, db);
+
+          if (pathcmd == NULL)snprintf(pathcmdtmp,MAX_LINE_SIZE,"%s",tmpfile);
+          else snprintf(pathcmdtmp,MAX_LINE_SIZE,"%s\\%s",pathcmd, tmpfile);
+        }
       }
     }
   }
@@ -157,7 +174,7 @@ void Enum_ShellBags(char *ckey, char *SID, unsigned int session_id, sqlite3 *db)
     {
       //next
       snprintf(key_path,MAX_PATH,"%s\\%s",ckey,tmp);
-      Enum_ShellBags(key_path, SID,session_id, db);
+      Enum_ShellBags(key_path, SID, pathcmdtmp, session_id, db);
     }
   }
   RegCloseKey(CleTmp);
@@ -191,7 +208,7 @@ void Scan_registry_ShellBags_direct(char *ckey, unsigned int session_id, sqlite3
 
       //enumerate datas
       snprintf(key_path,MAX_PATH,"%s\\%s",SID,ckey);
-      Enum_ShellBags(key_path, SID,session_id, db);
+      Enum_ShellBags(key_path, SID, NULL,session_id, db);
     }
   }
   RegCloseKey(CleTmp);
@@ -224,12 +241,12 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
         //verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
           CloseRegFiletoMem(&hks);
 
         }

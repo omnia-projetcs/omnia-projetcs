@@ -321,22 +321,25 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
   HANDLE hProcess;
   DWORD d_pid, i, j, k, cbNeeded;
   BOOL ok;
-  LINE_PROC_ITEM port_line[MAX_PATH];
-  HMODULE hMod[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
+  HMODULE hMod[MAX_LINE_SIZE];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
-       path[MAX_PATH],
-       cmd[MAX_PATH],
+       path[MAX_LINE_SIZE],
+       cmd[MAX_LINE_SIZE],
        owner[DEFAULT_TMP_SIZE],
        rid[DEFAULT_TMP_SIZE],
        sid[DEFAULT_TMP_SIZE],
        start_date[DATE_SIZE_MAX],
-       verified[MAX_PATH],
-       h_sha256[MAX_PATH];
+       verified[MAX_LINE_SIZE],
+       h_sha256[MAX_LINE_SIZE];
 
-  char src_name[MAX_PATH];
-  char dst_name[MAX_PATH];
+  char src_name[MAX_LINE_SIZE];
+  char dst_name[MAX_LINE_SIZE];
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   //force enumerate all process by id !
   for (d_pid=FIRST_PROCESS_ID;d_pid<LAST_PROCESS_ID && start_scan;d_pid++)
@@ -347,7 +350,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
 
     //cmd
     cmd[0]=0;
-    GetProcessArg(hProcess, cmd, MAX_PATH);
+    GetProcessArg(hProcess, cmd, MAX_LINE_SIZE);
 
     if (cmd[0]==0)
     {
@@ -374,9 +377,9 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
 
       //path
       path[0]=0;
-      if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded))
+      if (EnumProcessModules(hProcess,hMod, MAX_LINE_SIZE,&cbNeeded))
       {
-        if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_PATH) == 0)path[0] = 0;
+        if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_LINE_SIZE) == 0)path[0] = 0;
       }
 
       //owner
@@ -394,13 +397,13 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
       }
 
       //ports !
-      j=GetPortsFromPID(d_pid, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+      j=GetPortsFromPID(d_pid, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
-      convertStringToSQL(path, MAX_PATH);
-      convertStringToSQL(cmd, MAX_PATH);
+      convertStringToSQL(path, MAX_LINE_SIZE);
+      convertStringToSQL(cmd, MAX_LINE_SIZE);
 
       //sha256 + signed
-      GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH);
+      GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_LINE_SIZE);
 
       //add items !
       if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "", "X", "", "",h_sha256, verified,session_id,db);
@@ -408,11 +411,11 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
       {
         for (k=0;k<j;k++)
         {
-          if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
-          else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+          if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_LINE_SIZE,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+          else snprintf(src_name,MAX_LINE_SIZE,"%s",port_line[k].IP_src);
 
-          if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
-          else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+          if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_LINE_SIZE,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+          else snprintf(dst_name,MAX_LINE_SIZE,"%s",port_line[k].IP_dst);
 
           addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
                                 port_line[k].protocol, src_name, port_line[k].Port_src,
@@ -422,6 +425,7 @@ void EnumProcessAndThread(DWORD nb_process, PROCESS_INFOS_ARGS *process_info,uns
     }
     CloseHandle(hProcess);
   }
+  free(port_line);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_process(LPVOID lParam)
@@ -447,26 +451,29 @@ DWORD WINAPI Scan_process(LPVOID lParam)
 
   DWORD cbNeeded, k, j, nb_process=0;
   HANDLE hProcess, parent_hProcess;
-  HMODULE hMod[MAX_PATH];
+  HMODULE hMod[MAX_LINE_SIZE];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
-  LINE_PROC_ITEM port_line[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
-       path[MAX_PATH],
-       cmd[MAX_PATH],
+       path[MAX_LINE_SIZE],
+       cmd[MAX_LINE_SIZE],
        owner[DEFAULT_TMP_SIZE],
        rid[DEFAULT_TMP_SIZE],
        sid[DEFAULT_TMP_SIZE],
        start_date[DATE_SIZE_MAX],
        parent_pid[DEFAULT_TMP_SIZE],
-       parent_path[MAX_PATH],
-       verified[MAX_PATH],
-       h_sha256[MAX_PATH];
+       parent_path[MAX_LINE_SIZE],
+       verified[MAX_LINE_SIZE],
+       h_sha256[MAX_LINE_SIZE];
 
-  char src_name[MAX_PATH];
-  char dst_name[MAX_PATH];
+  char src_name[MAX_LINE_SIZE];
+  char dst_name[MAX_LINE_SIZE];
 
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   while(Process32Next(hCT, &pe) && start_scan)
@@ -484,14 +491,14 @@ DWORD WINAPI Scan_process(LPVOID lParam)
 
     //path
     path[0]=0;
-    if (EnumProcessModules(hProcess,hMod, MAX_PATH,&cbNeeded))
+    if (EnumProcessModules(hProcess,hMod, MAX_LINE_SIZE,&cbNeeded))
     {
-      if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_PATH) == 0)path[0] = 0;
+      if (GetModuleFileNameEx(hProcess,hMod[0],path,MAX_LINE_SIZE) == 0)path[0] = 0;
     }
 
     //cmd
     cmd[0]=0;
-    GetProcessArg(hProcess, cmd, MAX_PATH);
+    GetProcessArg(hProcess, cmd, MAX_LINE_SIZE);
 
     //owner
     GetProcessOwner(pe.th32ProcessID, owner, rid, sid, DEFAULT_TMP_SIZE);
@@ -504,9 +511,9 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     parent_hProcess = OpenProcess(PROCESS_QUERY_INFORMATION|PROCESS_VM_READ,0,pe.th32ParentProcessID);
     if (parent_hProcess != NULL)
     {
-      if (EnumProcessModules(parent_hProcess,hMod, MAX_PATH,&cbNeeded))
+      if (EnumProcessModules(parent_hProcess,hMod, MAX_LINE_SIZE,&cbNeeded))
       {
-        if (GetModuleFileNameEx(parent_hProcess,hMod[0],parent_path,MAX_PATH) == 0)parent_path[0] = 0;
+        if (GetModuleFileNameEx(parent_hProcess,hMod[0],parent_path,MAX_LINE_SIZE) == 0)parent_path[0] = 0;
       }
       CloseHandle(parent_hProcess);
     }
@@ -523,20 +530,20 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     }
 
     //ports !
-    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
     //update list of process
     if (nb_process<MAX_PATH)
     {
       process_infos[nb_process].pid = pe.th32ProcessID;
-      snprintf(process_infos[nb_process].args,MAX_PATH,"%s",cmd);
+      snprintf(process_infos[nb_process].args,MAX_LINE_SIZE,"%s",cmd);
       nb_process++;
     }
-    convertStringToSQL(path, MAX_PATH);
-    convertStringToSQL(cmd, MAX_PATH);
+    convertStringToSQL(path, MAX_LINE_SIZE);
+    convertStringToSQL(cmd, MAX_LINE_SIZE);
 
     //sha256 + signed
-    GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH);
+    GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_LINE_SIZE);
 
     //add items !
     if (j == 0)addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,"", "", "","", "", "",""  , parent_path, parent_pid,h_sha256, verified,session_id,db);
@@ -544,11 +551,11 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     {
       for (k=0;k<j;k++)
       {
-        if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_PATH,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
-        else snprintf(src_name,MAX_PATH,"%s",port_line[k].IP_src);
+        if (port_line[k].name_src[0] != 0)snprintf(src_name,MAX_LINE_SIZE,"%s:%s",port_line[k].IP_src,port_line[k].name_src);
+        else snprintf(src_name,MAX_LINE_SIZE,"%s",port_line[k].IP_src);
 
-        if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_PATH,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
-        else snprintf(dst_name,MAX_PATH,"%s",port_line[k].IP_dst);
+        if (port_line[k].name_dst[0] != 0)snprintf(dst_name,MAX_LINE_SIZE,"%s:%s",port_line[k].IP_dst,port_line[k].name_dst);
+        else snprintf(dst_name,MAX_LINE_SIZE,"%s",port_line[k].IP_dst);
 
         addProcesstoDB(process, pid, path, cmd, owner, rid, sid, start_date,
                               port_line[k].protocol, src_name, port_line[k].Port_src,
@@ -557,6 +564,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     }
     CloseHandle(hProcess);
   }
+  free(port_line);
 
   //verify shadow process !!!
   EnumProcessAndThread(nb_process, process_infos,session_id,db);

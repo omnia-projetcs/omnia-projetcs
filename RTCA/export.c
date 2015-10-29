@@ -106,6 +106,7 @@ int callback_sqlite_export(void *d, int argc, char **argv, char **azColName)
 //------------------------------------------------------------------------------
 DWORD WINAPI SaveAll(LPVOID lParam)
 {
+  unsigned int mode_cmd = (unsigned int)lParam;
   //get current time
   time_t date;
   time(&date);
@@ -140,7 +141,7 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   char test_name[DEFAULT_TMP_SIZE];
   for (i=0;i<NB_TESTS_GLOBALS;i++)
   {
-    if (lParam)//CMD OR NOT ?
+    if (mode_cmd > 0)//CMD OR NOT ?
     {
       //set file name :
       switch(export_type)

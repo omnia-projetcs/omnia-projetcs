@@ -161,7 +161,7 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
   HANDLE hProcess;
   HMODULE hMod[MAX_PATH];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
-  LINE_PROC_ITEM port_line[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
   BOOL ok;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
@@ -182,6 +182,9 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
   lvi.iSubItem = 0;
   lvi.lParam  = LVM_SORTITEMS;
   lvi.pszText = "";
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   for (i=first_id;i<end_id;i++) //32768 = 2gb/64k pour la gestion du 64bits
   {
@@ -243,7 +246,7 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
       }
 
       //ports !
-      j=GetPortsFromPID(i, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+      j=GetPortsFromPID(i, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
       //add items !
       if (j == 0)
@@ -322,6 +325,7 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
       CloseHandle(hProcess);
     }
   }
+  free(port_line);
 }
 //------------------------------------------------------------------------------
 void LoadPRocessList(HWND hlv)
@@ -337,7 +341,7 @@ void LoadPRocessList(HWND hlv)
   HANDLE hProcess, parent_hProcess;
   HMODULE hMod[MAX_PATH];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
-  LINE_PROC_ITEM port_line[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
        path[MAX_PATH],
@@ -356,6 +360,9 @@ void LoadPRocessList(HWND hlv)
   lvi.iSubItem = 0;
   lvi.lParam   = LVM_SORTITEMS;
   lvi.pszText  = "";
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   char src_name[MAX_PATH];
   char dst_name[MAX_PATH];
@@ -414,7 +421,7 @@ void LoadPRocessList(HWND hlv)
     }
 
     //ports !
-    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
     //sha256 + signed
     GetSHAandVerifyFromPathFile(path, h_sha256, verified, MAX_PATH);
@@ -494,6 +501,8 @@ void LoadPRocessList(HWND hlv)
     }
     CloseHandle(hProcess);
   }
+
+  free(port_line);
 
   //shadow process !!!
   EnumProcessAndThread_Current(hlv, 1, 32768);

@@ -221,8 +221,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 SetFocus(hlstv);
                 SendMessage(he_search,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
 
-                if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) != MF_CHECKED) pos_search = LVSearchNoCass(hlstv, nb_current_columns, tmp, pos_search);
-                else pos_search = LVSearch(hlstv, nb_current_columns, tmp, pos_search);
+                if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)pos_search = LVSearch(hlstv, nb_current_columns, tmp, pos_search);
+                else pos_search = LVSearchNoCass(hlstv, nb_current_columns, tmp, pos_search);
               }
               break;
               case IDM_STAY_ON_TOP:IDM_STAY_ON_TOP_fct();break;
@@ -940,7 +940,6 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_FILE_PATH,cps[TXT_OPEN_PATH].c);
               }
             }
-
             break;
             case INDEX_NAV_FIREFOX:
             case INDEX_NAV_CHROME:
@@ -960,7 +959,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           }
 
           //Add tools menu !!!
-          if (nb_tools && iitem != -1)
+          if (nb_tools && (iitem == INDEX_FILE))
           {
             unsigned int z = 0;
             InsertMenu(GetSubMenu(hmenu,0),-1,MF_BYPOSITION|MF_SEPARATOR,POPUP_MENU_TOOLS_START-1,"");
@@ -1140,7 +1139,7 @@ int CmdLine(int argc, char* argv[])
           i++;
           if (argv[i][0]!='-')
           {
-            current_session_id = atoi(argv[i]);//select a session
+            current_lang_id = atoi(argv[i]);//select the language
           }else
           {
             printf("*******************************************************\n"
@@ -1240,12 +1239,14 @@ int CmdLine(int argc, char* argv[])
       case 's'://scan for test with number 0 1 2 3
         //generate new session
         AddNewSession(LOCAL_SCAN,db_scan);
-        enable_LNK = TRUE;
+        WINE_OS    = isWine();
+        start_scan = TRUE;
         for (++i;i<argc;i++)
         {
           if (argv[i][0] == '-'){i--;break;}
           CMDScanNum((LPVOID)atoi(argv[i]));
         }
+        start_scan = FALSE;
       break;
       //------------------------------------------------------------------------------
       //advanced functions
@@ -1286,12 +1287,16 @@ int CmdLine(int argc, char* argv[])
                "*******************************************************\n"
                "\n"
                "SYNOPSIS\n"
-               "\tRtCA.exe [-l|-L|-t]\n"
-               "\t         [-r][-0][-1][-2]\n"
+               "\tRtCA.exe [Options] [Tests] [Save]\n"
+               "\t         [-l|-L|-t]\n"
+               "\t         [-0][-1][-2][-3][-S]\n"
                "\t         [-f \"...\"]\n"
                "\t         [-p \"...\"]\n"
-               "\t         [-a|-A|-s ...]\n"
-               "\t         [-o \"...\"][-F [CSV|XML|HTML]]\n"
+               "\t         [-a|-A|[-s [1-34]]]\n"
+               "\t         [-F [CSV|XML|HTML]] [-o \"...\"]\n"
+               "\t         [-e \"...\\\\\"]\n"
+               "\t         [-d \\\\.\\PhysicalDrive0-8 -- ...]\n"
+               "\t         [-Z ...]\n"
                "\n"
                "DESCRITPION\n"
                "\tTool To help forensic investigations :)\n"
@@ -1308,12 +1313,12 @@ int CmdLine(int argc, char* argv[])
                "\t-T  Export in UTC time.\n"
                "\t-S  Disable SQLITE FULL SPEED.\n"
                "\n"
-               "\t-a  Start all tests.\n\n"
-               "\t-A  Start all tests in safe mode with no Files, no Logs and LDAP AD extraction test.\n"
+               "\t-a  Start all tests (without LDAP extract and Registry deleted keys).\n"
+               "\t-A  Start all tests in safe mode with no Files, no Logs and no LDAP AD extraction test and no Registry deleted keys.\n"
                "\t-s  Select test to start.\n\t    Exemple: -s 0 1 2 3 4 5 6\n"
                "\n"
-               "\t-o  Export all data to path.\n\t    Exemple: -o \"c:\\\"\n"
-               "\t-F  Format to export : CSV (default), XML or HTML\n"
+               "\t-o  Export all data to path (after -F option if specify. CSV by default).\n\t    Exemples: -F XML -o c:\\ or in local directory -o . or in network share -o \\\\Server\\Share\\\n"
+               "\t-F  Format to export: CSV (default), XML or HTML\n"
                "\n"
                "\t-e  SHA256deep of directories (recursive).\n\t    Exemple: -e \"C:\\path\\\\\" >> sha256deep_directory_results.txt\n"
                "\t-d  disk imaging to file.\n\t    Exemple with no size limit: -d \\\\.\\PhysicalDrive0 -- c:\\image.raw\n"

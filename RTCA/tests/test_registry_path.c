@@ -87,6 +87,7 @@ void reg_read_enum_PathValues(HKEY hk,char *chkey,char *key,unsigned int session
   RegCloseKey(CleTmp);
 }
 //------------------------------------------------------------------------------
+//numPath_local(HKEY_USERS,"HKEY_USERS","","Environment",session_id,db);
 void EnumPath_local(HKEY hk,char *chk, char*key_before,char *key_after,unsigned int session_id, sqlite3 *db)
 {
   HKEY CleTmp;
@@ -107,8 +108,10 @@ void EnumPath_local(HKEY hk,char *chk, char*key_before,char *key_after,unsigned 
     key_size  = MAX_PATH;
     if (RegEnumKeyEx (CleTmp,i,key,(LPDWORD)&key_size,NULL,NULL,NULL,NULL)==ERROR_SUCCESS)
     {
-      if (key_after!=NULL)snprintf(tmp_key,MAX_PATH,"%s\\%s\\%s",key_before,key,key_after);
-      else snprintf(tmp_key,MAX_PATH,"%s\\%s",key_before,key);
+      if (key_before==NULL)     snprintf(tmp_key,MAX_PATH,"%s\\%s\\"               ,key,key_after);
+      else if (key_after==NULL) snprintf(tmp_key,MAX_PATH,"%s\\%s\\"    ,key_before,key);
+      else                      snprintf(tmp_key,MAX_PATH,"%s\\%s\\%s\\",key_before,key,key_after);
+
       reg_read_enum_PathValues(hk,chk,tmp_key,session_id,db);
     }
   }
@@ -216,6 +219,8 @@ DWORD WINAPI Scan_registry_path(LPVOID lParam)
           EnumPath_file(&hks,"Classes","shell\\open\\command",session_id,db, FALSE);
           //Enum envs
           EnumPath_file(&hks,"Environment","",session_id,db, TRUE);
+          //Users folders
+          EnumPath_file(&hks,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders","",session_id,db, TRUE);
           //all applications
           EnumPath_file(&hks,"Microsoft\\Windows\\CurrentVersion\\App Paths","",session_id,db, FALSE);
           EnumPath_file(&hks,"Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths","",session_id,db, FALSE);
@@ -229,10 +234,12 @@ DWORD WINAPI Scan_registry_path(LPVOID lParam)
     //enum all class open/edit/print values
     EnumPath_local(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Classes","shell\\open\\command",session_id,db);
     //Enum envs
-    EnumPath_local(HKEY_USERS,"HKEY_USERS","","Environment",session_id,db);
+    EnumPath_local(HKEY_USERS,"HKEY_USERS",NULL,"Environment",session_id,db);
+    //Users folders
+    EnumPath_local(HKEY_USERS,"HKEY_USERS",NULL,"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\User Shell Folders",session_id,db);
     //all applications
-    EnumPath_local(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths","",session_id,db);
-    EnumPath_local(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths","",session_id,db);
+    EnumPath_local(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths",NULL,session_id,db);
+    EnumPath_local(HKEY_LOCAL_MACHINE,"HKEY_LOCAL_MACHINE","SOFTWARE\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths",NULL,session_id,db);
   }
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

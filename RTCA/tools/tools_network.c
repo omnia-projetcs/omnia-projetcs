@@ -13,6 +13,8 @@ unsigned int onglet;
 #define ONGLET_IP       2
 
 #define ID_COLUMN       6
+
+SOCKET sock_sniff;
 //------------------------------------------------------------------------------
 BOOL FilterExist(char *filter)
 {
@@ -552,22 +554,26 @@ BOOL TraitementTrame(unsigned char *buffer, unsigned int taille,unsigned long in
 DWORD WINAPI Sniff(LPVOID lParam)
 {
   //init
+  WSADATA WSAData;
+  if (WSAStartup(0x02, &WSAData) != 0)
+  {
+    WSACleanup();
+    return 0;
+  }
+
   ListView_DeleteAllItems(GetDlgItem(h_sniff,DLG_NS_LSTV));
   ListView_DeleteAllItems(GetDlgItem(h_sniff,DLG_NS_LSTV_FILTRE));
   ListView_DeleteAllItems(GetDlgItem(h_sniff,DLG_NS_LSTV_PAQUETS));
   NB_trame_buffer = 0;
 
-  WSADATA WSAData;
-  WSAStartup(0x02, &WSAData);
-
-  SOCKET sock = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
-  if (sock != INVALID_SOCKET)
+  sock_sniff = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
+  if (sock_sniff != INVALID_SOCKET)
   {
     //init sock for read packets
     struct sockaddr_in sock_addr;
     memset(&sock_addr, 0, sizeof(sock_addr));
 
-    unsigned char buffer[TAILLE_MAX_BUFFER_TRAME]="";
+    char buffer[TAILLE_MAX_BUFFER_TRAME]="";
     SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETLBTEXT,SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_GETCURSEL,0,(LPARAM)NULL),(LPARAM)buffer);
 
     sock_addr.sin_addr.s_addr = inet_addr(buffer);
@@ -578,11 +584,17 @@ DWORD WINAPI Sniff(LPVOID lParam)
     if (SendDlgItemMessage(h_sniff,DLG_NS_SNIFF_CHK_PROMISCUOUS, BM_GETCHECK,(WPARAM) 0, (LPARAM)0))
     {
       int rcvtimeo = 5000;
-      setsockopt( sock , SOL_SOCKET , SO_RCVTIMEO , (const char *)&rcvtimeo , sizeof(rcvtimeo));
+      if (setsockopt( sock_sniff , SOL_SOCKET , SO_RCVTIMEO , (const char *)&rcvtimeo , sizeof(rcvtimeo)) != 0)
+      {
+        WSACleanup();
+        SetWindowText(GetDlgItem((HWND)h_sniff,DLG_NS_BT_START),cps[TXT_BT_START].c);
+        EnableWindow(GetDlgItem(h_sniff,DLG_NS_BT_START),TRUE);
+        return 0;
+      }
     }
 
     //bind interface !
-    if (bind(sock,(struct sockaddr *)&sock_addr,sizeof(sock_addr)) != SOCKET_ERROR)
+    if (bind(sock_sniff,(struct sockaddr *)&sock_addr,sizeof(sock_addr)) == 0)
     {
       //text button
       SetWindowText(GetDlgItem((HWND)h_sniff,DLG_NS_BT_START),cps[TXT_BT_STOP].c);
@@ -590,56 +602,60 @@ DWORD WINAPI Sniff(LPVOID lParam)
       //promiscious mode
       unsigned long taille=1;
       buffer[0] = 0;
-      WSAIoctl(sock, SIO_RCVALL, &taille, sizeof(taille), 0, 0,(LPDWORD)&buffer,0, 0);
-      TRAME_BUFFER *trame_buffer_tmp = NULL;
-
-      while (taille && start_sniff)
+      if (WSAIoctl(sock_sniff, SIO_RCVALL, &taille, sizeof(taille), 0, 0,(LPDWORD)&buffer,0, 0) == 0)
       {
-        //get datas
-        memset(&buffer, 0, sizeof(buffer));
-        taille = recvfrom(sock,buffer,TAILLE_MAX_BUFFER_TRAME,0,0,0);
-        if (taille > 0)
+        TRAME_BUFFER *trame_buffer_tmp = NULL;
+
+        while (taille && start_sniff)
         {
-          WaitForSingleObject(hMutex_TRAME_BUFFER,INFINITE);
-          if (NB_trame_buffer%100 == 0) //allocate trames 100 by 100
+          //get datas
+          memset(&buffer, 0, sizeof(buffer));
+          taille = recvfrom(sock_sniff,buffer,TAILLE_MAX_BUFFER_TRAME,0,0,0);
+
+          if (taille > 0)
           {
-            trame_buffer_tmp = (TRAME_BUFFER *) realloc(Trame_buffer,(NB_trame_buffer+100)*(sizeof(TRAME_BUFFER)+1));
-          }
-
-          if (trame_buffer_tmp != NULL)
-          {
-            Trame_buffer = trame_buffer_tmp;
-
-            //init new trame
-            Trame_buffer[NB_trame_buffer].ProtoType = 0;
-            Trame_buffer[NB_trame_buffer].ip_src[0] = 0;
-            Trame_buffer[NB_trame_buffer].src_port  = 0;
-            Trame_buffer[NB_trame_buffer].ip_dst[0] = 0;
-            Trame_buffer[NB_trame_buffer].dst_port  = 0;
-            Trame_buffer[NB_trame_buffer].TTL       = 0;
-
-            memset(Trame_buffer[NB_trame_buffer].buffer_header, 0, TAILLE_MAX_BUFFER_HEADER);
-            if (taille<TAILLE_MAX_BUFFER_TRAME)
+            WaitForSingleObject(hMutex_TRAME_BUFFER,INFINITE);
+            if (NB_trame_buffer%100 == 0) //allocate trames 100 by 100
             {
-              Trame_buffer[NB_trame_buffer].taille_buffer = taille;
-              memcpy(Trame_buffer[NB_trame_buffer].buffer,buffer,taille);
-            }else
-            {
-              Trame_buffer[NB_trame_buffer].taille_buffer = TAILLE_MAX_BUFFER_TRAME;
-              memcpy(Trame_buffer[NB_trame_buffer].buffer,buffer,TAILLE_MAX_BUFFER_TRAME);
+              trame_buffer_tmp = (TRAME_BUFFER *) realloc(Trame_buffer,(NB_trame_buffer+100)*(sizeof(TRAME_BUFFER)+1));
             }
 
-            //working
-            if (TraitementTrame(buffer, taille,NB_trame_buffer))NB_trame_buffer++;
-          }else
-          {
+            if (trame_buffer_tmp != NULL)
+            {
+              Trame_buffer = trame_buffer_tmp;
+
+              //init new trame
+              Trame_buffer[NB_trame_buffer].ProtoType = 0;
+              Trame_buffer[NB_trame_buffer].ip_src[0] = 0;
+              Trame_buffer[NB_trame_buffer].src_port  = 0;
+              Trame_buffer[NB_trame_buffer].ip_dst[0] = 0;
+              Trame_buffer[NB_trame_buffer].dst_port  = 0;
+              Trame_buffer[NB_trame_buffer].TTL       = 0;
+
+              memset(Trame_buffer[NB_trame_buffer].buffer_header, 0, TAILLE_MAX_BUFFER_HEADER);
+              if (taille<TAILLE_MAX_BUFFER_TRAME)
+              {
+                Trame_buffer[NB_trame_buffer].taille_buffer = taille;
+                memcpy(Trame_buffer[NB_trame_buffer].buffer,buffer,taille);
+              }else
+              {
+                Trame_buffer[NB_trame_buffer].taille_buffer = TAILLE_MAX_BUFFER_TRAME;
+                memcpy(Trame_buffer[NB_trame_buffer].buffer,buffer,TAILLE_MAX_BUFFER_TRAME);
+              }
+
+              //working
+              if (TraitementTrame(buffer, taille,NB_trame_buffer))NB_trame_buffer++;
+            }else
+            {
+              ReleaseMutex(hMutex_TRAME_BUFFER);
+              break;
+            }
             ReleaseMutex(hMutex_TRAME_BUFFER);
-            break;
           }
-          ReleaseMutex(hMutex_TRAME_BUFFER);
         }
       }
     }
+    closesocket(sock_sniff);
   }
 
   WSACleanup();
@@ -961,7 +977,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                 Trame_buffer[index].ip_src,
                 Trame_buffer[index].ip_dst);
 
-  char *b = Trame_buffer[index].buffer;
+  char *b = (char*)(Trame_buffer[index].buffer);
   switch(Trame_buffer[index].ProtoType)
   {
     case IPPROTO_TCP:
@@ -1131,7 +1147,7 @@ DWORD WINAPI follow_stream(LPVOID lParam)
         snprintf(data_buffer,MAX_LINE_DBSIZE,"%s",(Trame_buffer[i].buffer+IPV4_HDR_SIZE+UDP_HDR_SIZE));
         //if (ValideChDesc(data_buffer,strlen(data_buffer)) && strlen(data_buffer))
         {
-          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]UDP%08d\r\n",
+          snprintf(frame_buffer,MAX_LINE_DBSIZE,"[%s:%d->%s:%d]UDP%08ld\r\n",
                    Trame_buffer[i].ip_src,Trame_buffer[i].src_port,
                    Trame_buffer[i].ip_dst,Trame_buffer[i].dst_port,i);
 
@@ -1197,7 +1213,7 @@ void LoadTrame_datas(char *buffer, unsigned int buffer_sz_max, long int index)
                 Trame_buffer[index].ip_src,
                 Trame_buffer[index].ip_dst);
 
-  char *b = Trame_buffer[index].buffer;
+  char *b = (char *) (Trame_buffer[index].buffer);
   switch(Trame_buffer[index].ProtoType)
   {
     case IPPROTO_TCP:
@@ -1615,8 +1631,17 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
             case DLG_NS_BT_START:
               if (start_sniff)
               {
-                start_sniff = FALSE;
                 EnableWindow(GetDlgItem(h_sniff,DLG_NS_BT_START),FALSE);
+                DWORD IDThread;
+                GetExitCodeThread(Hsniff,&IDThread);
+                TerminateThread(Hsniff,IDThread);
+                //clean
+                closesocket(sock_sniff);
+                WSACleanup();
+
+                SetWindowText(GetDlgItem((HWND)h_sniff,DLG_NS_BT_START),cps[TXT_BT_START].c);
+                EnableWindow(GetDlgItem(h_sniff,DLG_NS_BT_START),TRUE);
+                start_sniff = FALSE;
               }else
               {
                 start_sniff = TRUE;

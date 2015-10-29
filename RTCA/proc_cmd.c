@@ -16,7 +16,7 @@ int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName)
       printf("\t[%02d] - %s\n",atoi(argv[0]),argv[1]);
     break;
     case CMD_TYPE_LIST_LANGUAGE:
-      printf("\t[%02d] - %s\n",item_n++,argv[1]);
+      printf("\t[%d] - %s\n",atoi(argv[0]),argv[1]);
     break;
     //case TYPE_SQL_ADD_SESSION:break;
     case CMD_READ_SESSION:

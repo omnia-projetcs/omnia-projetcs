@@ -78,7 +78,7 @@ BOOL CopyFileFromMFT(HANDLE hfile, char *destination)
 
 
               char tmp[MAX_PATH];
-              snprintf(tmp,MAX_PATH,"[Part:%d]\nnb_partition:%d\n%s\n%s(0x%02X)\nPartitionStartOffset:%llu\nPartitionSize:%llu\nsector_size:%lu\nMFT:%llu\nMFTex:%llu",i,infos.nb_partition,
+              snprintf(tmp,MAX_PATH,"[Part:%d]\nnb_partition:%d\n%s\n%s(0x%02X)\nPartitionStartOffset:%llu\nPartitionSize:%llu\nsector_size:%llu\nMFT:%llu\nMFTex:%llu",i,infos.nb_partition,
                                                                       infos.partitions[i].bootable?"Part0:bootable":"",
                                                                       infos.partitions[i].ctype,(infos.partitions[i].type) & 0xFF,
                                                                       infos.partitions[i].PartitionStartOffset,

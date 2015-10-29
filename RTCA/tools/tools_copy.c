@@ -115,7 +115,7 @@ BOOL dd(char *disk, char *file, LONGLONG file_sz_max, BOOL progress)
 //------------------------------------------------------------------------------
 void dd_mbr()
 {
-  char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  char file[MAX_PATH]="";
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
@@ -276,7 +276,7 @@ BOOL DirectFileCopy(char *path_src, char *path_dst)
   DWORD FileFlags=0;
   char volume[MAX_PATH]="",finalvolume[MAX_PATH]="";
 
-  if (GetVolumeInformation(path,NULL,NULL,NULL,NULL,&FileFlags,filesystem,DEFAULT_TMP_SIZE) == 0)return FALSE;
+  if (GetVolumeInformation(path,NULL,0,NULL,NULL,&FileFlags,filesystem,DEFAULT_TMP_SIZE) == 0)return FALSE;
 
   //copy only on NTFS system
   if (!strcmp(filesystem,"NTFS") || !strcmp(filesystem,"ntfs"))
@@ -353,7 +353,6 @@ void CopyRegistryUSER(char*local_path, char *tmp_path, char *path)
 {
   char tmp_path2[MAX_PATH],tmp_path_dst[MAX_PATH];
   WIN32_FIND_DATA data;
-  DWORD copiee;
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic != INVALID_HANDLE_VALUE)
   {
@@ -1395,7 +1394,7 @@ void EnumProcessAndThreadToFile(DWORD nb_process, PROCESS_INFOS_ARGS *process_in
   HANDLE hProcess;
   DWORD d_pid, i, j, k, cbNeeded;
   BOOL ok;
-  LINE_PROC_ITEM port_line[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
   HMODULE hMod[MAX_PATH];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
   char process[DEFAULT_TMP_SIZE],
@@ -1411,6 +1410,9 @@ void EnumProcessAndThreadToFile(DWORD nb_process, PROCESS_INFOS_ARGS *process_in
 
   char src_name[MAX_PATH];
   char dst_name[MAX_PATH];
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   //force enumerate all process by id !
   for (d_pid=FIRST_PROCESS_ID;d_pid<LAST_PROCESS_ID;d_pid++)
@@ -1468,7 +1470,7 @@ void EnumProcessAndThreadToFile(DWORD nb_process, PROCESS_INFOS_ARGS *process_in
       }
 
       //ports !
-      j=GetPortsFromPID(d_pid, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+      j=GetPortsFromPID(d_pid, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
       convertStringToSQL(path, MAX_PATH);
       convertStringToSQL(cmd, MAX_PATH);
@@ -1493,6 +1495,7 @@ void EnumProcessAndThreadToFile(DWORD nb_process, PROCESS_INFOS_ARGS *process_in
     }
     CloseHandle(hProcess);
   }
+  free(port_line);
 }
 
 //------------------------------------------------------------------------------
@@ -1506,13 +1509,13 @@ void Scan_process_to_file(HANDLE filetosave, void *hz, char*computername, HANDLE
   //init
   PROCESSENTRY32 pe = {sizeof(PROCESSENTRY32)};
   HANDLE hCT = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS|TH32CS_SNAPTHREAD, 0);
-  if (hCT==INVALID_HANDLE_VALUE)return 0;
+  if (hCT==INVALID_HANDLE_VALUE)return;
 
   DWORD cbNeeded, k, j, nb_process=0;
   HANDLE hProcess, parent_hProcess;
   HMODULE hMod[MAX_PATH];
   FILETIME lpCreationTime, lpExitTime, lpKernelTime, lpUserTime;
-  LINE_PROC_ITEM port_line[MAX_PATH];
+  LINE_PROC_ITEM *port_line;
   char process[DEFAULT_TMP_SIZE],
        pid[DEFAULT_TMP_SIZE],
        path[MAX_PATH],
@@ -1528,6 +1531,9 @@ void Scan_process_to_file(HANDLE filetosave, void *hz, char*computername, HANDLE
   char dst_name[MAX_PATH];
 
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
+
+  port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
+  if (port_line == NULL)return;
 
   while(Process32Next(hCT, &pe))
   {
@@ -1583,7 +1589,7 @@ void Scan_process_to_file(HANDLE filetosave, void *hz, char*computername, HANDLE
     }
 
     //ports !
-    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_PATH, SIZE_ITEMS_PORT_MAX);
+    j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
     //update list of process
     if (nb_process<MAX_PATH)
@@ -1614,6 +1620,8 @@ void Scan_process_to_file(HANDLE filetosave, void *hz, char*computername, HANDLE
     }
     CloseHandle(hProcess);
   }
+
+  free(port_line);
 
   //verify shadow process !!!
   EnumProcessAndThreadToFile(nb_process, process_infos, filetosave, hz, computername, MyhFile);

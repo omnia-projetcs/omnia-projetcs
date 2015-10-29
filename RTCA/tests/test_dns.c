@@ -153,7 +153,8 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   if (!hDLL) return 0;
 
   //function
-  typedef int(*DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD*);
+  //typedef int(*DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD*);
+  typedef int(WINAPI *DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD);
   DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hDLL,"DnsGetCacheDataTable");
 
   if (DnsGetCacheDataTable != NULL)

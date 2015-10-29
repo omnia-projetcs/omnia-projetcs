@@ -76,10 +76,10 @@ void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *glo
       }
       check_treeview(htrv_test, H_tests[INDEX_LOG], TRV_STATE_CHECK);
     }else if (strcmp(lowcase_file,"security.dat")==0 ||
-              strcmp(lowcase_file,"ntuser.dat")==0   || (startWith(lowcase_file,"ntuser_") && strcmp(ext,"dat")==0)   ||
+              strcmp(lowcase_file,"ntuser.dat")==0   || (Contient(lowcase_file,"ntuser")>0 && strcmp(ext,"dat")==0)   ||
               strcmp(lowcase_file,"settings.dat")==0 || (startWith(lowcase_file,"settings_") && strcmp(ext,"dat")==0)   || //win8
-              strcmp(lowcase_file,"usrclass.dat")==0 || (startWith(lowcase_file,"usrclass_") && strcmp(ext,"dat")==0) ||
-              strcmp(lowcase_file,"classes.dat")==0  || (startWith(lowcase_file,"classes_") && strcmp(ext,"dat")==0)) //registry
+              strcmp(lowcase_file,"usrclass.dat")==0 || (Contient(lowcase_file,"usrclass")>0 && strcmp(ext,"dat")==0) ||
+              strcmp(lowcase_file,"classes.dat")==0  || (Contient(lowcase_file,"classes")>0 && strcmp(ext,"dat")==0)) //registry
     {
       if (global_path != NULL)AddItemTreeView(htv,global_path, TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
       else

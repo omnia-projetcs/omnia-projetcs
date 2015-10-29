@@ -17,7 +17,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
   BOOL inc = FALSE;
   if (lParam != 0)
   {
-    snprintf(file,MAX_PATH,"%s",lParam);
+    snprintf(file,MAX_PATH,"%s",(char*)lParam);
     inc = TRUE;
   }else
   {
@@ -235,7 +235,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD Hex_search_unicode(HANDLE hlv, char *search_unicode, DWORD start_id)
 {
-  DWORD k,i, j, nb_item = ListView_GetItemCount(hlv);
+  DWORD k,i, nb_item = ListView_GetItemCount(hlv);
   if (!nb_item) return -1;
 
   //prepareformat : s.t.r.i.n.g.

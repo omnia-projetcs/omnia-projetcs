@@ -20,7 +20,7 @@
 #define TTI_INFO	             1
 
 #define NOM_APPLI              "RtCA"
-#define URL_APPLI              "http://code.google.com/p/omnia-projetcs/"
+#define URL_APPLI              "https://github.com/omnia-projetcs/omnia-projetc"
 
 #define SQLITE_F               100
 #define DEFAULT_SQLITE_FILE    "RtCA.sqlite"
@@ -692,7 +692,7 @@ HANDLE h_thread_scan;
 sqlite3 *db_scan;
 //------------------------------------------------------------------------------
 //process
-#define SIZE_ITEMS_PORT_MAX        20
+#define SIZE_ITEMS_PORT_MAX        256
 typedef struct line_proc_item
 {
   char protocol[SIZE_ITEMS_PORT_MAX];
@@ -1179,6 +1179,7 @@ void SCREENSHOT_fct();
 
 //file function
 BOOL FileExist(char *file);
+char *ConvertPathFromPath(char *path);
 char* GetLocalPath(char *path, unsigned int sizeMax);
 void GetACLS(char *file, char *acls, char* owner,char *rid, char *sid, unsigned int size_max);
 void GetOwner(char *file, char* owner,char *rid, char *sid, unsigned int size_max);
@@ -1238,11 +1239,15 @@ void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db);
 void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE hlv, HANDLE htv);
 void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max);
 
+//haxe
+void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_size_max);
+
 //process
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size);
 void GetProcessOwner(DWORD pid, char *owner, char *rid, char *sid, DWORD size_max);
 DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item_max,unsigned int taille_max_line);
 void LoadPRocessList(HWND hlv);
+void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *CompanyName, char *FileDescription, DWORD size_max);
 
 //log functions
 BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *resultat, unsigned int resultat_max_size);

@@ -1280,7 +1280,7 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
             DataToHexaChar(buffer, valueSize, cbuffer, MAX_LINE_SIZE);
             userRID = TestUserDataFromSAM_F(&User_infos,cbuffer);
             ok_test = TRUE;
-          }
+         }
 
           //V value
           cbuffer[0]= 0;
@@ -1296,8 +1296,7 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
               userRID = HTDF(SubKeyName,8);
               if(User_infos.RID[0] == 0)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
               if(User_infos.SID[0] == 0)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
-
-            }else
+           }else
             {
               if((User_infos.RID[0] == 0) && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
               if((User_infos.SID[0] == 0) && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
@@ -1307,7 +1306,7 @@ BOOL registry_users_extract(sqlite3 *db, unsigned int session_id)
           {
             if((User_infos.RID[0] == 0) && userRID)snprintf(User_infos.RID,MAX_PATH,"%05lu",userRID);
             if((User_infos.SID[0] == 0) && userRID)snprintf(User_infos.SID,MAX_PATH,"S-1-5-?-?-?-?-%lu",userRID);
-          }
+         }
 
           if (!ok_test)continue;
 

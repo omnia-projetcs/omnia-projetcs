@@ -218,7 +218,7 @@ BOOL CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   ListView_GetItemText(hlv,item,colum_sav,tmp,50);
 
   //if (vts.sha256[0] == 0 || (check && (tmp[0] != 0)/* || tmp[0] == 'R' || (tmp[0] == 'U' && tmp[7] == 'R')))*/)return;
-  if (vts.sha256[0] == 0 || (check && (tmp[0] != 0 && tmp[0] != 'R' && tmp[0] != 'U')))return;
+  if (vts.sha256[0] == 0 || (check && (tmp[0] != 0 && tmp[0] != 'R' && tmp[0] != 'U')))return FALSE;
 
   if (token != NULL)
   {
@@ -373,7 +373,7 @@ DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam)
     ListView_GetItemText(hlstv,i,18,s_sha,MAX_PATH);
     if (s_sha[0] != 'U' && s_sha[0] != 'R')
     {
-      snprintf(msg,MAX_PATH,"Load Item %d/%d (%d/%d) for VirusTotal check...",i,SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0),j,MAX_THREADS_CK_VT);
+      snprintf(msg,MAX_PATH,"Load Item %ld/%ld (%ld/%d) for VirusTotal check...",i,SendMessage(hlstv,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0),j,MAX_THREADS_CK_VT);
       SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)msg);
 
       CreateThread(NULL,0,TCheckFileToVirusTotal,&(sv[j]),0,0);
@@ -398,7 +398,6 @@ DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
   //init semaphore
   ST_VIRUSTOTAL sv;
   sv.hlv = hlstv_process;
-  char path[MAX_PATH]="",ok_path[MAX_PATH]="";
 
   //Ratio : 0, 43 (Last analysis : UKtF/RH/IW-VLofR_62) Url : https://www.virustotal.com/file/2842973d15a14323e08598be1dfb87e54bf88a76be8c7bc94c56b079446edf38/analysis/
   hSemaphore=CreateSemaphore(NULL,NB_VIRUTOTAL_THREADS,NB_VIRUTOTAL_THREADS,NULL);
