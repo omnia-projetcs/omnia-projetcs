@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
@@ -550,6 +550,17 @@ BOOL startWith(char* txt, char *search)
 
   while (*t && *s && *t == *s){t++;s++;}
   if (*t == *s || *s == 0)return TRUE;
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL endWith(char* txt, char *search)
+{
+  if (strlen(txt) > strlen(search))
+  {
+    char *t = txt+strlen(search), *s = search;
+    while (*t && *s && *t == *s){t++;s++;}
+    if (*t == *s || *s == 0)return TRUE;
+  }
   return FALSE;
 }
 //------------------------------------------------------------------------------

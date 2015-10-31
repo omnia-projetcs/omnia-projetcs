@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -274,7 +274,7 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
         ListView_SetItemText(hlv,ref_item,11,"");
         ListView_SetItemText(hlv,ref_item,12,"");
         ListView_SetItemText(hlv,ref_item,13,"");
-        ListView_SetItemText(hlv,ref_item,14,"X");
+        ListView_SetItemText(hlv,ref_item,14,"Hidden");
         ListView_SetItemText(hlv,ref_item,15,"");
         ListView_SetItemText(hlv,ref_item,16,"");
         ListView_SetItemText(hlv,ref_item,17,"");
@@ -315,7 +315,7 @@ void EnumProcessAndThread_Current(HANDLE hlv, DWORD first_id, DWORD end_id)
           ListView_SetItemText(hlv,ref_item,11,dst_name);
           ListView_SetItemText(hlv,ref_item,12,port_line[k].Port_dst);
           ListView_SetItemText(hlv,ref_item,13,port_line[k].state);
-          ListView_SetItemText(hlv,ref_item,14,"X");
+          ListView_SetItemText(hlv,ref_item,14,"Hidden");
           ListView_SetItemText(hlv,ref_item,15,"");
           ListView_SetItemText(hlv,ref_item,16,"");
           ListView_SetItemText(hlv,ref_item,17,"");
@@ -962,7 +962,18 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               }
             }
             break;
-            case POPUP_PROCESS_REFRESH:LoadPRocessList(hlstv_process);break;
+            case POPUP_PROCESS_REFRESH:
+              //kill search thread if enable
+              if (search_rootkit_process_tool)
+              {
+                search_rootkit_process_tool = FALSE;
+
+                DWORD IDThread;
+                GetExitCodeThread(H_thread_search_rootkit_process_tools,&IDThread);
+                TerminateThread(H_thread_search_rootkit_process_tools,IDThread);
+              }
+              LoadPRocessList(hlstv_process);
+            break;
             case POPUP_VIRUSTOTAL_CHECK:
             {
               //get path !
@@ -977,6 +988,40 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             }
             break;
             case POPUP_VIRUSTOTAL_CHECK_ALL:CreateThread(NULL,0,CheckAllFileToVirusTotalProcess,0,0,0);break;
+            //rootkit check
+            case POPUP_ADD_ROOTKIT_PROCESS:
+            {
+              DWORD lb_item = SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+
+              char file[MAX_PATH]="";
+              char sha256[MAX_PATH]="";
+
+              if (LOWORD(wParam) == POPUP_ADD_ROOTKIT_FILE)
+              {
+                ListView_GetItemText(hlstv_process,lb_item,1,file,MAX_PATH);
+              }else ListView_GetItemText(hlstv_process,lb_item,0,file,MAX_PATH);
+
+              ListView_GetItemText(hlstv_process,lb_item,18,sha256,MAX_PATH);
+
+              if (file[0]!=0 || sha256[0]!=0)
+              {
+                time_t dateEtHMs;
+                time(&dateEtHMs);
+                struct tm *today = localtime(&dateEtHMs);
+                char update_time[MAX_PATH];
+                strftime(update_time, MAX_PATH,"%Y/%m/%d",today);
+                addNewRootkitToDB(hlstv_db, file, sha256, "Add by RtCA.", "", update_time, 0, db_scan);
+              }
+            }
+            break;
+            case POPUP_CHECK_ROOTKIT_PROCESS:checkLstvItemId(hlstv_process, hlstv_db, SendMessage(hlstv_process,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 0,18,14, TRUE);break;
+            case POPUP_CHECK_ALL_ROOTKIT_PROCESS:
+              if (!search_rootkit_process_tool)
+              {
+                search_rootkit_process_tool = TRUE;
+                H_thread_search_rootkit_process_tools = CreateThread(NULL, 0, checkAllLstvItemProcessTools, (PVOID)14,0,0);
+              }
+            break;
           }
         break;
       }
@@ -994,7 +1039,6 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_PROCESS)))!= NULL)
         {
           //set text !!!
-
           ModifyMenu(hmenu,POPUP_PROCESS_REFRESH  ,MF_BYCOMMAND|MF_STRING,POPUP_PROCESS_REFRESH   ,cps[TXT_POPUP_REFRESH].c);
           ModifyMenu(hmenu,POPUP_S_VIEW           ,MF_BYCOMMAND|MF_STRING,POPUP_S_VIEW            ,cps[TXT_POPUP_S_VIEW].c);
           ModifyMenu(hmenu,POPUP_S_SELECTION      ,MF_BYCOMMAND|MF_STRING,POPUP_S_SELECTION       ,cps[TXT_POPUP_S_SELECTION].c);
@@ -1009,6 +1053,10 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
           ModifyMenu(hmenu,POPUP_CP_LINE          ,MF_BYCOMMAND|MF_STRING ,POPUP_CP_LINE          ,cps[TXT_POPUP_CP_LINE].c);
           ModifyMenu(GetSubMenu(hmenu, 0),POPUP_PROCESS_COPY_TO_CLIPBORD ,MF_BYPOSITION|MF_STRING,POPUP_PROCESS_COPY_TO_CLIPBORD ,cps[TXT_POPUP_CLIPBORAD].c);
+
+          ModifyMenu(hmenu,POPUP_CHECK_ROOTKIT_PROCESS        ,MF_BYCOMMAND|MF_STRING,POPUP_CHECK_ROOTKIT_PROCESS        ,cps[TXT_CHECK_ROOTKIT].c);
+          ModifyMenu(hmenu,POPUP_CHECK_ALL_ROOTKIT_PROCESS    ,MF_BYCOMMAND|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_PROCESS    ,cps[TXT_CHECK_ALL_ROOTKIT].c);
+          ModifyMenu(hmenu,POPUP_ADD_ROOTKIT_PROCESS          ,MF_BYCOMMAND|MF_STRING,POPUP_ADD_ROOTKIT_PROCESS          ,cps[TXT_ADD_ROOTKIT_TO_DB].c);
 
           //load column text
           char buffer[DEFAULT_TMP_SIZE]="";
@@ -1120,7 +1168,18 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         break;
       }
     break;
-    case WM_CLOSE : ShowWindow(hwnd, SW_HIDE);break;
+    case WM_CLOSE :
+      //kill search thread if enable
+      if (search_rootkit_process_tool)
+      {
+        search_rootkit_process_tool = FALSE;
+
+        DWORD IDThread;
+        GetExitCodeThread(H_thread_search_rootkit_process_tools,&IDThread);
+        TerminateThread(H_thread_search_rootkit_process_tools,IDThread);
+      }
+      ShowWindow(hwnd, SW_HIDE);
+    break;
   }
   return FALSE;
 }

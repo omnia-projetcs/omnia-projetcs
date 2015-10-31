@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -13,7 +13,8 @@ int callback_write_sqlite(void *datas, int argc, char **argv, char **azColName)
 //------------------------------------------------------------------------------
 int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
 {
-  FORMAT_CALBAK_TYPE *type = datas;
+  //FORMAT_CALBAK_TYPE *type = datas;
+  FORMAT_CALBAK_READ_INFO *type = datas;
   switch(type->type)
   {
     //----------------------------------------
@@ -79,6 +80,22 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
         }
         break;
       }
+    }
+    break;
+    //----------------------------------------
+    case TYPE_SQLITE_FLAG_LOAD_ROOTKIT_DB:
+    {
+      //add line
+      LVITEM lvi;
+      lvi.mask = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem = 0;
+      lvi.lParam = LVM_SORTITEMS;
+      lvi.pszText="";
+      lvi.iItem = ListView_GetItemCount(type->form);
+      unsigned int i=0, ref_item = ListView_InsertItem(type->form, &lvi);
+
+      for (i=0;i<argc;i++)
+        ListView_SetItemText(type->form,ref_item,i,argv[i]);
     }
     break;
     //----------------------------------------
@@ -254,6 +271,8 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
     case TYPE_SQLITE_FLAG_ANDROID_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_android_request;", callback_sqlite, datas, NULL);break;
     case TYPE_SQLITE_FLAG_CHROME_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_chrome_request;", callback_sqlite, datas, NULL);break;
     case TYPE_SQLITE_FLAG_FIREFOX_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_firefox_request;", callback_sqlite, datas, NULL);break;
+    //----------------------------------------
+    case TYPE_SQLITE_FLAG_LOAD_ROOTKIT_DB:sqlite3_exec(db, "SELECT filename,sha256,description,source,update_time,params FROM malware_file_list;", callback_sqlite, datas, NULL);break;
     //----------------------------------------
 
     //****************************************

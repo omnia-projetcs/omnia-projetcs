@@ -96,6 +96,9 @@
 		<Unit filename="files/proc_registry_files.c">
 			<Option compilerVar="CC" />
 		</Unit>
+		<Unit filename="files/rootkit.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="import.c">
 			<Option compilerVar="CC" />
 		</Unit>

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -1345,7 +1345,7 @@ BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelecte
     lvc.cchTextMax  = MAX_LINE_SIZE;
     lvc.pszText     = buffer;
 
-    char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+    char head[]="<html>\r\n <head><title>RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
     WriteFile(hfile,head,strlen(head),&copiee,0);
 
     //title line

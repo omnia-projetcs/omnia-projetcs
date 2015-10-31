@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -123,8 +123,8 @@ BOOL SQLITE_LoadSession(char *file)
   sqlite3_exec(db_scan, "INSERT INTO extract_registry_userassist (file,key,raw_type,type_id,path,use_count,session_number,last_use,user,RID,SID,session_id,hk,time)"
                " SELECT file,key,raw_type,type_id,path,use_count,session_number,last_use,user,RID,SID,session_id,hk,time FROM toMerge.extract_registry_userassist;", NULL, NULL, NULL);
 
-  sqlite3_exec(db_scan, "INSERT INTO malware_file_list (filename,md5,sha256,description,source,update_time)"
-               " SELECT filename,md5,sha256,description,source,update_time FROM toMerge.malware_file_list;", NULL, NULL, NULL);
+  sqlite3_exec(db_scan, "INSERT INTO malware_file_list (filename,sha256,description,source,update_time,params)"
+               " SELECT filename,sha256,description,source,update_time,params FROM toMerge.malware_file_list;", NULL, NULL, NULL);
 
   sqlite3_exec(db_scan,"DETACH DATABASE toMerge;", NULL, NULL, NULL);
 

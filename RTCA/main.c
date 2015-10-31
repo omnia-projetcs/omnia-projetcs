@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
@@ -73,6 +73,16 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 TRI_RESULT_VIEW       = FALSE;
                 column_tri            = -1;
                 pos_search            = 0;
+
+                //kil search thread if enable
+                if (search_rootkit)
+                {
+                  search_rootkit = FALSE;
+
+                  DWORD IDThread;
+                  GetExitCodeThread(H_thread_search_rootkit,&IDThread);
+                  TerminateThread(H_thread_search_rootkit,IDThread);
+                }
 
                 if (current_item_selected > -1)
                 {
@@ -255,7 +265,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                             "Licensed under the terms of the GNU\n"
                                             "General Public License version 3.\n\n"
                                             "Author: nicolas.hanteville@gmail.com\n"
-                                            "http://code.google.com/p/omnia-projetcs/"
+                                            "https://github.com/omnia-projetcs/omnia-projetcs"
                                            ,"About",MB_ICONINFORMATION|MB_OK); break;
               //-----------------------------------------------------
               case IDM_RTCA_HOME:ShellExecute(NULL, "open", URL_APPLI, NULL, NULL, SW_SHOWNORMAL); break;
@@ -295,10 +305,53 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               }
               break;
               //-----------------------------------------------------
+              case POPUP_ADD_ROOTKIT_FILE:
+              case POPUP_ADD_ROOTKIT_PROCESS:
+              {
+                DWORD lb_item = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+
+                char file[MAX_PATH]="";
+                char sha256[MAX_PATH]="";
+
+                if (LOWORD(wParam) == POPUP_ADD_ROOTKIT_FILE)
+                {
+                  ListView_GetItemText(hlstv,lb_item,1,file,MAX_PATH);
+                }else ListView_GetItemText(hlstv,lb_item,0,file,MAX_PATH);
+
+                ListView_GetItemText(hlstv,lb_item,17,sha256,MAX_PATH);
+
+                if (file[0]!=0 || sha256[0]!=0)
+                {
+                  time_t dateEtHMs;
+                  time(&dateEtHMs);
+                  struct tm *today = localtime(&dateEtHMs);
+                  char update_time[MAX_PATH];
+                  strftime(update_time, MAX_PATH,"%Y/%m/%d",today);
+                  addNewRootkitToDB(hlstv_db, file, sha256, "Add by RtCA.", "", update_time, 0, db_scan);
+                }
+              }
+              break;
+              case POPUP_CHECK_ROOTKIT_FILE:checkLstvItemId(hlstv, hlstv_db, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1,17,11, TRUE);break;
+              case POPUP_CHECK_ROOTKIT_PROCESS:checkLstvItemId(hlstv, hlstv_db, SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 0,17,14, TRUE);break;
+
+              case POPUP_CHECK_ALL_ROOTKIT_FILE:
+                if (!search_rootkit)
+                {
+                  search_rootkit = TRUE;
+                  H_thread_search_rootkit = CreateThread(NULL, 0, checkAllLstvItem, (PVOID)11,0,0);
+                }
+              case POPUP_CHECK_ALL_ROOTKIT_PROCESS:
+                if (!search_rootkit)
+                {
+                  search_rootkit = TRUE;
+                  H_thread_search_rootkit = CreateThread(NULL, 0, checkAllLstvItem, (PVOID)14,0,0);
+                }
+              break;
+              //-----------------------------------------------------
               case POPUP_S_SELECTION:
               {
                 char file[MAX_PATH]="";
-                unsigned int lb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
+                DWORD lb_item = SendMessage(hlstbox, LB_GETCURSEL, 0, 0);
                 if (SendMessage(hlstbox, LB_GETTEXTLEN, lb_item, 0) < MAX_PATH)
                   SendMessage(hlstbox, LB_GETTEXT, lb_item, (LPARAM)file);
 
@@ -865,13 +918,33 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               if (AVIRUSTTAL)
               {
                 InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
-              }else if (VIRUSTTAL) InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
-              else
+
+                //rootkit
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_FILE,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_FILE,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_FILE,cps[TXT_ADD_ROOTKIT_TO_DB].c);
+
+              }else if (VIRUSTTAL)
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
+
+                //rootkit
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_FILE,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_FILE,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_FILE,cps[TXT_ADD_ROOTKIT_TO_DB].c);
+              }else
               {
                 InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
                 InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
-              }
 
+                //rootkit
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_FILE,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_FILE,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),10,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_FILE,cps[TXT_ADD_ROOTKIT_TO_DB].c);
+              }
             case INDEX_ANTIVIRUS:
               //openpath
               ModifyMenu(hmenu,POPUP_O_PATH,MF_BYCOMMAND|MF_STRING,POPUP_OPEN_PATH,cps[TXT_OPEN_PATH].c);
@@ -881,11 +954,29 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               if (AVIRUSTTAL)
               {
                 InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_STOP_CHK_ALL_SHA256].c);
-              }else if (VIRUSTTAL) InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
-              else
+
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_PROCESS,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_PROCESS,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_PROCESS,cps[TXT_ADD_ROOTKIT_TO_DB].c);
+
+              }else if (VIRUSTTAL)
+              {
+                InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_STOP_CHK_SHA256].c);
+
+                InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_PROCESS,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_PROCESS,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_PROCESS,cps[TXT_ADD_ROOTKIT_TO_DB].c);
+              }else
               {
                 InsertMenu(GetSubMenu(hmenu,0),5,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL,cps[TXT_CHK_SHA256].c);
                 InsertMenu(GetSubMenu(hmenu,0),6,MF_BYPOSITION|MF_STRING,POPUP_FILE_VIRUSTOTAL_ALL,cps[TXT_CHK_ALL_SHA256].c);
+
+                InsertMenu(GetSubMenu(hmenu,0),7,MF_BYPOSITION|MF_SEPARATOR,0,"");
+                InsertMenu(GetSubMenu(hmenu,0),8,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ROOTKIT_PROCESS,cps[TXT_CHECK_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),9,MF_BYPOSITION|MF_STRING,POPUP_CHECK_ALL_ROOTKIT_PROCESS,cps[TXT_CHECK_ALL_ROOTKIT].c);
+                InsertMenu(GetSubMenu(hmenu,0),10,MF_BYPOSITION|MF_STRING,POPUP_ADD_ROOTKIT_PROCESS,cps[TXT_ADD_ROOTKIT_TO_DB].c);
               }
               iitem = -1;
               RemoveMenu(GetSubMenu(hmenu,0),4,MF_BYPOSITION);
@@ -1539,6 +1630,17 @@ int main(int argc, char* argv[])
     SendDlgItemMessage(h_sniff,DLG_NS_LSTV_FILTRE,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     SendDlgItemMessage(h_sniff,DLG_NS_LSTV_PAQUETS,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
     SendDlgItemMessage(h_sniff,DLG_NS_LSTV,LVM_SETEXTENDEDLISTVIEWSTYLE,0,LVS_EX_FULLROWSELECT|LVS_EX_HEADERDRAGDROP|LVS_EX_GRIDLINES);
+
+    //for rootkit bdd
+    hlstv_db          = CreateWindowEx(0x200,WC_LISTVIEW,NULL,LVS_REPORT|WS_CHILD,202,32,590,493,h_main, 0, hinst, NULL);
+    lvc.cx      = 10;
+    lvc.pszText = "";
+    ListView_InsertColumn(hlstv_db, 0, &lvc);
+    ListView_InsertColumn(hlstv_db, 1, &lvc);
+    ListView_InsertColumn(hlstv_db, 2, &lvc);
+    ListView_InsertColumn(hlstv_db, 3, &lvc);
+    ListView_InsertColumn(hlstv_db, 4, &lvc);
+    ListView_InsertColumn(hlstv_db, 5, &lvc);
 
     //init all network interfaces
     SendDlgItemMessage(h_sniff,DLG_CONF_INTERFACE, CB_RESETCONTENT,0, 0);

@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -267,6 +267,8 @@ void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL 
   InitGlobalLangueString(current_lang_id);
   current_session_id = session[0];
 
+  if (!CONSOL_ONLY)LoadRootKitDB(hlstv_db);
+
   WSADATA WSAData;
   WSAStartup(0x02, &WSAData );
 
@@ -398,6 +400,8 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   //global init
   B_AUTOSEARCH          = FALSE;
   h_AUTOSEARCH          = NULL;
+  search_rootkit        = FALSE;
+  search_rootkit_process_tool= FALSE;
   ExportStart           = FALSE;
   TRI_RESULT_VIEW       = FALSE;
   TRI_PROCESS_VIEW      = FALSE;

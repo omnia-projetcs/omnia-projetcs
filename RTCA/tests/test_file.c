@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
@@ -26,6 +26,7 @@ void addFiletoDB(char *path, char *file, char *extension,
   if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
+
   #else
   printf("\"ARP\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\"%s\";\r\n",
          path,file,extension,Create_time,Modify_time,Access_Time,Size,Owner,RID,sid,
@@ -347,8 +348,23 @@ BOOL GetSHAandVerifyFromPathFile(char *path, char *sha256, char *verified, unsig
 
   if (real_path[0] != 0 && real_path[0] != 'P' && strlen(real_path) > 2)
   {
+    BOOL OKW = FALSE;
+    HANDLE Hficw = CreateFile(real_path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+    FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
+    if (Hficw != INVALID_HANDLE_VALUE)
+    {
+      if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+    }
+
     FileToSHA256(real_path, sha256);
     VerifySignFile(real_path, verified, buffer_max_sz);
+
+    if (OKW)
+    {
+      SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+    }
+    CloseHandle(Hficw);
+
     return TRUE;
   }
   return FALSE;
@@ -718,6 +734,10 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
   char ext[MAX_PATH]="";
   char magi_number[DEFAULT_TMP_SIZE]="";
 
+  BOOL OKW;
+  HANDLE Hficw;
+  FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
+
   snprintf(tmp_path,MAX_PATH,"%s*.*",path);
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
@@ -726,94 +746,113 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
     // return
     if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
     else
-    {
-        //dates
-        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
+  {
+      //dates
+      filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
-        s_ads[0] = 0;
-        s_acl[0] = 0;
-        s_sha[0] = 0;
+      s_ads[0] = 0;
+      s_acl[0] = 0;
+      s_sha[0] = 0;
 
-        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        //directory
+        snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
+
+        OKW = FALSE;
+        Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+        if (Hficw != INVALID_HANDLE_VALUE)
         {
-          //directory
-          snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
-
-          if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
-
-          //ads
-          if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
-
-          //acls
-          if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
-
-          //ad to bdd
-          addFiletoDB(path_ex, "", "",
-                      CreationTime, LastWriteTime, LastAccessTime,"",
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, "", "", "",session_id,db);
-
-          scan_file_ex(path_ex, acl, ads, sha, session_id,db);
-        }else
-        {
-          //file
-          snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
-
-          //size
-          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
-          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
-          else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
-
-          //ads
-          if(ads)EnumADS(file, s_ads, MAX_PATH);
-
-          //sha256
-          if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
-          {
-            if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
-            FileToSHA256(file, s_sha);
-          }
-
-          //acl
-          if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
-
-          //file magic number
-          if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
-
-          //extension
-          strncpy(file,data.cFileName,MAX_PATH);
-          extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
-
-          //lnk
-          if (enable_LNK)
-          {
-            if (!strcmp(ext,"lnk"))
-            {
-              snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
-              ReadLNKInfos(file, session_id, db);
-            }
-          }
-
-          //ad to bdd
-          addFiletoDB(path, data.cFileName, ext,
-                      CreationTime, LastWriteTime, LastAccessTime, size,
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", magi_number,session_id,db);
+          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
         }
+
+        if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
+
+        //ads
+        if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
+
+        //acls
+        if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
+
+        //ad to bdd
+        addFiletoDB(path_ex, "", "",
+                    CreationTime, LastWriteTime, LastAccessTime,"",
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, "", "", "",session_id,db);
+
+        scan_file_ex(path_ex, acl, ads, sha, session_id,db);
+      }else
+      {
+        //file
+        snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+
+        OKW = FALSE;
+        Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+        if (Hficw != INVALID_HANDLE_VALUE)
+        {
+          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+        }
+
+        //size
+        if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+        else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+        else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+        //ads
+        if(ads)EnumADS(file, s_ads, MAX_PATH);
+
+        //sha256
+        if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
+        {
+          if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
+          FileToSHA256(file, s_sha);
+        }
+
+        //acl
+        if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
+
+        //file magic number
+        if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
+
+        //extension
+        strncpy(file,data.cFileName,MAX_PATH);
+        extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
+
+        //lnk
+        if (enable_LNK)
+        {
+          if (!strcmp(ext,"lnk"))
+          {
+            snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+            ReadLNKInfos(file, session_id, db);
+          }
+        }
+
+        //ad to bdd
+        addFiletoDB(path, data.cFileName, ext,
+                    CreationTime, LastWriteTime, LastAccessTime, size,
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, s_sha, "", magi_number,session_id,db);
+      }
+      if (OKW)
+      {
+        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      }
+      CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
 }
@@ -831,6 +870,10 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
   char ext[MAX_PATH]="";
   char magi_number[DEFAULT_TMP_SIZE]="";
 
+  BOOL OKW;
+  HANDLE Hficw;
+  FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
+
   snprintf(tmp_path,MAX_PATH,"%s*.*",path);
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
@@ -839,97 +882,116 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
     // return
     if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
     else
-    {
-        //dates
-        filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
-        filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
+  {
+      //dates
+      filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+      filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
-        s_ads[0] = 0;
-        s_acl[0] = 0;
-        s_sha[0] = 0;
+      s_ads[0] = 0;
+      s_acl[0] = 0;
+      s_sha[0] = 0;
 
-        if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+        //directory
+        snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
+
+        OKW = FALSE;
+        Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+        if (Hficw != INVALID_HANDLE_VALUE)
         {
-          /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-          //directory
-          snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
-
-          if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
-
-          //ads
-          if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
-
-          //acls
-          if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
-
-          //ad to bdd
-          addFiletoDB(path_ex, "", "",
-                      CreationTime, LastWriteTime, LastAccessTime,"",
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, "", "", "",session_id,db);
-
-          scan_file_ex(path_ex, acl, ads, sha, session_id,db);
-          /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
-        }else
-        {
-          //file
-          snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
-
-          //size
-          if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
-          else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
-          else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
-          else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
-
-          //ads
-          if(ads)EnumADS(file, s_ads, MAX_PATH);
-
-          //sha256
-          if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
-          {
-            if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
-            FileToSHA256(file, s_sha);
-          }
-
-
-          //acl
-          if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
-
-          //file magic number
-          if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
-
-          //extension
-          strncpy(file,data.cFileName,MAX_PATH);
-          extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
-
-          //lnk
-          if (enable_LNK)
-          {
-            if (!strcmp(ext,"lnk"))
-            {
-              snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
-              ReadLNKInfos(file, session_id, db);
-            }
-          }
-
-          //ad to bdd
-          addFiletoDB(path, data.cFileName, ext,
-                      CreationTime, LastWriteTime, LastAccessTime, size,
-                      owner, rid, sid, s_acl,
-                      data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                      data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                      s_ads, s_sha, "", magi_number,session_id,db);
+          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
         }
+
+        if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
+
+        //ads
+        if(ads)EnumADS(path_ex, s_ads, MAX_PATH);
+
+        //acls
+        if(acl)GetACLS(path_ex, s_acl, owner, rid, sid, MAX_PATH);
+
+        //ad to bdd
+        addFiletoDB(path_ex, "", "",
+                    CreationTime, LastWriteTime, LastAccessTime,"",
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, "", "", "",session_id,db);
+
+        scan_file_ex(path_ex, acl, ads, sha, session_id,db);
+        /*if(!SQLITE_FULL_SPEED)*/sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+      }else
+      {
+        //file
+        snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+
+        OKW = FALSE;
+        Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+        if (Hficw != INVALID_HANDLE_VALUE)
+        {
+          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+        }
+
+        //size
+        if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+        else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+        else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+        else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+        //ads
+        if(ads)EnumADS(file, s_ads, MAX_PATH);
+
+        //sha256
+        if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))
+        {
+          if(!CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)file);
+          FileToSHA256(file, s_sha);
+        }
+
+
+        //acl
+        if(acl)GetACLS(file, s_acl, owner, rid, sid, MAX_PATH);
+
+        //file magic number
+        if(enable_magic)ReadMagicNumber(file, magi_number, DEFAULT_TMP_SIZE);
+
+        //extension
+        strncpy(file,data.cFileName,MAX_PATH);
+        extractExtFromFile(charToLowChar(file), ext, MAX_PATH);
+
+        //lnk
+        if (enable_LNK)
+        {
+          if (!strcmp(ext,"lnk"))
+          {
+            snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
+            ReadLNKInfos(file, session_id, db);
+          }
+        }
+
+        //ad to bdd
+        addFiletoDB(path, data.cFileName, ext,
+                    CreationTime, LastWriteTime, LastAccessTime, size,
+                    owner, rid, sid, s_acl,
+                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                    s_ads, s_sha, "", magi_number,session_id,db);
+      }
+      if (OKW)
+      {
+        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      }
+      CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
 }
@@ -949,80 +1011,96 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
   HANDLE hfic = FindFirstFile(path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
 
+  BOOL OKW;
+  HANDLE Hficw;
+  FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
 
   if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
   else
   {
-      //dates
-      filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
-      filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
-      filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
+    //dates
+    filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
+    filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
+    filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
-      if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    OKW = FALSE;
+    Hficw = CreateFile(path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+    if (Hficw != INVALID_HANDLE_VALUE)
+    {
+      if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+    }
+
+    if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+    {
+      //ads
+      if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+      //acls
+      if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+      //ad to bdd
+      addFiletoDB(path, "", "",
+                  CreationTime, LastWriteTime, LastAccessTime,"",
+                  owner, rid, sid, s_acl,
+                  data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                  s_ads, "", "", "",session_id,db);
+    }else
+    {
+      //size
+      if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
+      else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
+      else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
+      else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
+      else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
+
+      //ads
+      if(ads)EnumADS(path, s_ads, MAX_PATH);
+
+      //sha256
+      if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))FileToSHA256(path, s_sha);
+
+      //acl
+      if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
+
+      //file magic number
+      if(enable_magic)ReadMagicNumber(path, magi_number, DEFAULT_TMP_SIZE);
+
+      //extension
+      extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
+
+      //lnk
+      if (enable_LNK)
       {
-        //ads
-        if(ads)EnumADS(path, s_ads, MAX_PATH);
-
-        //acls
-        if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
-
-        //ad to bdd
-        addFiletoDB(path, "", "",
-                    CreationTime, LastWriteTime, LastAccessTime,"",
-                    owner, rid, sid, s_acl,
-                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                    s_ads, "", "", "",session_id,db);
-      }else
-      {
-        //size
-        if ((data.nFileSizeLow+data.nFileSizeHigh) > 1099511627776)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uTo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1099511627776));
-        else if (data.nFileSizeLow+data.nFileSizeHigh > 1073741824)snprintf(size,DEFAULT_TMP_SIZE,"%u%uo (%uGo)",(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)>>32),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)&0xFFFFFFFF),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1073741824));
-        else if (data.nFileSizeLow+data.nFileSizeHigh > 1048576)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uMo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1048576));
-        else if (data.nFileSizeLow+data.nFileSizeHigh  > 1024)snprintf(size,DEFAULT_TMP_SIZE,"%uo (%uKo)",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh),(unsigned int)((data.nFileSizeLow+data.nFileSizeHigh)/1024));
-        else snprintf(size,DEFAULT_TMP_SIZE,"%uo",(unsigned int)(data.nFileSizeLow+data.nFileSizeHigh));
-
-        //ads
-        if(ads)EnumADS(path, s_ads, MAX_PATH);
-
-        //sha256
-        if(sha && ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH))FileToSHA256(path, s_sha);
-
-        //acl
-        if(acl)GetACLS(path, s_acl, owner, rid, sid, MAX_PATH);
-
-        //file magic number
-        if(enable_magic)ReadMagicNumber(path, magi_number, DEFAULT_TMP_SIZE);
-
-        //extension
-        extractExtFromFile(charToLowChar(path), ext, MAX_PATH);
-
-        //lnk
-        if (enable_LNK)
+        if (!strcmp(ext,"lnk"))
         {
-          if (!strcmp(ext,"lnk"))
-          {
-            ReadLNKInfos(path, session_id, db);
-          }
+          ReadLNKInfos(path, session_id, db);
         }
-
-        //extract path ^^
-        extractDirectoryFromPath(path);
-
-        //ad to bdd
-        addFiletoDB(path, data.cFileName, ext,
-                    CreationTime, LastWriteTime, LastAccessTime, size,
-                    owner, rid, sid, s_acl,
-                    data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
-                    data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
-                    s_ads, s_sha, "", magi_number,session_id,db);
       }
+
+      //extract path ^^
+      extractDirectoryFromPath(path);
+
+      //ad to bdd
+      addFiletoDB(path, data.cFileName, ext,
+                  CreationTime, LastWriteTime, LastAccessTime, size,
+                  owner, rid, sid, s_acl,
+                  data.dwFileAttributes & FILE_ATTRIBUTE_HIDDEN?"H":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_SYSTEM?"S":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_ARCHIVE?"A":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_ENCRYPTED?"E":"",
+                  data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
+                  s_ads, s_sha, "", magi_number,session_id,db);
+    }
+
+    if (OKW)
+    {
+      SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+    }
+    CloseHandle(Hficw);
   }
 }
 //------------------------------------------------------------------------------

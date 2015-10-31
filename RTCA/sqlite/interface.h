@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #define TYPE_SQLITE_FLAG_LANG_INIT            0x0001
@@ -20,6 +20,8 @@
 #define TYPE_SQLITE_FLAG_GET_COLUM_COUNT      0x0021
 #define TYPE_SQLITE_FLAG_GET_ITEMS_INFO       0x0122
 #define TYPE_SQLITE_FLAG_GET_LOG_STATE_COUNT  0x0123
+
+#define TYPE_SQLITE_FLAG_LOAD_ROOTKIT_DB      0x0124
 
 //test type
 #define TYPE_SQLITE_TEST                      0x1000
@@ -43,13 +45,13 @@
 #define TYPE_MENU_TITLE                       0x0002  //02 : menu title
 #define TYPE_MENU_SUB_TITLE                   0x0004  //04 : subtitle of menu
 //------------------------------------------------------------------------------
-typedef struct
+/*typedef struct
 {
   DWORD type;
-}FORMAT_CALBAK_TYPE;
+}FORMAT_CALBAK_TYPE;*/
 
 typedef struct
 {
   DWORD type;
   HANDLE form;
-}FORMAT_CALBAK_READ_INFO;
+}FORMAT_CALBAK_READ_INFO, FORMAT_CALBAK_TYPE;

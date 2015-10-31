@@ -2793,7 +2793,7 @@
 1431785585 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1446109427 e:\git\omnia-projetcs\rtca\rtca.h
+1446293980 e:\git\omnia-projetcs\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -2824,12 +2824,12 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1446119913 e:\git\omnia-projetcs\rtca\version.h
+1446294505 e:\git\omnia-projetcs\rtca\version.h
 
 1431785586 e:\git\omnia-projetcs\rtca\sqlite\sqlite3.h
 	<stdarg.h>
 
-1431785585 e:\git\omnia-projetcs\rtca\sqlite\interface.h
+1446226787 e:\git\omnia-projetcs\rtca\sqlite\interface.h
 
 1431785585 e:\git\omnia-projetcs\rtca\registry.h
 
@@ -2853,7 +2853,7 @@
 
 1431785585 e:\git\omnia-projetcs\rtca\crypt\opensslv.h
 
-1431785585 source:e:\git\omnia-projetcs\rtca\configuration\init.c
+1446293447 source:e:\git\omnia-projetcs\rtca\configuration\init.c
 	"../RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\configuration\proxy.c
@@ -2945,10 +2945,10 @@
 1431785585 source:e:\git\omnia-projetcs\rtca\import.c
 	"RtCA.h"
 
-1446107698 source:e:\git\omnia-projetcs\rtca\main.c
+1446290631 source:e:\git\omnia-projetcs\rtca\main.c
 	"RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\proc.c
+1446229772 source:e:\git\omnia-projetcs\rtca\proc.c
 	"RtCA.h"
 
 1445780119 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
@@ -2960,13 +2960,13 @@
 1431785585 source:e:\git\omnia-projetcs\rtca\proc_registry.c
 	"RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\rtca.rc
+1446291006 source:e:\git\omnia-projetcs\rtca\rtca.rc
 	"RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
+1446226600 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
+1446134415 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
 	"../RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\sqlite\sqlite3.c
@@ -3043,7 +3043,7 @@
 1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
+1446279878 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
 	"../RtCA.h"
 	"../crypt/sha2.h"
 
@@ -3107,7 +3107,7 @@
 1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
+1446122794 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
 	"../RtCA.h"
 
 1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
@@ -3164,7 +3164,7 @@
 
 1431785586 e:\git\omnia-projetcs\rtca\tools\tools_network\_entetes.h
 
-1445880439 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
+1446196128 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
 	"../RtCA.h"
 
 1446107854 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
@@ -3186,5 +3186,8 @@
 	"../RtCA.h"
 
 1445763366 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
+	"../RtCA.h"
+
+1446293324 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
 	"../RtCA.h"
 

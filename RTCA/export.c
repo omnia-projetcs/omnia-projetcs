@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
@@ -126,10 +126,10 @@ DWORD WINAPI SaveAll(LPVOID lParam)
   sqlite3 *db = (sqlite3 *)db_scan;
 
   //headers
-  char XML_head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
+  char XML_head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n  <Description><![CDATA[RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]]]></Description>\r\n";
   char XML_foot[]="</RtCA>";
 
-  char HTML_head[]="<html>\r\n<head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+  char HTML_head[]="<html>\r\n<head><title>RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
   char HTML_end_header_column[]="\r\n  </tr>\r\n";
 
   char HTML_foot[]=" </table>\r\n</html>";
@@ -413,7 +413,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
       break;
       case SAVE_TYPE_XML:
       {
-        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
+        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n <Description><![CDATA[RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]]]></Description>\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         LINE_ITEM lv_line[nb_column+1];
@@ -451,7 +451,7 @@ BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column)
       break;
       case SAVE_TYPE_HTML:
       {
-        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+        char head[]="<html>\r\n <head><title>RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         //title line
@@ -574,7 +574,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
       break;
       case SAVE_TYPE_XML:
       {
-        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n <Description><![CDATA[RtCA report [http://code.google.com/p/omnia-projetcs/]]]></Description>\r\n";
+        char head[]="<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\r\n<RtCA>\r\n <Description><![CDATA[RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]]]></Description>\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         LINE_ITEM lv_line[nb_column+1];
@@ -612,7 +612,7 @@ BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned i
       break;
       case SAVE_TYPE_HTML:
       {
-        char head[]="<html>\r\n <head><title>RtCA report [http://code.google.com/p/omnia-projetcs/]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
+        char head[]="<html>\r\n <head><title>RtCA report [https://github.com/omnia-projetcs/omnia-projetcs]</title></head>\r\n <table border=\"0\" width=\"100%\" cellspacing=\"1\" cellpadding=\"1\">\r\n  <tr bgcolor=\"#CCCCCC\">\r\n";
         WriteFile(hfile,head,strlen(head),&copiee,0);
 
         //title line

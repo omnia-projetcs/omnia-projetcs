@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // Projet RtCA          : Read to Catch All
 // Auteur               : Nicolas Hanteville
-// Site                 : http://code.google.com/p/omnia-projetcs/
+// Site                 : https://github.com/omnia-projetcs/omnia-projetcs
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -20,7 +20,7 @@
 #define TTI_INFO	             1
 
 #define NOM_APPLI              "RtCA"
-#define URL_APPLI              "https://github.com/omnia-projetcs/omnia-projetc"
+#define URL_APPLI              "https://github.com/omnia-projetcs/omnia-projetcs"
 
 #define SQLITE_F               100
 #define DEFAULT_SQLITE_FILE    "RtCA.sqlite"
@@ -183,7 +183,7 @@ TOOLS_USE tools_load[NB_MAX_TOOLS];
 #define LV_INFO                  1001
 #define TOOL_BAR                 1002
 
-HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip;
+HWND hCombo_session,hCombo_lang,htoolbar,hstatus_bar,he_search, chk_search, hlstbox,hlstv, htooltip, hlstv_db;
 HWND htrv_test, htrv_files, hlstv_process;
 HINSTANCE hinst;
 HANDLE H_ImagList_icon;
@@ -578,8 +578,15 @@ HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
 #define POPUP_VIRUSTOTAL_CHECK                13206
 #define POPUP_VIRUSTOTAL_CHECK_ALL            13207
 
-#define POPUP_DLL_INJECT                         10
-#define POPUP_PROCESS_COPY_TO_CLIPBORD           14
+#define POPUP_ADD_ROOTKIT_FILE                14000
+#define POPUP_CHECK_ROOTKIT_FILE              14001
+#define POPUP_CHECK_ALL_ROOTKIT_FILE          14002
+#define POPUP_ADD_ROOTKIT_PROCESS             14003
+#define POPUP_CHECK_ROOTKIT_PROCESS           14004
+#define POPUP_CHECK_ALL_ROOTKIT_PROCESS       14005
+
+#define POPUP_DLL_INJECT                         14
+#define POPUP_PROCESS_COPY_TO_CLIPBORD           17
 
 #define NB_PROCESS_COLUMN                        19
 
@@ -686,6 +693,9 @@ BOOL update_thread_start;
 BOOL B_AUTOSEARCH;
 HANDLE h_AUTOSEARCH;
 
+BOOL search_rootkit,search_rootkit_process_tool;
+HANDLE H_thread_search_rootkit,H_thread_search_rootkit_process_tools;
+
 //scan
 BOOL start_scan, stop_scan;
 HANDLE h_thread_scan;
@@ -735,7 +745,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         97
+#define NB_COMPONENT_STRING         100
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -828,6 +838,10 @@ typedef struct SORT_ST
 
 #define TXT_GRP_CONF                    95
 #define TXT_ADD_DB                      96
+
+#define TXT_ADD_ROOTKIT_TO_DB           97
+#define TXT_CHECK_ROOTKIT               98
+#define TXT_CHECK_ALL_ROOTKIT           99
 
 typedef struct
 {
@@ -1114,6 +1128,7 @@ unsigned long int ContientNoCass(char*data,char*chaine);
 char *ReplaceEnv(char *var, char *path, unsigned int size_max);
 BOOL SetDebugPrivilege(BOOL enable);
 BOOL startWith(char* txt, char *search);
+BOOL endWith(char* txt, char *search);
 char *filetimeToString(FILETIME FileTime, char *str, unsigned int string_size);
 char *filetimeToString_GMT(FILETIME FileTime, char *str, unsigned int string_size);
 char *timeToString(DWORD time, char *str, unsigned int string_size);
@@ -1200,6 +1215,14 @@ BOOL CopyFileFromMFT(HANDLE hfile, char *destination);
 char *Partition_Type(unsigned int code, char *ctype, unsigned int ctype_sz_max);
 BOOL MBRReadInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos);
 BOOL ReadPartInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos, unsigned int index);
+
+//rootkit
+void addNewRootkitToDB(HANDLE hlstv, char *filename, char*sha256, char* description, char *source, char*update_time, int params, sqlite3 *db);
+void LoadRootKitDB(HANDLE lstvdb);
+BOOL CheckIfRootKitDbExist(HANDLE lstvdb, char *filename, char *sha256, char *description, char *source, char* update_time, DWORD buffers_sz);
+void checkLstvItemId(HANDLE hlstv, HANDLE hlstv_rootkit, DWORD item_id, DWORD col_file, DWORD col_sha256, DWORD col_ref, BOOL msg);
+DWORD WINAPI checkAllLstvItem(LPVOID lParam);
+DWORD WINAPI checkAllLstvItemProcessTools(LPVOID lParam);
 
 //registry functions
 void OpenRegeditKey(char* chk, char *key);
