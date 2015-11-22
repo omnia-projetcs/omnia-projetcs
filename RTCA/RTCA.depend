@@ -2790,10 +2790,10 @@
 1416153055 source:z:\svn_omnia\rtca\tools\tools_copy\mft_parser.c
 	"../../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
+1448208169 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1446293980 e:\git\omnia-projetcs\rtca\rtca.h
+1448208214 e:\git\omnia-projetcs\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -2824,21 +2824,21 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1446294505 e:\git\omnia-projetcs\rtca\version.h
+1448211102 e:\git\omnia-projetcs\rtca\version.h
 
 1431785586 e:\git\omnia-projetcs\rtca\sqlite\sqlite3.h
 	<stdarg.h>
 
-1446226787 e:\git\omnia-projetcs\rtca\sqlite\interface.h
+1446295222 e:\git\omnia-projetcs\rtca\sqlite\interface.h
 
-1431785585 e:\git\omnia-projetcs\rtca\registry.h
+1446295221 e:\git\omnia-projetcs\rtca\registry.h
 
 1431785585 e:\git\omnia-projetcs\rtca\crypt\d3des.h
 
 1431785585 e:\git\omnia-projetcs\rtca\files\litezip.h
 	<windows.h>
 
-1431785586 e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.h
+1446295223 e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.h
 
 1431785585 e:\git\omnia-projetcs\rtca\crypt\md5.h
 	"e_os2.h"
@@ -2853,13 +2853,13 @@
 
 1431785585 e:\git\omnia-projetcs\rtca\crypt\opensslv.h
 
-1446293447 source:e:\git\omnia-projetcs\rtca\configuration\init.c
+1448207809 source:e:\git\omnia-projetcs\rtca\configuration\init.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\configuration\proxy.c
+1446295222 source:e:\git\omnia-projetcs\rtca\configuration\proxy.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\configuration\richedit_conf.c
+1446295222 source:e:\git\omnia-projetcs\rtca\configuration\richedit_conf.c
 	"../RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\crypt\d3des.c
@@ -2907,7 +2907,7 @@
 1431785585 source:e:\git\omnia-projetcs\rtca\crypt\rc4_skey.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\crypt\rev_mdp.c
+1446295221 source:e:\git\omnia-projetcs\rtca\crypt\rev_mdp.c
 	"../RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\crypt\sha2.cpp
@@ -2926,47 +2926,47 @@
 1431785585 e:\git\omnia-projetcs\rtca\crypt\sha2.h
 	<limits.h>
 
-1446104480 source:e:\git\omnia-projetcs\rtca\crypt\windows_users_hashs_registry.c
+1446295220 source:e:\git\omnia-projetcs\rtca\crypt\windows_users_hashs_registry.c
 	"../RtCA.h"
 
-1446054487 source:e:\git\omnia-projetcs\rtca\export.c
+1446295222 source:e:\git\omnia-projetcs\rtca\export.c
 	"RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\files\litezip.c
 	<windows.h>
 	"LiteZip.h"
 
-1445678913 source:e:\git\omnia-projetcs\rtca\files\proc_files.c
+1448186102 source:e:\git\omnia-projetcs\rtca\files\proc_files.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\files\proc_registry_files.c
+1446295222 source:e:\git\omnia-projetcs\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\import.c
+1448207392 source:e:\git\omnia-projetcs\rtca\import.c
 	"RtCA.h"
 
-1446290631 source:e:\git\omnia-projetcs\rtca\main.c
+1448207401 source:e:\git\omnia-projetcs\rtca\main.c
 	"RtCA.h"
 
-1446229772 source:e:\git\omnia-projetcs\rtca\proc.c
+1446295220 source:e:\git\omnia-projetcs\rtca\proc.c
 	"RtCA.h"
 
-1445780119 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
+1447596600 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
 	"RtCA.h"
 
-1446107756 source:e:\git\omnia-projetcs\rtca\proc_gui.c
+1447591482 source:e:\git\omnia-projetcs\rtca\proc_gui.c
 	"RtCA.h"
 
-1431785585 source:e:\git\omnia-projetcs\rtca\proc_registry.c
+1446295223 source:e:\git\omnia-projetcs\rtca\proc_registry.c
 	"RtCA.h"
 
-1446291006 source:e:\git\omnia-projetcs\rtca\rtca.rc
+1448207553 source:e:\git\omnia-projetcs\rtca\rtca.rc
 	"RtCA.h"
 
-1446226600 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
+1447591524 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
 	"../RtCA.h"
 
-1446134415 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
+1446295223 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
 	"../RtCA.h"
 
 1431785585 source:e:\git\omnia-projetcs\rtca\sqlite\sqlite3.c
@@ -3016,178 +3016,187 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1446104725 source:e:\git\omnia-projetcs\rtca\tests\scan.c
+1447588918 source:e:\git\omnia-projetcs\rtca\tests\scan.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_android.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_android.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_antivirus.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_antivirus.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_arp.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_arp.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_chrome.c
+1448186102 source:e:\git\omnia-projetcs\rtca\tests\test_chrome.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_clipboard.c
+1447591679 source:e:\git\omnia-projetcs\rtca\tests\test_clipboard.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_disk.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_disk.c
 	"../RtCA.h"
 
-1445949655 source:e:\git\omnia-projetcs\rtca\tests\test_dns.c
+1447595636 source:e:\git\omnia-projetcs\rtca\tests\test_dns.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
 	"../RtCA.h"
 
-1446279878 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
+1448186144 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
 	"../RtCA.h"
 	"../crypt/sha2.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_file_lnk.c
+1447591970 source:e:\git\omnia-projetcs\rtca\tests\test_file_lnk.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_firefox.c
+1448186183 source:e:\git\omnia-projetcs\rtca\tests\test_firefox.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_firewall.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_firewall.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_guide.c
+1447592050 source:e:\git\omnia-projetcs\rtca\tests\test_guide.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_ie.c
+1448186300 source:e:\git\omnia-projetcs\rtca\tests\test_ie.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
+1446295223 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_log_files.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_log_files.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evt.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evt.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evtx.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evtx.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_network.c
+1447592341 source:e:\git\omnia-projetcs\rtca\tests\test_network.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_pipe.c
+1448186307 source:e:\git\omnia-projetcs\rtca\tests\test_pipe.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_prefetch.c
+1448186314 source:e:\git\omnia-projetcs\rtca\tests\test_prefetch.c
 	"../RtCA.h"
 
-1445879859 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
+1447592367 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_deleted_keys.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_deleted_keys.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_mru.c
+1446295220 source:e:\git\omnia-projetcs\rtca\tests\test_registry_mru.c
 	"../RtCA.h"
 
-1446057073 source:e:\git\omnia-projetcs\rtca\tests\test_registry_password.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_password.c
 	"../RtCA.h"
 
-1445678455 source:e:\git\omnia-projetcs\rtca\tests\test_registry_path.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_path.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
 	"../RtCA.h"
 
-1446122794 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
+1447587130 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_start.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_registry_start.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_update.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_registry_update.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_usb.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_registry_usb.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_registry_userassist.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_registry_userassist.c
 	"../RtCA.h"
 
-1446104743 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
+1446295223 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_route.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tests\test_route.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
+1448186323 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_clean.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tools\tools_clean.c
 	"../RtCA.h"
 
-1445880348 source:e:\git\omnia-projetcs\rtca\tools\tools_copy.c
+1447869336 source:e:\git\omnia-projetcs\rtca\tools\tools_copy.c
 	"../RtCA.h"
 
-1445765053 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
 	"../../RtCA.h"
 
-1445765010 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.c
+1446295223 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.c
 	"../../RtCA.h"
 
-1445764956 source:e:\git\omnia-projetcs\rtca\tools\tools_date.c
+1446295223 source:e:\git\omnia-projetcs\rtca\tools\tools_date.c
 	"../RtCA.h"
 
-1445764904 source:e:\git\omnia-projetcs\rtca\tools\tools_hexa.c
+1448186535 source:e:\git\omnia-projetcs\rtca\tools\tools_hexa.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_memory.c
+1448207142 source:e:\git\omnia-projetcs\rtca\tools\tools_memory.c
 	"../RtCA.h"
 
-1445764733 source:e:\git\omnia-projetcs\rtca\tools\tools_network.c
+1448207164 source:e:\git\omnia-projetcs\rtca\tools\tools_network.c
 	"../RtCA.h"
 	"tools_network/_entetes.h"
 
-1431785586 e:\git\omnia-projetcs\rtca\tools\tools_network\_entetes.h
+1446295222 e:\git\omnia-projetcs\rtca\tools\tools_network\_entetes.h
 
-1446196128 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
+1448207164 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
 	"../RtCA.h"
 
-1446107854 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
+1448207164 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_registry_recovery.c
+1446295222 source:e:\git\omnia-projetcs\rtca\tools\tools_registry_recovery.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_remote_extract.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tools\tools_remote_extract.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
+1446295221 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
+1448207420 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 
-1431785586 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
+1448207184 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
 	"../RtCA.h"
 
-1445763366 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
+1447586803 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1446293324 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
+1447591283 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
 	"../RtCA.h"
+
+1447586648 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\shadow_copy.cpp
+	"../../RtCA.h"
+	"VsWriter.h"
+	"VsBackup.h"
+
+1446377460 e:\git\omnia-projetcs\rtca\tools\tools_copy\vswriter.h
+
+1446377437 e:\git\omnia-projetcs\rtca\tools\tools_copy\vsbackup.h
 

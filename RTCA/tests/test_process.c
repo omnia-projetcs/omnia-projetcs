@@ -473,7 +473,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   PROCESS_INFOS_ARGS process_infos[MAX_PATH];
 
   port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
-  if (port_line == NULL)return;
+  if (port_line == NULL)return 0;
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   while(Process32Next(hCT, &pe) && start_scan)

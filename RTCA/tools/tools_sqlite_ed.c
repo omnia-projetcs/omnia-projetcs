@@ -89,7 +89,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               ofn.lpstrFilter ="SQLITE (*.sqlite)\0*.sqlite\0SQLITE (*.db)\0*.db\0ALL (*.*)\0*.*\0";
               ofn.nFilterIndex = 3;
               ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST| OFN_ALLOWMULTISELECT | OFN_EXPLORER;
-              ofn.lpstrDefExt ="*.sqlite\0";
+              ofn.lpstrDefExt ="sqlite\0";
 
               if (GetOpenFileName(&ofn)==TRUE)
               {
@@ -188,7 +188,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
               ofn.nFilterIndex = 1;
               ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrDefExt =".csv\0";
+              ofn.lpstrDefExt ="csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTV(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);
@@ -209,7 +209,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
               ofn.nFilterIndex = 1;
               ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrDefExt =".csv\0";
+              ofn.lpstrDefExt ="csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), file, ofn.nFilterIndex, nb_current_col_sqlite);

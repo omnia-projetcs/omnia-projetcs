@@ -39,11 +39,15 @@ void ConsoleDirectory_sha256deep(char *tmp_path)
       {
         s_sha[0] = 0;
         snprintf(path_ex,MAX_PATH,"%s%s",path,data.cFileName);
-        if ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH)FileToSHA256(path_ex, s_sha);
+        if ((data.nFileSizeLow + data.nFileSizeHigh) < MAX_FILE_SIZE_HASH)
+        {
+          FileToSHA256_noTM(path_ex, s_sha);
+        }
         if (s_sha[0] != 0)printf("%s  %s\n",s_sha,path_ex);
       }
     }
   }while(FindNextFile (hfic,&data));
+  FindClose(hfic);
 }
 //------------------------------------------------------------------------------
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path)
@@ -202,6 +206,7 @@ void scan_file(char *path, HANDLE htv)
   char tmp_path[MAX_PATH], file[MAX_PATH];
 
   snprintf(tmp_path,MAX_PATH,"%s*.*",path);
+
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic == INVALID_HANDLE_VALUE)return;
   do
@@ -218,6 +223,7 @@ void scan_file(char *path, HANDLE htv)
       AddItemFiletoTreeView(htv, charToLowChar(file), path, NULL);
     }
   }while(FindNextFile (hfic,&data));
+  FindClose(hfic);
 }
 //------------------------------------------------------------------------------
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
@@ -225,7 +231,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
   if (lParam == NULL)
   {
     //list all
-    char tmp[MAX_PATH];
+    char tmp[MAX_PATH], tmp_l[4]="C:\\";
     int i,nblecteurs = GetLogicalDriveStrings(MAX_PATH,tmp);
 
     //search
@@ -237,15 +243,16 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
         case DRIVE_REMOTE:
         case DRIVE_RAMDISK:
         case DRIVE_REMOVABLE:
-          AddItemTreeView(htrv_files,&tmp[i], TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
-          scan_file(&tmp[i], htrv_files);
+          tmp_l[0] = tmp[i];
+          AddItemTreeView(htrv_files,tmp_l, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
+          scan_file(tmp_l, htrv_files);
         break;
       }
     }
   }else
   {
     char tmp_path[MAX_PATH];
-    strncpy(tmp_path,(char*)lParam,MAX_PATH);
+    snprintf(tmp_path,MAX_PATH,"%s",(char*)lParam);
 
     AddItemTreeView(htrv_files,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
     scan_file(tmp_path, htrv_files);

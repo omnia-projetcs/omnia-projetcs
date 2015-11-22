@@ -404,7 +404,7 @@ DWORD WINAPI CheckAllFileToVirusTotalProcess(LPVOID lParam)
   hSemaphoreItem=CreateSemaphore(NULL,1,1,NULL);
 
   //la gestion du nombre en lecture continue permet d'effectuer un scan pendant l'énumération
-  DWORD i;
+  long int i;
   vt_error=0;
 	sv.token[0] = 0;
   for (i=0;i<SendMessage(hlstv_process,LVM_GETITEMCOUNT,(WPARAM)0,(LPARAM)0);i++)

@@ -6,12 +6,10 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-char malware_check[MAX_PATH];
-//------------------------------------------------------------------------------
 void addHosttoDB(char*file, char*ip, char*name, char*last_file_update, unsigned int session_id, sqlite3 *db)
 {
   //chek name if malware or not
-  MalwareCheck(name, malware_check, MAX_PATH);
+  MalwareCheck(name);
   #ifndef CMD_LINE_ONLY_NO_DB
   char request[MAX_LINE_SIZE+DEFAULT_TMP_SIZE];
   snprintf(request,MAX_LINE_SIZE+DEFAULT_TMP_SIZE,
@@ -35,7 +33,7 @@ int callback_sqlite_malware(void *datas, int argc, char **argv, char **azColName
   return 0;
 }
 //------------------------------------------------------------------------------
-void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size)
+void MalwareCheck(char*name)
 {
   malware_check[0] = 0;
   char *c = name;

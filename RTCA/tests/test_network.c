@@ -7,7 +7,7 @@
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
 void addNetworktoDB(char *source, char *card, char *description, char *guid,
-               char *hostname, char *ip, char *netmask, char *gateway,
+               char *ip, char *netmask, char *gateway,
                char *dns, char *domain,
                char *dhcp_server, char *dhcp_mode,
                char *wifi, char *last_update, DWORD session_id, sqlite3 *db)
@@ -196,7 +196,7 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
         if (description[0]!=0 || card[0]!=0 || dns[0]!=0)
         {
           convertStringToSQL(description, DEFAULT_TMP_SIZE);
-          addNetworktoDB("API ADAPTER_INFO",card, description, guid, hostname, ip, netmask, gw, dns, domain, dhcp_server,pAdapter->DhcpEnabled?"X":"",wifi_cache,lastupdate, session_id, db);
+          addNetworktoDB("API ADAPTER_INFO",card, description, guid, ip, netmask, gw, dns, domain, dhcp_server,pAdapter->DhcpEnabled?"X":"",wifi_cache,lastupdate, session_id, db);
         }
         pAdapter = pAdapter->Next;
       }
@@ -284,7 +284,7 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
           if (description[0]!=0 || card[0]!=0 || dns[0]!=0)
           {
             convertStringToSQL(description, DEFAULT_TMP_SIZE);
-            addNetworktoDB("HKEY_LOCAL_MACHINE\\SYSTEM",card, description, tmp_key,hostname, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+            addNetworktoDB("HKEY_LOCAL_MACHINE\\SYSTEM",card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
           }
         }
       }
@@ -397,7 +397,7 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
         dhcp_server[DEFAULT_TMP_SIZE],
         card[DEFAULT_TMP_SIZE],
         description[DEFAULT_TMP_SIZE],
-        hostname[DEFAULT_TMP_SIZE],
+        //hostname[DEFAULT_TMP_SIZE],
         lastupdate[DATE_SIZE_MAX],
         wifi_cache[MAX_PATH];
 
@@ -415,7 +415,7 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
         if (nk_h_tmp == NULL)continue;
 
         //hostname
-        Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "Hostname", hostname, DEFAULT_TMP_SIZE);
+        //Readnk_Value(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, ckey , NULL, "Hostname", hostname, DEFAULT_TMP_SIZE);
 
         //card info
         SearchNetworkGUID_registry_file(hks.buffer,hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position ,tmp_key, card, DEFAULT_TMP_SIZE, description, DEFAULT_TMP_SIZE, _ckey_2);
@@ -465,7 +465,7 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
         if (description[0]!=0 || card[0]!=0 || dns[0]!=0 || ip[0]!=0)
         {
           convertStringToSQL(description, DEFAULT_TMP_SIZE);
-          addNetworktoDB(file,card, description, tmp_key, hostname, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+          addNetworktoDB(file,card, description, tmp_key, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
         }
       }
     }

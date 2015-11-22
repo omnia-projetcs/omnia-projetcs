@@ -26,7 +26,7 @@ int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName)
   return 0;
 }
 //------------------------------------------------------------------------------
-void AddNewSession(BOOL local_only, sqlite3 *db)
+void AddNewSession(BOOL local_only, char *name, sqlite3 *db)
 {
   //generate name : date_computer_name
   time_t date;
@@ -49,12 +49,26 @@ void AddNewSession(BOOL local_only, sqlite3 *db)
     DWORD taille = COMPUTER_NAME_SIZE_MAX;
     GetComputerName(computer_name,&taille);
 
-    if (UTC_TIME)snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s\");",id,date_today,computer_name);
-    else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s\");",id,date_today,computer_name);
+    if (UTC_TIME)
+    {
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s_%s\");",id,date_today,computer_name,name);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s\");",id,date_today,computer_name);
+    }else
+    {
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s_%s\");",id,date_today,computer_name,name);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s\");",id,date_today,computer_name);
+    }
   }else
   {
-    if (UTC_TIME)snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_files\");",id,date_today);
-    else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_files\");",id,date_today);
+    if (UTC_TIME)
+    {
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s_files\");",id,date_today,name);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_files\");",id,date_today);
+    }else
+    {
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s_files\");",id,date_today,name);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_files\");",id,date_today);
+    }
   }
 
   //add session

@@ -177,7 +177,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ofn.lpstrFilter     = "*.sqlite \0*.sqlite\0*.* \0*.*\0";
                 ofn.nFilterIndex    = 1;
                 ofn.Flags           = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt     = ".sqlite\0";
+                ofn.lpstrDefExt     = "sqlite\0";
 
                 if (GetOpenFileName(&ofn)==TRUE)
                 {
@@ -198,7 +198,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                 ofn.lpstrFilter ="*.sqlite \0*.sqlite\0*.* \0*.*\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".sqlite\0";
+                ofn.lpstrDefExt ="sqlite\0";
 
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
@@ -296,7 +296,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
 
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   SaveLSTV(hlstv, file, ofn.nFilterIndex, nb_current_columns);
@@ -367,7 +367,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   SaveLSTVSelectedItems(hlstv, file, ofn.nFilterIndex, nb_current_columns);
@@ -607,7 +607,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                                       "*.* \0*.*\0";
                   ofn.nFilterIndex  = 1;
                   ofn.Flags         = OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT|OFN_EXPLORER|OFN_SHOWHELP;
-                  ofn.lpstrDefExt   = "*.sqlite";
+                  ofn.lpstrDefExt   = "sqlite";
                   if (GetOpenFileName(&ofn)==TRUE)
                   {
                     strncpy(SQLITE_LOCAL_BDD,files,MAX_PATH);
@@ -736,7 +736,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
           case NM_DBLCLK:
             if (LOWORD(wParam) == LV_VIEW)
             {
-              long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+              DWORD i;
+              long int index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
               if (index > -1)
               {
                 char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
@@ -1329,7 +1330,7 @@ int CmdLine(int argc, char* argv[])
       break;
       case 's'://scan for test with number 0 1 2 3
         //generate new session
-        AddNewSession(LOCAL_SCAN,db_scan);
+        AddNewSession(LOCAL_SCAN, session_name_ch, db_scan);
         WINE_OS    = isWine();
         start_scan = TRUE;
         for (++i;i<argc;i++)
@@ -1347,6 +1348,12 @@ int CmdLine(int argc, char* argv[])
           i++;
           if (argv[i][0] == '-'){i--;break;}
           else ConsoleDirectory_sha256deep(argv[i]);
+         }
+      break;
+      case 'c': //add session name option
+         if (i+1<argc)
+         {
+          snprintf(session_name_ch,MAX_PATH,"%s",argv[++i]);
          }
       break;
       case 'd': //dd of disk or image with size option + file to save
@@ -1380,7 +1387,7 @@ int CmdLine(int argc, char* argv[])
                "SYNOPSIS\n"
                "\tRtCA.exe [Options] [Tests] [Save]\n"
                "\t         [-l|-L|-t]\n"
-               "\t         [-0][-1][-2][-3][-S]\n"
+               "\t         [-0][-1][-2][-3][-c][-S][-T]\n"
                "\t         [-f \"...\"]\n"
                "\t         [-p \"...\"]\n"
                "\t         [-a|-A|[-s [1-34]]]\n"
@@ -1401,6 +1408,7 @@ int CmdLine(int argc, char* argv[])
                "\t-1  Enable ADS check in files test.\n"
                "\t-2  Enable SHA in files test.\n"
                "\t-3  Enable MagicNumber in files test.\n"
+               "\t-c  Set String to session name : -c ma_session\n"
                "\t-T  Export in UTC time.\n"
                "\t-S  Disable SQLITE FULL SPEED.\n"
                "\n"
@@ -1435,6 +1443,7 @@ int main(int argc, char* argv[])
   GetLocalPath(local_path, MAX_PATH);
   snprintf(SQLITE_LOCAL_BDD,MAX_PATH,"%s\\%s",local_path,DEFAULT_SQLITE_FILE);
   session[0] = 0;
+  session_name_ch[0] = 0;
 
   //init name
   snprintf(NOM_FULL_APPLI,DEFAULT_TMP_SIZE,"%s %s%s - %s",NOM_APPLI,FULLVERSION_STRING,STATUS_SHORT,URL_APPLI);

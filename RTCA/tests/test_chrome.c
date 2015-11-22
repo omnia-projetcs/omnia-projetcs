@@ -156,6 +156,7 @@ DWORD WINAPI Scan_chrome_history(LPVOID lParam)
                     }
                   }
                 }while(FindNextFile (hfic,&wfd));
+                FindClose(hfic);
               }
             }
           }

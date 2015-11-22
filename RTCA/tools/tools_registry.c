@@ -322,7 +322,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.reg \0*.reg\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, FALSE);
@@ -344,7 +344,7 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0*.reg \0*.reg\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   if (ofn.nFilterIndex == SAVE_TYPE_REG5)SaveLSTVItemstoREG(GetDlgItem(hwnd,LV_VIEW), file, TRUE);

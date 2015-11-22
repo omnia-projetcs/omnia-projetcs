@@ -6,11 +6,6 @@
 //------------------------------------------------------------------------------
 #include "../RtCA.h"
 //------------------------------------------------------------------------------
-int callback_write_sqlite(void *datas, int argc, char **argv, char **azColName)
-{
-  return TRUE;
-}
-//------------------------------------------------------------------------------
 int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
 {
   //FORMAT_CALBAK_TYPE *type = datas;
@@ -376,7 +371,7 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
     //add
     case TYPE_SQL_ADD_SESSION:
     {
-      AddNewSession(LOCAL_SCAN, db);
+      AddNewSession(LOCAL_SCAN, session_name_ch, db);
 
       //read all sessions
       nb_session = 0;

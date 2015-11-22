@@ -91,7 +91,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   WINE_OS                   = isWine();
   SetDebugPrivilege(TRUE);
 
-  AddNewSession(LOCAL_SCAN,db_scan);
+  AddNewSession(LOCAL_SCAN, session_name_ch, db_scan);
 
   CMDScanNum((LPVOID)INDEX_DISK);
   CMDScanNum((LPVOID)INDEX_CLIPBOARD);

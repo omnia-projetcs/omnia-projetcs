@@ -114,6 +114,10 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               if(TreeView_GetCount(htrv_files) > NB_MX_TYPE_FILES_TITLE)LOCAL_SCAN = FALSE;
               else LOCAL_SCAN = TRUE;
 
+              //get session name if used
+              session_name_ch[0] = 0;
+              GetWindowText(GetDlgItem((HWND)h_conf,EDT_NAME_SESSION),session_name_ch,MAX_PATH);
+
               //create new session and select it !
               SendMessage(hCombo_session, CB_RESETCONTENT,0,0);
               FORMAT_CALBAK_READ_INFO fcri;
@@ -355,7 +359,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               {
                 if (SHGetPathFromIDList(lip,path))
                 {
-                  strncat(path,"\\\0",MAX_PATH);
+                  //strncat(path,"\\\0",MAX_PATH);
                   B_AUTOSEARCH = TRUE;
                   h_AUTOSEARCH = CreateThread(NULL,0,AutoSearchFiles,path,0,0);
                 }
@@ -374,7 +378,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             ofn.lpstrFilter ="*.txt \0*.txt\0*.csv\0*.csv\0";
             ofn.nFilterIndex = 1;
             ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-            ofn.lpstrDefExt =".txt\0";
+            ofn.lpstrDefExt ="txt\0";
             if (GetSaveFileName(&ofn)==TRUE)
             {
               if (ofn.nFilterIndex == 2) SaveTRV(htrv_files, file, SAVE_TYPE_CSV);
@@ -411,7 +415,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           {
             //get item index
             int index = GetTrvItemIndex((HTREEITEM)SendMessage(htrv_test,TVM_GETNEXTITEM,(WPARAM)TVGN_CARET, (LPARAM)0), htrv_test);
-            if (index < NB_TESTS)
+            if (index < NB_TESTS && index > -1)
             {
               //kill the thread
               DWORD IDThread;
@@ -419,6 +423,67 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               TerminateThread(h_thread_test[index],IDThread);
               h_thread_test[index] = 0;
               check_treeview(htrv_test, H_tests[index], TRV_STATE_UNCHECK);
+            }
+          }
+          break;
+          case POPUP_TRV_FILES_BACKUP:
+          if (BACKUP_FILE_LIST_started) BACKUP_FILE_LIST_started = FALSE;
+          else
+          {
+            BACKUP_FILE_LIST_started = TRUE;
+            char file[MAX_PATH]="";
+            OPENFILENAME ofn;
+            ZeroMemory(&ofn, sizeof(OPENFILENAME));
+            ofn.lStructSize = sizeof(OPENFILENAME);
+            ofn.hwndOwner = h_conf;
+            ofn.lpstrFile = file;
+            ofn.nMaxFile = MAX_PATH;
+            ofn.lpstrFilter ="*.zip\0";
+            ofn.nFilterIndex = 1;
+            ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+            ofn.lpstrDefExt ="zip\0";
+            if (GetSaveFileName(&ofn)==TRUE)
+            {
+              SaveAllTRVFilesToZip(file);
+            }
+          }
+          break;
+          case POPUP_TRV_FILES_BACKUP_PATH:
+          if (BACKUP_PATH_started) BACKUP_PATH_started = FALSE;
+          else
+          {
+            BROWSEINFO browser;
+            LPITEMIDLIST lip;
+            char path[MAX_PATH]     = "";
+            browser.hwndOwner       = h_conf;
+            browser.pidlRoot        = 0;
+            browser.lpfn            = 0;
+            browser.iImage          = 0;
+            browser.lParam          = 0;
+            browser.ulFlags         = BIF_NEWDIALOGSTYLE;
+            browser.pszDisplayName  = path;
+            browser.lpszTitle       = "Path from";
+            lip = SHBrowseForFolder(&browser);
+            if (lip != NULL)
+            {
+              if (SHGetPathFromIDList(lip,path))
+              {
+                char file[MAX_PATH]="";
+                OPENFILENAME ofn;
+                ZeroMemory(&ofn, sizeof(OPENFILENAME));
+                ofn.lStructSize = sizeof(OPENFILENAME);
+                ofn.hwndOwner = h_conf;
+                ofn.lpstrFile = file;
+                ofn.nMaxFile = MAX_PATH;
+                ofn.lpstrFilter ="*.zip\0";
+                ofn.nFilterIndex = 1;
+                ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+                ofn.lpstrDefExt ="zip\0";
+                if (GetSaveFileName(&ofn)==TRUE)
+                {
+                  SaveALLCustom(file, "Custom_Path", path);
+                }
+              }
             }
           }
           break;
@@ -508,6 +573,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           ModifyMenu(hmenu,POPUP_TRV_FILES_ADD_FILE     ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_ADD_FILE     ,cps[TXT_POPUP_ADD_FILE].c);
           ModifyMenu(hmenu,POPUP_TRV_FILES_ADD_PATH     ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_ADD_PATH     ,cps[TXT_POPUP_ADD_PATH].c);
 
+          if (BACKUP_PATH_started) ModifyMenu(hmenu,POPUP_TRV_FILES_BACKUP_PATH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_BACKUP_PATH  ,cps[TXT_POPUP_BACKUP_PATH_STOP].c);
+          else ModifyMenu(hmenu,POPUP_TRV_FILES_BACKUP_PATH  ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_BACKUP_PATH  ,cps[TXT_POPUP_BACKUP_PATH].c);
+
           if (B_AUTOSEARCH)
           {
             RemoveMenu(hmenu,POPUP_TRV_FILES_AUTO_SEARCH_PATH ,MF_BYCOMMAND);
@@ -526,6 +594,9 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             ModifyMenu(hmenu,POPUP_TRV_FILES_CLEAN_ALL    ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_CLEAN_ALL    ,cps[TXT_POPUP_CLEAN_ALL].c);
             ModifyMenu(hmenu,POPUP_TRV_FILES_OPEN_PATH    ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_OPEN_PATH    ,cps[TXT_POPUP_OPEN_PATH].c);
             ModifyMenu(hmenu,POPUP_TRV_FILES_SAVE_LIST    ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_SAVE_LIST    ,cps[TXT_POPUP_SAVE_LIST].c);
+
+            if (BACKUP_FILE_LIST_started) ModifyMenu(hmenu,POPUP_TRV_FILES_BACKUP       ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_BACKUP       ,cps[TXT_POPUP_BACKUP_FILE_LIST_STOP].c);
+            else ModifyMenu(hmenu,POPUP_TRV_FILES_BACKUP       ,MF_BYCOMMAND|MF_STRING ,POPUP_TRV_FILES_BACKUP       ,cps[TXT_POPUP_BACKUP_FILE_LIST].c);
           }else
           {
             RemoveMenu(GetSubMenu(hmenu,0),2              ,MF_BYPOSITION);
@@ -536,6 +607,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             RemoveMenu(hmenu,POPUP_TRV_FILES_CLEAN_ALL    ,MF_BYCOMMAND);
             RemoveMenu(hmenu,POPUP_TRV_FILES_OPEN_PATH    ,MF_BYCOMMAND);
             RemoveMenu(hmenu,POPUP_TRV_FILES_SAVE_LIST    ,MF_BYCOMMAND);
+            RemoveMenu(hmenu,POPUP_TRV_FILES_BACKUP       ,MF_BYCOMMAND);
           }
 
           //affichage du popup menu
@@ -634,13 +706,15 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
 
         MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth/2+2,mHeight-165,(mWidth/2)-2,98,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,BT_ACL_FILE_CHK),mWidth/2+20,mHeight-148,(mWidth/2)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_ACL_FILE_CHK),mWidth/2+20,mHeight-148,(mWidth/4)-40,17,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_ADS_FILE_CHK),mWidth/2+20,mHeight-128,(mWidth/2)-40,17,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_SHA_FILE_CHK),mWidth/2+20,mHeight-108,(mWidth/2)-40,17,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_UTC_CHK),mWidth/2+20,mHeight-88,(mWidth/4)-40,17,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,BT_RA_CHK),mWidth*3/4+20,mHeight-108,(mWidth*1/4)-40,17,TRUE);
-        MoveWindow(GetDlgItem(hwnd,BT_MAGIC_CHK),mWidth*3/4+20,mHeight-88,(mWidth*1/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,EDT_NAME_SESSION),mWidth*3/4+20,mHeight-148,(mWidth/4)-40,17,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,BT_RA_CHK),mWidth*3/4+20,mHeight-108,(mWidth/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_MAGIC_CHK),mWidth*3/4+20,mHeight-88,(mWidth/4)-40,17,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,BT_START),mWidth/2+2,mHeight-64,(mWidth/2)-2,38,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_CONF_SB),0,mHeight-25,mWidth,25,TRUE);

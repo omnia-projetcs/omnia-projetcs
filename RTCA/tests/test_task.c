@@ -218,6 +218,7 @@ DWORD WINAPI Scan_task(LPVOID lParam)
           nb_ok++;
         }
       }while(FindNextFile (hfic,&data) && start_scan);
+      FindClose(hfic);
     }
 
     //if protected

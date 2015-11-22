@@ -262,6 +262,9 @@
 			<Option compilerVar="CC" />
 		</Unit>
 		<Unit filename="tools/tools_copy/MFT_parser.h" />
+		<Unit filename="tools/tools_copy/shadow_copy.cpp" />
+		<Unit filename="tools/tools_copy/vsbackup.h" />
+		<Unit filename="tools/tools_copy/vss.h" />
 		<Unit filename="tools/tools_date.c">
 			<Option compilerVar="CC" />
 		</Unit>

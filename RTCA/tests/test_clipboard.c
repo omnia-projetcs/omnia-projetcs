@@ -30,8 +30,8 @@ void DatatoHexa(BYTE *data, DWORD data_size, char *str, DWORD str_size)
   str[0] = 0;
   char *m = (char *)malloc(data_size*3);
   if (m == NULL) return;
-  DWORD i,j;
-  long int size = 0, pos = 0;
+  DWORD i,j, size = 0;
+  long int pos = 0;
   char *p, lineA[33], lineB[33];
 
   for (i=0;i<data_size && size<str_size;)

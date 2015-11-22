@@ -529,8 +529,8 @@ BOOL GetFileInfos(char *file, char *size, unsigned int max_size, char *CreationT
     filetimeToString_GMT(data.ftCreationTime, CreationTime, date_size);
     filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, date_size);
     ret = TRUE;
+    FindClose(hfic);
   }
-  FindClose(hfic);
   return ret;
 }
 //----------------------------------------------------------------------
@@ -656,40 +656,40 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
     }
 
     //check DNS is malware
-    char path[MAX_PATH]= "";
+    malware_check[0] = 0;
     tmp[0] = 0;
     ListView_GetItemText(hlstv_process,index,9,tmp,MAX_LINE_SIZE);
     if (tmp[0]!='0' && tmp[0]!='*')
     {
-      MalwareCheck(tmp, path, MAX_PATH);
-      if (path[0] != 0)
+      MalwareCheck(tmp);
+      if (malware_check[0] != 0)
        {
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,"MALWARE DNS IN SRC: ");
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,tmp);
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,", informations: ");
-        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,path);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,malware_check);
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
       }
     }
 
-    path[0] = 0;
+    malware_check[0] = 0;
     tmp[0] = 0;
     ListView_GetItemText(hlstv_process,index,11,tmp,MAX_LINE_SIZE);
     if (tmp[0]!='0' && tmp[0]!='*')
     {
-      MalwareCheck(tmp, path, MAX_PATH);
-      if (path[0] != 0)
+      MalwareCheck(tmp);
+      if (malware_check[0] != 0)
        {
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,"MALWARE DNS IN DST: ");
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,tmp);
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,", informations: ");
-        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,path);
+        RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),ROUGE,malware_check);
         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n");
       }
     }
 
     //get real path
-    path[0] = 0;
+    char path[MAX_PATH] = "";
     tmp[0] = 0;
     ListView_GetItemText(hlstv_process,index,2,tmp,MAX_LINE_SIZE);
     if (tmp[0]=='\\' && tmp[1]=='?' && tmp[2]=='?' && tmp[3]=='\\')
@@ -869,7 +869,7 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
               ofn.nFilterIndex = 1;
               ofn.Flags        = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrDefExt  =".csv\0";
+              ofn.lpstrDefExt  ="csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 SaveLSTV(hlstv_process, file, ofn.nFilterIndex, NB_PROCESS_COLUMN);

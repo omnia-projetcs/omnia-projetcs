@@ -201,7 +201,7 @@ BOOL HaveAdminRight()
 //------------------------------------------------------------------------------
 //init start configuration
 //------------------------------------------------------------------------------
-void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan, BOOL utc)
+void InitGlobalConfig(BOOL acl, BOOL ads, BOOL sha, BOOL local_scan, BOOL utc)
 {
   //in wine or not ?
   WINE_OS = isWine();
@@ -402,6 +402,8 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   h_AUTOSEARCH          = NULL;
   search_rootkit        = FALSE;
   search_rootkit_process_tool= FALSE;
+  BACKUP_FILE_LIST_started = FALSE;
+  BACKUP_PATH_started   = FALSE;
   ExportStart           = FALSE;
   TRI_RESULT_VIEW       = FALSE;
   TRI_PROCESS_VIEW      = FALSE;
@@ -487,7 +489,7 @@ DWORD WINAPI InitGUIConfig(LPVOID lParam)
   }
 
   //all others datas
-  InitGlobalConfig(0, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, FALSE);
+  InitGlobalConfig(FALSE, FALSE, FALSE, TRUE, FALSE);
 
   //init help messages
   AddtoToolTip(htoolbar, htooltip, hinst, 2, NULL, cps[TXT_TOOLTIP_NEW_SESSION].c);

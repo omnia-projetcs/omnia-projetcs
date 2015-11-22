@@ -33,7 +33,7 @@ DWORD WINAPI DumpProcessMemory(LPVOID lParam)
     ofn.lpstrFilter     = "RAW\0*.raw\0";
     ofn.nFilterIndex    = 1;
     ofn.Flags           = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-    ofn.lpstrDefExt     =".raw\0";
+    ofn.lpstrDefExt     ="raw\0";
 
     if (GetSaveFileName(&ofn)==TRUE)
     {

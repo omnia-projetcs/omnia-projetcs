@@ -44,20 +44,20 @@ void CheckGuideValue(char *file, BOOL read, char *test, char *hk,char *key,char 
   switch(atoi(test))
   {
     case GUIDE_REG_TEST_IDENTIQUE:
-      if (strcmp(data,data_read) == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db_scan);
-      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db_scan);
+      if (strcmp(data,data_read) == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db);
+      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db);
     break;
     case GUIDE_REG_TEST_CONTIENT:
-      if (Contient(data_read,data) == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db_scan);
-      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db_scan);
+      if (Contient(data_read,data) == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db);
+      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db);
     break;
     case GUIDE_REG_TEST_EXIST:
-      if (read == TRUE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db_scan);
-      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db_scan);
+      if (read == TRUE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db);
+      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db);
     break;
     case GUIDE_REG_TEST_NEXISTPAS:
-      if (read == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db_scan);
-      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db_scan);
+      if (read == FALSE)addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_OK, session_id, db);
+      else addGuidetoDB(file,hk,key,value,data,data_read, title_id, description_id, GUIDE_REG_TEST_NOK, session_id, db);
     break;
   }
 }

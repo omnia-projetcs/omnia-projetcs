@@ -209,6 +209,7 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
         PfCheck(session_id, db, path_f);
       }
     }while(FindNextFile (hfic,&data) && start_scan);
+    FindClose(hfic);
   }
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

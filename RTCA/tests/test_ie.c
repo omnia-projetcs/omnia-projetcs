@@ -179,6 +179,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
         }
       }
     }while(FindNextFile (hfic,&wfd) && start_scan);
+    FindClose(hfic);
   }
 }
 #ifndef _WIN64_VERSION_
@@ -338,9 +339,11 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                         ReadDATFile(tmp_path2, 15, session_id, db);
                         sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                       }
-                    }while(FindNextFile (hfic,&wfd1) && start_scan);
+                    }while(FindNextFile (hfic2,&wfd1) && start_scan);
+                    FindClose(hfic2);
                   }
                 }while(FindNextFile (hfic,&wfd0));
+                FindClose(hfic);
               }
 
               //search other files cache in XP/2003
@@ -376,9 +379,11 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                         ReadDATFile(tmp_path2, 15, session_id, db);
                         sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                       }
-                    }while(FindNextFile (hfic,&wfd1) && start_scan);
+                    }while(FindNextFile (hfic2,&wfd1) && start_scan);
+                    FindClose(hfic2);
                   }
                 }while(FindNextFile (hfic,&wfd0));
+                FindClose(hfic);
               }
             }
           }

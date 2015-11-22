@@ -24,9 +24,9 @@ void addFileLNKtoDB(char *file, char *create_time, char *last_access_time, char 
   #endif
 }
 //------------------------------------------------------------------------------
-void read_datas_lnk(char *file, unsigned char *buffer, DWORD taille_fic,
+void read_datas_lnk(unsigned char *buffer, DWORD taille_fic,
                     char *create_time, char *last_access_time, char *last_modification_time,
-                    unsigned char *local_path, unsigned char *to, unsigned int session_id, sqlite3 *db)
+                    unsigned char *local_path, unsigned char *to)
 {
   typedef struct
   {
@@ -329,8 +329,8 @@ void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db)
         if (copiee>0)
         {
           if (copiee != taille_fic) taille_fic = copiee;
-          read_datas_lnk(file, buffer, taille_fic,create_time,last_access_time,last_modification_time,
-                         local_path,to,session_id,db);
+          read_datas_lnk(buffer, taille_fic,create_time,last_access_time,last_modification_time,
+                         local_path,to);
         }
         HeapFree(GetProcessHeap(), 0,buffer);
       }
@@ -353,8 +353,8 @@ void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db)
           if (copiee>0)
           {
             if (copiee != taille_fic) taille_fic = copiee;
-            read_datas_lnk(file, buffer, taille_fic,create_time,last_access_time,last_modification_time,
-                           local_path,to,session_id,db);
+            read_datas_lnk(buffer, taille_fic,create_time,last_access_time,last_modification_time,
+                           local_path,to);
           }
           HeapFree(GetProcessHeap(), 0,buffer);
         }

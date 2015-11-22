@@ -35,7 +35,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
   ofn.lpstrFilter ="CSV (*.csv)\0*.csv\0 sha256deep (*)\0*\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_FILEMUSTEXIST| OFN_ALLOWMULTISELECT | OFN_EXPLORER;
-  ofn.lpstrDefExt ="*.csv\0";
+  ofn.lpstrDefExt ="csv\0";
 
   if (GetOpenFileName(&ofn)==TRUE)
   {

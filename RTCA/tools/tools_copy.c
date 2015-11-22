@@ -125,7 +125,7 @@ void dd_mbr()
   ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-  ofn.lpstrDefExt =".raw\0";
+  ofn.lpstrDefExt ="raw\0";
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
@@ -147,7 +147,7 @@ DWORD WINAPI BackupDrive(LPVOID lParam)
   ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-  ofn.lpstrDefExt =".raw\0";
+  ofn.lpstrDefExt ="raw\0";
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
@@ -170,7 +170,7 @@ DWORD WINAPI BackupDisk(LPVOID lParam)
   ofn.lpstrFilter ="*.raw \0*.raw\0*.* \0*.*\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-  ofn.lpstrDefExt =".raw\0";
+  ofn.lpstrDefExt ="raw\0";
 
   if (GetSaveFileName(&ofn)==TRUE)
   {
@@ -377,6 +377,7 @@ void CopyRegistryUSER(char*local_path, char *tmp_path, char *path)
         CopyFilefromPath(path, tmp_path_dst, FALSE);
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -462,6 +463,7 @@ void CopyFileFromTo(char *from, char *to, unsigned int ext_size)
       //copy
       CopyFilefromPath(src, dst, FALSE);
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -671,6 +673,7 @@ void CopyEvtToZIP(void *hz,char *path,char*current_path, char*computername,HANDL
         DeleteFile(path3);
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -705,6 +708,7 @@ void CopyEvtxToZIP(void *hz,char *path,char*current_path, char*computername,HAND
         DeleteFile(path3);
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -739,6 +743,7 @@ void CopyPrefetchToZIP(void *hz,char *path, char*current_path, char*computername
         DeleteFile(path3);
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -773,6 +778,7 @@ void CopyJobToZIP(void *hz,char *path, char*current_path, char*computername,HAND
         DeleteFile(path3);
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -1097,6 +1103,7 @@ void CopyRegistryUSERmToZIP(void *hz, char*local_path,char*computername,HANDLE M
         }
       }
     }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -1200,8 +1207,10 @@ void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDL
                       }
                     }
                   }while(FindNextFile (hfic2,&wfd) && start_scan);
+                  FindClose(hfic2);
                 }
               }
+              FindClose(hfic);
             }
             //---------------
             //chrome
@@ -1340,14 +1349,143 @@ void CopyNavigatorHistoryToZIP(void *hz, char*local_path,char*computername,HANDL
                       }
                     }
                   }while(FindNextFile (hfic3,&wfd1) && start_scan);
+                  FindClose(hfic3);
                 }
               }while(FindNextFile (hfic2,&wfd0));
+              FindClose(hfic2);
             }
           }
         }
       }
     }
     RegCloseKey(CleTmp);
+  }
+}
+//------------------------------------------------------------------------------
+void CopyNavigatorHistoryCustomPathToZIP(void *hz, char*local_path,char*computername,HANDLE MyhFile, char *tmp_path, char *path)
+{
+  //search
+  char tmp_path2[MAX_PATH], tmp_path3[MAX_PATH],tmp_path_dst[MAX_PATH],tmp_path_src[MAX_PATH];
+  WIN32_FIND_DATA data, wfd0, wfd1;
+  DWORD copiee;
+  HANDLE hfic = FindFirstFile(tmp_path, &data);
+  if (hfic != INVALID_HANDLE_VALUE)
+  {
+    do
+    {
+      if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+      else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+      {
+        //check for all users the default navigators paths !
+        //Firefox
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\Application Data\\Mozilla\\Firefox\\Profiles\\*.default",path,data.cFileName);
+        HANDLE hfic0 = FindFirstFile(tmp_path2, &wfd0);
+        if (hfic0 != INVALID_HANDLE_VALUE)
+        {
+          //for each profil
+          do
+          {
+            if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) //profil by profil
+            {
+              //search each sqlite files
+              snprintf(tmp_path3,MAX_PATH,"%s\\%s\\Application Data\\Mozilla\\Firefox\\Profiles\\%s\\*.sqlite",path,data.cFileName,wfd0.cFileName);
+              HANDLE hfic1 = FindFirstFile(tmp_path3, &wfd1);
+              if (hfic1 != INVALID_HANDLE_VALUE)
+              {
+                do
+                {
+                  snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\Application Data\\Mozilla\\Firefox\\Profiles\\%s\\%s",path,data.cFileName,wfd0.cFileName,wfd1.cFileName);
+                  snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\Firefox\\%s_%s_%s",computername,data.cFileName,wfd0.cFileName,wfd1.cFileName);
+
+                  addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+                  SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+                }while(FindNextFile (hfic1,&wfd1));
+                FindClose(hfic1);
+              }
+            }
+          }while(FindNextFile (hfic0,&wfd0));
+          FindClose(hfic0);
+        }
+        //chrome
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\Local Settings\\Application Data\\Google\\Chrome\\User Data\\default\\*.*",path,data.cFileName);
+        hfic0 = FindFirstFile(tmp_path2, &wfd0);
+        if (hfic0 != INVALID_HANDLE_VALUE)
+        {
+          //for each file !
+          do
+          {
+            if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY){} //only the files
+            else
+            {
+              snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\Local Settings\\Application Data\\Google\\Chrome\\User Data\\default\\%s",path,data.cFileName,wfd0.cFileName);
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\Google\\%s_%s",computername,data.cFileName,wfd0.cFileName);
+
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+            }
+          }while(FindNextFile (hfic0,&wfd0));
+          FindClose(hfic0);
+        }
+        //IE cookies
+        snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\Cookies\\index.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_index.dat",computername,data.cFileName);
+        addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+        snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\AppData\\Roaming\\Microsoft\\Windows\\Cookies\\PrivacIE\\index.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Cookies_PrivacIE_index.dat",computername,data.cFileName);
+        addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+        snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\AppData\\Local\\Microsoft\\Internet Explorer\\DOMStore\\index.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_DOMStore_index.dat",computername,data.cFileName);
+        addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+        snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\AppData\\Local\\Microsoft\\Feeds Cache\\index.dat",path,data.cFileName);
+        snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_Feeds_Cache_index.dat",computername,data.cFileName);
+        addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+
+        //search other files for IE
+        snprintf(tmp_path2,MAX_PATH,"%s\\%s\\Local Settings\\Historique\\*.*",path,data.cFileName);
+        hfic0 = FindFirstFile(tmp_path2, &wfd0);
+        if (hfic0 != INVALID_HANDLE_VALUE)
+        {
+          //for each file !
+          do
+          {
+            if (wfd0.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+            {
+              snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\Local Settings\\Historique\\%s\\index.dat",path,data.cFileName,wfd0.cFileName);
+              snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_%s",computername,data.cFileName,wfd0.cFileName);
+
+              addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+
+              //next path if exist
+              snprintf(tmp_path3,MAX_PATH,"%s\\%s\\Local Settings\\Historique\\%s\\*.*",path,data.cFileName,wfd0.cFileName);
+              HANDLE hfic1 = FindFirstFile(tmp_path3, &wfd1);
+              if (hfic1 != INVALID_HANDLE_VALUE)
+              {
+                do
+                {
+                  if (wfd1.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+                  {
+                    snprintf(tmp_path_src,MAX_PATH,"%s\\%s\\Local Settings\\Historique\\%s\\%s\\index.dat",path,data.cFileName,wfd0.cFileName,wfd1.cFileName);
+                    snprintf(tmp_path_dst,MAX_PATH,"%s\\Navigator\\IE\\%s_%s_%s",computername,data.cFileName,wfd0.cFileName,wfd1.cFileName);
+
+                    addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)tmp_path2,0, 2);
+                    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_src);
+                  }
+                }while(FindNextFile (hfic1,&wfd1));
+                FindClose(hfic1);
+              }
+            }
+          }while(FindNextFile (hfic0,&wfd0));
+          FindClose(hfic0);
+        }
+
+      }
+    }while(FindNextFile (hfic,&data));
+    FindClose(hfic);
   }
 }
 //------------------------------------------------------------------------------
@@ -1683,7 +1821,7 @@ void SaveALL(char*filetosave, char *computername)
     //job
     CopyJobToZIP(hz,s,local_path,computername,MyhFile);
 
-    //NTDIS.DIT
+    //NTDS.DIT
     s = tmp_path;
     tmp_path[0] = 0;
     if(!ReadValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters", "DSA Database File", tmp_path, MAX_PATH))
@@ -1720,6 +1858,132 @@ void SaveALL(char*filetosave, char *computername)
   }
 }
 //------------------------------------------------------------------------------
+void SaveAllTRVFilesToZip(char*filetosave)
+{
+  BACKUP_FILE_LIST_started = TRUE;
+  void *hz;
+  if (createZip(&hz, (void *)filetosave,0,2,"")==0)
+  {
+    //list all trv items !
+    char tmp_files_src[MAX_PATH];
+    HTREEITEM hitem;
+    unsigned int i;
+
+    //get local directory
+    DWORD copiee;
+    char local_path[MAX_PATH]="",file[MAX_PATH];
+    snprintf(file,MAX_PATH,"%s\\log.txt",GetLocalPath(local_path, MAX_PATH));
+    HANDLE MyhFile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+
+    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"Backup files...");
+
+    for (i=0; i<4; i++)
+    {
+      hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[i]);
+      while(hitem!=NULL && BACKUP_FILE_LIST_started)
+      {
+        tmp_files_src[0] = 0;
+        if (GetTextFromTrv(hitem, tmp_files_src, MAX_PATH) != NULL)
+        {
+          //if (GetFileAttributes(tmp_files_src)&FILE_ATTRIBUTE_DIRECTORY == 0)
+          {
+            if (MyhFile != INVALID_HANDLE_VALUE)
+            {
+              WriteFile(MyhFile,tmp_files_src,strlen(tmp_files_src),&copiee,0);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
+            }
+
+            SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)tmp_files_src);
+            addSrc((TZIP *)hz,(void *)(tmp_files_src+3),(void *)tmp_files_src,0, 2); //pass "c:\"
+          }
+        }
+        hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
+      }
+    }
+    //clean
+    CloseHandle(MyhFile);
+    addSrc((TZIP *)hz,  (void *)"log.txt", (void *)file,0, 2);
+    DeleteFile(file);
+    ZipClose(hz);
+
+    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"Copy of all files done !");
+  }
+  BACKUP_FILE_LIST_started = FALSE;
+}
+//------------------------------------------------------------------------------
+void SaveALLCustom(char*filetosave, char *computername, char *path)
+{
+  BACKUP_PATH_started = TRUE;
+  void *hz;
+  if (createZip(&hz, (void *)filetosave,0,2,"")==0)
+  {
+    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"Backup files...");
+
+    //get local directory
+    char local_path[MAX_PATH]="",file[MAX_PATH];
+    snprintf(file,MAX_PATH,"%s\\log.txt",GetLocalPath(local_path, MAX_PATH));
+    HANDLE MyhFile = CreateFile(file, GENERIC_WRITE, FILE_SHARE_WRITE|FILE_SHARE_READ, NULL, CREATE_ALWAYS,FILE_ATTRIBUTE_NORMAL, 0);
+
+    //copy
+    char tmp_path[MAX_PATH]="";
+    char *s = tmp_path;
+    snprintf(tmp_path,MAX_PATH, "%swindows",path);
+
+    //evt + evtx
+    CopyEvtToZIP(hz,s,local_path,computername,MyhFile);
+    CopyEvtxToZIP(hz,s,local_path,computername,MyhFile);
+    //system logs
+    CopySetupApiToZIP(hz,s,computername,MyhFile);
+    CopyfirewallLogZIP(hz,s,computername,MyhFile);
+    //prefetch
+    CopyPrefetchToZIP(hz,s,local_path,computername,MyhFile);
+    //job
+    CopyJobToZIP(hz,s,local_path,computername,MyhFile);
+    //AD NTDS.DIT
+    snprintf(tmp_path,MAX_PATH, "%swindows\\System32\\Ntds.dit",path);
+    CopyNTDISToZIP(hz,s,local_path,computername,MyhFile);
+
+    //registry hives
+    char tmp_src[MAX_PATH], tmp_dst[MAX_PATH], tmp_file[MAX_PATH];
+
+    snprintf(tmp_src,MAX_PATH,"%s\\SYSTEM",tmp_path);
+    snprintf(tmp_file,MAX_PATH,"%s\\Registry\\SYSTEM",computername);
+    addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+    snprintf(tmp_src,MAX_PATH,"%s\\SOFTWARE",tmp_path);
+    snprintf(tmp_file,MAX_PATH,"%s\\Registry\\SOFTWARE",computername);
+    addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+    snprintf(tmp_src,MAX_PATH,"%s\\SECURITY",tmp_path);
+    snprintf(tmp_file,MAX_PATH,"%s\\Registry\\SECURITY",computername);
+    addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+    snprintf(tmp_src,MAX_PATH,"%s\\SAM",tmp_path);
+    snprintf(tmp_file,MAX_PATH,"%s\\Registry\\SAM",computername);
+    addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+    snprintf(tmp_src,MAX_PATH,"%s\\DEFAULT",tmp_path);
+    snprintf(tmp_file,MAX_PATH,"%s\\Registry\\DEFAULT",computername);
+    addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+    //registry users
+    snprintf(tmp_src,MAX_PATH,"%s\\Documents and Settings\\*.*",path);
+    snprintf(tmp_dst,MAX_PATH,"%s\\Documents and Settings",path);
+    CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, tmp_src, tmp_dst);
+    CopyNavigatorHistoryCustomPathToZIP(hz,local_path,computername,MyhFile, tmp_src, tmp_dst); //navigator
+    snprintf(tmp_src,MAX_PATH,"%s\\Users\\*.*",path);
+    snprintf(tmp_dst,MAX_PATH,"%s\\Users",path);
+    CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, tmp_src, tmp_dst);
+    CopyNavigatorHistoryCustomPathToZIP(hz,local_path,computername,MyhFile, tmp_src, tmp_dst); //navigator
+
+    //clean
+    CloseHandle(MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\log.txt",computername);
+    addSrc((TZIP *)hz,  (void *)tmp_path, (void *)file,0, 2);
+    DeleteFile(file);
+    ZipClose(hz);
+
+    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"Copy of all files done !");
+    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"");
+  }
+  BACKUP_PATH_started = FALSE;
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI BackupAllFiles(LPVOID lParam)
 {
   char file[MAX_PATH]="";
@@ -1732,7 +1996,7 @@ DWORD WINAPI BackupAllFiles(LPVOID lParam)
     ofn.lpstrFilter ="*.zip\0*.zip\0";
   ofn.nFilterIndex = 1;
   ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-  ofn.lpstrDefExt =".zip\0";
+  ofn.lpstrDefExt ="zip\0";
   if (GetSaveFileName(&ofn)==TRUE)
   {
     //get computername

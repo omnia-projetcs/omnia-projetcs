@@ -504,6 +504,63 @@ void FileToSHA256(char *path, char *csha256)
   }
 }
 //-----------------------------------------------------------------------------
+void FileToSHA256_noTM(char *path, char *csha256)
+{
+  //ouverture du fichier en lecture partagé
+  csha256[0]=0;
+  HANDLE Hfic = CreateFile(path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+  if (Hfic != INVALID_HANDLE_VALUE)
+  {
+    DWORD taille_fic = GetFileSize(Hfic,NULL);
+    if (taille_fic>0 && /*taille_fic!=INVALID_FILE_SIZE &&*/ taille_fic<MAX_FILE_SIZE_HASH)
+    {
+      unsigned char *buffer = (LPBYTE)HeapAlloc(GetProcessHeap(), 0, sizeof(unsigned char*)*taille_fic+1);
+      if (buffer == NULL)
+      {
+        CloseHandle(Hfic);
+        return;
+      }
+
+      BOOL OKW = FALSE;
+      FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
+      if (GetFileTime(Hfic, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+
+      //lecture du fichier
+      DWORD copiee, position = 0, increm = 0;
+      if (taille_fic > DIXM)increm = DIXM;
+      else increm = taille_fic;
+
+      while (position<taille_fic && increm!=0)//gestion pour éviter les bug de sync permet une ouverture de fichiers énormes ^^
+      {
+        copiee = 0;
+        ReadFile(Hfic, buffer+position, increm,&copiee,0);
+        position +=copiee;
+        if (taille_fic-position < increm)increm = taille_fic-position ;
+      }
+
+      //traitement en SHA256
+      sha256_ctx    m_sha256;
+      unsigned char digest[32];
+
+      sha256_begin(&m_sha256);
+      sha256_hash(buffer, taille_fic, &m_sha256);
+      sha256_end(digest, &m_sha256);
+
+      //génération du SHA256 en chaine
+      unsigned short i;
+      for(i=0;i<32;i++)snprintf(csha256+i*2,3,"%02x",digest[i]&0xFF);
+      csha256[64]=0;
+      HeapFree(GetProcessHeap(), 0,buffer);
+
+      if (OKW)
+      {
+        SetFileTime(Hfic, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      }
+    }
+    CloseHandle(Hfic);
+  }else FileToSHA256(path, csha256);
+}
+//-----------------------------------------------------------------------------
 void SidtoUser(PSID psid, char *user, char *rid, char *sid, unsigned int max_size)
 {
   if (psid == NULL) return;
@@ -855,6 +912,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
       CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
+  FindClose(hfic);
 }
 //------------------------------------------------------------------------------
 void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
@@ -994,6 +1052,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
       CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
+  FindClose(hfic);
 }
 //------------------------------------------------------------------------------
 void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session_id, sqlite3 *db)
@@ -1102,6 +1161,7 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
     }
     CloseHandle(Hficw);
   }
+  FindClose(hfic);
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI Scan_files(LPVOID lParam)

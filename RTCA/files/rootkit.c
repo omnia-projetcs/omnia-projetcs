@@ -39,7 +39,7 @@ void addNewRootkitToDB(HANDLE hlstv, char *filename, char*sha256, char* descript
   lvi.lParam = LVM_SORTITEMS;
   lvi.pszText="";
   lvi.iItem = ListView_GetItemCount(hlstv);
-  unsigned int i=0, ref_item = ListView_InsertItem(hlstv, &lvi);
+  unsigned int ref_item = ListView_InsertItem(hlstv, &lvi);
 
   ListView_SetItemText(hlstv,ref_item,0,filename);
   ListView_SetItemText(hlstv,ref_item,1,sha256);

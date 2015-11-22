@@ -142,6 +142,7 @@ DWORD WINAPI LoadHexaFile(LPVOID lParam)
       ref_item = ListView_InsertItem(hlv, &lvi);
       ListView_SetItemText(hlv,ref_item,0,"FileDescription:");
       ListView_SetItemText(hlv,ref_item,1,t3);
+      FindClose(hfic);
     }
 
     //load file and write line in lsv

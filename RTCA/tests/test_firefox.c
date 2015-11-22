@@ -169,8 +169,10 @@ DWORD WINAPI Scan_firefox_history(LPVOID lParam)
                         }
                       }
                     }while(FindNextFile (hfic2,&wfd) && start_scan);
+                    FindClose(hfic2);
                   }
                 }
+                FindClose(hfic);
               }
             }
           }

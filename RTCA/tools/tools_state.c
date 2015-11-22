@@ -1047,9 +1047,8 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
 DWORD WINAPI Load_state(LPVOID lParam)
 {
   long int nb_items     = SendDlgItemMessage(h_state,DLG_STATE_LB_TEST,LB_GETCOUNT,0,(LPARAM)0);
-  long int nb_sessions  = SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETCOUNT,0,(LPARAM)0);
+  long int i, s, nb_sessions  = SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETCOUNT,0,(LPARAM)0);
 
-  DWORD i, s;
   FORMAT_CALBAK_READ_INFO fcri;
   char request[MAX_LINE_SIZE];
 
@@ -1218,7 +1217,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))SaveLSTV(GetDlgItem(hwnd,DLG_STATE_LV_ALL), file, ofn.nFilterIndex, 7);
@@ -1242,7 +1241,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 ofn.lpstrFilter ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0";
                 ofn.nFilterIndex = 1;
                 ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-                ofn.lpstrDefExt =".csv\0";
+                ofn.lpstrDefExt ="csv\0";
                 if (GetSaveFileName(&ofn)==TRUE)
                 {
                   if (IsWindowVisible(GetDlgItem(hwnd,DLG_STATE_LV_ALL)))SaveLSTVSelectedItems(GetDlgItem(hwnd,DLG_STATE_LV_ALL), file, ofn.nFilterIndex, 7);

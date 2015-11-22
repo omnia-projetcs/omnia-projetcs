@@ -54,6 +54,7 @@ DWORD WINAPI Scan_pipe(LPVOID lParam)
 
     addPipetoDB(pipe, owner, rid, sid, session_id, db);
   }while(FindNextFile (hfic,&data));
+  FindClose(hfic);
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

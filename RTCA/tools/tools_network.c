@@ -1670,7 +1670,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0All datas *.html \0*.html\0";//*.pcap \0*.pcap\0";
               ofn.nFilterIndex = 1;
               ofn.Flags        = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrDefExt  =".csv\0";
+              ofn.lpstrDefExt  ="csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 if (ofn.nFilterIndex == SAVE_TYPE_PCAP)
@@ -1694,7 +1694,7 @@ BOOL CALLBACK DialogProc_sniff(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               ofn.lpstrFilter  ="*.csv \0*.csv\0*.xml \0*.xml\0*.html \0*.html\0All datas *.html \0*.html\0";//*.pcap \0*.pcap*/\0";
               ofn.nFilterIndex = 1;
               ofn.Flags        = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-              ofn.lpstrDefExt  =".csv\0";
+              ofn.lpstrDefExt  ="csv\0";
               if (GetSaveFileName(&ofn)==TRUE)
               {
                 if (ofn.nFilterIndex == SAVE_TYPE_PCAP)

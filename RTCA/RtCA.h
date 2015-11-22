@@ -218,6 +218,7 @@ HANDLE h_Hexa;
 #define BT_UTC_CHK               2017
 #define BT_MAGIC_CHK             2018
 #define BT_RA_CHK                2019
+#define EDT_NAME_SESSION         2020
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
@@ -474,6 +475,8 @@ HHOOK HHook; // Handle du hook global
 #define POPUP_TRV_FILES_DOWN                  11009
 #define POPUP_TRV_FILES_AUTO_SEARCH_PATH      11010
 #define POPUP_TRV_FILES_LOAD_LIST             11011
+#define POPUP_TRV_FILES_BACKUP                11012
+#define POPUP_TRV_FILES_BACKUP_PATH           11013
 
 #define POPUP_TRV_TEST                        11100
 #define POPUP_TRV_CHECK_ALL                   11101
@@ -745,7 +748,7 @@ typedef struct SORT_ST
 }sort_st;
 //------------------------------------------------------------------------------
 //for loading language in local component
-#define NB_COMPONENT_STRING         100
+#define NB_COMPONENT_STRING         104
 #define COMPONENT_STRING_MAX_SIZE   DEFAULT_TMP_SIZE
 
 #define TXT_OPEN_PATH               4
@@ -843,6 +846,12 @@ typedef struct SORT_ST
 #define TXT_CHECK_ROOTKIT               98
 #define TXT_CHECK_ALL_ROOTKIT           99
 
+#define TXT_POPUP_BACKUP_FILE_LIST      100
+#define TXT_POPUP_BACKUP_PATH           101
+
+#define TXT_POPUP_BACKUP_FILE_LIST_STOP 102
+#define TXT_POPUP_BACKUP_PATH_STOP      103
+
 typedef struct
 {
   char c[COMPONENT_STRING_MAX_SIZE];
@@ -859,7 +868,7 @@ COMPONENT_STRING cps[NB_COMPONENT_STRING];
 #define NLKM_STRING_DEF                       "607"
 #define REG_MSCACHE_STRING                     608
 
-
+BOOL BACKUP_PATH_started, BACKUP_FILE_LIST_started;
 //------------------------------------------------------------------------------
 //registry params
 #define TYPE_VALUE_STRING           0
@@ -1042,6 +1051,8 @@ unsigned long int current_session_id;
 unsigned long int nb_session, session[NB_MAX_SESSION];
 
 DWORD pos_search,pos_search_reg;
+char session_name_ch[MAX_PATH];
+char malware_check[MAX_PATH];
 //------------------------------------------------------------------------------
 //richedit
 //couleur
@@ -1089,7 +1100,6 @@ void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 //SQLITE functions
 void ExtractSQLITE_DB();
 char *convertStringToSQL(char *data, unsigned int size_max);
-int callback_write_sqlite(void *datas, int argc, char **argv, char **azColName);
 BOOL SQLITE_LireData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
 BOOL SQLITE_WriteData(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file);
 BOOL SQLITE_LoadSession(char *file);
@@ -1147,14 +1157,14 @@ void UpdateRtCA();
 void InitSQLStrings();
 void InitString();
 void InitGlobalLangueString(unsigned int langue_id);
-void InitGlobalConfig(unsigned int params, BOOL debug, BOOL acl, BOOL ads, BOOL sha, BOOL recovery, BOOL local_scan, BOOL utc);
+void InitGlobalConfig(BOOL acl, BOOL ads, BOOL sha, BOOL local_scan, BOOL utc);
 DWORD WINAPI InitGUIConfig(LPVOID lParam);
 void EndGUIConfig(HANDLE hwnd);
 BOOL isWine();
 
 //cmd function
 int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName);
-void AddNewSession(BOOL local_only, sqlite3 *db);
+void AddNewSession(BOOL local_only, char *name, sqlite3 *db);
 
 //mdp_save in ini file
 #define MDP_TEST        "zoo218745963zooTO"
@@ -1204,11 +1214,17 @@ void CleanTreeViewFiles(HANDLE htrv);
 void AddItemFiletoTreeView(HANDLE htv, char *lowcase_file, char *path, char *global_path);
 DWORD  WINAPI AutoSearchFiles(LPVOID lParam);
 void FileToSHA256(char *path, char *csha256);
+void FileToSHA256_noTM(char *path, char *csha256); //with no date time modify on the file MFT
 int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max);
 BOOL GetSHAandVerifyFromPathFile(char *path, char *sha256, char *verify, unsigned int buffer_max_sz);
 void ConsoleDirectory_sha256deep(char *tmp_path);
 BOOL dd(char *disk, char *file, LONGLONG file_sz_max, BOOL progress);
 void loadFile_test(char *file, unsigned int index);
+void SaveAllTRVFilesToZip(char*filetosave);
+void SaveALLCustom(char*filetosave, char *computername, char *path);
+
+BOOL VSSFileCopyFilefromPath(char *path_src, char *path_dst);
+
 //MFT
 ULONGLONG HexaToll(char *src, unsigned int nb);
 BOOL CopyFileFromMFT(HANDLE hfile, char *destination);
@@ -1289,7 +1305,8 @@ DWORD WINAPI CheckSelectedItemToVirusTotal(LPVOID lParam);
 BOOL CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, unsigned int colum_sav, char *token, BOOL check, BOOL check_all_lv_items);
 
 //DNS malware
-void MalwareCheck(char*name, char*malware_check, unsigned int malware_check_max_size);
+void MalwareCheck(char*name);
+BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag);
 
 //state
 void InitGuiState();

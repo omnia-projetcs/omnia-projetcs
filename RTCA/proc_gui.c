@@ -308,7 +308,7 @@ void check_treeview(HANDLE htrv, HTREEITEM hitem, int state)
 //------------------------------------------------------------------------------
 void check_childs_treeview(HANDLE htrv, BOOL check)
 {
-  int i=0, state = check?TRV_STATE_CHECK:TRV_STATE_UNCHECK;
+  unsigned int i=0, state = check?TRV_STATE_CHECK:TRV_STATE_UNCHECK;
   while (i<NB_TESTS)
   {
     check_treeview(htrv, H_tests[i++], state);

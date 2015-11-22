@@ -241,12 +241,12 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
         //verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",NULL,session_id,db);
-          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",NULL,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db);
+          Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db);
           CloseRegFiletoMem(&hks);
 
         }
