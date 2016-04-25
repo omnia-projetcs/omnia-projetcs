@@ -516,6 +516,7 @@ HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
 #define POPUP_COPY_TO_CLIPBORD                    8
 #define POPUP_CP_LINE                         13005
 #define POPUP_TV_CP_COMPLET_PATH              13006
+#define POPUP_TV_CP_VALUE_AND_DATA            13007
 
 #define POPUP_I_00                            13010
 #define POPUP_I_01                            13011
@@ -877,6 +878,7 @@ BOOL BACKUP_PATH_started, BACKUP_FILE_LIST_started;
 #define TYPE_VALUE_WSTRING          3
 #define TYPE_VALUE_FILETIME         4
 #define TYPE_VALUE_MULTI_WSTRING    5
+#define TYPE_VALUE_DWORD_TIME       6
 
 #define TYPE_VALUE_WIN_SERIAL       100
 #define TYPE_ENUM_SUBNK_DATE        101
@@ -983,9 +985,10 @@ typedef struct
 
 typedef struct
 {
-  char sql[MAX_PATH];
+  char sql[MAX_PATH];           //utc
   char params[MAX_PATH];
   DWORD test_string_id;
+  char sql_localtime[MAX_PATH];
 }SQL_REQ;
 
 typedef struct
@@ -1116,6 +1119,7 @@ void addFiletoDB(char *path, char *file, char *extension,
 void GetColumnInfo(unsigned int id);
 
 //save function
+char *GenerateNameToSave(char *name, DWORD name_max_size, char *ext);
 BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
 BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
 BOOL SaveTRV(HANDLE htv, char *file, unsigned int type);

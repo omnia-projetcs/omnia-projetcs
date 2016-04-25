@@ -99,7 +99,7 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
     {
       S_ITEM_LS *item_ls = (S_ITEM_LS *)&buffer[nk_h->val_ls_offset+pos_fhbin+index*HBIN_CELL_ITEM_LS-HBIN_HEADER_SIZE+4];
 
-      if (item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE < taille_fic)
+      if (item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE+sizeof(HBIN_CELL_VK_HEADER) < taille_fic)
       {
         HBIN_CELL_VK_HEADER *vk_h = (HBIN_CELL_VK_HEADER *)&buffer[item_ls->val_of+pos_fhbin-HBIN_HEADER_SIZE];
         if (vk_h->type == 0x6B76)
@@ -119,7 +119,7 @@ DWORD GetValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk_h, DW
           }
 
           //get data
-          if (data!=NULL && data_size > 0)
+          if (data_size > 0)
           {
             DWORD type = GetRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
             if (data[0] != 0)return type;
@@ -315,6 +315,7 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
   if (data_size<5)return FALSE;
   if (vk_h->type != 0x6B76)return FALSE;
   if (vk_h->data_size > 0 && ((vk_h->data_offset > 0 && pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE < taille_fic) || vk_h->data_size < 5))
+  {
     switch(vk_h->data_type)
     {
       //Chaines
@@ -391,25 +392,34 @@ DWORD GetRegistryData(HBIN_CELL_VK_HEADER *vk_h, DWORD taille_fic, char *buffer,
         break;
         case 0x0000000b : //REG_QWORD, données numériques 64bits signées
         {
-          char *c = &buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE];
-          snprintf(data,data_size,"0x%02X%02X%02X%02X%02X%02X%02X%02X",c[7]&0xff,c[6]&0xff,c[5]&0xff,c[4]&0xff,c[3]&0xff,c[2]&0xff,c[1]&0xff,c[0]&0xff);
+          if (vk_h->data_offset > 0 && vk_h->data_offset < taille_fic)
+          {
+            char *c = &buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE];
+            snprintf(data,data_size,"0x%02X%02X%02X%02X%02X%02X%02X%02X",c[7]&0xff,c[6]&0xff,c[5]&0xff,c[4]&0xff,c[3]&0xff,c[2]&0xff,c[1]&0xff,c[0]&0xff);
+          }else data[0] = 0;
         }
         break;
         default :
         //on ajoute pas au liste view les éléments inconnus non valides
         {
-          char tmp[11];
-          unsigned int k;
-          for (k=0;k<vk_h->data_size && k/2<data_size;k++)
+          if (vk_h->data_size < 0xFFFFFFFF && vk_h->data_offset > 0 && vk_h->data_offset < taille_fic)
           {
-            snprintf(tmp,10,"%02X",buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-            strncat(data,tmp,data_size);
+            char tmp[11];
+            unsigned int k;
+            for (k=0;k<vk_h->data_size && k/2<data_size;k++)
+            {
+              snprintf(tmp,10,"%02X",buffer[pos_fhbin-HBIN_HEADER_SIZE+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
+              strncat(data,tmp,data_size);
+            }
+            strncat(data,"\0",data_size);
           }
-          strncat(data,"\0",data_size);
         }
         break;
     }
-  return vk_h->data_type;
+   return vk_h->data_type;
+  }
+
+  return FALSE;
 }
 //------------------------------------------------------------------------------
 BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin, char *reg_path, HBIN_CELL_NK_HEADER *nk_h_t,

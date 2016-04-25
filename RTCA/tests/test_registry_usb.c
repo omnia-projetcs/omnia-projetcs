@@ -17,6 +17,7 @@ void addRegistryUSBtoDB(char *file, char *hk, char *key, char *name,
            "INSERT INTO extract_registry_usb (file,hk,key,name,vendor_id,product_id,description,pusb,lecteur,last_use,session_id) "
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
            file,hk,key,name,vendor_id,product_id,description,pusb,lecteur,last_use,session_id);
+
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
   printf("\"USB\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",
@@ -26,7 +27,7 @@ void addRegistryUSBtoDB(char *file, char *hk, char *key, char *name,
 //------------------------------------------------------------------------------
 //local function part !!!
 //------------------------------------------------------------------------------
-void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *product_id,DWORD product_id_size,
+void SearchVidPid_local(char *s_key,char *s_key_,char *vendor_id,DWORD vendor_id_size,char *product_id,DWORD product_id_size,
                         char *pusb,DWORD pusb_size,char *lecteur,DWORD lecteur_size)
 {
   //prepare real key
@@ -42,7 +43,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
 
   //search the vkey
   HKEY CleTmp,CleTmp2;
-  if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Enum\\USB",&CleTmp)!=ERROR_SUCCESS)return;
+  if (RegOpenKey(HKEY_LOCAL_MACHINE,s_key_,&CleTmp)!=ERROR_SUCCESS)return;
 
   DWORD i,j,nbSubKey=0,nbSubKey2,key_size,key_size2;
   if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
@@ -58,7 +59,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
       if (key_size < 17)continue;
 
       //sub key
-      snprintf(tmp_key,MAX_PATH,"SYSTEM\\CurrentControlSet\\Enum\\USB\\%s",key);
+      snprintf(tmp_key,MAX_PATH,"%s\\%s",s_key_,key);
 
       if (RegOpenKey(HKEY_LOCAL_MACHINE,tmp_key,&CleTmp2)!=ERROR_SUCCESS)continue;
       nbSubKey2 = 0;
@@ -138,7 +139,7 @@ void SearchVidPid_local(char *s_key,char *vendor_id,DWORD vendor_id_size,char *p
   RegCloseKey(CleTmp);
 }
 //------------------------------------------------------------------------------
-void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sqlite3 *db)
+void EnumUSB_local(HKEY hk, char *s_hk, char *path, char *path2, unsigned int session_id, sqlite3 *db)
 {
   HKEY CleTmp,CleTmp2;
   if (RegOpenKey(hk,path,&CleTmp)!=ERROR_SUCCESS)return;
@@ -169,32 +170,46 @@ void EnumUSB_local(HKEY hk, char *s_hk, char *path, unsigned int session_id, sql
           key2[0]   = 0;
           if (RegEnumKeyEx (CleTmp2,j,key2,&key_size2,0,0,0,0)==ERROR_SUCCESS)
           {
-            snprintf(tmp_key2,MAX_PATH,"%s\\%s",tmp_key,key2);
-
-            //last update
-            lastupdate[0] = 0;
-            name[0]       = 0;
-            vendor_id[0]  = 0;
-            product_id[0] = 0;
-            description[0]= 0;
-            description1[0]= 0;
-            description2[0]= 0;
-            pusb[0]       = 0;
-            lecteur[0]    = 0;
-
-            if (ReadValue(hk,tmp_key2,"Class",description1, MAX_PATH))
+            //get only usefull keys ##?#STORAGE#VOLUME#_??_USBSTOR
+            if (key2[0] == '#' && key2[1] == '#' && key2[4] == 'U' && key2[5] == 'S' && key2[11] == '#')
             {
+              snprintf(tmp_key2,MAX_PATH,"%s\\%s",tmp_key,key2);
+
+              //last update
+              lastupdate[0] = 0;
+              name[0]       = 0;
+              vendor_id[0]  = 0;
+              product_id[0] = 0;
+              description[0]= 0;
+              description1[0]= 0;
+              description2[0]= 0;
+              pusb[0]       = 0;
+              lecteur[0]    = 0;
               ReadKeyUpdate(hk,tmp_key2, lastupdate, DATE_SIZE_MAX);
 
-              ReadValue(hk,tmp_key2,"Mfg",description2, MAX_PATH);
-              snprintf(description,MAX_PATH,"%s %s (%s)",description1,description2,key);
+              //infos
+              char cGUID[MAX_PATH]="";
+              char cid[MAX_PATH]="", path_t[MAX_PATH], path_[MAX_PATH];
+              GetStorageInfos(key2, vendor_id, product_id, cid, cGUID, path_t, MAX_PATH);
 
-              ReadValue(hk,tmp_key2,"FriendlyName",name, MAX_PATH);
+              //get name
+              //HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Enum\USBSTOR\Disk&Ven_SAMSUNG&Prod_GT-S5830_Card&Rev_0100\S5830321243d6&0\FriendlyName=SAMSUNG GT-S5830 Card USB Device
+              snprintf(path_, MAX_PATH, "%s\\%s\\%s",path2,path_t,cid);
 
-              SearchVidPid_local(key2,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
+              ReadValue(hk,path_,"Class"        ,description1, MAX_PATH);
+              ReadValue(hk,path_,"Mfg"          ,description2, MAX_PATH);
+              ReadValue(hk,path_,"FriendlyName" ,name, MAX_PATH);
+              snprintf(description,MAX_PATH,"%s %s %s",description1,description2,path_t);
+
+              char t_ckey[MAX_PATH];
+              snprintf(t_ckey, MAX_PATH, "%s", path2);
+              t_ckey[strlen(t_ckey)-4] = 0; // remove STOR from SUBSTOR path
+
+              SearchVidPid_local(cid,t_ckey,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
 
               convertStringToSQL(description, MAX_PATH);
-              addRegistryUSBtoDB("", s_hk, tmp_key2, name, vendor_id, product_id, description, pusb, lecteur,lastupdate,session_id, db);
+              //addRegistryUSBtoDB("", s_hk, tmp_key2, name, vendor_id, product_id, description, key2, lecteur,lastupdate,session_id, db);
+              addRegistryUSBtoDB("", s_hk, tmp_key2, name, vendor_id, product_id, description, cid, lecteur,lastupdate,session_id, db);
             }
           }
         }
@@ -306,6 +321,56 @@ void SearchVidPid_file(HK_F_OPEN *hks, char *ckey, char *s_key, char *vendor_id,
   }
 }
 //------------------------------------------------------------------------------
+BOOL GetStorageInfos(char *infos, char *vendor, char*product, char *id, char* GUID, char *path_t, unsigned int sz_max)
+{
+  //##?#USBSTOR#Disk&Ven_&Prod_USB_Flash_Memory&Rev_6.50#0490C27002D08922&0#{53f56307-b6bf-11d0-94f2-00a0c91efb8b}
+  char *c = infos;
+  c+=12;    // pass ##?#USBSTOR#
+  snprintf(path_t, sz_max, "%s", c);
+  c = path_t;
+  while (*c != '#' && *c)c++;
+  if (*c == '#') *c = 0;
+
+  c = infos;
+  c+=21;  // pass ##?#USBSTOR#Disk&Ven_
+  snprintf(vendor,sz_max,"%s",c);
+  c = vendor;
+  while (*c != '&' && *c)c++;
+  if (*c == '&')
+  {
+    *c = 0;
+    c+=6; //pass &Prod_
+    snprintf(product,sz_max,"%s",c);
+
+    c = product;
+    while (*c != '&' && *c)c++;
+    if (*c == '&')
+    {
+      *c = 0;
+      c++;
+
+      //ID
+      while (*c != '#' && *c)c++;
+      if (*c == '#')
+      {
+        c++;
+        snprintf(id,sz_max,"%s",c);
+        c = id;
+
+        while (*c != '#' && *c)c++;
+        if (*c == '#')
+        {
+          *c =0;
+          c++;
+          snprintf(GUID,sz_max,"%s",c);
+          return TRUE;
+        }
+      }
+    }
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
 void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_id, sqlite3 *db)
 {
   //exist or not in the file ?
@@ -314,7 +379,7 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
 
   char key_path[MAX_PATH];
   char lastupdate[DATE_SIZE_MAX],name[MAX_PATH],vendor_id[MAX_PATH],product_id[MAX_PATH],
-       description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH],pusb[MAX_PATH],lecteur[MAX_PATH];
+       description[MAX_PATH],description1[MAX_PATH],description2[MAX_PATH],pusb[MAX_PATH],lecteur[MAX_PATH], path_t[MAX_PATH], path_[MAX_PATH];
 
   char tmp_key[MAX_PATH], tmp_key2[MAX_PATH];
   HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
@@ -334,27 +399,39 @@ void EnumUSB_file(HK_F_OPEN *hks, char*ckey, char *_ckey, unsigned int session_i
         //for each subkey
         if(GetSubNK(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j, tmp_key2, MAX_PATH))
         {
-          //get nk of key :)
-          nk_h_tmp2 = GetSubNKtonk(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j);
-          if (nk_h_tmp2 == NULL)continue;
-
-          if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"Class", description1, MAX_PATH))
+          //get only usefull keys ##?#STORAGE#VOLUME#_??_USBSTOR
+          if (tmp_key2[0] == '#' && tmp_key2[1] == '#' && tmp_key2[4] == 'U' && tmp_key2[5] == 'S' && tmp_key2[11] == '#')
           {
-            //read datas ^^
-            snprintf(key_path,MAX_PATH,"%s\\%s\\%s",ckey,tmp_key,tmp_key2);
+            //get nk of key :)
+            nk_h_tmp2 = GetSubNKtonk(hks->buffer, hks->taille_fic, nk_h_tmp, hks->position, j);
+            if (nk_h_tmp2 == NULL)continue;
 
             Readnk_Infos(hks->buffer, hks->taille_fic, (hks->pos_fhbin), hks->position, NULL, nk_h_tmp2,
                          lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
 
-            Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"Mfg", description2, MAX_PATH);
-            snprintf(description,MAX_PATH,"%s %s (%s)",description1,description2,tmp_key);
+            snprintf(key_path,MAX_PATH,"%s\\%s\\%s",ckey,tmp_key,tmp_key2);
 
-            Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp2,"FriendlyName", name, MAX_PATH);
+            char cGUID[MAX_PATH]="";
+            char cid[MAX_PATH]="";
+            GetStorageInfos(tmp_key2, vendor_id, product_id, cid, cGUID, path_t, MAX_PATH);
 
-            SearchVidPid_file(hks, _ckey, tmp_key2,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
+            //get name
+            //HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Enum\USBSTOR\Disk&Ven_SAMSUNG&Prod_GT-S5830_Card&Rev_0100\S5830321243d6&0\FriendlyName=SAMSUNG GT-S5830 Card USB Device
+            snprintf(path_, MAX_PATH, "%s\\%s\\%s",_ckey,path_t,cid);
+
+            Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, path_, NULL,"Class", description1, MAX_PATH);
+            Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, path_, NULL,"Mfg", description2, MAX_PATH);
+            Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, path_, NULL,"FriendlyName", name, MAX_PATH);
+            snprintf(description,MAX_PATH,"%s %s (%s)",description1,description2,path_t);
+
+            char t_ckey[MAX_PATH];
+            snprintf(t_ckey, MAX_PATH, "%s", _ckey);
+            t_ckey[strlen(t_ckey)-4] = 0; // remove STOR from SUBSTOR path
+
+            SearchVidPid_file(hks, t_ckey, cid,vendor_id,MAX_PATH,product_id,MAX_PATH,pusb,MAX_PATH,lecteur,MAX_PATH);
 
             convertStringToSQL(description, MAX_PATH);
-            addRegistryUSBtoDB(hks->file, "", key_path, name, vendor_id, product_id, description,pusb,lecteur, lastupdate, session_id, db);
+            addRegistryUSBtoDB(hks->file, "", key_path, name, vendor_id, product_id, description,cid,lecteur, lastupdate, session_id, db);
           }
         }
       }
@@ -386,14 +463,13 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
       GetTextFromTrv(hitem, file, MAX_PATH);
       if (file[0] != 0)
       {
-
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          EnumUSB_file(&hks,"ControlSet001\\Enum\\USBSTOR", "ControlSet001\\Enum\\USB", session_id, db);
-          EnumUSB_file(&hks,"ControlSet002\\Enum\\USBSTOR", "ControlSet002\\Enum\\USB", session_id, db);
-          EnumUSB_file(&hks,"ControlSet003\\Enum\\USBSTOR", "ControlSet003\\Enum\\USB", session_id, db);
-          EnumUSB_file(&hks,"ControlSet004\\Enum\\USBSTOR", "ControlSet004\\Enum\\USB", session_id, db);
+          EnumUSB_file(&hks,"ControlSet001\\Control\\DeviceClasses",  "ControlSet001\\Enum\\USBSTOR", session_id, db);
+          EnumUSB_file(&hks,"ControlSet002\\Control\\DeviceClasses",  "ControlSet002\\Enum\\USBSTOR", session_id, db);
+          EnumUSB_file(&hks,"ControlSet003\\Control\\DeviceClasses",  "ControlSet003\\Enum\\USBSTOR", session_id, db);
+          EnumUSB_file(&hks,"ControlSet004\\Control\\DeviceClasses",  "ControlSet004\\Enum\\USBSTOR", session_id, db);
           CloseRegFiletoMem(&hks);
         }
       }
@@ -401,7 +477,7 @@ DWORD WINAPI Scan_registry_usb(LPVOID lParam)
     }
   }else
   {
-    EnumUSB_local(HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE", "SYSTEM\\CurrentControlSet\\Enum\\USBSTOR", session_id, db);
+    EnumUSB_local(HKEY_LOCAL_MACHINE, "HKEY_LOCAL_MACHINE", "SYSTEM\\CurrentControlSet\\Control\\DeviceClasses", "SYSTEM\\CurrentControlSet\\Enum\\USBSTOR", session_id, db);
   }
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

@@ -34,6 +34,15 @@
     DWORD file_exec_counter2;    //usefull                  //0x98
     DWORD nb_sections2;                                     //0x9C-0xA0
   }HDR_PREFETCH;
+
+  typedef struct
+  {
+    char header[3];                                         //"MAM"
+
+
+  }HDR_PREFETCH_W10;
+
+
 //------------------------------------------------------------------------------
 void addPrefetchtoDB(char *file, char *create_time, char *last_update, char*last_access, DWORD count, char *exec, char *depend, char *path_application, unsigned int session_id, sqlite3 *db)
 {
@@ -71,24 +80,13 @@ void PfCheck(unsigned int session_id, sqlite3 *db, char *file)
       HDR_PREFETCH *pf;
       char *b, *e;
 
-      char application_name[PREFETCH_APPLI_NAME_MAX_SIZE+1], path_application[MAX_PATH], path_depend[MAX_PATH];
+      char application_name[PREFETCH_APPLI_NAME_MAX_SIZE+1], path_application[MAX_PATH]="", path_depend[MAX_PATH]="";
       BOOL ok_path_application = FALSE;
 
       buffer = malloc(sizeof(char)*sz_prefetch_file+1);
       if (buffer!=NULL)
       {
         ReadFile(hfile, buffer, sz_prefetch_file,&copiee,0);
-        pf = (HDR_PREFETCH*)buffer;
-
-        if (pf->v_number > 0x11) //0x17 after winxp/2003 (+8octets)
-        {
-          count = pf->file_exec_counter2;
-          filetimeToString_GMT(pf->last_file_exec2, exec_time, DATE_SIZE_MAX);
-        }else
-        {
-          count = pf->file_exec_counter;
-          filetimeToString_GMT(pf->last_file_exec, exec_time, DATE_SIZE_MAX);
-        }
 
         //file times
         BY_HANDLE_FILE_INFORMATION hfi;
@@ -99,51 +97,73 @@ void PfCheck(unsigned int session_id, sqlite3 *db, char *file)
           filetimeToString_GMT(hfi.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
         }
 
-        snprintf(application_name,PREFETCH_APPLI_NAME_MAX_SIZE,"%S",pf->filename);
-        application_name[PREFETCH_APPLI_NAME_MAX_SIZE]=0;
-
-        //search in path datas if name exist
-        ok_path_application = FALSE;
-        b = buffer+pf->secC_off;                  //start of datas
-        e = buffer+pf->secC_off+pf->secC_size;    //end of datas
-        DWORD size_depend = (e-b);
-        if (size_depend <= sz_prefetch_file)
+        if(buffer[0] == 'M' && buffer[1] == 'A' && buffer[2] == 'M') // W10 format
         {
-          while (b<e)
+          HDR_PREFETCH_W10 *wpf = (HDR_PREFETCH_W10 *) buffer;
+
+          /*to do*/
+
+          addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, 0, "", "", "",session_id, db);
+        }else
+        {
+          pf = (HDR_PREFETCH*)buffer;
+
+          if (pf->v_number > 0x11) //0x17 after winxp/2003 (+8octets)
           {
-            snprintf(path_application,MAX_PATH,"%S",b);
-            if (ContientNoCass(path_application,application_name))
-            {
-              ok_path_application = TRUE;
-              break;
-            }else
-            {
-              b = b + (strlen(path_application)+1)*2;
-            }
-          };
+            count = pf->file_exec_counter2;
+            filetimeToString_GMT(pf->last_file_exec2, exec_time, DATE_SIZE_MAX);
+          }else
+          {
+            count = pf->file_exec_counter;
+            filetimeToString_GMT(pf->last_file_exec, exec_time, DATE_SIZE_MAX);
+          }
 
-          if (!ok_path_application)path_application[0] = 0;
+          snprintf(application_name,PREFETCH_APPLI_NAME_MAX_SIZE,"%S",pf->filename);
+          application_name[PREFETCH_APPLI_NAME_MAX_SIZE]=0;
 
-          //depend
+          //search in path datas if name exist
+          ok_path_application = FALSE;
           b = buffer+pf->secC_off;                  //start of datas
           e = buffer+pf->secC_off+pf->secC_size;    //end of datas
-          depend = (char*)malloc(size_depend+2);
-          if (depend != NULL)
+          DWORD size_depend = (e-b);
+          if (size_depend <= sz_prefetch_file)
           {
-            depend[0] = 0;
             while (b<e)
             {
-              snprintf(path_depend,MAX_PATH,"%S\r\n",b);
-              snprintf(depend+strlen(depend),size_depend-strlen(depend),"%s",path_depend);
-              //strncat(depend,path_depend,size_depend);
-              b = b + (strlen(path_depend)-1)*2;
+              snprintf(path_application,MAX_PATH,"%S",b);
+              if (ContientNoCass(path_application,application_name))
+              {
+                ok_path_application = TRUE;
+                break;
+              }else
+              {
+                b = b + (strlen(path_application)+1)*2;
+              }
             };
-            strncat(depend,"\0",size_depend);
-            addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, depend, path_application,session_id, db);
-            free(depend);
-          }else addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, "", path_application,session_id, db);
-          free(buffer);
+
+            if (!ok_path_application)path_application[0] = 0;
+
+            //depend
+            b = buffer+pf->secC_off;                  //start of datas
+            e = buffer+pf->secC_off+pf->secC_size;    //end of datas
+            depend = (char*)malloc(size_depend+2);
+            if (depend != NULL)
+            {
+              depend[0] = 0;
+              while (b<e)
+              {
+                snprintf(path_depend,MAX_PATH,"%S\r\n",b);
+                snprintf(depend+strlen(depend),size_depend-strlen(depend),"%s",path_depend);
+                //strncat(depend,path_depend,size_depend);
+                b = b + (strlen(path_depend)-1)*2;
+              };
+              strncat(depend,"\0",size_depend);
+              addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, depend, path_application,session_id, db);
+              free(depend);
+            }else addPrefetchtoDB(file, CreationTime, LastWriteTime, LastAccessTime, count, exec_time, "", path_application,session_id, db);
+          }
         }
+        free(buffer);
       }
     }
     CloseHandle(hfile);

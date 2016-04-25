@@ -116,6 +116,7 @@ BOOL dd(char *disk, char *file, LONGLONG file_sz_max, BOOL progress)
 void dd_mbr()
 {
   char file[MAX_PATH]="";
+  GenerateNameToSave(file, MAX_PATH, "MBR.raw");
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
@@ -134,10 +135,30 @@ void dd_mbr()
   }
 }
 //------------------------------------------------------------------------------
+//ext = test.zip
+char *GenerateNameToSave(char *name, DWORD name_max_size, char *ext)
+{
+  //make filename
+  DWORD taille = 256;
+  char computername[256]="";
+  GetComputerName(computername,&taille);
+
+  //get current time
+  time_t date;
+  time(&date);
+  struct tm *today = localtime(&date);
+  char date_today[DATE_SIZE_MAX];
+  strftime(date_today, DATE_SIZE_MAX,"%Y-%m-%d_%H.%M.%S",today);
+  snprintf(name,MAX_PATH,"[%s]_%s_%s",computername,date_today,ext);
+  return name;
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI BackupDrive(LPVOID lParam)
 {
   char letter = lParam;
   char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  GenerateNameToSave(file, MAX_PATH, "BackupDrive.raw");
+
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
@@ -161,6 +182,8 @@ DWORD WINAPI BackupDisk(LPVOID lParam)
 {
   char letter = lParam;
   char file[MAX_PATH]="", tmp[MAX_PATH]="";
+  GenerateNameToSave(file, MAX_PATH, "BackupDisk.raw");
+
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
@@ -392,7 +415,7 @@ DWORD WINAPI BackupRegFile(LPVOID lParam)
   browser.pidlRoot        = 0;
   browser.lpfn            = 0;
   browser.iImage          = 0;
-  browser.ulFlags         = BIF_NEWDIALOGSTYLE; //ytou can create new directories
+  browser.ulFlags         = BIF_NEWDIALOGSTYLE; //you can create new directories
   browser.lParam          = 0;
   browser.pszDisplayName  = tmp;
   browser.lpszTitle       = cps[TXT_SAVE_TO].c;
@@ -554,37 +577,32 @@ DWORD WINAPI BackupEvtFile(LPVOID lParam)
 //------------------------------------------------------------------------------
 DWORD WINAPI BackupNTDIS(LPVOID lParam)
 {
-  //choix du répertoire de destination ^^
-  BROWSEINFO browser;
-  LPITEMIDLIST lip;
-  char tmp[MAX_PATH+1]    = "";
-  char path[MAX_PATH]     = "";
-  browser.hwndOwner       = h_main;
-  browser.pidlRoot        = 0;
-  browser.lpfn            = 0;
-  browser.iImage          = 0;
-  browser.ulFlags         = BIF_NEWDIALOGSTYLE; //permet la création d'un dossier
-  browser.lParam          = 0;
-  browser.pszDisplayName  = tmp;  //résultat ici
-  browser.lpszTitle       = cps[TXT_SAVE_TO].c;
-  lip                     = SHBrowseForFolder(&browser);
-  if (lip != NULL)
+  char file[MAX_PATH]="";
+  GenerateNameToSave(file, MAX_PATH, "ntds.dit");
+  OPENFILENAME ofn;
+  ZeroMemory(&ofn, sizeof(OPENFILENAME));
+  ofn.lStructSize = sizeof(OPENFILENAME);
+  ofn.hwndOwner = h_main;
+  ofn.lpstrFile = file;
+  ofn.nMaxFile = MAX_PATH;
+  ofn.lpstrFilter ="*.dit \0*.dit\0*.* \0*.*\0";
+  ofn.nFilterIndex = 1;
+  ofn.Flags =OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
+  ofn.lpstrDefExt ="dit\0";
+
+  if (GetSaveFileName(&ofn)==TRUE)
   {
-    SHGetPathFromIDList(lip,tmp);
-    if (strlen(tmp)>0)
-    {
-      strncat(tmp,"\\ntds.dit\0",MAX_PATH);
-      //récupération du chemin du système
+    //get ntdis.dit system path
+    char path[MAX_PATH]     = "";
       if(ReadValue(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters", "DSA Database File", path, MAX_PATH))
       {
         if (path[0]!=0)
         {
           ReplaceEnv("WINDIR",path,MAX_PATH);
-          CopyFilefromPath(path, tmp, FALSE);
-        }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
-      }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",tmp, FALSE);
-      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy NTDIS.DIT file done !!!");
-    }
+          CopyFilefromPath(path, file, FALSE);
+        }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",file, FALSE);
+      }else CopyFilefromPath("c:\\windows\\ntds\\ntds.dit",file, FALSE);
+      SendMessage(hstatus_bar,SB_SETTEXT,0, (LPARAM)"Copy file NTDIS.DIT done !!!");
   }
   return 0;
 }
@@ -782,130 +800,57 @@ void CopyJobToZIP(void *hz,char *path, char*current_path, char*computername,HAND
   }
 }
 //------------------------------------------------------------------------------
-void CopySetupApiToZIP(void *hz,char *path,char*computername,HANDLE MyhFile)
+void CopyFileToZIP(void *hz,char *fileinzip, char *sysfile, char*computername,HANDLE MyhFile)
 {
-  char file[MAX_PATH];
-  DWORD copiee;
-  if (path == NULL)
+  if(FileExist(sysfile))
   {
-    snprintf(file,MAX_PATH,"%s\\logs\\setupapi.log",computername);
-    addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\setupapi.log",0, 2);
-    addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\inf\\setupapi.log",0, 2);
-    snprintf(file,MAX_PATH,"%s\\logs\\setupapi.dev.log",computername);
-    addSrc((TZIP *)hz,  (void *)"setupapi.dev.log", (void *)"c:\\windows\\inf\\setupapi.dev.log",0, 2);
+    char file[MAX_PATH];
+    DWORD copiee;
+    snprintf(file,MAX_PATH,"%s\\%s",computername,fileinzip);
+    addSrc((TZIP *)hz,  (void *)file, (void *)sysfile,0, 2);
 
-    if (MyhFile != INVALID_HANDLE_VALUE)
-    {
-      if(FileExist("c:\\windows\\setupapi.log"))
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"c:\\windows\\setupapi.log");
-        WriteFile(MyhFile,"c:\\windows\\setupapi.log\r\n",strlen("c:\\windows\\setupapi.log\r\n"),&copiee,0);
-      }
+    SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)sysfile);
 
-      if(FileExist("c:\\windows\\inf\\setupapi.log"))
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"c:\\windows\\inf\\setupapi.log");
-        WriteFile(MyhFile,"c:\\windows\\inf\\setupapi.log\r\n",strlen("c:\\windows\\inf\\setupapi.log\r\n"),&copiee,0);
-      }
-
-      if(FileExist("c:\\windows\\inf\\setupapi.dev.log"))
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"c:\\windows\\inf\\setupapi.dev.log");
-        WriteFile(MyhFile,"c:\\windows\\inf\\setupapi.dev.log\r\n",strlen("c:\\windows\\inf\\setupapi.dev.log\r\n"),&copiee,0);
-      }
-    }
-
-  }else
-  {
-    char tmp_path[MAX_PATH];
-    snprintf(file,MAX_PATH,"%s\\logs\\setupapi.log",computername);
-    snprintf(tmp_path,MAX_PATH,"%s\\setupapi.log",path);
-    if(FileExist(tmp_path))
-    {
-      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
-      if (MyhFile != INVALID_HANDLE_VALUE)
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path);
-        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
-        WriteFile(MyhFile,"\r\n",2,&copiee,0);
-      }
-    }
-
-    snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.log",path);
-    if(FileExist(tmp_path))
-    {
-      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
-      if (MyhFile != INVALID_HANDLE_VALUE)
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path);
-        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
-        WriteFile(MyhFile,"\r\n",2,&copiee,0);
-      }
-    }
-
-    snprintf(file,MAX_PATH,"%s\\logs\\setupapi.dev.log",computername);
-    snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.dev.log",path);
-    if(FileExist(tmp_path))
-    {
-      addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
-      if (MyhFile != INVALID_HANDLE_VALUE)
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path);
-        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
-        WriteFile(MyhFile,"\r\n",2,&copiee,0);
-      }
-    }
+    snprintf(file,MAX_PATH,"%s\r\n",sysfile);
+    WriteFile(MyhFile,file,strlen(file),&copiee,0);
   }
 }
 //------------------------------------------------------------------------------
-void CopyfirewallLogZIP(void *hz,char *path,char*computername,HANDLE MyhFile)
+void CopyAllWinLogToZIP(void *hz,char *path,char*computername,HANDLE MyhFile)
 {
-  char file[MAX_PATH];
-  DWORD copiee;
-  snprintf(file,MAX_PATH,"%s\\logs\\pfirewall.log",computername);
   if (path == NULL)
   {
-    addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\pfirewall.log",0, 2);
-    addSrc((TZIP *)hz,  (void *)file, (void *)"c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log",0, 2);
+    CopyFileToZIP(hz,"logs\\setupapi.log", "c:\\windows\\setupapi.log", computername, MyhFile);
+    CopyFileToZIP(hz,"logs\\setupapi.log", "c:\\windows\\inf\\setupapi.log", computername, MyhFile);
+    CopyFileToZIP(hz,"logs\\setupapi.dev.log", "c:\\windows\\inf\\setupapi.dev.log", computername, MyhFile);
 
-    if (MyhFile != INVALID_HANDLE_VALUE)
-    {
-      if(FileExist("c:\\windows\\pfirewall.log"))
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"c:\\windows\\pfirewall.log");
-        WriteFile(MyhFile,"c:\\windows\\pfirewall.log\r\n",strlen("c:\\windows\\pfirewall.log\r\n"),&copiee,0);
-      }
+    CopyFileToZIP(hz,"logs\\Windowsupdate.log", "c:\\windows\\Windowsupdate.log", computername, MyhFile);
+    CopyFileToZIP(hz,"logs\\comsetup.log", "c:\\windows\\comsetup.log", computername, MyhFile);
+    CopyFileToZIP(hz,"logs\\wmsetup.log", "c:\\windows\\wmsetup.log", computername, MyhFile);
 
-      if(FileExist("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log"))
-      {
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)"c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log");
-        WriteFile(MyhFile,"c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log\r\n",strlen("c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log\r\n"),&copiee,0);
-      }
-    }
+    CopyFileToZIP(hz,"logs\\pfirewall.log", "c:\\windows\\pfirewall.log", computername, MyhFile);
+    CopyFileToZIP(hz,"logs\\pfirewall.log", "c:\\windows\\system32\\logfiles\\firewall\\pfirewall.log", computername, MyhFile);
   }else
   {
     char tmp_path[MAX_PATH];
+    snprintf(tmp_path,MAX_PATH,"%s\\setupapi.log",path);
+    CopyFileToZIP(hz,"logs\\setupapi.log", tmp_path, computername, MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.log",path);
+    CopyFileToZIP(hz,"logs\\setupapi.log", tmp_path, computername, MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\inf\\setupapi.dev.log",path);
+    CopyFileToZIP(hz,"logs\\setupapi.dev.log", tmp_path, computername, MyhFile);
+
+    snprintf(tmp_path,MAX_PATH,"%s\\Windowsupdate.log",path);
+    CopyFileToZIP(hz,"logs\\Windowsupdate.log", tmp_path, computername, MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\comsetup.log",path);
+    CopyFileToZIP(hz,"logs\\comsetup.log", tmp_path, computername, MyhFile);
+    snprintf(tmp_path,MAX_PATH,"%s\\wmsetup.log",path);
+    CopyFileToZIP(hz,"logs\\wmsetup.log", tmp_path, computername, MyhFile);
+
     snprintf(tmp_path,MAX_PATH,"%s\\pfirewall.log",path);
-    addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
-
-    if(FileExist(tmp_path))
-      if (MyhFile != INVALID_HANDLE_VALUE)
-      {
-        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path);
-        WriteFile(MyhFile,"\r\n",2,&copiee,0);
-      }
-
+    CopyFileToZIP(hz,"logs\\pfirewall.log", tmp_path, computername, MyhFile);
     snprintf(tmp_path,MAX_PATH,"%s\\system32\\logfiles\\firewall\\pfirewall.log",path);
-    addSrc((TZIP *)hz,  (void *)file, (void *)tmp_path,0, 2);
-
-    if(FileExist(tmp_path))
-      if (MyhFile != INVALID_HANDLE_VALUE)
-      {
-        WriteFile(MyhFile,tmp_path,strlen(tmp_path),&copiee,0);
-        SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path);
-        WriteFile(MyhFile,"\r\n",2,&copiee,0);
-      }
+    CopyFileToZIP(hz,"logs\\pfirewall.log", tmp_path, computername, MyhFile);
   }
 }
 //------------------------------------------------------------------------------
@@ -1812,8 +1757,7 @@ void SaveALL(char*filetosave, char *computername)
     CopyEvtxToZIP(hz,s,local_path,computername,MyhFile);
 
     //system logs
-    CopySetupApiToZIP(hz,s,computername,MyhFile);
-    CopyfirewallLogZIP(hz,s,computername,MyhFile);
+    CopyAllWinLogToZIP(hz,s,computername,MyhFile);
 
     //prefetch
     CopyPrefetchToZIP(hz,s,local_path,computername,MyhFile);
@@ -1933,8 +1877,7 @@ void SaveALLCustom(char*filetosave, char *computername, char *path)
     CopyEvtToZIP(hz,s,local_path,computername,MyhFile);
     CopyEvtxToZIP(hz,s,local_path,computername,MyhFile);
     //system logs
-    CopySetupApiToZIP(hz,s,computername,MyhFile);
-    CopyfirewallLogZIP(hz,s,computername,MyhFile);
+    CopyAllWinLogToZIP(hz,s,computername,MyhFile);
     //prefetch
     CopyPrefetchToZIP(hz,s,local_path,computername,MyhFile);
     //job
@@ -1945,7 +1888,6 @@ void SaveALLCustom(char*filetosave, char *computername, char *path)
 
     //registry hives
     char tmp_src[MAX_PATH], tmp_dst[MAX_PATH], tmp_file[MAX_PATH];
-
     snprintf(tmp_src,MAX_PATH,"%s\\SYSTEM",tmp_path);
     snprintf(tmp_file,MAX_PATH,"%s\\Registry\\SYSTEM",computername);
     addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
@@ -1961,6 +1903,7 @@ void SaveALLCustom(char*filetosave, char *computername, char *path)
     snprintf(tmp_src,MAX_PATH,"%s\\DEFAULT",tmp_path);
     snprintf(tmp_file,MAX_PATH,"%s\\Registry\\DEFAULT",computername);
     addSrc((TZIP *)hz,(void *)tmp_src, (void *)tmp_file,0, 2);
+
     //registry users
     snprintf(tmp_src,MAX_PATH,"%s\\Documents and Settings\\*.*",path);
     snprintf(tmp_dst,MAX_PATH,"%s\\Documents and Settings",path);
@@ -1987,6 +1930,8 @@ void SaveALLCustom(char*filetosave, char *computername, char *path)
 DWORD WINAPI BackupAllFiles(LPVOID lParam)
 {
   char file[MAX_PATH]="";
+  GenerateNameToSave(file, MAX_PATH, "ALL.zip");
+
   OPENFILENAME ofn;
   ZeroMemory(&ofn, sizeof(OPENFILENAME));
   ofn.lStructSize = sizeof(OPENFILENAME);
@@ -1999,7 +1944,7 @@ DWORD WINAPI BackupAllFiles(LPVOID lParam)
   ofn.lpstrDefExt ="zip\0";
   if (GetSaveFileName(&ofn)==TRUE)
   {
-    //get computername
+    //get 7
     DWORD taille = 256;
     char computername[256]="";
     GetComputerName(computername,&taille);

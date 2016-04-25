@@ -471,7 +471,7 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
               case IDM_TOOLS_CP_AUDIT:    CreateThread(NULL,0,BackupEvtFile,NULL,0,0);  break;
               case IDM_TOOLS_CP_AD:       CreateThread(NULL,0,BackupNTDIS,NULL,0,0);    break;
               case IDM_TOOLS_CP_FILE:     CreateThread(NULL,0,BackupFile,NULL,0,0);     break;
-              case IDM_TOOLS_GLOBAL_COPY:CreateThread(NULL,0,BackupAllFiles,NULL,0,0);  break;
+              case IDM_TOOLS_GLOBAL_COPY: CreateThread(NULL,0,BackupAllFiles,NULL,0,0); break;
               case IDM_TOOLS_PROCESS:
               {
                 LoadPRocessList(hlstv_process);
@@ -1303,10 +1303,9 @@ int CmdLine(int argc, char* argv[])
           if (argv[i][0] == '-'){i--;break;}
           else
           {
-            DWORD taille = 256;
-            char computername[256]="";
-            GetComputerName(computername,&taille);
-            SaveALL(argv[i],computername);
+            char file[MAX_PATH]="";
+            GenerateNameToSave(file, MAX_PATH, ".zip");
+            SaveALL(argv[i],file);
           }
          }
       break;

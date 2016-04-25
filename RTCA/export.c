@@ -256,7 +256,7 @@ DWORD WINAPI SaveAll(LPVOID lParam)
 DWORD WINAPI ChoiceSaveAll(LPVOID lParam)
 {
   BROWSEINFO browser;
-  ITEMIDLIST *lip;
+  LPITEMIDLIST lip;
 
   browser.hwndOwner          = h_conf;
   browser.pidlRoot           = NULL;

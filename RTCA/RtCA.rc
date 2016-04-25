@@ -27,7 +27,7 @@ BEGIN
   BEGIN
     BLOCK "04090000"
     BEGIN
-      VALUE "CompanyName", "http://omni-a.blogspot.com\0"
+      VALUE "CompanyName", "https://github.com/omnia-projetcs/omnia-projetcs\0"
       VALUE "OriginalFilename", "RtCA.exe\0"
       VALUE "ProductName", "RtCA\0"
       VALUE "Author", "Nicolas Hanteville\0"
@@ -595,6 +595,7 @@ BEGIN
   POPUP "Popup_tv"
     BEGIN
       MENUITEM "Copy complet path"                 ,POPUP_TV_CP_COMPLET_PATH
+      MENUITEM "Copy value and data"               ,POPUP_TV_CP_VALUE_AND_DATA
     END
 END
 //------------------------------------------------------------------------------

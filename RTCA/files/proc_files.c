@@ -216,6 +216,7 @@ void scan_file(char *path, HANDLE htv)
     else if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     {
       snprintf(tmp_path,MAX_PATH,"%s%s\\",path,data.cFileName);
+      SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)tmp_path);
       scan_file(tmp_path, htv);
     }else //file
     {
@@ -252,7 +253,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
   }else
   {
     char tmp_path[MAX_PATH];
-    snprintf(tmp_path,MAX_PATH,"%s",(char*)lParam);
+    snprintf(tmp_path,MAX_PATH,"%s\\",(char*)lParam);
 
     AddItemTreeView(htrv_files,tmp_path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
     scan_file(tmp_path, htrv_files);
@@ -260,6 +261,7 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
 
   //tri and clean
   CleanTreeViewFiles(htrv_files);
+  SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"");
   B_AUTOSEARCH = FALSE;
   return 0;
 }

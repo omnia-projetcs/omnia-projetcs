@@ -37,7 +37,7 @@ BOOL ReadRegistryWifiInfos(char *guid, char *wifi_cache, DWORD size_wifi_cache)
 
   snprintf(key_path,MAX_PATH,"SOFTWARE\\MICROSOFT\\WZCSVC\\Parameters\\interfaces\\%s",guid);
 
-  if (ReadValue(HKEY_LOCAL_MACHINE,key_path,"ControlFlags",value, MAX_PATH))
+  if (ReadValue(HKEY_LOCAL_MACHINE,key_path,"ControlFlags",value, MAX_PATH)) //win XP
   {
     HKEY CleTmp   = 0;
     DWORD i, nbSubValue = 0, value_size, data_size,type;
@@ -75,6 +75,53 @@ BOOL ReadRegistryWifiInfos(char *guid, char *wifi_cache, DWORD size_wifi_cache)
         }
       }
      RegCloseKey(CleTmp);
+    }
+  }else //win 7 and above
+  {
+    HKEY CleTmp   = 0;
+    DWORD i, nbSubKey = 0, key_size;
+    FILETIME lastupdate;
+    char tmp_key[MAX_LINE_SIZE], tmp_path[MAX_LINE_SIZE], date[DATE_SIZE_MAX], tmp_wifi[MAX_LINE_SIZE], tmpmac[MAX_PATH], mac[MAX_PATH];
+
+    char cguid[MAX_PATH], dns[MAX_PATH], ssid[MAX_PATH];
+
+    if (RegOpenKey(HKEY_LOCAL_MACHINE,"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged",&CleTmp)==ERROR_SUCCESS)
+    {
+      if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+      {
+        for (i=0;i<nbSubKey;i++)
+        {
+          key_size   = MAX_LINE_SIZE;
+          tmp_key[0] = 0;
+          if (RegEnumKeyEx (CleTmp,i,tmp_key,&key_size,0,0,0,&lastupdate)==ERROR_SUCCESS)
+          {
+            snprintf(tmp_path, MAX_LINE_SIZE, "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\%s",tmp_key);
+
+            //get key and adding it !!!
+            if (ReadValue(HKEY_LOCAL_MACHINE,tmp_path,"cguid",cguid, MAX_PATH) > 0)
+            {
+              if(!strcmp(cguid, guid))
+              {
+                date[0] = 0;
+                filetimeToString_GMT(lastupdate, date, DATE_SIZE_MAX);
+
+                if (ReadValue(HKEY_LOCAL_MACHINE,tmp_path,"DnsSuffix",dns, MAX_PATH) == 0)dns[0]= 0;
+                if (ReadValue(HKEY_LOCAL_MACHINE,tmp_path,"FirstNetwork",ssid, MAX_PATH) == 0)ssid[0]= 0;
+                if (ReadValue(HKEY_LOCAL_MACHINE,tmp_path,"DefaultGatewayMac",tmpmac, MAX_PATH) == 0)mac[0]= 0;
+                else
+                {
+                  snprintf(mac,MAX_PATH,"%02X:%02X:%02X:%02X:%02X:%02X",tmpmac[0]&0xFF,tmpmac[1]&0xFF,tmpmac[2]&0xFF,tmpmac[3]&0xFF,tmpmac[4]&0xFF,tmpmac[5]&0xFF);
+                }
+
+                snprintf(tmp_wifi, MAX_LINE_SIZE,"([%s] eSSID[%s]:%s, DNS:%s)\r\n",date,mac,ssid,dns);
+                strncat(wifi_cache, tmp_wifi, size_wifi_cache);
+              }
+            }
+          }
+        }
+        strncat(wifi_cache, "\0", size_wifi_cache);
+      }
+      RegCloseKey(CleTmp);
     }
   }
   return ret;
@@ -207,12 +254,12 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
 
   //local registry
   //read list of key
-  HKEY CleTmp = 0;
-  char key_path[MAX_PATH], tmp_key[MAX_PATH];
-  DWORD i, nbSubKey = 0, key_size;
+  HKEY CleTmp = 0, CleTmp2 = 0;
+  char key_path[MAX_PATH], key_path2[MAX_PATH], key_path3[MAX_PATH], tmp_key[MAX_PATH], tmp_key2[MAX_PATH];
+  DWORD i,j, nbSubKey = 0, nbSubKey2 = 0, key_size, key_size2;
   BOOL dhcp_mode;
 
-  FILETIME LastWriteTime;
+  FILETIME LastWriteTime, LastWriteTime2;
 
   if (RegOpenKey(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Services\\Tcpip\\Parameters\\Interfaces\\",&CleTmp)==ERROR_SUCCESS)
   {
@@ -280,11 +327,92 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
             //read to local XML
           }
 
+          //check test
+          if (strcmp(ip,"0.0.0.0")==0 || strcmp(ip,"0.0.0.0 ")==0)                  ip[0]           = 0;
+          if (strcmp(netmask,"0.0.0.0")==0 || strcmp(netmask,"0.0.0.0 ")==0)        netmask[0]      = 0;
+          if (strcmp(gw,"0.0.0.0")==0 || strcmp(gw,"0.0.0.0 ")==0)                  gw[0]           = 0;
+          if (strcmp(dhcp_server,"0.0.0.0")==0 ||
+               strcmp(dhcp_server,"255.255.255.255")==0)                            dhcp_server[0]  = 0;
+
           //add only if a card
-          if (description[0]!=0 || card[0]!=0 || dns[0]!=0)
+          if (description[0]!=0 || card[0]!=0 || ip[0]!=0)
           {
             convertStringToSQL(description, DEFAULT_TMP_SIZE);
-            addNetworktoDB("HKEY_LOCAL_MACHINE\\SYSTEM",card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+            snprintf(key_path2, MAX_PATH,"HKEY_LOCAL_MACHINE\\%s",key_path);
+            addNetworktoDB(key_path2,card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+          }
+
+          //check if history !!!
+          ip[0] = 0;
+          netmask[0] = 0;
+          gw[0] = 0;
+          dns[0] = 0;
+          domain[0] = 0;
+          dhcp_server[0] = 0;
+
+          CleTmp2   = 0;
+          nbSubKey2 = 0;
+          if (RegOpenKey(HKEY_LOCAL_MACHINE,key_path,&CleTmp2)==ERROR_SUCCESS)
+          {
+            if (RegQueryInfoKey (CleTmp2,0,0,0,&nbSubKey2,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+            {
+              for (j=0;j<nbSubKey2;j++)
+              {
+                key_size2   = MAX_PATH;
+                tmp_key2[0] = 0;
+                if (RegEnumKeyEx (CleTmp2,j,tmp_key2,&key_size2,0,0,0,&LastWriteTime2)==ERROR_SUCCESS)
+                {
+                  //generate the key
+                  snprintf(key_path2,MAX_PATH,"%s\\%s",key_path,tmp_key2);
+
+                  //last update
+                  lastupdate[0] = 0;
+                  filetimeToString_GMT(LastWriteTime2, lastupdate, DATE_SIZE_MAX);
+
+                  if (ReadDwordValue(HKEY_LOCAL_MACHINE,key_path2,"EnableDHCP") == 1) //DHCP
+                  {
+                    dhcp_mode = TRUE;
+                    //ip
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpIPAddress",ip,DEFAULT_TMP_SIZE) == 0)ip[0]=0;
+                    //netmask
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpSubnetMask",netmask,DEFAULT_TMP_SIZE) == 0)netmask[0]=0;
+                    //gateway
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpDefaultGateway",gw,DEFAULT_TMP_SIZE) == 0)gw[0]=0;
+                    //dns
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpNameServer",dns,DEFAULT_TMP_SIZE) == 0)dns[0]=0;
+                    //domain
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpDomain",domain,DEFAULT_TMP_SIZE) == 0)domain[0]=0;
+                    //dhcp server
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DhcpServer",dhcp_server,DEFAULT_TMP_SIZE) == 0)dhcp_server[0]=0;
+                  }else
+                  {
+                    dhcp_mode = FALSE;
+                    //ip
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"IPAddress",ip,DEFAULT_TMP_SIZE) == 0)ip[0]=0;
+                    //netmask
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"SubnetMask",netmask,DEFAULT_TMP_SIZE) == 0)netmask[0]=0;
+                    //gateway
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"DefaultGateway",gw,DEFAULT_TMP_SIZE) == 0)gw[0]=0;
+                    //dns
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"NameServer",dns,DEFAULT_TMP_SIZE) == 0)dns[0]=0;
+                    //domain
+                    if (ReadValue(HKEY_LOCAL_MACHINE,key_path2,"Domain",domain,DEFAULT_TMP_SIZE) == 0)domain[0]=0;
+                    dhcp_server[0]=0;
+                  }
+
+                  //check test
+                  if (strcmp(ip,"0.0.0.0")==0 || strcmp(ip,"0.0.0.0 ")==0)                  ip[0]           = 0;
+                  if (strcmp(netmask,"0.0.0.0")==0 || strcmp(netmask,"0.0.0.0 ")==0)        netmask[0]      = 0;
+                  if (strcmp(gw,"0.0.0.0")==0 || strcmp(gw,"0.0.0.0 ")==0)                  gw[0]           = 0;
+                  if (strcmp(dhcp_server,"0.0.0.0")==0 ||
+                       strcmp(dhcp_server,"255.255.255.255")==0)                            dhcp_server[0]  = 0;
+
+                  snprintf(key_path3, MAX_PATH,"HKEY_LOCAL_MACHINE\\%s",key_path2);
+                  addNetworktoDB(key_path3,card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+                }
+              }
+            }
+            RegCloseKey(CleTmp2);
           }
         }
       }
@@ -327,55 +455,98 @@ BOOL SearchNetworkGUID_registry_file(char *buffer, DWORD taille_fic, DWORD posit
   return FALSE;
 }
 //------------------------------------------------------------------------------
-BOOL ReadRegistryWifiInfos_registry_file(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin,
-                                         char *guid, char *wifi_cache, DWORD size_wifi_cache)
+BOOL ReadRegistryWifiInfos_registry_file(HK_F_OPEN hks, char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbin,
+                                         char *guid, char *wifi_cache, DWORD size_wifi_cache, char *file, sqlite3 *db, unsigned int session_id)
 {
   BOOL ret = FALSE;
-  char key_path[MAX_PATH];
-  snprintf(key_path,MAX_PATH,"MICROSOFT\\WZCSVC\\Parameters\\interfaces\\%s",guid);
-
-  if (wifi_cache != NULL)       wifi_cache[0]         = 0;
-
-  HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(buffer, taille_fic, position, pos_fhbin,key_path);
-  if (nk_h != NULL)
+  if (guid != NULL && wifi_cache != NULL && size_wifi_cache != 0) //only guid needed
   {
-    char value[MAX_PATH], data[MAX_PATH];
-    DWORD type, tmp_size,data_size = MAX_PATH;
-    if(Readnk_Value(buffer, taille_fic, (pos_fhbin)+HBIN_HEADER_SIZE, position, NULL, nk_h,"ControlFlags", data, MAX_PATH))
+    char key_path[MAX_PATH];
+    snprintf(key_path,MAX_PATH,"MICROSOFT\\WZCSVC\\Parameters\\interfaces\\%s",guid);
+
+    if (wifi_cache != NULL)       wifi_cache[0]         = 0;
+
+    HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(buffer, taille_fic, position, pos_fhbin,key_path);
+    if (nk_h != NULL) //win XP/2003
     {
-      DWORD i, nbSubKey = GetValueData(buffer, taille_fic, nk_h, position, 0, NULL, 0, NULL, 0);
+      char value[MAX_PATH], data[MAX_PATH];
+      DWORD type, tmp_size,data_size = MAX_PATH;
+      if(Readnk_Value(buffer, taille_fic, (pos_fhbin)+HBIN_HEADER_SIZE, position, NULL, nk_h,"ControlFlags", data, MAX_PATH))
+      {
+        DWORD i, nbSubKey = GetValueData(buffer, taille_fic, nk_h, position, 0, NULL, 0, NULL, 0);
+        for (i=0;i<nbSubKey;i++)
+        {
+          data_size = MAX_PATH;
+          type = GetBinaryValueData(buffer, taille_fic, nk_h, position, i, value, MAX_PATH,data, &data_size);
+
+          //set datas
+          if (data_size > 0x34 && (type == REG_EXPAND_SZ || type == REG_SZ || type == REG_BINARY))
+          {
+            tmp_size = strlen(wifi_cache);
+            if (size_wifi_cache-tmp_size <= 0)break;
+
+            ret = TRUE;
+            switch (data[0x34])
+            {
+              case 0:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", WEP)\r\n",value,data+0x14);break;
+              case 1:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", Open)\r\n",value,data+0x14);break;
+              case 4:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", %s)\r\n",value,data+0x14,data[4]==3?"WPA-PSK/TKIP":"WPA/TKIP");break;
+              case 6:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", %s)\r\n",value,data+0x14,data[4]==3?"WPA-PSK/AES":"WPA/AES");break;
+              default:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", serial:%d, %s)\r\n",value,data+0x14,data[0x34],data[4]==3?"WPA2-PSK":"WPA2");break;
+            }
+          }
+        }
+      }
+    }else //W7 and above
+    {
+
+    }
+  }else //list all informations
+  {
+    HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(buffer, taille_fic, position, pos_fhbin, "Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged");
+    if (nk_h != NULL)
+    {
+      char tmp_key[MAX_PATH], key_path[MAX_LINE_SIZE];
+      HBIN_CELL_NK_HEADER *nk_h_tmp;
+      char lastupdate[DATE_SIZE_MAX], tmp_wifi[MAX_LINE_SIZE], guid[DEFAULT_TMP_SIZE], dns[DEFAULT_TMP_SIZE], ssid[DEFAULT_TMP_SIZE], mac[DEFAULT_TMP_SIZE];
+
+      DWORD i, nbSubKey = GetSubNK(hks.buffer, hks.taille_fic, nk_h, hks.position, 0, NULL, 0);
       for (i=0;i<nbSubKey;i++)
       {
-        data_size = MAX_PATH;
-        type = GetBinaryValueData(buffer, taille_fic, nk_h, position, i, value, MAX_PATH,data, &data_size);
-
-        //set datas
-        if (data_size > 0x34 && (type == REG_EXPAND_SZ || type == REG_SZ || type == REG_BINARY))
+        if(GetSubNK(hks.buffer, hks.taille_fic, nk_h, hks.position, i, tmp_key, MAX_PATH))
         {
-          tmp_size = strlen(wifi_cache);
-          if (size_wifi_cache-tmp_size <= 0)break;
-
-          ret = TRUE;
-          switch (data[0x34])
+          //get nk of key :)
+          nk_h_tmp = GetSubNKtonk(hks.buffer, hks.taille_fic, nk_h, hks.position, i);
+          if (nk_h_tmp != NULL)
           {
-            case 0:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", WEP)\r\n",value,data+0x14);break;
-            case 1:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", Open)\r\n",value,data+0x14);break;
-            case 4:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", %s)\r\n",value,data+0x14,data[4]==3?"WPA-PSK/TKIP":"WPA/TKIP");break;
-            case 6:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", %s)\r\n",value,data+0x14,data[4]==3?"WPA-PSK/AES":"WPA/AES");break;
-            default:snprintf(wifi_cache+tmp_size,size_wifi_cache-tmp_size,"(%s, eSSID:\"%s\", serial:%d, %s)\r\n",value,data+0x14,data[0x34],data[4]==3?"WPA2-PSK":"WPA2");break;
+            //last update
+            Readnk_Infos(hks.buffer, hks.taille_fic, (hks.pos_fhbin), hks.position, NULL, nk_h_tmp,
+                         lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
+
+            snprintf(key_path,MAX_LINE_SIZE,"%s\\[REG]\\Microsoft\\Windows NT\\CurrentVersion\\NetworkList\\Signatures\\Unmanaged\\%s",file, tmp_key);
+
+            Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"profileguid", guid, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DnsSuffix", dns, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"FirstNetwork", ssid, DEFAULT_TMP_SIZE);
+            Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp,"DefaultGatewayMac", mac, DEFAULT_TMP_SIZE);
+
+            snprintf(tmp_wifi, MAX_LINE_SIZE,"([%s] eSSID[%s]:%s, DNS:%s)",lastupdate,mac,ssid,dns);
+            addNetworktoDB(key_path, "", "", guid, "", "", "", "", "", "", "",tmp_wifi,lastupdate, session_id, db);
           }
         }
       }
     }
   }
+
   return ret;
 }
 //------------------------------------------------------------------------------
-void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *db, unsigned int session_id)
+void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *db, unsigned int session_id, BOOL first_current)
 {
   HK_F_OPEN hks;
   if(OpenRegFiletoMem(&hks, file))
   {
+    char fullpathfile_reg[MAX_LINE_SIZE];
     char _ckey[MAX_PATH];
     snprintf(_ckey,MAX_PATH,"%s\\Interfaces",ckey);
 
@@ -383,11 +554,14 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
     HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, _ckey);
     if (nk_h == NULL)
     {
+      //check Wifi informations
+      if (first_current)ReadRegistryWifiInfos_registry_file(hks, hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, NULL, 0, file, db, session_id);
+
       CloseRegFiletoMem(&hks);
       return;
     }
 
-    char tmp_key[MAX_PATH];
+    char tmp_key[MAX_PATH],tmp_key2[MAX_PATH];
     BOOL dhcp_mode;
     char ip[DEFAULT_TMP_SIZE],
         netmask[DEFAULT_TMP_SIZE],
@@ -403,6 +577,7 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
 
     //working
     HBIN_CELL_NK_HEADER *nk_h_tmp;
+    HBIN_CELL_NK_HEADER *nk_h_tmp2;
     char tmp[MAX_PATH];
     DWORD i, nbSubKey = GetSubNK(hks.buffer, hks.taille_fic, nk_h, hks.position, 0, NULL, 0);
     for (i=0;i<nbSubKey;i++)
@@ -462,10 +637,72 @@ void Scan_network_registry_file(char *file, char *ckey, char *_ckey_2, sqlite3 *
         //Wifi in SOFTWARE RUCHE
 
         //add only if a real card
-        if (description[0]!=0 || card[0]!=0 || dns[0]!=0 || ip[0]!=0)
+        char _ckey2[MAX_PATH];
+        snprintf(_ckey2,MAX_PATH,"%s\\%s",_ckey,tmp_key);
+        if (description[0]!=0 || card[0]!=0 || ip[0]!=0)
         {
           convertStringToSQL(description, DEFAULT_TMP_SIZE);
-          addNetworktoDB(file,card, description, tmp_key, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+          snprintf(fullpathfile_reg, MAX_LINE_SIZE,"%s\\[REG]\\%s",file,_ckey2);
+          addNetworktoDB(fullpathfile_reg,card, description, tmp_key, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+        }
+
+        //add history
+        ip[0] = 0;
+        netmask[0] = 0;
+        gw[0] = 0;
+        dns[0] = 0;
+        domain[0] = 0;
+        dhcp_server[0] = 0;
+
+        HBIN_CELL_NK_HEADER *nk_h2 = GetRegistryNK(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, _ckey2);
+        if (nk_h2 != NULL)
+        {
+          DWORD j, nbSubKey2 = GetSubNK(hks.buffer, hks.taille_fic, nk_h2, hks.position, 0, NULL, 0);
+          for (j=0;j<nbSubKey2;j++)
+          {
+            if(GetSubNK(hks.buffer, hks.taille_fic, nk_h2, hks.position, j, tmp_key2, MAX_PATH))
+            {
+              //get nk of key :)
+              nk_h_tmp2 = GetSubNKtonk(hks.buffer, hks.taille_fic, nk_h2, hks.position, j);
+              if (nk_h_tmp2 == NULL)continue;
+
+              //last update
+              Readnk_Infos(hks.buffer, hks.taille_fic, (hks.pos_fhbin), hks.position, NULL, nk_h_tmp2,
+                           lastupdate, DATE_SIZE_MAX, NULL, 0, NULL, 0);
+
+              //read datas
+              Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"EnableDHCP", tmp, MAX_PATH);
+              if (strcmp(tmp,"0x00000001") == 0)//DHCP
+              {
+                dhcp_mode = TRUE;
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpIPAddress", ip, DEFAULT_TMP_SIZE);
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpSubnetMask", netmask, DEFAULT_TMP_SIZE);
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpDefaultGateway", gw, DEFAULT_TMP_SIZE);
+                if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpNameServer", dns, DEFAULT_TMP_SIZE) == FALSE)dns[0] = 0;
+                if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpDomain", domain, DEFAULT_TMP_SIZE) == FALSE)domain[0] = 0;
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DhcpServer", dhcp_server, DEFAULT_TMP_SIZE);
+              }else
+              {
+                dhcp_mode = FALSE;
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"IPAddress", ip, DEFAULT_TMP_SIZE);
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"SubnetMask", netmask, DEFAULT_TMP_SIZE);
+                Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"DefaultGateway", gw, DEFAULT_TMP_SIZE);
+                if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"NameServer", dns, DEFAULT_TMP_SIZE) == FALSE)dns[0] = 0;
+                if (Readnk_Value(hks.buffer, hks.taille_fic, (hks.pos_fhbin)+HBIN_HEADER_SIZE, hks.position, NULL, nk_h_tmp2,"Domain", domain, DEFAULT_TMP_SIZE) == FALSE)domain[0] = 0;
+                dhcp_server[0]=0;
+              }
+
+              //check test
+              if (strcmp(ip,"0.0.0.0")==0 || strcmp(ip,"0.0.0.0 ")==0)                  ip[0]           = 0;
+              if (strcmp(netmask,"0.0.0.0")==0 || strcmp(netmask,"0.0.0.0 ")==0)        netmask[0]      = 0;
+              if (strcmp(gw,"0.0.0.0")==0 || strcmp(gw,"0.0.0.0 ")==0)                  gw[0]           = 0;
+              if (strcmp(dhcp_server,"0.0.0.0")==0 ||
+                   strcmp(dhcp_server,"255.255.255.255")==0)                            dhcp_server[0]  = 0;
+
+              snprintf(fullpathfile_reg, MAX_LINE_SIZE,"%s\\[REG]\\%s\\%s",file,_ckey2,tmp_key2);
+              addNetworktoDB(fullpathfile_reg,card, description, tmp_key, ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+            }
+          }
         }
       }
     }
@@ -495,10 +732,10 @@ DWORD WINAPI Scan_network(LPVOID lParam)
       if (file[0] != 0)
       {
         //verify
-        Scan_network_registry_file(file, "ControlSet001\\Services\\Tcpip\\Parameters","ControlSet001\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
-        Scan_network_registry_file(file, "ControlSet002\\Services\\Tcpip\\Parameters","ControlSet002\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
-        Scan_network_registry_file(file, "ControlSet003\\Services\\Tcpip\\Parameters","ControlSet003\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
-        Scan_network_registry_file(file, "ControlSet004\\Services\\Tcpip\\Parameters","ControlSet004\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id);
+        Scan_network_registry_file(file, "ControlSet001\\Services\\Tcpip\\Parameters","ControlSet001\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id, TRUE);
+        Scan_network_registry_file(file, "ControlSet002\\Services\\Tcpip\\Parameters","ControlSet002\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id, FALSE);
+        Scan_network_registry_file(file, "ControlSet003\\Services\\Tcpip\\Parameters","ControlSet003\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id, FALSE);
+        Scan_network_registry_file(file, "ControlSet004\\Services\\Tcpip\\Parameters","ControlSet004\\Control\\Class\\{4D36E972-E325-11CE-BFC1-08002bE10318}", db, session_id, FALSE);
       }
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
     }

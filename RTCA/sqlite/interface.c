@@ -146,6 +146,7 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
       if (nb_sql_ANDROID>=NB_MAX_SQL_REQ)break;
       strncpy(sql_ANDROID[nb_sql_ANDROID].sql,argv[0],MAX_PATH);
       strncpy(sql_ANDROID[nb_sql_ANDROID].params,argv[1],MAX_PATH);
+      strncpy(sql_ANDROID[nb_sql_ANDROID].sql_localtime,argv[3],MAX_PATH);
       sql_ANDROID[nb_sql_ANDROID].test_string_id = atoi(argv[2]);
       nb_sql_ANDROID++;
     break;
@@ -153,6 +154,7 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
       if (nb_sql_CHROME>=NB_MAX_SQL_REQ)break;
       strncpy(sql_CHROME[nb_sql_CHROME].sql,argv[0],MAX_PATH);
       strncpy(sql_CHROME[nb_sql_CHROME].params,argv[1],MAX_PATH);
+      strncpy(sql_CHROME[nb_sql_CHROME].sql_localtime,argv[3],MAX_PATH);
       sql_CHROME[nb_sql_CHROME].test_string_id = atoi(argv[2]);
       nb_sql_CHROME++;
     break;
@@ -160,6 +162,7 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
       if (nb_sql_FIREFOX>=NB_MAX_SQL_REQ)break;
       strncpy(sql_FIREFOX[nb_sql_FIREFOX].sql,argv[0],MAX_PATH);
       strncpy(sql_FIREFOX[nb_sql_FIREFOX].params,argv[1],MAX_PATH);
+      strncpy(sql_FIREFOX[nb_sql_FIREFOX].sql_localtime,argv[3],MAX_PATH);
       sql_FIREFOX[nb_sql_FIREFOX].test_string_id = atoi(argv[2]);
       nb_sql_FIREFOX++;
     break;
@@ -263,9 +266,9 @@ BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
     //----------------------------------------
     case TYPE_SQLITE_FLAG_LANG_INIT:sqlite3_exec(db, "SELECT name, id, index_img FROM language;", callback_sqlite, datas, NULL);break;
     //----------------------------------------
-    case TYPE_SQLITE_FLAG_ANDROID_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_android_request;", callback_sqlite, datas, NULL);break;
-    case TYPE_SQLITE_FLAG_CHROME_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_chrome_request;", callback_sqlite, datas, NULL);break;
-    case TYPE_SQLITE_FLAG_FIREFOX_INIT_STRINGS:sqlite3_exec(db, "SELECT sql, params, id_tests_string FROM extract_firefox_request;", callback_sqlite, datas, NULL);break;
+    case TYPE_SQLITE_FLAG_ANDROID_INIT_STRINGS:sqlite3_exec(db, "SELECT sql_utc, params, id_tests_string, sql FROM extract_android_request;", callback_sqlite, datas, NULL);break;
+    case TYPE_SQLITE_FLAG_CHROME_INIT_STRINGS:sqlite3_exec(db, "SELECT sql_utc, params, id_tests_string, sql FROM extract_chrome_request;", callback_sqlite, datas, NULL);break;
+    case TYPE_SQLITE_FLAG_FIREFOX_INIT_STRINGS:sqlite3_exec(db, "SELECT sql_utc, params, id_tests_string, sql FROM extract_firefox_request;", callback_sqlite, datas, NULL);break;
     //----------------------------------------
     case TYPE_SQLITE_FLAG_LOAD_ROOTKIT_DB:sqlite3_exec(db, "SELECT filename,sha256,description,source,update_time,params FROM malware_file_list;", callback_sqlite, datas, NULL);break;
     //----------------------------------------

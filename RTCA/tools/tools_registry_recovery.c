@@ -22,7 +22,7 @@ void AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne)
   for (;i<nb_colonne;i++){if (item[i].c[0]!=0)ListView_SetItemText(hlv,itemPos,i,item[i].c);}
 }
 //------------------------------------------------------------------------------
-/*void AddNextValueToTreeView(HANDLE htv, HTREEITEM hparent, char *value, DWORD value_type)
+void AddNextValueToTreeView(HANDLE htv, HTREEITEM hparent, char *value, DWORD value_type)
 {
   switch(value_type)
   {
@@ -109,7 +109,7 @@ HTREEITEM AddFirstValueToTreeView(HANDLE htv, HTREEITEM hparent, char *path, cha
     return hitem;
   }
   return 0;
-}*/
+}
 //------------------------------------------------------------------------------
 void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max)
 {
@@ -246,7 +246,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
           parent_key_update[0]=0;
       }
 
-      // HTREEITEM htparent = 0;
+      HTREEITEM htparent = 0;
       BOOL val_ok;
       for (i=0;i< (nk_h->nb_values);i++)
       {
@@ -522,6 +522,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
             //ajout de l'item
             //if (i == 0 || htparent == 0) htparent = AddFirstValueToTreeView(htv, hparent, lv_line[1].c, tmp, vk_h->data_type);
             //else AddNextValueToTreeView(htv, htparent, tmp, vk_h->data_type);
+
             strcpy(lv_line[5].c,parent_key_update);
             strcpy(lv_line[6].c,Owner_SID);
             AddToLVRegBin(hlv, lv_line, DLG_REG_LV_NB_COLUMN);

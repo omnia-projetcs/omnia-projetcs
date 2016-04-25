@@ -246,10 +246,11 @@ void GetItemPath(HANDLE hparent, DWORD treeview, HTREEITEM hitem, char *path, DW
   }while ((hitem_parent = (HTREEITEM)SendDlgItemMessage(hparent, treeview, TVM_GETNEXTITEM, (WPARAM)TVGN_PARENT, (LPARAM)hitem_parent)));
 }
 //------------------------------------------------------------------------------
-void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem)
+void CopyTVData(HANDLE hparent, DWORD treeview, HTREEITEM hitem, BOOL item_only)
 {
   char tmp[MAX_PATH];
-  GetItemPath(hparent, treeview, hitem, tmp, MAX_PATH);
+  if (item_only) LireTreeTxt(hparent, treeview, hitem, tmp, MAX_PATH);//item only;
+  else GetItemPath(hparent, treeview, hitem, tmp, MAX_PATH); //all path
 
   //copy dans le presse papier
   if(OpenClipboard(NULL))
@@ -308,7 +309,8 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
               }
             break;
             //------------------------------------------
-            case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0));break;
+            case POPUP_TV_CP_COMPLET_PATH:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0), FALSE);break;
+            case POPUP_TV_CP_VALUE_AND_DATA:CopyTVData(hwnd,TV_VIEW, (HTREEITEM)SendDlgItemMessage(hwnd, TV_VIEW, TVM_GETNEXTITEM, TVGN_CARET, 0), TRUE);break;
             //------------------------------------------
               case POPUP_S_VIEW:
               {

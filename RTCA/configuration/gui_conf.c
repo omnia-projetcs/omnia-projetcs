@@ -432,6 +432,8 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
           {
             BACKUP_FILE_LIST_started = TRUE;
             char file[MAX_PATH]="";
+            GenerateNameToSave(file, MAX_PATH, "filelist.zip");
+
             OPENFILENAME ofn;
             ZeroMemory(&ofn, sizeof(OPENFILENAME));
             ofn.lStructSize = sizeof(OPENFILENAME);
@@ -463,6 +465,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             browser.ulFlags         = BIF_NEWDIALOGSTYLE;
             browser.pszDisplayName  = path;
             browser.lpszTitle       = "Path from";
+
             lip = SHBrowseForFolder(&browser);
             if (lip != NULL)
             {

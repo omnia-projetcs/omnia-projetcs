@@ -148,11 +148,27 @@ int callback_sqlite_registry_local(void *datas, int argc, char **argv, char **az
           FILETIME ft;
           if (hk == 0 || argv[1][0]==0)break;
           ReadFILETIMEValue(hk,argv[1],argv[2],&ft);
-          filetimeToString_GMT(ft, tmp, MAX_PATH);
+          if (ft.dwHighDateTime+ft.dwLowDateTime > 0)
+          {
+            filetimeToString_GMT(ft, tmp, MAX_PATH);
 
-          char parent_key_update[DATE_SIZE_MAX];
-          ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
-          addRegistrySettingstoDB("", argv[0], argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
+            char parent_key_update[DATE_SIZE_MAX];
+            ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
+            addRegistrySettingstoDB("", argv[0], argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
+          }
+        }
+        break;
+        case TYPE_VALUE_DWORD_TIME:
+        {
+          char tmp[MAX_PATH]="";
+          long int value= ReadDwordValue(hk,argv[1],argv[2]);
+          if (value != -1)
+          {
+            char parent_key_update[DATE_SIZE_MAX];
+            ReadKeyUpdate(hk,argv[1], parent_key_update, DATE_SIZE_MAX);
+
+            addRegistrySettingstoDB("", argv[0], argv[1], argv[2], timeToString(value, tmp, MAX_PATH), argv[4], argv[5], parent_key_update, session_id, db_scan);
+          }
         }
         break;
         case TYPE_VALUE_WIN_SERIAL:
@@ -400,20 +416,36 @@ int callback_sqlite_registry_file(void *datas, int argc, char **argv, char **azC
           if (ReadBinarynk_Value(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
                            argv[1], NULL, argv[2], (void*)&f_date, &data_size))
           {
+            if(data_size && f_date.dwHighDateTime+f_date.dwLowDateTime > 0)
+            {
+              //key update
+              char parent_key_update[DATE_SIZE_MAX];
+              Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
+                           argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
+
+              //convert date
+              tmp[0] = 0;
+              filetimeToString_GMT(f_date, tmp, DATE_SIZE_MAX);
+
+              //save
+              convertStringToSQL(tmp, MAX_LINE_SIZE);
+              addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
+            }
+          }
+        }
+        break;
+        case TYPE_VALUE_DWORD_TIME:
+          if (Readnk_Value(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin)+HBIN_HEADER_SIZE, local_hks.position,
+                           argv[1], NULL, argv[2], tmp, MAX_LINE_SIZE))
+          {
             //key update
             char parent_key_update[DATE_SIZE_MAX];
             Readnk_Infos(local_hks.buffer,local_hks.taille_fic, (local_hks.pos_fhbin), local_hks.position,
                          argv[1], NULL, parent_key_update, DATE_SIZE_MAX, NULL, 0,NULL, 0);
 
-            //convert date
-            tmp[0] = 0;
-            filetimeToString_GMT(f_date, tmp, DATE_SIZE_MAX);
-
-            //save
-            convertStringToSQL(tmp, MAX_LINE_SIZE);
-            addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], tmp, argv[4], argv[5], parent_key_update, session_id, db_scan);
-          }
-        }
+            //convert in date : Windows NT time
+            addRegistrySettingstoDB(local_hks.file, "", argv[1], argv[2], timeToString(HexToll(tmp, strlen(tmp)), tmp, MAX_LINE_SIZE), argv[4], argv[5], parent_key_update, session_id, db_scan);
+         }
         break;
         case TYPE_VALUE_WIN_SERIAL:
         {
