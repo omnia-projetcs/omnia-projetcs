@@ -223,6 +223,15 @@ BEGIN
   CONTROL "Models"                                    ,DLG_SQL_ED_BT_MODELS,"Button",0x50010000,532,1,22,28
   CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
+END//------------------------------------------------------------------------------
+DLG_SQLITE_ED DIALOGEX 6,6,400,276
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00CE0800
+EXSTYLE 0x00000010
+BEGIN
+  CONTROL "Update"                                    ,DLG_SQL_ED_ED_REQUEST,"Button",0x50010000,5,5,50,18
+  CONTROL "Add"                                       ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,100,5,50,18
+  CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
 //------------------------------------------------------------------------------
 DLG_HEXA_READER DIALOGEX 6,5,800,265
@@ -634,6 +643,11 @@ BEGIN
     BEGIN
       MENUITEM "Save view"                 ,POPUP_S_VIEW
       MENUITEM "Save Selection"            ,POPUP_S_SELECTION
+      MENUITEM SEPARATOR
+      MENUITEM "Auto resize all columns"  , POPUP_SQLITE_HDR_RESIZE
+      MENUITEM "All line datas"           , POPUP_SQLITE_INFOS
+      MENUITEM SEPARATOR
+      MENUITEM "Delete item"              , POPUP_SQLITE_REMOVE
     END
 END
 //------------------------------------------------------------------------------

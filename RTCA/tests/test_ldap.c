@@ -173,6 +173,7 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
           char *dn;
           DWORD i =0, j, jValue;
           char tmp[DEFAULT_TMP_SIZE];
+          char suivi_tmp[MAX_LINE_SIZE];
 
           pEntry = ldap_first_entry(ldap_c, pMsg_dc);
           do
@@ -215,8 +216,17 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
                   printf("[LDAP]   ppValue %s\n",ppValue[j]);
                   #endif
 
-                  if (dn != NULL) addLDAPtoDB(dc, pAttribute, dn, ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
-                  else addLDAPtoDB(dc, pAttribute, "", ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
+                  if (dn != NULL)
+                  {
+                    addLDAPtoDB(dc, pAttribute, dn, ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
+
+                    snprintf(suivi_tmp, MAX_LINE_SIZE, "%s - %s", dc, dn);
+                    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)suivi_tmp);
+                  }else
+                  {
+                    addLDAPtoDB(dc, pAttribute, "", ValidDataValue(pAttribute,ppValue[j],ppValueInfos[j],tmp,DEFAULT_TMP_SIZE), session_id, db);
+                    SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)dc);
+                  }
                 }
                 ldap_value_free(ppValue);
                 ppValue = NULL;

@@ -353,6 +353,12 @@ DWORD last_bt;
 #define POPUP_SQLITE_REQUEST_BEGIN_TRANSACTION  9027
 #define POPUP_SQLITE_REQUEST_END_TRANSACTION    9028
 
+#define DLG_SQLITE_ED                           9040
+
+#define POPUP_SQLITE_HDR_RESIZE     9050
+#define POPUP_SQLITE_INFOS          9051
+#define POPUP_SQLITE_REMOVE         9052
+
 #define DLG_HEXA_READER             9100
 #define DLG_HEXA_BT_LOAD            9101
 #define DLG_HEXA_BT_CLOSE           9102

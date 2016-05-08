@@ -49,7 +49,7 @@ BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update,
   {
     //letter
     snprintf(file,file_sz,"%s",&data[3]);
-  }else if ((ss->type == 0x15 || ss->type == 0xC4 || ss->type == 0x38 || ss->type == 0x39 || ss->type == 0x31 || ss->type == 0x32 || ss->type == 0x35 || ss->type == 0x3C) && data[dataSize-6] != 0x2F)//in ZIP file + file + directory
+  }else if ((ss->type == 0x15 || ss->type == 0xC4 || ss->type == 0x38 || ss->type == 0x39 || ss->type == 0x43|| ss->type == 0x31 || ss->type == 0x32 || ss->type == 0x35 || ss->type == 0x3C) && data[dataSize-6] != 0x2F)//in ZIP file + file + directory
   {
     //read full file name
     char *c = &data[dataSize-8];
@@ -69,7 +69,8 @@ BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update,
       {
         c-=4;
         while (*c != 0x00 || *(c-1) != 0x00) c--;
-        c+=5;
+        //c+=5;
+        c+=1;
         snprintf(file,file_sz,"%S",c);
       }
     }

@@ -412,7 +412,7 @@
 1459531007 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1461599437 e:\git\omnia-projetcs\rtca\rtca.h
+1462723382 e:\git\omnia-projetcs\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -443,7 +443,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1461599591 e:\git\omnia-projetcs\rtca\version.h
+1462725520 e:\git\omnia-projetcs\rtca\version.h
 
 1431789186 e:\git\omnia-projetcs\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -579,10 +579,10 @@
 1446298823 source:e:\git\omnia-projetcs\rtca\proc_registry.c
 	"RtCA.h"
 
-1461420651 source:e:\git\omnia-projetcs\rtca\rtca.rc
+1462724282 source:e:\git\omnia-projetcs\rtca\rtca.rc
 	"RtCA.h"
 
-1447595124 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
+1461599590 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
 	"../RtCA.h"
 
 1446298823 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
@@ -681,7 +681,7 @@
 1448189900 source:e:\git\omnia-projetcs\rtca\tests\test_ie.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
+1461866147 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
 	"../RtCA.h"
 
 1446298823 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
@@ -723,7 +723,7 @@
 1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
 	"../RtCA.h"
 
-1460311000 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
+1462020446 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
@@ -801,7 +801,7 @@
 1446298821 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
 	"../RtCA.h"
 
-1448211020 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
+1462718901 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 
 1448210784 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
