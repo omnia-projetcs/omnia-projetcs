@@ -26,6 +26,19 @@ int callback_sqlite_CMD(void *datas, int argc, char **argv, char **azColName)
   return 0;
 }
 //------------------------------------------------------------------------------
+void EndSession(DWORD id, sqlite3 *db)
+{
+  if (id < 1)id = current_session_id;
+
+  //get date
+  time_t date;
+  time(&date);
+
+  char request[MAX_LINE_SIZE];
+  snprintf(request,MAX_LINE_SIZE,"UPDATE session SET end_test_date = %lu WHERE id = %lu;",date,id);
+  sqlite3_exec(db,request, NULL, NULL, NULL);
+}
+//------------------------------------------------------------------------------
 void AddNewSession(BOOL local_only, char *name, sqlite3 *db)
 {
   //generate name : date_computer_name
@@ -51,23 +64,23 @@ void AddNewSession(BOOL local_only, char *name, sqlite3 *db)
 
     if (UTC_TIME)
     {
-      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s_%s\");",id,date_today,computer_name,name);
-      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s\");",id,date_today,computer_name);
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_(UTC)_%s_%s\",%lu);",id,date_today,computer_name,name,date);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_(UTC)_%s\",%lu);",id,date_today,computer_name,date);
     }else
     {
-      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s_%s\");",id,date_today,computer_name,name);
-      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s\");",id,date_today,computer_name);
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_%s_%s\",%lu);",id,date_today,computer_name,name,date);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_%s\",%lu);",id,date_today,computer_name,date);
     }
   }else
   {
     if (UTC_TIME)
     {
-      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_%s_files\");",id,date_today,name);
-      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_(UTC)_files\");",id,date_today);
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_(UTC)_%s_files\",%lu);",id,date_today,name,date);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_(UTC)_files\",%lu);",id,date_today,date);
     }else
     {
-      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_%s_files\");",id,date_today,name);
-      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name) VALUES(%lu,\"%s_files\");",id,date_today);
+      if (name[0] != 0) snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_%s_files\",%lu);",id,date_today,name,date);
+      else snprintf(request, MAX_LINE_SIZE,"INSERT INTO session (id,name,start_test_date) VALUES(%lu,\"%s_files\",%lu);",id,date_today,date);
     }
   }
 

@@ -9,24 +9,46 @@
 #define TYPE_SQLITE_LOAD_TABLES         0x0001
 #define TYPE_SQLITE_LOAD_TABLE_SELECTED 0x0002
 #define TYPE_SQLITE_REQUEST             0x0003
+#define TYPE_SQLITE_LOAD_TABLE_HEADER   0x0004
+#define TYPE_SQLITE_LOAD_TABLE_STRUCT   0x0005
+#define NB_VIEW_COMPONENT_SQLITE_ED     12
 //------------------------------------------------------------------------------
 sqlite3 *db_sqlite_test;
-DWORD nb_current_col_sqlite;
+DWORD nb_current_col_sqlite, nb_column_view_sqlite;
 
 typedef struct
 {
-  HANDLE h_sqlite_ed;       //sqlite HANDLE
+  HANDLE h_sqlite_ed;             //sqlite HANDLE
 
   HANDLE h_cname[MAX_LINE_SIZE];
   HANDLE h_ctext[MAX_LINE_SIZE];
   HANDLE h_exctext[MAX_LINE_SIZE];
 
   char table_name[MAX_LINE_SIZE];
-
+  DWORD pos;
   DWORD nb_column;
 }HSQLITE;
 HSQLITE ssqlite;
 
+typedef struct
+{
+  HANDLE h_sqlite_ed_table;             //sqlite HANDLE
+
+  HANDLE h_cname[MAX_LINE_SIZE];
+  HANDLE h_tcname[MAX_LINE_SIZE];
+  HANDLE h_type[MAX_LINE_SIZE];
+  HANDLE h_pkey[MAX_LINE_SIZE];
+  HANDLE h_bremove[MAX_LINE_SIZE];
+
+  char table_name[MAX_LINE_SIZE];
+  DWORD pos;
+  DWORD nb_items;
+
+  BOOL disable[MAX_LINE_SIZE];
+}HSQLITEE;
+HSQLITEE ssqlitee;
+#define BREMOVEINDEX            20000
+#define BREMOVEMAXINDEX         40000
 
 //------------------------------------------------------------------------------
 int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColName)
@@ -79,6 +101,55 @@ int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColNa
       }
     }
     break;
+    case TYPE_SQLITE_LOAD_TABLE_HEADER:
+    {
+      //create column
+      LVCOLUMN lvc;
+      lvc.mask                = LVCF_TEXT|LVCF_WIDTH|LVCF_FMT;
+      lvc.fmt                 = LVCFMT_LEFT;
+      lvc.cx                  = 100;
+      lvc.pszText             = argv[1];
+      SendDlgItemMessage(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE,LVM_INSERTCOLUMN,(WPARAM)nb_column_view_sqlite++, (LPARAM)&lvc);
+    }
+    break;
+    case TYPE_SQLITE_LOAD_TABLE_STRUCT: //get for edit table format !
+    {
+      //add first items !
+      //create items + set text
+      ssqlitee.disable[ssqlitee.nb_items]  = 0;
+      ssqlitee.h_cname[ssqlitee.nb_items] = CreateWindow("Edit", argv[1],0x50810080|WS_TABSTOP,10,ssqlitee.pos,200,22,ssqlitee.h_sqlite_ed_table,(HMENU)NULL, hinst, NULL);
+      ssqlitee.h_tcname[ssqlitee.nb_items] = CreateWindow("Edit", argv[1],0x50810880|WS_TABSTOP,10,ssqlitee.pos,100,22,ssqlitee.h_sqlite_ed_table,(HMENU)NULL, hinst, NULL);
+
+      ssqlitee.h_type[ssqlitee.nb_items]  = CreateWindow("Combobox", argv[2],0x50210003,220,ssqlitee.pos,90,200,ssqlitee.h_sqlite_ed_table,(HMENU)NULL, hinst, NULL);
+      ssqlitee.h_pkey[ssqlitee.nb_items]  = CreateWindow("Button","Primary Key", 0x50010003,320,ssqlitee.pos,100,22,ssqlitee.h_sqlite_ed_table,(HMENU)NULL, hinst, NULL);
+      ssqlitee.h_bremove[ssqlitee.nb_items]  = CreateWindow("Button","Remove", 0x50010000,430,ssqlitee.pos,70,22,ssqlitee.h_sqlite_ed_table,(HMENU)(BREMOVEINDEX+ssqlitee.nb_items), hinst, NULL);
+
+      if (argv[5][0] != '0') SendMessage(ssqlitee.h_pkey[ssqlitee.nb_items], BM_SETCHECK, BST_CHECKED,1);
+
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"TEXT");
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"NUMERIC");
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"INTEGER");
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"REAL");
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"BLOB");
+      SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_INSERTSTRING,(WPARAM)-1, (LPARAM)"NONE");
+
+      switch (argv[2][0])
+      {
+        case 'T':SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,0,0);break;
+        case 'N':
+          if (argv[2][1] == 'U')SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,1,0);
+          else SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,5,0);
+        break;
+        case 'I':SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,2,0);break;
+        case 'R':SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,3,0);break;
+        case 'B':SendMessage(ssqlitee.h_type[ssqlitee.nb_items], CB_SETCURSEL,4,0);break;
+      }
+      ssqlitee.pos+=30;
+
+      //next
+      ssqlitee.nb_items++;
+    }
+    break;
   }
   return 0;
 }
@@ -91,6 +162,47 @@ BOOL stringIsANumber(char *s)
 
   return TRUE;
 }
+//------------------------------------------------------------------------------
+void MoveAllComponentLineS(unsigned int pos)
+{
+  if (pos < 0) pos = 0;
+  else if (pos > ssqlite.nb_column-1) pos = ssqlite.nb_column-1;
+
+  DWORD i,j=0;
+  unsigned int pos_max = NB_VIEW_COMPONENT_SQLITE_ED;
+  for (i =0; i<pos; i++) //disable
+  {
+    ShowWindow(ssqlite.h_cname[i],SW_HIDE);
+    ShowWindow(ssqlite.h_ctext[i],SW_HIDE);
+    ShowWindow(ssqlite.h_exctext[i],SW_HIDE);
+  }
+
+  for (i = pos; i<pos+pos_max; i++,j++)
+  {
+    //move
+    SetWindowPos(ssqlite.h_cname[i]  ,HWND_TOP,10  ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlite.h_ctext[i]  ,HWND_TOP,200 ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlite.h_exctext[i],HWND_TOP,410 ,60+j*30,0,0,SWP_NOSIZE);
+
+    //view
+    ShowWindow(ssqlite.h_cname[i],SW_SHOW);
+    ShowWindow(ssqlite.h_ctext[i],SW_SHOW);
+    ShowWindow(ssqlite.h_exctext[i],SW_SHOW);
+
+    //update
+    UpdateWindow(ssqlite.h_cname[i]);
+    UpdateWindow(ssqlite.h_ctext[i]);
+    UpdateWindow(ssqlite.h_exctext[i]);
+  }
+
+  for (i =pos+pos_max; i<ssqlite.nb_column; i++) //disable
+  {
+    ShowWindow(ssqlite.h_cname[i],SW_HIDE);
+    ShowWindow(ssqlite.h_ctext[i],SW_HIDE);
+    ShowWindow(ssqlite.h_exctext[i],SW_HIDE);
+  }
+}
+
 //------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -126,47 +238,16 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
                   tcondition[0] = 0;
                   GetWindowText(ssqlite.h_exctext[i],tcondition,MAX_LINE_SIZE);
 
-                  //check if number
-                  /*if (stringIsANumber(tcondition))
-                  {
-                    if (stringIsANumber(tvalue)) //ok
-                    {
-                      //string standard
-                      strncat(params,tparam,MAX_LINE_SIZE);
-                      strncat(params," = ",MAX_LINE_SIZE);
-                      strncat(params,tvalue,MAX_LINE_SIZE);
-                      strncat(params,",\0",MAX_LINE_SIZE);
+                  //string standard
+                  strncat(params,tparam,MAX_LINE_SIZE);
+                  strncat(params," = \"",MAX_LINE_SIZE);
+                  strncat(params,tvalue,MAX_LINE_SIZE);
+                  strncat(params,"\",\0",MAX_LINE_SIZE);
 
-                      strncat(conditions,tparam,MAX_LINE_SIZE);
-                      strncat(conditions,"= \"",MAX_LINE_SIZE);
-                      strncat(conditions,tcondition,MAX_LINE_SIZE);
-                      strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
-                    }else //nok
-                    {
-                      //string standard
-                      strncat(params,tparam,MAX_LINE_SIZE);
-                      strncat(params," = \"",MAX_LINE_SIZE);
-                      strncat(params,tvalue,MAX_LINE_SIZE);
-                      strncat(params,"\",\0",MAX_LINE_SIZE);
-
-                      strncat(conditions,tparam,MAX_LINE_SIZE);
-                      strncat(conditions,"= \"",MAX_LINE_SIZE);
-                      strncat(conditions,tcondition,MAX_LINE_SIZE);
-                      strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
-                    }
-                  }else
-                  {*/
-                    //string standard
-                    strncat(params,tparam,MAX_LINE_SIZE);
-                    strncat(params," = \"",MAX_LINE_SIZE);
-                    strncat(params,tvalue,MAX_LINE_SIZE);
-                    strncat(params,"\",\0",MAX_LINE_SIZE);
-
-                    strncat(conditions,tparam,MAX_LINE_SIZE);
-                    strncat(conditions,"= \"",MAX_LINE_SIZE);
-                    strncat(conditions,tcondition,MAX_LINE_SIZE);
-                    strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
-                  //}
+                  strncat(conditions,tparam,MAX_LINE_SIZE);
+                  strncat(conditions,"= \"",MAX_LINE_SIZE);
+                  strncat(conditions,tcondition,MAX_LINE_SIZE);
+                  strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
                 }
 
                 //remove last , and AND ...
@@ -189,7 +270,7 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
               }
             break;
             case DLG_SQL_ED_BT_SEND: //add
- {
+             {
                 char request[MAX_LINE_SIZE]="";
                 char table[MAX_LINE_SIZE]="";
                 char params[MAX_LINE_SIZE]="";
@@ -231,6 +312,28 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
         break;
       }
     break;
+    case WM_VSCROLL:
+    {
+      unsigned int pos = GetScrollPos(hwnd, SB_VERT);
+      switch (LOWORD(wParam))
+      {
+        case SB_TOP:            pos = 0;break;
+        case SB_BOTTOM:         pos = ssqlite.nb_column-1;break;
+        case SB_LINEUP:         pos--;break;
+        case SB_LINEDOWN:       pos++;break;
+        case SB_THUMBTRACK:
+        case SB_THUMBPOSITION:  pos = HIWORD(wParam);break;
+        case SB_PAGEDOWN:       pos+=NB_VIEW_COMPONENT_SQLITE_ED;break;
+        case SB_PAGEUP:         pos-=NB_VIEW_COMPONENT_SQLITE_ED;break;
+        case SB_ENDSCROLL:break;
+      }
+      if (pos < 0) pos = 0;
+      if (pos > ssqlite.nb_column-1) pos = ssqlite.nb_column-1;
+
+      SetScrollPos(hwnd, SB_VERT, pos, TRUE);
+      MoveAllComponentLineS(pos);
+    }
+    break;
     case WM_CLOSE :
       //init struct
       while (ssqlite.nb_column--)
@@ -240,13 +343,257 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
         ssqlite.h_exctext[ssqlite.nb_column] = 0;
       }
 
-      ssqlite.nb_column     = 0;
-      ssqlite.h_sqlite_ed   = 0;
-      ssqlite.table_name[0] = 0;
+      ssqlite.nb_column           = 0;
+      ssqlite.h_sqlite_ed         = 0;
+      ssqlite.table_name[0]       = 0;
 
       //close
       DestroyWindow(hwnd);
       break;
+  }
+  return 0;
+}
+//------------------------------------------------------------------------------
+void MoveAllComponentLine(unsigned int pos)
+{
+  if (pos < 0) pos = 0;
+  else if (pos > ssqlitee.nb_items-1) pos = ssqlitee.nb_items-1;
+
+  DWORD i,j=0;
+  unsigned int pos_max = NB_VIEW_COMPONENT_SQLITE_ED;
+  for (i =0; i<pos; i++) //disable
+  {
+    ShowWindow(ssqlitee.h_cname[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_tcname[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_type[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_pkey[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_bremove[i],SW_HIDE);
+  }
+
+  for (i = pos; i<pos+pos_max; i++,j++)
+  {
+    //move
+    SetWindowPos(ssqlitee.h_cname[i]  ,HWND_TOP,10  ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlitee.h_tcname[i] ,HWND_TOP,220 ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlitee.h_type[i]   ,HWND_TOP,330 ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlitee.h_pkey[i]   ,HWND_TOP,440 ,60+j*30,0,0,SWP_NOSIZE);
+    SetWindowPos(ssqlitee.h_bremove[i],HWND_TOP,550 ,60+j*30,0,0,SWP_NOSIZE);
+
+    //view
+    if (ssqlitee.disable[i] == FALSE)
+    {
+      ShowWindow(ssqlitee.h_cname[i],SW_SHOW);
+      ShowWindow(ssqlitee.h_tcname[i],SW_SHOW);
+      ShowWindow(ssqlitee.h_type[i],SW_SHOW);
+      ShowWindow(ssqlitee.h_pkey[i],SW_SHOW);
+      ShowWindow(ssqlitee.h_bremove[i],SW_SHOW);
+    }else
+    {
+      ShowWindow(ssqlitee.h_cname[i],SW_HIDE);
+      ShowWindow(ssqlitee.h_tcname[i],SW_HIDE);
+      ShowWindow(ssqlitee.h_type[i],SW_HIDE);
+      ShowWindow(ssqlitee.h_pkey[i],SW_HIDE);
+      ShowWindow(ssqlitee.h_bremove[i],SW_HIDE);
+    }
+
+    //update
+    UpdateWindow(ssqlitee.h_cname[i]);
+    UpdateWindow(ssqlitee.h_tcname[i]);
+    UpdateWindow(ssqlitee.h_type[i]);
+    UpdateWindow(ssqlitee.h_pkey[i]);
+    UpdateWindow(ssqlitee.h_bremove[i]);
+  }
+
+  for (i =pos+pos_max; i<ssqlitee.nb_items; i++) //disable
+  {
+    ShowWindow(ssqlitee.h_cname[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_tcname[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_type[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_pkey[i],SW_HIDE);
+    ShowWindow(ssqlitee.h_bremove[i],SW_HIDE);
+  }
+}
+//------------------------------------------------------------------------------
+char* GetCurrentTableChamps(int id_exclude, char *champs_only, char *champs_full, DWORD sz_max)
+{
+  DWORD i;
+  char tmp_name[MAX_LINE_SIZE], tmp_type[MAX_PATH];
+  BOOL PK = FALSE;
+
+  champs_only[0] = 0;
+  champs_full[0] = 0;
+
+  for (i=0;i<ssqlitee.nb_items;i++)
+  {
+    if (i != id_exclude && !ssqlitee.disable[i])//if already deleted
+    {
+      //get
+      GetWindowText(ssqlitee.h_tcname[i],tmp_name,MAX_LINE_SIZE);                     //name
+      GetWindowText(ssqlitee.h_type[i],tmp_type,MAX_PATH);                            //type
+      if (Button_GetCheck(ssqlitee.h_pkey) == BST_CHECKED)PK = TRUE; else PK = FALSE; //PRIMARY KEY + NOT NULL
+
+      //header only
+      strncat(champs_only,"\"",sz_max);
+      strncat(champs_only,tmp_name,sz_max);
+      if (i == ssqlitee.nb_items-1)strncat(champs_only,"\"\0",sz_max);
+      else strncat(champs_only,"\",\0",sz_max);
+
+      //ALL
+      GetWindowText(ssqlitee.h_cname[i],tmp_name,MAX_LINE_SIZE);                     //name
+      strncat(champs_full,"\"",sz_max);
+      strncat(champs_full,tmp_name,sz_max);
+      strncat(champs_full,"\" ",sz_max);
+      strncat(champs_full,tmp_type,sz_max);
+      if(PK)
+      {
+        strncat(champs_full," NOT NULL PRIMARY KEY",sz_max);
+      }
+      if (i == ssqlitee.nb_items-1)strncat(champs_full,"\0",sz_max);
+      else strncat(champs_full,",\0",sz_max);
+    }
+  }
+
+  if (champs_full[strlen(champs_full)-1] == ',')champs_full[strlen(champs_full)-1] = 0;
+  if (champs_only[strlen(champs_only)-1] == ',')champs_only[strlen(champs_only)-1] = 0;
+}
+//------------------------------------------------------------------------------
+void ReloadTable(HWND hwnd)
+{
+  //delete columns
+  while (ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),1));
+  ListView_DeleteColumn(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE),0);
+
+  //init LV
+  TRI_SQLITE_ED = FALSE;
+  SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"");
+  SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_DELETEALLITEMS,0, (LPARAM)"");
+
+  //lB
+  SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_RESETCONTENT,0, (LPARAM)"");
+
+  //reload
+  FORMAT_CALBAK_READ_INFO fcri;
+  fcri.type = TYPE_SQLITE_LOAD_TABLES;
+  sqlite3_exec(db_sqlite_test,"SELECT DISTINCT tbl_name FROM sqlite_master ORDER BY tbl_name;", callback_sqlite_sqlite_ed, &fcri, NULL);
+}
+//------------------------------------------------------------------------------
+BOOL ModifyTableStruct(int index, BOOL exclude_index)
+{
+  char tmp_request[REQUEST_MAX_SIZE];
+
+  //rename current database !
+  snprintf(tmp_request, REQUEST_MAX_SIZE,"ALTER TABLE \"main\".\"%s\" RENAME TO \"oXHFcGcd04oXHFcGcd04_%s\";",ssqlitee.table_name,ssqlitee.table_name);
+  if(!sqlite3_exec(db_sqlite_test,tmp_request,NULL,NULL,NULL))
+  {
+    //create new database
+    char champs_only[MAX_LINE_SIZE],champs_full[MAX_LINE_SIZE];
+    GetCurrentTableChamps(exclude_index?index:-1, champs_only, champs_full, MAX_LINE_SIZE);
+    snprintf(tmp_request, REQUEST_MAX_SIZE,"CREATE TABLE \"main\".\"%s\" (%s);",ssqlitee.table_name,champs_full);
+    if(!sqlite3_exec(db_sqlite_test,tmp_request,NULL,NULL,NULL))
+    {
+      //insert DATAS
+      snprintf(tmp_request, REQUEST_MAX_SIZE,"INSERT INTO \"main\".\"%s\" SELECT %s FROM \"main\".\"oXHFcGcd04oXHFcGcd04_%s\";",ssqlitee.table_name,champs_only,ssqlitee.table_name);
+      if(!sqlite3_exec(db_sqlite_test,tmp_request,NULL,NULL,NULL))
+      {
+        //DROP temporary databse
+        snprintf(tmp_request, REQUEST_MAX_SIZE,"DROP TABLE \"main\".\"oXHFcGcd04oXHFcGcd04_%s\";",ssqlitee.table_name);
+        sqlite3_exec(db_sqlite_test,tmp_request,NULL,NULL,NULL);
+
+        //disable component
+        ssqlitee.disable[index] = TRUE;
+        ShowWindow(ssqlitee.h_cname[index],SW_HIDE);
+        ShowWindow(ssqlitee.h_tcname[index],SW_HIDE);
+        ShowWindow(ssqlitee.h_pkey[index],SW_HIDE);
+        ShowWindow(ssqlitee.h_type[index],SW_HIDE);
+        ShowWindow(ssqlitee.h_bremove[index],SW_HIDE);
+
+        //reload table list !
+        ReloadTable(h_sqlite_ed);
+        return TRUE;
+      }
+    }
+  }
+  return FALSE;
+}
+//------------------------------------------------------------------------------
+BOOL CALLBACK DialogProc_sqlite_ed_table_req(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+  switch (message)
+  {
+    case WM_COMMAND:
+      switch (HIWORD(wParam))
+      {
+        case BN_CLICKED:
+          if (LOWORD(wParam)>=BREMOVEINDEX && LOWORD(wParam) < BREMOVEMAXINDEX)
+          {
+            if (!ModifyTableStruct(LOWORD(wParam)-BREMOVEINDEX, TRUE))
+            {
+              //error msg
+              SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"SQLITE MSG : ERROR REMOVE VAR FORMAT ERROR");
+            }else SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"SQLITE MSG : OK");
+          }else
+          {
+            switch(LOWORD(wParam))
+            {
+              case DLG_SQL_ED_ED_REQUEST: //update
+                {
+                  if (!ModifyTableStruct(LOWORD(wParam)-BREMOVEINDEX, FALSE))
+                  {
+                    //error msg
+                    SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"SQLITE MSG : ERROR ALTER TABLE FORMAT ERROR");
+                  }else SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"SQLITE MSG : OK");
+                }
+              break;
+            }
+          }
+        break;
+      }
+    break;
+    case WM_VSCROLL:
+    {
+      unsigned int pos = GetScrollPos(hwnd, SB_VERT);
+      switch (LOWORD(wParam))
+      {
+        case SB_TOP:            pos = 0;break;
+        case SB_BOTTOM:         pos = ssqlitee.nb_items-1;break;
+        case SB_LINEUP:         pos--;break;
+        case SB_LINEDOWN:       pos++;break;
+        case SB_THUMBTRACK:
+        case SB_THUMBPOSITION:  pos = HIWORD(wParam);break;
+        case SB_PAGEDOWN:       pos+=NB_VIEW_COMPONENT_SQLITE_ED;break;
+        case SB_PAGEUP:         pos-=NB_VIEW_COMPONENT_SQLITE_ED;break;
+        case SB_ENDSCROLL:break;
+      }
+      if (pos < 0) pos = 0;
+      else if (pos > ssqlitee.nb_items-1) pos = ssqlitee.nb_items-1;
+
+      SetScrollPos(hwnd, SB_VERT, pos, TRUE);
+      MoveAllComponentLine(pos);
+    }
+    break;
+    case WM_CLOSE :
+      //init struct
+      while (ssqlitee.nb_items--)
+      {
+        ssqlitee.h_cname[ssqlite.nb_column]    = 0;
+        ssqlitee.h_tcname[ssqlite.nb_column]   = 0;
+        ssqlitee.h_type[ssqlite.nb_column]     = 0;
+        ssqlitee.h_pkey[ssqlite.nb_column]     = 0;
+        ssqlitee.h_bremove[ssqlite.nb_column]  = 0;
+        ssqlitee.disable[ssqlite.nb_column]    = 0;
+      }
+
+      ssqlitee.nb_items           = 0;
+      ssqlitee.h_sqlite_ed_table  = 0;
+      ssqlitee.table_name[0]      = 0;
+
+      //init struct
+      ssqlitee.h_sqlite_ed_table   = 0;
+      ssqlitee.pos = 60;
+
+      //close
+      DestroyWindow(hwnd);
+    break;
   }
   return 0;
 }
@@ -341,6 +688,12 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             case POPUP_SQLITE_REQUEST_SELECT:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"SELECT * FROM table;");break;
             case POPUP_SQLITE_REQUEST_INSERT:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"INSERT INTO table (param1,param2) VALUES(\"data1\",\"data2\");");break;
             case POPUP_SQLITE_REQUEST_DELETE:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"DELETE FROM table WHERE value=\"1\";");break;
+
+            case POPUP_SQLITE_REQUEST_ALTER_TABLE: SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"ALTER TABLE \"main\".\"DbMeta\" RENAME TO \"DbMeta2\";");break;
+            case POPUP_SQLITE_REQUEST_CREATE_TABLE:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"CREATE TABLE \"main\".\"DbMeta\" (\"value\" TEXT);");break;
+            case POPUP_SQLITE_REQUEST_INSERT_INTO: SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"INSERT INTO \"main\".\"DbMeta\" SELECT \"value\" FROM \"main\".\"DbMeta2\";");break;
+            case POPUP_SQLITE_REQUEST_DROP_TABLE:  SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"CDROP TABLE \"main\".\"DbMeta\";");break;
+
             case POPUP_SQLITE_REQUEST_VACCUM:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"VACUUM;");break;
             case POPUP_SQLITE_REQUEST_JOURNAL_ON:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"PRAGMA journal_mode = ON;");break;
             case POPUP_SQLITE_REQUEST_JOURNAL_OFF:SetWindowText(GetDlgItem((HWND)hwnd,DLG_SQL_ED_ED_REQUEST),"PRAGMA journal_mode = OFF;");break;
@@ -417,8 +770,8 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                     SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_GETTEXT,id_item,(LPARAM)table);
                   }
 
-                  unsigned long int nb_items = ListView_GetItemCount(hlstv);
-                  for (index = 0; index <nb_items; index++)
+                  long int nb_items = ListView_GetItemCount(hlstv)-1;
+                  for (index = nb_items; index >= 0; index--)
                   {
                     //init
                     if (SendMessage(hlstv,LVM_GETITEMSTATE,(WPARAM)index,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
@@ -452,7 +805,6 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
 
                     snprintf(request,MAX_LINE_SIZE, "DELETE FROM %s WHERE %s;",table, conditions);
 
-                    //MessageBox(NULL,request,request,MB_OK|MB_TOPMOST);
                     //run request
                     char *error_msg = 0;
                     if(sqlite3_exec(db_sqlite_test,request, NULL, NULL, &error_msg)!= SQLITE_OK)
@@ -469,6 +821,33 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                   }
                 }
               }
+            break;
+            case POPUP_SQLITE_ED_TABLE:
+            {
+              ssqlitee.pos = 60;
+              ssqlitee.h_sqlite_ed_table  = CreateDialog(0, MAKEINTRESOURCE(DLG_SQLITE_ED_TABLE) ,NULL,DialogProc_sqlite_ed_table_req);
+              SendMessage(ssqlitee.h_sqlite_ed_table, WM_SETICON, ICON_BIG, (LPARAM)LoadIcon(hinst, MAKEINTRESOURCE(ICON_APP)));
+              ShowWindow(ssqlitee.h_sqlite_ed_table,SW_SHOW);
+
+              DWORD id_item = SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_GETCURSEL,0,0);
+              if (SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_GETTEXTLEN,id_item,0) <= MAX_LINE_SIZE)
+              {
+                SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_GETTEXT,id_item,(LPARAM)ssqlitee.table_name);
+                SetWindowText(ssqlitee.h_sqlite_ed_table,ssqlitee.table_name);
+              }
+
+              //sqlite get table struct !
+              char request[MAX_PATH];
+              snprintf(request,MAX_PATH,"PRAGMA table_info (%s);",ssqlitee.table_name);
+              FORMAT_CALBAK_READ_INFO fcri2;
+              fcri2.type = TYPE_SQLITE_LOAD_TABLE_STRUCT;
+              sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri2, NULL);
+
+              //init scroll bar !
+              SetScrollRange(ssqlitee.h_sqlite_ed_table, SB_VERT, 0, ssqlitee.nb_items-1,TRUE);
+              SetScrollPos(ssqlitee.h_sqlite_ed_table, SB_VERT, 0, TRUE);
+              MoveAllComponentLine(0);
+            }
             break;
             case POPUP_SQLITE_HDR_RESIZE:
               {
@@ -562,8 +941,27 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                 fcri.type = TYPE_SQLITE_LOAD_TABLE_SELECTED;
                 sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, NULL);
 
+                //if no item get headers !!!
+                DWORD nb_items = SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_GETITEMCOUNT,0,0);
+                if (nb_items < 1)
+                {
+                  snprintf(request,MAX_PATH,"PRAGMA table_info (%s);",tmp_table);
+                  FORMAT_CALBAK_READ_INFO fcri2;
+                  fcri.type = TYPE_SQLITE_LOAD_TABLE_HEADER;
+                  nb_column_view_sqlite = 0;
+                  sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, NULL);
+
+                  //set auto header size
+                  int i = 0;
+                  while(ListView_SetColumnWidth(GetDlgItem(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE),i++,LVSCW_AUTOSIZE_USEHEADER));
+                }
+
+                //set auto header size
+                int i = 0;
+                while(ListView_SetColumnWidth(GetDlgItem(h_sqlite_ed,DLG_SQL_ED_LV_RESPONSE),i++,LVSCW_AUTOSIZE_USEHEADER));
+
                 //set number of items
-                snprintf(request,MAX_PATH,"Item(s) : %lu",SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_GETITEMCOUNT,0,0));
+                snprintf(request,MAX_PATH,"Item(s) : %lu",nb_items);
                 SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)request);
               }
             }
@@ -684,7 +1082,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
               lvc.cchTextMax  = MAX_LINE_SIZE;
               lvc.pszText     = tmp;
 
-              int pos = 60;
+              ssqlite.pos = 60;
 
               for (i = 0; i<ssqlite.nb_column; i++)
               {
@@ -698,27 +1096,26 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                     ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 
                     //create items + set text
-                    ssqlite.h_cname[i] = CreateWindow("Static", tmp,0x50000000,10,pos,150,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
-                    ssqlite.h_ctext[i] = CreateWindow("Edit", tmp2,0x50810080|WS_TABSTOP,200,pos,200,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
-                    ssqlite.h_exctext[i] = CreateWindow("Edit", tmp2,0x50810880,420,pos,150,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
+                    ssqlite.h_cname[i] = CreateWindow("Static", tmp,0x50000000,10,ssqlite.pos,150,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
+                    ssqlite.h_ctext[i] = CreateWindow("Edit", tmp2,0x50810080,200,ssqlite.pos,200,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
+                    ssqlite.h_exctext[i] = CreateWindow("Edit", tmp2,0x50810880,420,ssqlite.pos,150,22,ssqlite.h_sqlite_ed,(HMENU)NULL, hinst, NULL);
 
-                    pos+=30;
+                    ssqlite.pos+=30;
                   }
                 }
               }
 
-              //resize form
-              RECT Rect;
-              GetWindowRect(ssqlite.h_sqlite_ed, &Rect);
-              MoveWindow(ssqlite.h_sqlite_ed,Rect.left,Rect.top,600,pos+64,TRUE);
-              MoveWindow(GetDlgItem(ssqlite.h_sqlite_ed,DLG_SQL_ED_STATE_SB),Rect.left,pos,Rect.right,Rect.bottom,TRUE);
+              //init scroll bar !
+              SetScrollRange(ssqlite.h_sqlite_ed, SB_VERT, 0, ssqlite.nb_column-1,TRUE);
+              SetScrollPos(ssqlite.h_sqlite_ed, SB_VERT, 0, TRUE);
+              MoveAllComponentLineS(0);
             }
           }
         break;
       }
     break;
     case WM_CONTEXTMENU:
-      if ((HWND)wParam == GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE))
+      if ((HWND)wParam == GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE) && SendDlgItemMessage(hwnd,DLG_SQL_ED_LB_TABLE,LB_GETCURSEL,0,0) != LB_ERR)
       {
         HMENU hmenu;
         if ((hmenu = LoadMenu(hinst, MAKEINTRESOURCE(POPUP_LSTV_SQLITE)))!= NULL)

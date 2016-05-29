@@ -409,10 +409,10 @@
 1447586803 source:z:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1459531007 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
+1459531008 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1462723382 e:\git\omnia-projetcs\rtca\rtca.h
+1464295630 e:\git\omnia-projetcs\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -443,36 +443,36 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1462725520 e:\git\omnia-projetcs\rtca\version.h
+1464551444 e:\git\omnia-projetcs\rtca\version.h
 
 1431789186 e:\git\omnia-projetcs\rtca\sqlite\sqlite3.h
 	<stdarg.h>
 
 1446298822 e:\git\omnia-projetcs\rtca\sqlite\interface.h
 
-1446298821 e:\git\omnia-projetcs\rtca\registry.h
+1446298822 e:\git\omnia-projetcs\rtca\registry.h
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\d3des.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\d3des.h
 
-1431789185 e:\git\omnia-projetcs\rtca\files\litezip.h
+1431789186 e:\git\omnia-projetcs\rtca\files\litezip.h
 	<windows.h>
 
-1446298823 e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.h
+1446298824 e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.h
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\md5.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\md5.h
 	"e_os2.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\e_os2.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\e_os2.h
 	"opensslconf.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\opensslconf.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\opensslconf.h
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\rc4.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\rc4.h
 	"opensslconf.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\opensslv.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\opensslv.h
 
-1448211409 source:e:\git\omnia-projetcs\rtca\configuration\init.c
+1448211410 source:e:\git\omnia-projetcs\rtca\configuration\init.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\configuration\proxy.c
@@ -481,10 +481,10 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\configuration\richedit_conf.c
 	"../RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\d3des.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\d3des.c
 	"d3des.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\des.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\des.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
@@ -499,37 +499,37 @@
 	<sys/stat.h>
 	"des.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\des.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\des.h
 	"opensslconf.h"
 	"e_os2.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\md5.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\md5.c
 	"../RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\md5_dgst.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\md5_dgst.c
 	<stdio.h>
 	"opensslv.h"
 	"md5_locl.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\md5_locl.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\md5_locl.h
 	<stdlib.h>
 	<string.h>
 	"e_os2.h"
 	"md5.h"
 	"md32_common.h"
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\md32_common.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\md32_common.h
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\rc4_enc.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\rc4_enc.c
 	"../RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\rc4_skey.c
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\rc4_skey.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\crypt\rev_mdp.c
+1446298822 source:e:\git\omnia-projetcs\rtca\crypt\rev_mdp.c
 	"../RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\crypt\sha2.cpp
+1431789186 source:e:\git\omnia-projetcs\rtca\crypt\sha2.cpp
 	<string.h>
 	<stdlib.h>
 	"sha2.h"
@@ -542,16 +542,16 @@
 	<stdlib.h>
 	<sys/param.h>
 
-1431789185 e:\git\omnia-projetcs\rtca\crypt\sha2.h
+1431789186 e:\git\omnia-projetcs\rtca\crypt\sha2.h
 	<limits.h>
 
 1446298820 source:e:\git\omnia-projetcs\rtca\crypt\windows_users_hashs_registry.c
 	"../RtCA.h"
 
-1459531007 source:e:\git\omnia-projetcs\rtca\export.c
+1463659812 source:e:\git\omnia-projetcs\rtca\export.c
 	"RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\files\litezip.c
+1431789186 source:e:\git\omnia-projetcs\rtca\files\litezip.c
 	<windows.h>
 	"LiteZip.h"
 
@@ -561,34 +561,34 @@
 1461501816 source:e:\git\omnia-projetcs\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
-1447594883 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
+1447594884 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
 	"../RtCA.h"
 
-1448210992 source:e:\git\omnia-projetcs\rtca\import.c
+1463669862 source:e:\git\omnia-projetcs\rtca\import.c
 	"RtCA.h"
 
 1446298820 source:e:\git\omnia-projetcs\rtca\proc.c
 	"RtCA.h"
 
-1447600200 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
+1463670976 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
 	"RtCA.h"
 
 1447595082 source:e:\git\omnia-projetcs\rtca\proc_gui.c
 	"RtCA.h"
 
-1446298823 source:e:\git\omnia-projetcs\rtca\proc_registry.c
+1446298824 source:e:\git\omnia-projetcs\rtca\proc_registry.c
 	"RtCA.h"
 
-1462724282 source:e:\git\omnia-projetcs\rtca\rtca.rc
+1464296449 source:e:\git\omnia-projetcs\rtca\rtca.rc
 	"RtCA.h"
 
 1461599590 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
 	"../RtCA.h"
 
-1446298823 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
+1446298824 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
 	"../RtCA.h"
 
-1431789185 source:e:\git\omnia-projetcs\rtca\sqlite\sqlite3.c
+1431789186 source:e:\git\omnia-projetcs\rtca\sqlite\sqlite3.c
 	"config.h"
 	<stdint.h>
 	<inttypes.h>
@@ -635,13 +635,13 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1447592518 source:e:\git\omnia-projetcs\rtca\tests\scan.c
+1463669768 source:e:\git\omnia-projetcs\rtca\tests\scan.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_android.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_android.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_antivirus.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_antivirus.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_arp.c
@@ -650,7 +650,7 @@
 1448189702 source:e:\git\omnia-projetcs\rtca\tests\test_chrome.c
 	"../RtCA.h"
 
-1447595279 source:e:\git\omnia-projetcs\rtca\tests\test_clipboard.c
+1447595280 source:e:\git\omnia-projetcs\rtca\tests\test_clipboard.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_disk.c
@@ -659,7 +659,7 @@
 1447599236 source:e:\git\omnia-projetcs\rtca\tests\test_dns.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
 	"../RtCA.h"
 
 1448189744 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
@@ -669,7 +669,7 @@
 1447595570 source:e:\git\omnia-projetcs\rtca\tests\test_file_lnk.c
 	"../RtCA.h"
 
-1448189783 source:e:\git\omnia-projetcs\rtca\tests\test_firefox.c
+1448189784 source:e:\git\omnia-projetcs\rtca\tests\test_firefox.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_firewall.c
@@ -681,16 +681,16 @@
 1448189900 source:e:\git\omnia-projetcs\rtca\tests\test_ie.c
 	"../RtCA.h"
 
-1461866147 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
+1461866148 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
 	"../RtCA.h"
 
-1446298823 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
+1446298824 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evt.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evt.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evtx.c
@@ -699,13 +699,13 @@
 1461588000 source:e:\git\omnia-projetcs\rtca\tests\test_network.c
 	"../RtCA.h"
 
-1448189907 source:e:\git\omnia-projetcs\rtca\tests\test_pipe.c
+1448189908 source:e:\git\omnia-projetcs\rtca\tests\test_pipe.c
 	"../RtCA.h"
 
 1461092560 source:e:\git\omnia-projetcs\rtca\tests\test_prefetch.c
 	"../RtCA.h"
 
-1447595967 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
+1447595968 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_deleted_keys.c
@@ -720,7 +720,7 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_path.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
 	"../RtCA.h"
 
 1462020446 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
@@ -729,10 +729,10 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_registry_start.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_start.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_registry_update.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_update.c
 	"../RtCA.h"
 
 1461359408 source:e:\git\omnia-projetcs\rtca\tests\test_registry_usb.c
@@ -741,25 +741,25 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_userassist.c
 	"../RtCA.h"
 
-1446298823 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
+1446298824 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_route.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
 	"../RtCA.h"
 
-1448189923 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
+1448189924 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_clean.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
 	"../../RtCA.h"
 
-1446298823 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.c
+1446298824 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.c
 	"../../RtCA.h"
 
 1447590248 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\shadow_copy.cpp
@@ -769,12 +769,12 @@
 
 1446381060 e:\git\omnia-projetcs\rtca\tools\tools_copy\vswriter.h
 
-1446381037 e:\git\omnia-projetcs\rtca\tools\tools_copy\vsbackup.h
+1446381038 e:\git\omnia-projetcs\rtca\tools\tools_copy\vsbackup.h
 
-1446298823 source:e:\git\omnia-projetcs\rtca\tools\tools_date.c
+1446298824 source:e:\git\omnia-projetcs\rtca\tools\tools_date.c
 	"../RtCA.h"
 
-1448190135 source:e:\git\omnia-projetcs\rtca\tools\tools_hexa.c
+1463659728 source:e:\git\omnia-projetcs\rtca\tools\tools_hexa.c
 	"../RtCA.h"
 
 1448210742 source:e:\git\omnia-projetcs\rtca\tools\tools_memory.c
@@ -789,33 +789,443 @@
 1448210764 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
 	"../RtCA.h"
 
-1461500695 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
+1461500696 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
 	"../RtCA.h"
 
-1461509777 source:e:\git\omnia-projetcs\rtca\tools\tools_registry_recovery.c
+1461509778 source:e:\git\omnia-projetcs\rtca\tools\tools_registry_recovery.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tools\tools_remote_extract.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_remote_extract.c
 	"../RtCA.h"
 
-1446298821 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
+1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
 	"../RtCA.h"
 
-1462718901 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
+1464334946 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 
-1448210784 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
+1464091502 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
 	"../RtCA.h"
 
-1447590403 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
+1447590404 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1459072948 source:e:\git\omnia-projetcs\rtca\main.c
+1463669708 source:e:\git\omnia-projetcs\rtca\main.c
 	"RtCA.h"
 
-1458936341 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
+1458936342 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
 	"../RtCA.h"
 
 1461517158 source:e:\git\omnia-projetcs\rtca\tools\tools_copy.c
+	"../RtCA.h"
+
+1459527407 source:c:\users\g570165\documents\_dev\rtca\configuration\gui_conf.c
+	"../RtCA.h"
+
+1463656041 c:\users\g570165\documents\_dev\rtca\rtca.h
+	<time.h>
+	<stdio.h>
+	<stdlib.h>
+	<Winsock2.h>
+	<windows.h>
+	<Windowsx.h>
+	"version.h"
+	<commctrl.h>
+	<shlobj.h>
+	<iprtrmib.h>
+	<iphlpapi.h>
+	<lmshare.h>
+	<richedit.h>
+	<tlhelp32.h>
+	<psapi.h>
+	"sqlite/sqlite3.h"
+	"sqlite/interface.h"
+	"Registry.h"
+	<Windns.h>
+	<Wincrypt.h>
+	"crypt/d3des.h"
+	<lmaccess.h>
+	<wininet.h>
+	"files/LiteZip.h"
+	"tools/tools_copy/MFT_parser.h"
+	<Winldap.h>
+	"crypt/md5.h"
+	"crypt/rc4.h"
+	"crypt/opensslv.h"
+
+1463666646 c:\users\g570165\documents\_dev\rtca\version.h
+
+1431785586 c:\users\g570165\documents\_dev\rtca\sqlite\sqlite3.h
+	<stdarg.h>
+
+1446295222 c:\users\g570165\documents\_dev\rtca\sqlite\interface.h
+
+1446295221 c:\users\g570165\documents\_dev\rtca\registry.h
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\d3des.h
+
+1431785585 c:\users\g570165\documents\_dev\rtca\files\litezip.h
+	<windows.h>
+
+1446295223 c:\users\g570165\documents\_dev\rtca\tools\tools_copy\mft_parser.h
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\md5.h
+	"e_os2.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\e_os2.h
+	"opensslconf.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\opensslconf.h
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\rc4.h
+	"opensslconf.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\opensslv.h
+
+1448207809 source:c:\users\g570165\documents\_dev\rtca\configuration\init.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\configuration\proxy.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\configuration\richedit_conf.c
+	"../RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\d3des.c
+	"d3des.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\des.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	"opensslconf.h"
+	<unistd.h>
+	<math.h>
+	<io.h>
+	<time.h>
+	<types.h>
+	<stat.h>
+	<sys/types.h>
+	<sys/stat.h>
+	"des.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\des.h
+	"opensslconf.h"
+	"e_os2.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\md5.c
+	"../RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\md5_dgst.c
+	<stdio.h>
+	"opensslv.h"
+	"md5_locl.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\md5_locl.h
+	<stdlib.h>
+	<string.h>
+	"e_os2.h"
+	"md5.h"
+	"md32_common.h"
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\md32_common.h
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\rc4_enc.c
+	"../RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\rc4_skey.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\crypt\rev_mdp.c
+	"../RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\crypt\sha2.cpp
+	<string.h>
+	<stdlib.h>
+	"sha2.h"
+	<byteswap.h>
+	<endian.h>
+	"crypt.h"
+	"../crypt.h"
+	"crypt.h"
+	<stdlib.h>
+	<stdlib.h>
+	<sys/param.h>
+
+1431785585 c:\users\g570165\documents\_dev\rtca\crypt\sha2.h
+	<limits.h>
+
+1446295220 source:c:\users\g570165\documents\_dev\rtca\crypt\windows_users_hashs_registry.c
+	"../RtCA.h"
+
+1463656210 source:c:\users\g570165\documents\_dev\rtca\export.c
+	"RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\files\litezip.c
+	<windows.h>
+	"LiteZip.h"
+
+1461173126 source:c:\users\g570165\documents\_dev\rtca\files\proc_files.c
+	"../RtCA.h"
+
+1461498216 source:c:\users\g570165\documents\_dev\rtca\files\proc_registry_files.c
+	"../RtCA.h"
+
+1447591283 source:c:\users\g570165\documents\_dev\rtca\files\rootkit.c
+	"../RtCA.h"
+
+1463666261 source:c:\users\g570165\documents\_dev\rtca\import.c
+	"RtCA.h"
+
+1463666106 source:c:\users\g570165\documents\_dev\rtca\main.c
+	"RtCA.h"
+
+1446295220 source:c:\users\g570165\documents\_dev\rtca\proc.c
+	"RtCA.h"
+
+1463666055 source:c:\users\g570165\documents\_dev\rtca\proc_cmd.c
+	"RtCA.h"
+
+1447591482 source:c:\users\g570165\documents\_dev\rtca\proc_gui.c
+	"RtCA.h"
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\proc_registry.c
+	"RtCA.h"
+
+1463663445 source:c:\users\g570165\documents\_dev\rtca\rtca.rc
+	"RtCA.h"
+
+1461595990 source:c:\users\g570165\documents\_dev\rtca\sqlite\interface.c
+	"../RtCA.h"
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\sqlite\load_save.c
+	"../RtCA.h"
+
+1431785585 source:c:\users\g570165\documents\_dev\rtca\sqlite\sqlite3.c
+	"config.h"
+	<stdint.h>
+	<inttypes.h>
+	<tcl.h>
+	<stdarg.h>
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+	<assert.h>
+	<stddef.h>
+	<windows.h>
+	<os2safe.h>
+	<os2.h>
+	<uconv.h>
+	<ctype.h>
+	<time.h>
+	<sys/sysctl.h>
+	<malloc/malloc.h>
+	<libkern/OSAtomic.h>
+	<malloc.h>
+	<pthread.h>
+	<math.h>
+	<sys/types.h>
+	<sys/stat.h>
+	<fcntl.h>
+	<unistd.h>
+	<sys/time.h>
+	<errno.h>
+	<sys/mman.h>
+	<sys/ioctl.h>
+	<semaphore.h>
+	<limits.h>
+	<sys/file.h>
+	<sys/param.h>
+	<sys/mount.h>
+	<utime.h>
+	<dlfcn.h>
+	<sys/cygwin.h>
+	"sqlite3rtree.h"
+	<unicode/utypes.h>
+	<unicode/uregex.h>
+	<unicode/ustring.h>
+	<unicode/ucol.h>
+	<unicode/ubrk.h>
+	<unicode/utf16.h>
+
+1463666166 source:c:\users\g570165\documents\_dev\rtca\tests\scan.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_android.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_antivirus.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_arp.c
+	"../RtCA.h"
+
+1448186102 source:c:\users\g570165\documents\_dev\rtca\tests\test_chrome.c
+	"../RtCA.h"
+
+1447591679 source:c:\users\g570165\documents\_dev\rtca\tests\test_clipboard.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_disk.c
+	"../RtCA.h"
+
+1447595636 source:c:\users\g570165\documents\_dev\rtca\tests\test_dns.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_env.c
+	"../RtCA.h"
+
+1448186144 source:c:\users\g570165\documents\_dev\rtca\tests\test_file.c
+	"../RtCA.h"
+	"../crypt/sha2.h"
+
+1447591970 source:c:\users\g570165\documents\_dev\rtca\tests\test_file_lnk.c
+	"../RtCA.h"
+
+1448186183 source:c:\users\g570165\documents\_dev\rtca\tests\test_firefox.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_firewall.c
+	"../RtCA.h"
+
+1447592050 source:c:\users\g570165\documents\_dev\rtca\tests\test_guide.c
+	"../RtCA.h"
+
+1448186300 source:c:\users\g570165\documents\_dev\rtca\tests\test_ie.c
+	"../RtCA.h"
+
+1461862547 source:c:\users\g570165\documents\_dev\rtca\tests\test_ldap.c
+	"../RtCA.h"
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\tests\test_log.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_log_files.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_log_files_evt.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_log_files_evtx.c
+	"../RtCA.h"
+
+1461584400 source:c:\users\g570165\documents\_dev\rtca\tests\test_network.c
+	"../RtCA.h"
+
+1448186307 source:c:\users\g570165\documents\_dev\rtca\tests\test_pipe.c
+	"../RtCA.h"
+
+1461088960 source:c:\users\g570165\documents\_dev\rtca\tests\test_prefetch.c
+	"../RtCA.h"
+
+1447592367 source:c:\users\g570165\documents\_dev\rtca\tests\test_process.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_deleted_keys.c
+	"../RtCA.h"
+
+1446295220 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_mru.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_password.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_path.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_service.c
+	"../RtCA.h"
+
+1458932741 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_settings.c
+	"../RtCA.h"
+
+1462016846 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_shellbags.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_software.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_start.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_update.c
+	"../RtCA.h"
+
+1461355808 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_usb.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_userassist.c
+	"../RtCA.h"
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\tests\test_registry_users.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tests\test_route.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tests\test_share.c
+	"../RtCA.h"
+
+1448186323 source:c:\users\g570165\documents\_dev\rtca\tests\test_task.c
+	"../RtCA.h"
+
+1446295222 source:c:\users\g570165\documents\_dev\rtca\tools\tools_clean.c
+	"../RtCA.h"
+
+1461513558 source:c:\users\g570165\documents\_dev\rtca\tools\tools_copy.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tools\tools_copy\mbr_parser.c
+	"../../RtCA.h"
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\tools\tools_copy\mft_parser.c
+	"../../RtCA.h"
+
+1447586648 source:c:\users\g570165\documents\_dev\rtca\tools\tools_copy\shadow_copy.cpp
+	"../../RtCA.h"
+	"VsWriter.h"
+	"VsBackup.h"
+
+1446377460 c:\users\g570165\documents\_dev\rtca\tools\tools_copy\vswriter.h
+
+1446377437 c:\users\g570165\documents\_dev\rtca\tools\tools_copy\vsbackup.h
+
+1446295223 source:c:\users\g570165\documents\_dev\rtca\tools\tools_date.c
+	"../RtCA.h"
+
+1463656126 source:c:\users\g570165\documents\_dev\rtca\tools\tools_hexa.c
+	"../RtCA.h"
+
+1448207142 source:c:\users\g570165\documents\_dev\rtca\tools\tools_memory.c
+	"../RtCA.h"
+
+1448207164 source:c:\users\g570165\documents\_dev\rtca\tools\tools_network.c
+	"../RtCA.h"
+	"tools_network/_entetes.h"
+
+1446295222 c:\users\g570165\documents\_dev\rtca\tools\tools_network\_entetes.h
+
+1448207164 source:c:\users\g570165\documents\_dev\rtca\tools\tools_process.c
+	"../RtCA.h"
+
+1461497095 source:c:\users\g570165\documents\_dev\rtca\tools\tools_registry.c
+	"../RtCA.h"
+
+1461506177 source:c:\users\g570165\documents\_dev\rtca\tools\tools_registry_recovery.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tools\tools_remote_extract.c
+	"../RtCA.h"
+
+1446295221 source:c:\users\g570165\documents\_dev\rtca\tools\tools_screenshot.c
+	"../RtCA.h"
+
+1448207184 source:c:\users\g570165\documents\_dev\rtca\tools\tools_state.c
+	"../RtCA.h"
+
+1447586803 source:c:\users\g570165\documents\_dev\rtca\tools\tools_virustotal.c
+	"../RtCA.h"
+
+1462722723 source:c:\users\g570165\documents\_dev\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 

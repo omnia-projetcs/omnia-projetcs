@@ -1071,3 +1071,19 @@ void CopyAllDataToClipboard(HANDLE hlv, DWORD nline, unsigned short nbcolumn)
   //copy to clipbord
   CopyStringToClipboard(mem);
 }
+//------------------------------------------------------------------------------
+void CopyColumnDataToClipboard(HANDLE hlv, DWORD nline, unsigned short nbcolumn, unsigned short startcolumn)
+{
+  if (nbcolumn ==0) return;
+  unsigned int i;
+  char mem[MAX_LINE_DBSIZE]="";
+
+  //copy all datas
+  for (i=startcolumn;i<startcolumn+nbcolumn;i++)
+  {
+    ListView_GetItemText(hlv,nline,i,&mem[strlen(mem)],MAX_PATH);
+    strncat(mem,"\0",MAX_PATH);
+  }
+  //copy to clipbord
+  CopyStringToClipboard(mem);
+}

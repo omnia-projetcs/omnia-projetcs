@@ -1338,6 +1338,7 @@ int CmdLine(int argc, char* argv[])
           CMDScanNum((LPVOID)atoi(argv[i]));
         }
         start_scan = FALSE;
+        EndSession(0, db_scan);
       break;
       //------------------------------------------------------------------------------
       //advanced functions
@@ -1918,12 +1919,17 @@ int main(int argc, char* argv[])
     //create Accelerators
     hcl = LoadAccelerators(hinst, MAKEINTRESOURCE(MY_ACCEL));
 
-    while (GetMessage (&msg, NULL, 0, 0))
+    BOOL bRet;
+    while ((bRet = GetMessage (&msg, NULL, 0, 0)) != 0)
     {
-      if(!TranslateAccelerator(h_main, hcl, &msg))
+      if (bRet == -1){}
+      else
       {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        if(!TranslateAccelerator(h_main, hcl, &msg))
+        {
+          TranslateMessage(&msg);
+          DispatchMessage(&msg);
+        }
       }
     }
     return msg.wParam;

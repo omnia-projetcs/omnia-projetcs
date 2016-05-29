@@ -216,6 +216,8 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           }
         }while (*b++);
         if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+        if (current_session_id != 0)EndSession(0, db_scan);
       }
       //free memory
       HeapFree(GetProcessHeap(), 0, buffer);

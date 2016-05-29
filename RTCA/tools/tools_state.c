@@ -1050,7 +1050,7 @@ DWORD WINAPI Load_state(LPVOID lParam)
   long int i, s, nb_sessions  = SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETCOUNT,0,(LPARAM)0);
 
   FORMAT_CALBAK_READ_INFO fcri;
-  char request[MAX_LINE_SIZE];
+  char request[MAX_LINE_SIZE], request2[MAX_LINE_SIZE];
 
   for (i=0;i<nb_items;i++)
   {
@@ -1107,11 +1107,18 @@ DWORD WINAPI Load_state(LPVOID lParam)
     //set first date
     request[0] = 0;
     ListView_GetItemText(GetDlgItem(h_state,DLG_STATE_LV_ALL),0,0,request,MAX_LINE_SIZE);
-    SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_1),request);
+    request2[0] = 0;
+    ListView_GetItemText(GetDlgItem(h_state,DLG_STATE_LV_ALL),nb_all_items-1,0,request2,MAX_LINE_SIZE);
 
-    request[0] = 0;
-    ListView_GetItemText(GetDlgItem(h_state,DLG_STATE_LV_ALL),nb_all_items-1,0,request,MAX_LINE_SIZE);
-    SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_2),request);
+    if (compareDate(request, request2)>0)
+    {
+      SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_1),request);
+      SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_2),request2);
+    }else
+    {
+      SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_2),request);
+      SetWindowText(GetDlgItem(h_state,DLG_STATE_ED_TIME_1),request2);
+    }
   }
 
   h_load_th = 0;

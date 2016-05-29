@@ -54,21 +54,135 @@ BOOL readMessageDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char
     //replace system string type of %string%
     ExpandEnvironmentStrings(ddlpath, ddlpath_ok, MAX_PATH);
     //load DATAFILE
-    HANDLE mhandle = LoadLibraryEx(ddlpath_ok, 0, LOAD_LIBRARY_AS_DATAFILE);
-    if (mhandle != NULL)
+    if(FileExist(ddlpath_ok))
     {
-      DWORD_PTR dwpRepStrings[0xFF];
-      GetPointToArray(pevlr, dwpRepStrings, 0xFF);
+      HANDLE mhandle = LoadLibraryEx(ddlpath_ok, 0, LOAD_LIBRARY_AS_DATAFILE);
+      if (mhandle != NULL)
+      {
+        DWORD_PTR dwpRepStrings[0xFF];
+        //GetPointToArray(pevlr, dwpRepStrings, 0xFF);
 
-      ret = FormatMessage(FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_ARGUMENT_ARRAY,
-                          mhandle,pevlr->EventID,0,resultat,resultat_max_size,dwpRepStrings);
+        ret = FormatMessage(FORMAT_MESSAGE_FROM_HMODULE|FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_ARGUMENT_ARRAY,
+                            mhandle,pevlr->EventID,0,resultat,resultat_max_size-1,dwpRepStrings);
 
-      FreeLibrary(mhandle);
+        FreeLibrary(mhandle);
+      }
     }
   }
   return (BOOL)ret;
 }
+//------------------------------------------------------------------------------
+/*BOOL GetMessageString(DWORD MessageId, HANDLE ddl_handle, char *msg, DWORD msg_max_size)
+{
+  DWORD_PTR* pArgs  = NULL;
+  msg[0]            = 0;
+  if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE, ddl_handle,MessageId,0,msg,msg_max_size,(va_list*)pArgs)return FALSE;
+  else return TRUE;
+}*/
+//------------------------------------------------------------------------------
+char *GetDataHexaAndString(char *s, unsigned int sz, char *tmp, DWORD tmp_sz)
+{
+  //get hexa
+  DataToHexaChar(s,sz,tmp,tmp_sz);
+  strncat(tmp," : ",tmp_sz);
 
+  DWORD i;
+  char tmp_2[MAX_PATH]="";
+  for (i = 0; i< sz; i++)
+  {
+    if (s[i] < 127 && s[i] > 31)tmp_2[i] = s[i];
+    else tmp_2[i] = '.';
+  }
+  tmp_2[i] = 0;
+
+  strncat(tmp,tmp_2,tmp_sz);
+  strncat(tmp,"\0",tmp_sz);
+
+  return tmp;
+}
+//------------------------------------------------------------------------------
+BOOL GetMultiMessageString(DWORD MessageId, HANDLE ddl_handle, char *msg, DWORD msg_max_size, DWORD argc, char* argv, DWORD argv_sz)
+{
+  DWORD_PTR* pArgs  = NULL;
+  msg[0]            = 0;
+
+  if (argc > 0 && argv_sz > 0)
+  {
+    pArgs = (DWORD_PTR*)malloc(sizeof(DWORD_PTR) * argc);
+    if (pArgs)
+    {
+      DWORD i;
+      char* pString = argv;
+      BOOL ret = FALSE;
+
+     // char tmp[MAX_LINE_SIZE]="";
+     // GetDataHexaAndString(pString, argv_sz, tmp, MAX_LINE_SIZE);
+
+      //MessageBox(NULL,*GetDataHexaAndString(pString, argv_sz, tmp, MAX_LINE_SIZE)/*DataToHexaChar(argv,argv_sz,tmp,MAX_LINE_SIZE)*/,"--",MB_OK|MB_TOPMOST);
+
+      for (i = 0; i < argc; i++)
+      {
+          pArgs[i] = (DWORD_PTR)pString;
+          //MessageBox(NULL,pString,"0-",MB_OK|MB_TOPMOST);
+          pString += strlen(pString) + 1;
+      }
+/*
+      if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_IGNORE_INSERTS | FORMAT_MESSAGE_ARGUMENT_ARRAY, ddl_handle,MessageId,0,msg,msg_max_size,(va_list*)pArgs) != 0)
+      {
+        msg[0] = 0;*/
+        if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE | FORMAT_MESSAGE_ARGUMENT_ARRAY, ddl_handle,MessageId,0,msg,msg_max_size,(va_list*)pArgs) != 0)
+          ret  = TRUE;
+/*
+        strncat(msg,tmp,msg_max_size);
+        strncat(msg,"\0",msg_max_size);*/
+   //   }
+
+        //FORMAT_MESSAGE_IGNORE_INSERTS
+
+      free(pArgs);
+      return ret;
+    }
+  }else
+  {
+    if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE, ddl_handle,MessageId,0,msg,msg_max_size,(va_list*)pArgs))return FALSE;
+    else return TRUE;
+  }
+}
+//------------------------------------------------------------------------------
+BOOL GetEventDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *description, unsigned int description_max_sz, DWORD dwRead)
+{
+  if (description == NULL || description_max_sz <2 )return FALSE;
+  description[0] = 0;
+  BOOL ret = FALSE;
+  unsigned int lvl = 0;
+
+  //get
+  //get DLL resource
+  char key[MAX_PATH], ddlpath[MAX_PATH]="", ddlpath_ok[MAX_PATH]="", tmp_EventCategory[MAX_LINE_SIZE], msg[MAX_LINE_SIZE];
+  snprintf(key,MAX_PATH,"SYSTEM\\CurrentControlSet\\Services\\EventLog\\%s\\%s",eventname,source);
+  if (ReadValue(HKEY_LOCAL_MACHINE,key,"EventMessageFile",ddlpath, MAX_PATH))
+  {
+    //replace system string type of %string%
+    ExpandEnvironmentStrings(ddlpath, ddlpath_ok, MAX_PATH);
+    //load DATAFILE
+    if(FileExist(ddlpath_ok))
+    {
+      HANDLE mhandle = LoadLibraryEx(ddlpath_ok, 0, LOAD_LIBRARY_AS_DATAFILE);
+      if (mhandle != NULL)
+      {
+        //get all messages from a recorder !
+        //event category: %s
+        GetMultiMessageString(pevlr->EventCategory, mhandle, tmp_EventCategory, MAX_LINE_SIZE, 0, 0, 0);
+        GetMultiMessageString(pevlr->EventID, mhandle, msg, MAX_LINE_SIZE, pevlr->NumStrings, pevlr + (pevlr->StringOffset),pevlr->DataLength);
+
+        snprintf(description, description_max_sz,"%s%s",tmp_EventCategory,msg);
+        FreeLibrary(mhandle);
+        ret = TRUE;
+      }
+    }
+  }
+  return ret;
+}
 //------------------------------------------------------------------------------
 void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int session_id, DWORD cRecords)
 {
@@ -80,90 +194,111 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
 
   EVENTLOGRECORD *pevlr;
   DWORD cbBuffer = 0x10000;  //64k
-  BYTE bBuffer[0x10000+1];
+  BYTE *bTmp, *bBuffer = (PBYTE)malloc(cbBuffer+1);
+  if (bBuffer == NULL) return;
+
   pevlr = (EVENTLOGRECORD *) &bBuffer;
+  DWORD status = ERROR_SUCCESS;
+  unsigned long int i=1, z;
   DWORD dwRead, dwNeeded;
 
-  unsigned long int i=1, z;
   memset(bBuffer,0,cbBuffer);
-  while (ReadEventLog(Heventlog,EVENTLOG_BACKWARDS_READ |EVENTLOG_SEQUENTIAL_READ,0,&bBuffer,cbBuffer,&dwRead,&dwNeeded) && i < cRecords && start_scan)
+  while (status == ERROR_SUCCESS && i < cRecords && start_scan)
   {
-    pevlr = (EVENTLOGRECORD *) &bBuffer;
-    if (pevlr!=NULL && pevlr->Length>0)
+    if(!ReadEventLog(Heventlog,EVENTLOG_BACKWARDS_READ |EVENTLOG_SEQUENTIAL_READ,0,bBuffer,cbBuffer,&dwRead,&dwNeeded))
     {
-      while (dwRead > 0 && i < cRecords && start_scan)
+      //if error buffer, resize it !
+      status = GetLastError();
+      if(status == ERROR_INSUFFICIENT_BUFFER)
       {
-        //record number
-        snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber & 0xFFFF);
+        cbBuffer = dwNeeded;
+        bTmp = (PBYTE)realloc(bBuffer, cbBuffer);
 
-        //Type
-        switch(pevlr->EventType)
+        if (bTmp == NULL)break;
+        else
         {
-          case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR"); break;        //0x01
-          case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING"); break;      //0x02
-          case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION"); break;  //0x04
-          case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS"); break;//0x08
-          case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE"); break;//0x10
-          default :state[0]=0;break;
+          bBuffer = bTmp;
+          status = ERROR_SUCCESS; //continue news !
+          continue;
         }
-
-        if (state[0]!=0)
+      }
+    }else
+    {
+      //get datas !
+      pevlr = (EVENTLOGRECORD *) bBuffer;
+      if (pevlr!=NULL && pevlr->Length>0)
+      {
+        PBYTE pRecord = bBuffer;
+        PBYTE pEndOfRecords = bBuffer + dwRead;
+        while (pRecord < pEndOfRecords && i < cRecords && start_scan )
         {
-          //date : send_date
-          timeToString(pevlr->TimeGenerated, send_date, DATE_SIZE_MAX);
+          pevlr = (EVENTLOGRECORD *)pRecord;
 
-          //date : write_date
-          timeToString(pevlr->TimeWritten, write_date, DATE_SIZE_MAX);
+          //record number
+          snprintf(indx,DEFAULT_TMP_SIZE,"%08lu",pevlr->RecordNumber & 0xFFFF);
 
-          //source
-          source[0]=0;
-          if (sizeof(EVENTLOGRECORD) < pevlr->Length && sizeof(EVENTLOGRECORD)+1 < dwRead)
-            strncpy(source,(char *)pevlr+sizeof(EVENTLOGRECORD),DEFAULT_TMP_SIZE);
-
-          //ID
-          snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",pevlr->EventID & 0xFFFF);
-
-          //user+rid+sid
-          user[0] = 0;
-          rid[0]  = 0;
-          sid[0]  = 0;
-          if (pevlr->UserSidOffset < dwRead && pevlr->UserSidLength > 0)
-            SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
-
-          if ((pevlr->StringOffset+ pevlr->DataLength) < dwRead)
+          //Type
+          switch(pevlr->EventType)
           {
-            if (readMessageDatas(pevlr, eventname, source, description, MAX_LINE_SIZE) == FALSE)
-            {
-              //get string in raw mode !
-              description[0] = 0;
-              char*c = ((LPBYTE) pevlr + pevlr->StringOffset);
-              for (z = 0; z < pevlr->NumStrings; z++)
-              {
-                snprintf(description+strlen(description),MAX_LINE_SIZE-strlen(description),"%s,",c);
-                c += strlen((char *) c) + 1;
-              }
-            }
+            case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR"); break;        //0x01
+            case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING"); break;      //0x02
+            case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION"); break;  //0x04
+            case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS"); break;//0x08
+            case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE"); break;//0x10
+            default :snprintf(state,DEFAULT_TMP_SIZE,"UNKNOW:%d",pevlr->EventType);break;
           }
 
-          if (strcmp(send_date,write_date) != 0)strncpy(critical,"X",DEFAULT_TMP_SIZE);
-          else critical[0]=0;
+          if (state[0]!='U')
+          {
+            //date : send_date
+            timeToString(pevlr->TimeGenerated, send_date, DATE_SIZE_MAX);
 
-          //add
-          convertStringToSQL(source, MAX_PATH);
-          convertStringToSQL(description, MAX_LINE_SIZE);
+            //date : write_date
+            timeToString(pevlr->TimeWritten, write_date, DATE_SIZE_MAX);
 
-          addLogtoDB(eventname, indx, log_id,
-                     send_date, write_date, source, description,
-                     user, rid, sid, state, critical, session_id, db);
+            //source
+            source[0]=0;
+            if (sizeof(EVENTLOGRECORD) < pevlr->Length && sizeof(EVENTLOGRECORD)+1 < (pEndOfRecords-pRecord))
+              strncpy(source,(char *)pevlr+sizeof(EVENTLOGRECORD),DEFAULT_TMP_SIZE);
+
+            //ID
+            snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",pevlr->EventID & 0xFFFF);
+
+            //user+rid+sid
+            user[0] = 0;
+            rid[0]  = 0;
+            sid[0]  = 0;
+            if (pevlr->UserSidOffset < (pEndOfRecords-pRecord) && pevlr->UserSidLength > 0)
+              SidtoUser((PSID)((LPBYTE) pevlr + pevlr->UserSidOffset), user, rid, sid, DEFAULT_TMP_SIZE);
+
+            //descriptions infos !!!
+            if ((pevlr->StringOffset+ pevlr->DataLength) < dwRead)
+            {
+              //sources from https://msdn.microsoft.com/en-us/library/windows/desktop/bb427356%28v=vs.85%29.aspx
+              GetEventDatas(pevlr, eventname, source, description, MAX_LINE_SIZE,dwRead);
+            }
+
+            //end !!!
+            if (strcmp(send_date,write_date) != 0)strncpy(critical,"X",DEFAULT_TMP_SIZE);
+            else critical[0]=0;
+
+            //add
+            convertStringToSQL(source, MAX_PATH);
+            convertStringToSQL(description, MAX_LINE_SIZE);
+
+            addLogtoDB(eventname, indx, log_id,
+                       send_date, write_date, source, description,
+                       user, rid, sid, state, critical, session_id, db);
+          }
+
+          pRecord += ((PEVENTLOGRECORD)pRecord)->Length;
+          i++;
         }
-        pevlr = (EVENTLOGRECORD *)((LPBYTE) pevlr + pevlr->Length);
-        dwRead = dwRead-pevlr->Length;
-        i++;
+        memset(bBuffer,0,cbBuffer);
       }
-      memset(bBuffer,0,cbBuffer);
     }
-    break;
   }
+  if (bBuffer != NULL) free(bBuffer);
 }
 //------------------------------------------------------------------------------
 void OpenDirectEventLog(char *eventname, sqlite3 *db, unsigned int session_id)
@@ -229,6 +364,12 @@ DWORD WINAPI Scan_log(LPVOID lParam)
     }
   }else
   {
+    //direct load events from files names  ???
+
+    //review her
+
+
+
     //read in the registry of all event
     char eventname[MAX_PATH];
     HKEY CleTmp=0;
@@ -244,6 +385,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
           for (i=0;i<nbSubKey;i++)
           {
             TailleNomSubKey = MAX_PATH;
+            eventname[0] = 0;
             if (RegEnumKeyEx (CleTmp,i,eventname,(LPDWORD)&TailleNomSubKey,0,0,0,0)==ERROR_SUCCESS)
             {
               ok=TRUE;
@@ -259,26 +401,41 @@ DWORD WINAPI Scan_log(LPVOID lParam)
     if (!ok)
     {
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-      OpenDirectEventLog("Application",db,session_id);       //journal application
+      OpenDirectEventLog("Application",db,session_id);
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-      OpenDirectEventLog("Security",db,session_id);          //journal sécurité
+      OpenDirectEventLog("HardwareEvents",db,session_id);
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-      OpenDirectEventLog("System",db,session_id);            //journal système
+      OpenDirectEventLog("Internet Explorer",db,session_id);
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-      OpenDirectEventLog("Internet Explorer",db,session_id); //Internet Explorer
+      OpenDirectEventLog("Key Management Service",db,session_id);
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-      OpenDirectEventLog("OSession",db,session_id);          //session Office
+      OpenDirectEventLog("Setup",db,session_id);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      OpenDirectEventLog("Security",db,session_id);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      OpenDirectEventLog("System",db,session_id);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      OpenDirectEventLog("Windows PowerShell",db,session_id);
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+      if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+      OpenDirectEventLog("OSession",db,session_id);
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
     }
-
   }
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

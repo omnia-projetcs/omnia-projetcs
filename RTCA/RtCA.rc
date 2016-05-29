@@ -43,19 +43,28 @@ SQLITE_F RCDATA DEFAULT_SQLITE_FILE
 //------------------------------------------------------------------------------
 MY_ACCEL ACCELERATORS
 BEGIN
-  "^n"                                     ,IDM_NEW_SESSION                 //CTRL+n
-  "^N"                                     ,IDM_NEW_SESSION                 //CTRL+N
+  "n"                                     ,IDM_NEW_SESSION      , CONTROL, VIRTKEY           //CTRL+n
+ // "N"                                     ,IDM_NEW_SESSION      , CONTROL, VIRTKEY           //CTRL+N
 
-  "^s"                                     ,POPUP_E_CSV                     //CTRL+s
-  "^S"                                     ,POPUP_E_CSV                     //CTRL+S
+  "s"                                     ,POPUP_E_CSV          , CONTROL, VIRTKEY           //CTRL+s
+ // "S"                                     ,POPUP_E_CSV          , CONTROL, VIRTKEY           //CTRL+S
 
   "t"                                     ,IDM_STAY_ON_TOP      , ALT
-  "T"                                     ,IDM_STAY_ON_TOP      , ALT
+//  "T"                                     ,IDM_STAY_ON_TOP      , ALT
 
   "h"                                     ,IDM_RTCA_HOME        , ALT
-  "H"                                     ,IDM_RTCA_HOME        , ALT
+ // "H"                                     ,IDM_RTCA_HOME        , ALT
 
-  VK_F1                                   ,IDM_ABOUT            , VIRTKEY
+  "p"                                     ,IDM_TOOLS_PROCESS    , CONTROL, ALT, VIRTKEY
+ // "P"                                     ,IDM_TOOLS_PROCESS    , CONTROL, ALT, VIRTKEY
+
+  "d"                                     ,IDM_TOOLS_HEXA_READER    , CONTROL, ALT, VIRTKEY
+  //"D"                                     ,IDM_TOOLS_HEXA_READER    , CONTROL, ALT, VIRTKEY
+
+  "l"                                     ,IDM_TOOLS_SQLITE_ED    , CONTROL, ALT, VIRTKEY
+  //"L"                                     ,IDM_TOOLS_SQLITE_ED    , CONTROL, ALT, VIRTKEY
+
+  VK_F1                                   ,IDM_ABOUT              , VIRTKEY
 END
 //------------------------------------------------------------------------------
 //configuration dialogue
@@ -223,14 +232,24 @@ BEGIN
   CONTROL "Models"                                    ,DLG_SQL_ED_BT_MODELS,"Button",0x50010000,532,1,22,28
   CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
-END//------------------------------------------------------------------------------
+END
+//------------------------------------------------------------------------------
 DLG_SQLITE_ED DIALOGEX 6,6,400,276
 FONT 8,"MS Sans Serif",0,0
-STYLE 0x00CE0800
+STYLE 0x00EE0800
 EXSTYLE 0x00000010
 BEGIN
   CONTROL "Update"                                    ,DLG_SQL_ED_ED_REQUEST,"Button",0x50010000,5,5,50,18
   CONTROL "Add"                                       ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,100,5,50,18
+  CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
+END
+//------------------------------------------------------------------------------
+DLG_SQLITE_ED_TABLE DIALOGEX 6,6,450,276
+FONT 8,"MS Sans Serif",0,0
+STYLE 0x00EA0800
+EXSTYLE 0x00000010
+BEGIN
+  CONTROL "Update"                                    ,DLG_SQL_ED_ED_REQUEST,"Button",0x50010000,5,5,50,18
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
 //------------------------------------------------------------------------------
@@ -282,12 +301,12 @@ MY_MENU MENU
 BEGIN
   POPUP "File"    //0
   BEGIN
-    MENUITEM "New session\tCtrl+N"        ,IDM_NEW_SESSION
+    MENUITEM "&New session\tCtrl+N"       ,IDM_NEW_SESSION
     MENUITEM "Refresh session list"       ,IDM_REFRESH_SESSION
     MENUITEM SEPARATOR
     POPUP    "Save all results"
     BEGIN
-      MENUITEM "*.csv\tCtrl+S"            ,POPUP_E_CSV
+      MENUITEM "&*.csv\tCtrl+S"           ,POPUP_E_CSV
       MENUITEM "*.html"                   ,POPUP_E_HTML
       MENUITEM "*.xml"                    ,POPUP_E_XML
     END
@@ -303,7 +322,7 @@ BEGIN
   END
   POPUP "Settings"  //1
   BEGIN
-    MENUITEM "Stay on top\tAlt+T"         ,IDM_STAY_ON_TOP
+    MENUITEM "&Stay on top\tAlt+T"        ,IDM_STAY_ON_TOP
     MENUITEM "Search match case"          ,BT_SEARCH_MATCH_CASE
     MENUITEM "Desactivate the grid"       ,BT_DISABLE_GRID
     MENUITEM SEPARATOR
@@ -355,22 +374,22 @@ BEGIN
       MENUITEM "DD \\\\.\\PhysicalDrive3"    ,IDM_TOOLS_CP_DISK_3
     END
     MENUITEM SEPARATOR
-    MENUITEM "List of process"            ,IDM_TOOLS_PROCESS
-    MENUITEM "Registry explorer"          ,IDM_TOOLS_REG_EXPLORER
-    MENUITEM "Network live capture"       ,IDM_TOOLS_SNIFF
-    MENUITEM "Decode date"                ,IDM_TOOLS_DATE
-    MENUITEM "Hexa reader"                ,IDM_TOOLS_HEXA_READER
-    MENUITEM "SQLITE ED"                  ,IDM_TOOLS_SQLITE_ED
+    MENUITEM "&List of process\t Ctrl+Alt+P"  ,IDM_TOOLS_PROCESS
+    MENUITEM "Registry explorer"              ,IDM_TOOLS_REG_EXPLORER
+    MENUITEM "Network live capture"           ,IDM_TOOLS_SNIFF
+    MENUITEM "&Decode date\t Ctrl+Alt+D"      ,IDM_TOOLS_DATE
+    MENUITEM "Hexa reader"                    ,IDM_TOOLS_HEXA_READER
+    MENUITEM "&SQLITE ED\t Ctrl+Alt+L"        ,IDM_TOOLS_SQLITE_ED
     MENUITEM SEPARATOR
-    MENUITEM "Global analyser"            ,IDM_TOOLS_ANALYSER
+    MENUITEM "Global analyser"                ,IDM_TOOLS_ANALYSER
   END
   POPUP "Help"      //3
   BEGIN
     MENUITEM "Update database"           ,IDM_RTCA_UPDATE
     MENUITEM SEPARATOR
-    MENUITEM "Open RtCA home\tAlt+H"     ,IDM_RTCA_HOME
+    MENUITEM "&Open RtCA home\tAlt+H"     ,IDM_RTCA_HOME
     MENUITEM SEPARATOR
-    MENUITEM "About\tF1"                 ,IDM_ABOUT
+    MENUITEM "&About\tF1"                 ,IDM_ABOUT
   END
 END
 //------------------------------------------------------------------------------
@@ -381,6 +400,8 @@ BEGIN
   POPUP "POPUP_LSTV_HEXA"
   BEGIN
     MENUITEM "Copy the line to clipboard",POPUP_CP_LINE
+    MENUITEM "Copy the line hexa to clipboard",POPUP_CP_LINE_HEXA
+    MENUITEM "Copy the line string to clipboard",POPUP_CP_LINE_STRING
   END
 END
 //------------------------------------------------------------------------------
@@ -590,6 +611,11 @@ BEGIN
       MENUITEM "INSERT"                           ,POPUP_SQLITE_REQUEST_INSERT //"INSERT INTO table (param1,param2) VALUES(\"data1\",\"data2\");"
       MENUITEM "DELETE"                           ,POPUP_SQLITE_REQUEST_DELETE //"DELETE FROM table WHERE value=\"1\";"
       MENUITEM SEPARATOR
+      MENUITEM "ALTER TABLE"                      ,POPUP_SQLITE_REQUEST_ALTER_TABLE
+      MENUITEM "CREATE TABLE"                     ,POPUP_SQLITE_REQUEST_CREATE_TABLE
+      MENUITEM "INSERT INTO"                      ,POPUP_SQLITE_REQUEST_INSERT_INTO
+      MENUITEM "DROP TABLE"                       ,POPUP_SQLITE_REQUEST_DROP_TABLE
+      MENUITEM SEPARATOR
       MENUITEM "Compact database"                 ,POPUP_SQLITE_REQUEST_VACCUM //"VACUUM;"
       MENUITEM "Enable transaction journal"       ,POPUP_SQLITE_REQUEST_JOURNAL_ON //"PRAGMA journal_mode = ON;"
       MENUITEM "Disable transaction journal"      ,POPUP_SQLITE_REQUEST_JOURNAL_OFF //"PRAGMA journal_mode = OFF;"
@@ -597,7 +623,6 @@ BEGIN
       MENUITEM "End transaction"                  ,POPUP_SQLITE_REQUEST_END_TRANSACTION //"END TRANSACTION;"
     END
 END
-
 //------------------------------------------------------------------------------
 POPUP_TV_REGISTRY MENU DISCARDABLE
 BEGIN
@@ -648,6 +673,8 @@ BEGIN
       MENUITEM "All line datas"           , POPUP_SQLITE_INFOS
       MENUITEM SEPARATOR
       MENUITEM "Delete item"              , POPUP_SQLITE_REMOVE
+      MENUITEM SEPARATOR
+      MENUITEM "Edit TABLE"               , POPUP_SQLITE_ED_TABLE
     END
 END
 //------------------------------------------------------------------------------

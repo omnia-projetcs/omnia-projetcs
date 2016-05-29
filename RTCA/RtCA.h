@@ -353,11 +353,18 @@ DWORD last_bt;
 #define POPUP_SQLITE_REQUEST_BEGIN_TRANSACTION  9027
 #define POPUP_SQLITE_REQUEST_END_TRANSACTION    9028
 
+#define POPUP_SQLITE_REQUEST_ALTER_TABLE        9029
+#define POPUP_SQLITE_REQUEST_CREATE_TABLE       9030
+#define POPUP_SQLITE_REQUEST_INSERT_INTO        9031
+#define POPUP_SQLITE_REQUEST_DROP_TABLE         9032
+
 #define DLG_SQLITE_ED                           9040
+#define DLG_SQLITE_ED_TABLE                     9041
 
 #define POPUP_SQLITE_HDR_RESIZE     9050
 #define POPUP_SQLITE_INFOS          9051
 #define POPUP_SQLITE_REMOVE         9052
+#define POPUP_SQLITE_ED_TABLE       9053
 
 #define DLG_HEXA_READER             9100
 #define DLG_HEXA_BT_LOAD            9101
@@ -550,6 +557,8 @@ HANDLE h_AVIRUSTTAL, h_VIRUSTTAL;
 #define POPUP_FILE_VIRUSTOTAL                 13038
 #define POPUP_FILE_VIRUSTOTAL_ALL             13039
 
+#define POPUP_CP_LINE_HEXA                    13040
+#define POPUP_CP_LINE_STRING                  13041
 
 #define NB_POPUP_I                            20
 
@@ -1134,6 +1143,7 @@ DWORD WINAPI SaveAll(LPVOID lParam);
 DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
 void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
+void CopyColumnDataToClipboard(HANDLE hlv, DWORD nline, unsigned short nbcolumn, unsigned short startcolumn);
 void SaveALL(char*filetosave, char*computername);
 
 //import function

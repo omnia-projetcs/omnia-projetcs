@@ -71,6 +71,7 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   //the end
   start_scan          = FALSE;
   stop_scan           = FALSE;
+  EndSession(0, db_scan);
 
   //at end of scan : view main form + quit
   ShowWindow (h_main, SW_SHOW);
@@ -131,6 +132,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   }
 
   start_scan = FALSE;
+  EndSession(0, db_scan);
   return 0;
 }
 //------------------------------------------------------------------------------

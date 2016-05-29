@@ -479,6 +479,8 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             case DLG_HEXA_CHK_UNICODE:CheckDlgButton(hwnd,DLG_HEXA_CHK_HEXA,BST_UNCHECKED);break;
             case DLG_HEXA_CHK_HEXA:CheckDlgButton(hwnd,DLG_HEXA_CHK_UNICODE,BST_UNCHECKED);break;
             case POPUP_CP_LINE:CopyAllDataToClipboard(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA), SendMessage(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 10);break;
+            case POPUP_CP_LINE_HEXA:CopyColumnDataToClipboard(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA), SendMessage(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 8,1);break;
+            case POPUP_CP_LINE_STRING:CopyColumnDataToClipboard(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA), SendMessage(GetDlgItem(hwnd,DLG_HEXA_LV_HEXA),LVM_GETNEXTITEM,-1,LVNI_FOCUSED), 1,9);break;
           }
         break;
         //case CBN_SELCHANGE:CalculDate(last_bt);break;
