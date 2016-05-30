@@ -275,7 +275,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
             if ((pevlr->StringOffset+ pevlr->DataLength) < dwRead)
             {
               //sources from https://msdn.microsoft.com/en-us/library/windows/desktop/bb427356%28v=vs.85%29.aspx
-              GetEventDatas(pevlr, eventname, source, description, MAX_LINE_SIZE,dwRead);
+              //GetEventDatas(pevlr, eventname, source, description, MAX_LINE_SIZE,dwRead);
             }
 
             //end !!!
