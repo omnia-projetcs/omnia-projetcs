@@ -86,7 +86,8 @@ BEGIN
  // CONTROL "Remote Access",              BT_RA_CHK         ,"Button"         ,0x50010003|WS_TABSTOP,370,248,80,9
   CONTROL "File magic number",          BT_MAGIC_CHK      ,"Button"         ,0x50010003|WS_TABSTOP,370,258,80,9
 
-  CONTROL "",                           EDT_NAME_SESSION  ,"Edit"           ,0x50810080|WS_TABSTOP,370,228,174,9
+  CONTROL "Add session name:",          ST_NAME_SESSION   ,"Static"         ,0x50000000,370,228,80,9
+  CONTROL "",                           EDT_NAME_SESSION  ,"Edit"           ,0x50810080|WS_TABSTOP,370,248,174,9
 
   CONTROL "Start",                      BT_START          ,"Button"         ,0x50010000|WS_TABSTOP,266,272,190,23
   CONTROL "",                           DLG_CONF_SB       ,"msctls_statusbar32",0x50000000,0,265,554,12

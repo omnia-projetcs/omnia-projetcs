@@ -21,7 +21,7 @@ BOOL WINAPI DLLInjecteurW(DWORD dwPid,PWSTR szDLLPath)
 {
 	LPTHREAD_START_ROUTINE lpthThreadFunction; /* Pointeur de fonction. */
 	/* Recherche de l'adresse de LoadLibraryW dans kernel32. */
-    lpthThreadFunction = (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryW"); /* GetProcAdress renvoie l'adresse de la fonction LoadLibrary. */
+    lpthThreadFunction = (LPTHREAD_START_ROUTINE)GetProcAddress(hDLL_KERNEL32, "LoadLibraryW"); /* GetProcAdress renvoie l'adresse de la fonction LoadLibrary. */
     if(lpthThreadFunction == NULL){return FALSE;}
 
 	HANDLE hProcess;
@@ -88,7 +88,7 @@ BOOL WINAPI DLLEjecteurW(DWORD dwPid,PWSTR szDLLPath)
 
     LPTHREAD_START_ROUTINE lpthThreadFunction; /* Pointeur de fonction. */
     /* Récupération de l'adresse de FreeLibrary dans kernel32.dll . */
-	lpthThreadFunction = (LPTHREAD_START_ROUTINE)GetProcAddress(GetModuleHandle("kernel32.dll"), "FreeLibrary"); /* GetProcAdress renvoie l'adresse de la fonction LoadLibrary. */
+	lpthThreadFunction = (LPTHREAD_START_ROUTINE)GetProcAddress(hDLL_KERNEL32, "FreeLibrary"); /* GetProcAdress renvoie l'adresse de la fonction LoadLibrary. */
     if(lpthThreadFunction == NULL){
 		CloseHandle(hProcess);
 		CloseHandle(hSnapshot);
@@ -541,81 +541,71 @@ void FileInfoRead(char *file, char *ProductName, char *FileVersion, char *Compan
   CompanyName[0]=0;
   FileDescription[0]=0;
 
-  HINSTANCE hDLL;
-  if((hDLL = LoadLibrary("VERSION.DLL" ))!= NULL)
+  if (MyGetFileVersionInfo && MyVerQueryValue)
   {
-    typedef BOOL (WINAPI * GETFILEVERSIONINFO)(LPCTSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData);
-    typedef BOOL (WINAPI * VERQUERYVALUE)(LPCVOID pBlock, LPCTSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen);
-
-    GETFILEVERSIONINFO GetFileVersionInfo      = (GETFILEVERSIONINFO)   GetProcAddress(hDLL , "GetFileVersionInfoA");
-    VERQUERYVALUE VerQueryValue                = (VERQUERYVALUE)   GetProcAddress(hDLL , "VerQueryValueA");
-    if (GetFileVersionInfo && VerQueryValue)
+    //chargement des infos
+    char buffer[MAX_LINE_SIZE];
+    if (MyGetFileVersionInfo(file, 0, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
     {
-      //chargement des infos
-      char buffer[MAX_LINE_SIZE];
-      if (GetFileVersionInfo(file, 0, MAX_LINE_SIZE, (LPVOID) buffer) > 0 )
-      {
-        //lecture des infos du buffer
-         WORD             *d_buffer;
-         char             *c;
-         unsigned int     size;
+      //lecture des infos du buffer
+       WORD             *d_buffer;
+       char             *c;
+       unsigned int     size;
 
-         //vérification si bien une table + lecture de la langue
-         if (VerQueryValue(buffer, "\\VarFileInfo\\Translation", (LPVOID *)&d_buffer, &size))
+       //vérification si bien une table + lecture de la langue
+       if (MyVerQueryValue(buffer, "\\VarFileInfo\\Translation", (LPVOID *)&d_buffer, &size))
+       {
+         if (size>0 && d_buffer != NULL)
          {
-           if (size>0 && d_buffer != NULL)
-           {
-            //génération du début de string :
-            char v_string[MAX_PATH],t_string[MAX_PATH];
-            /*char s_string[][]={"CompanyName"    , "FileDescription", "FileVersion",
-                                 "InternalName"   , "LegalCopyright" , "OriginalFilename",
-                                 "ProductName"    , "ProductVersion"};*/
-            snprintf(v_string,MAX_PATH,"\\StringFileInfo\\%04x%04x\\", d_buffer[0], d_buffer[1]);
+          //génération du début de string :
+          char v_string[MAX_PATH],t_string[MAX_PATH];
+          /*char s_string[][]={"CompanyName"    , "FileDescription", "FileVersion",
+                               "InternalName"   , "LegalCopyright" , "OriginalFilename",
+                               "ProductName"    , "ProductVersion"};*/
+          snprintf(v_string,MAX_PATH,"\\StringFileInfo\\%04x%04x\\", d_buffer[0], d_buffer[1]);
 
-            //lecture de ProductName
-            if (ProductName != NULL)
+          //lecture de ProductName
+          if (ProductName != NULL)
+          {
+            snprintf(t_string,MAX_PATH,"%sProductName",v_string);
+            if (MyVerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
             {
-              snprintf(t_string,MAX_PATH,"%sProductName",v_string);
-              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
-              {
-                if (size>0 && c!= NULL)strncpy(ProductName,c,size_max);
-              }
+              if (size>0 && c!= NULL)strncpy(ProductName,c,size_max);
             }
+          }
 
-            //lecture de FileVersion
-            if (FileVersion != NULL)
+          //lecture de FileVersion
+          if (FileVersion != NULL)
+          {
+            snprintf(t_string,MAX_PATH,"%sFileVersion",v_string);
+            if (MyVerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
             {
-              snprintf(t_string,MAX_PATH,"%sFileVersion",v_string);
-              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
-              {
-                if (size>0 && c!= NULL)strncpy(FileVersion,c,size_max);
-              }
+              if (size>0 && c!= NULL)strncpy(FileVersion,c,size_max);
             }
+          }
 
-            //lecture du CompanyName
-            if (CompanyName != NULL)
+          //lecture du CompanyName
+          if (CompanyName != NULL)
+          {
+            snprintf(t_string,MAX_PATH,"%sCompanyName",v_string);
+            if (MyVerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
             {
-              snprintf(t_string,MAX_PATH,"%sCompanyName",v_string);
-              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
-              {
-                if (size>0 && c!= NULL)strncpy(CompanyName,c,size_max);
-              }
+              if (size>0 && c!= NULL)strncpy(CompanyName,c,size_max);
             }
+          }
 
-            //lecture du FileDescription
-            if (FileDescription != NULL)
+          //lecture du FileDescription
+          if (FileDescription != NULL)
+          {
+            snprintf(t_string,MAX_PATH,"%sFileDescription",v_string);
+            if (MyVerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
             {
-              snprintf(t_string,MAX_PATH,"%sFileDescription",v_string);
-              if (VerQueryValue(buffer, t_string, (LPVOID *)&c, &size))
-              {
-                if (size>0 && c!= NULL)strncpy(FileDescription,c,size_max);
-              }
+              if (size>0 && c!= NULL)strncpy(FileDescription,c,size_max);
             }
-           }
+          }
          }
-      }
+       }
     }
-    FreeLibrary(hDLL);
   }
 }
 //------------------------------------------------------------------------------

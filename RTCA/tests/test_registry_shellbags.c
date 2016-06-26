@@ -22,10 +22,6 @@ void addShellBags(char *source, char*key, char*value, char*data, char *sid, char
   #endif
 }
 //------------------------------------------------------------------------------
-//http://www.williballenthin.com/forensics/shellbags/index.html
-BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update, char *value, char*data, char *pathcmd, char *file, DWORD file_sz, DWORD dataSize, unsigned int session_id, sqlite3 *db, BOOL local)
-{
-  //read date
   typedef struct
   {
     unsigned short struct_size;
@@ -35,7 +31,10 @@ BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update,
     DWORD create_time;
     unsigned short type2;
   }START_SHELLBAG;
-
+//http://www.williballenthin.com/forensics/shellbags/index.html
+BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update, char *value, char*data, char *pathcmd, char *file, DWORD file_sz, DWORD dataSize, unsigned int session_id, sqlite3 *db, BOOL local)
+{
+  //read date
   START_SHELLBAG *ss = (START_SHELLBAG *)data;
   file[0] = 0;
 
@@ -63,16 +62,12 @@ BOOL Read_ShellBags_Datas(char *srchk, char *ckey, char *SID, char *last_update,
     snprintf(file,file_sz,"%S",c);
 
     //checks for spec files formats
-    if (ss->type == 0x31)
+    if (ss->type == 0x31 && file[0] == '@')
     {
-      if (file[0] == '@') //icone
-      {
-        c-=4;
-        while (*c != 0x00 || *(c-1) != 0x00) c--;
-        //c+=5;
-        c+=1;
-        snprintf(file,file_sz,"%S",c);
-      }
+      c-=4;
+      while (*c != 0x00 || *(c-1) != 0x00) c--;
+      c+=1;
+      snprintf(file,file_sz,"%S",c);
     }
   }else if (ss->type == 0x12 || ss->type == 0x15 || ss->type == 0xC0 || ss->type == 0xC5 || ss->type == 0x18 || data[dataSize-6] == 0x2F) //file in ZIP file
   {
@@ -167,8 +162,6 @@ void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, char *pathcmd, uns
               else snprintf(pathcmdtmp,MAX_LINE_SIZE,"%s\\%s",pathcmd, tmpfile);
             }
           }
-          /*exploit GUId her*/
-
           snprintf(key_path,MAX_LINE_SIZE,"%s\\%s",ckey,value);
           Scan_registry_ShellBags_file(hks, key_path, pathcmdtmp, session_id, db, FALSE);
         }
@@ -200,10 +193,10 @@ void Enum_ShellBags(char *ckey, char *SID, char *pathcmd, unsigned int session_i
   HKEY CleTmp;
   if (RegOpenKey((HKEY)HKEY_USERS,ckey,&CleTmp)!=ERROR_SUCCESS)return;
 
-  DWORD nbSubKey=0, nbSubValue=0, i, key_size;
+  DWORD nbSubKey=0, nbSubValue=0, i;
   FILETIME lastupdate;
   char date[DATE_SIZE_MAX]="";
-  char key_path[MAX_LINE_SIZE], tmp[MAX_PATH];
+  char key_path[MAX_LINE_SIZE];
 
   if (RegQueryInfoKey (CleTmp,NULL,NULL,NULL,&nbSubKey,NULL,NULL,&nbSubValue,NULL,NULL,NULL,&lastupdate)!=ERROR_SUCCESS)
   {
@@ -247,8 +240,6 @@ void Enum_ShellBags(char *ckey, char *SID, char *pathcmd, unsigned int session_i
               }
             }
           }
-           /*exploit GUId her*/
-
           snprintf(key_path,MAX_LINE_SIZE,"%s\\%s",ckey,value);
           Enum_ShellBags(key_path, SID, pathcmdtmp, session_id, db);
         }
@@ -308,7 +299,6 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
   printf("\"Shell_Bags\";\"source\";\"key\";\"value\";\"data\";\"sid\";\"last_update\";\"session_id\";\r\n");
   #endif
   //files or local
-  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
   HTREEITEM hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_CHILD, (LPARAM)TRV_HTREEITEM_CONF[FILES_TITLE_REGISTRY]);
   if (hitem!=NULL || !LOCAL_SCAN) //files
   {
@@ -321,12 +311,20 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
         //verify
         if(OpenRegFiletoMem(&hks, file))
         {
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db,TRUE);
           Scan_registry_ShellBags_file(&hks,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db,TRUE);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db,TRUE);
           Scan_registry_ShellBags_file(&hks,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db,TRUE);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
           Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",file,session_id,db,TRUE);
           Scan_registry_ShellBags_file(&hks,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",file,session_id,db,TRUE);
+          if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
           CloseRegFiletoMem(&hks);
         }
       }
@@ -334,15 +332,22 @@ DWORD WINAPI Scan_registry_ShellBags(LPVOID lParam)
     }
   }else
   {
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
     Scan_registry_ShellBags_direct("Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
     Scan_registry_ShellBags_direct("Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
     Scan_registry_ShellBags_direct("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
     Scan_registry_ShellBags_direct("Software\\Classes\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
+
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
     Scan_registry_ShellBags_direct("Software\\Classes\\Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",session_id,db);
     Scan_registry_ShellBags_direct("Software\\Classes\\Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",session_id,db);
+    if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   }
 
-  if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan);
   h_thread_test[(unsigned int)lParam] = 0;
   return 0;

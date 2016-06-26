@@ -219,6 +219,7 @@ HANDLE h_Hexa;
 #define BT_MAGIC_CHK             2018
 #define BT_RA_CHK                2019
 #define EDT_NAME_SESSION         2020
+#define ST_NAME_SESSION          2021
 
 #define DLG_VIEW                 3000
 #define LV_VIEW                  3001
@@ -908,7 +909,10 @@ BOOL BACKUP_PATH_started, BACKUP_FILE_LIST_started;
 #define SQLITE_REGISTRY_TYPE_SETTINGS 0x00000000
 #define SQLITE_REGISTRY_TYPE_RUN      0x00000000
 #define SQLITE_REGISTRY_TYPE_MRU      0x00000000
+#define SQLITE_REGISTRY_TYPE_MRU2     0x00000002
 #define SQLITE_GUIDE                  0x00000000
+
+HK_F_OPEN hks_mru, hks_mru2;
 
 //for test in guide functions
 #define GUIDE_REG_TEST_IDENTIQUE  0x00000000
@@ -1115,6 +1119,183 @@ void md5_finish(md5_state_t *pms, md5_byte_t digest[16]);
 #include "crypt/rc4.h"
 #include "crypt/opensslv.h"
 //------------------------------------------------------------------------------
+//DLL load
+//------------------------------------------------------------------------------
+#define WINTRUST_ACTION_GENERIC_VERIFY_V2   { 0xaac56b, 0xcd44, 0x11d0, { 0x8c,0xc2,0x00,0xc0,0x4f,0xc2,0x95,0xee }}
+typedef struct WINTRUST_FILE_INFO_
+{
+    DWORD   cbStruct;
+    LPCWSTR pcwszFilePath;
+    HANDLE  hFile;
+    GUID*   pgKnownSubject;
+} WINTRUST_FILE_INFO, *PWINTRUST_FILE_INFO;
+
+typedef struct _CERT_STRONG_SIGN_SERIALIZED_INFO {
+  DWORD  dwFlags;
+  LPWSTR pwszCNGSignHashAlgids;
+  LPWSTR pwszCNGPubKeyMinBitLengths;
+} CERT_STRONG_SIGN_SERIALIZED_INFO, *PCERT_STRONG_SIGN_SERIALIZED_INFO;
+
+typedef struct _CERT_STRONG_SIGN_PARA {
+  DWORD cbSize;
+  DWORD dwInfoChoice;
+  union {
+    void                              *pvInfo;
+    PCERT_STRONG_SIGN_SERIALIZED_INFO pSerializedInfo;
+    LPSTR                             pszOID;
+  } DUMMYUNIONNAME;
+} CERT_STRONG_SIGN_PARA, *PCERT_STRONG_SIGN_PARA;
+
+typedef struct WINTRUST_SIGNATURE_SETTINGS_ {
+  DWORD                  cbStruct;
+  DWORD                  dwIndex;
+  DWORD                  dwFlags;
+  DWORD                  cSecondarySigs;
+  DWORD                  dwVerifiedSigIndex;
+  PCERT_STRONG_SIGN_PARA pCryptoPolicy;
+} WINTRUST_SIGNATURE_SETTINGS, *PWINTRUST_SIGNATURE_SETTINGS;
+
+typedef struct _WINTRUST_DATA {
+  DWORD                       cbStruct;
+  LPVOID                      pPolicyCallbackData;
+  LPVOID                      pSIPClientData;
+  DWORD                       dwUIChoice;
+  DWORD                       fdwRevocationChecks;
+  DWORD                       dwUnionChoice;
+  union
+  {
+    struct WINTRUST_FILE_INFO_  *pFile;
+    struct WINTRUST_CATALOG_INFO_  *pCatalog;
+    struct WINTRUST_BLOB_INFO_  *pBlob;
+    struct WINTRUST_SGNR_INFO_  *pSgnr;
+    struct WINTRUST_CERT_INFO_  *pCert;
+  };
+  DWORD                       dwStateAction;
+  HANDLE                      hWVTStateData;
+  WCHAR                       *pwszURLReference;
+  DWORD                       dwProvFlags;
+  DWORD                       dwUIContext;
+  WINTRUST_SIGNATURE_SETTINGS *pSignatureSettings;
+} WINTRUST_DATA, *PWINTRUST_DATA;
+
+#define TRUST_E_NOSIGNATURE                                _HRESULT_TYPEDEF_(0x800B0100L)
+#define TRUST_E_SUBJECT_FORM_UNKNOWN                       _HRESULT_TYPEDEF_(0x800B0003L)
+#define TRUST_E_EXPLICIT_DISTRUST                          _HRESULT_TYPEDEF_(0X800B0111)
+#define TRUST_E_SUBJECT_NOT_TRUSTED                        _HRESULT_TYPEDEF_(0x800B0004L)
+#define CRYPT_E_SECURITY_SETTINGS                          _HRESULT_TYPEDEF_(0x80092026L)
+#define TRUST_E_PROVIDER_UNKNOWN                           _HRESULT_TYPEDEF_(0x800B0001L)
+
+typedef struct _AT_ENUM {
+  DWORD JobId;
+  DWORD JobTime;
+  DWORD DaysOfMonth;
+  UCHAR DaysOfWeek;
+  UCHAR Flags;
+  LPWSTR Command;
+}AT_ENUM;
+
+#define DNS_MALWARE_MIN_SIZE  4
+
+/*typedef enum  {
+  TCP_TABLE_BASIC_LISTENER,
+  TCP_TABLE_BASIC_CONNECTIONS,
+  TCP_TABLE_BASIC_ALL,
+  TCP_TABLE_OWNER_PID_LISTENER,
+  TCP_TABLE_OWNER_PID_CONNECTIONS,
+  TCP_TABLE_OWNER_PID_ALL,
+  TCP_TABLE_OWNER_MODULE_LISTENER,
+  TCP_TABLE_OWNER_MODULE_CONNECTIONS,
+  TCP_TABLE_OWNER_MODULE_ALL
+}TCP_TABLE_CLASS, *PTCP_TABLE_CLASS;*/
+
+typedef enum  {
+  UDP_TABLE_BASIC,
+  UDP_TABLE_OWNER_PID,
+  UDP_TABLE_OWNER_MODULE
+}UDP_TABLE_CLASS, *PUDP_TABLE_CLASS;
+
+//struct
+#define TCPIP_OWNING_MODULE_SIZE 16
+typedef struct _MIB_TCPROW_OWNER_MODULE
+{
+  DWORD         dwState;
+  DWORD         dwLocalAddr;
+  DWORD         dwLocalPort;
+  DWORD         dwRemoteAddr;
+  DWORD         dwRemotePort;
+  DWORD         dwOwningPid;
+  LARGE_INTEGER liCreateTimestamp;
+  ULONGLONG     OwningModuleInfo[TCPIP_OWNING_MODULE_SIZE];
+}MIB_TCPROW_OWNER_MODULE, *PMIB_TCPROW_OWNER_MODULE;
+
+typedef struct {
+  DWORD                   dwNumEntries;
+  MIB_TCPROW_OWNER_MODULE table[ANY_SIZE];
+}MIB_TCPTABLE_OWNER_MODULE, *PMIB_TCPTABLE_OWNER_MODULE;
+
+typedef struct _MIB_UDPROW_EX {
+   DWORD dwLocalAddr;
+   DWORD dwLocalPort;
+   DWORD dwProcessId;
+}MIB_UDPROW_EX, *PMIB_UDPROW_EX;
+
+typedef struct _MIB_UDPTABLE_EX
+{
+   DWORD dwNumEntries;
+   MIB_UDPROW_EX table[1];
+}MIB_UDPTABLE_EX, *PMIB_UDPTABLE_EX;
+
+HMODULE hDLL_NETAPI32;
+typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
+NETAPIBUFFERFREE MyNetApiBufferFree;
+typedef NET_API_STATUS (WINAPI *NETGROUPENUM)(LPCWSTR servername, DWORD level, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
+NETGROUPENUM MyNetLocalGroupEnum;
+typedef DWORD (WINAPI *NETUSERENUM)(LPCWSTR servername, DWORD level, DWORD filter, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
+NETUSERENUM MyNetUserEnum;
+typedef DWORD (WINAPI *NETUSERGETINFO)( LPCWSTR servername, LPCWSTR username, DWORD level, LPBYTE* bufptr);
+NETUSERGETINFO MyNetUserGetInfo;
+typedef DWORD (WINAPI *NETUSERGETLOCALGROUPS)( LPCWSTR servername, LPCWSTR username, DWORD level, DWORD flags, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries);
+NETUSERGETLOCALGROUPS MyNetUserGetLocalGroups;
+typedef NET_API_STATUS (WINAPI *NETSHAREENUM)(LPWSTR servername, DWORD level, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
+NETSHAREENUM MyNetShareEnum;
+typedef NET_API_STATUS (WINAPI *NETSCHEDULEJOBENUM)(LPCWSTR servername,LPBYTE* PointerToBuffer,DWORD PreferredMaximumLength,LPDWORD EntriesRead,LPDWORD TotalEntries,LPDWORD ResumeHandle );
+NETSCHEDULEJOBENUM MyNetScheduleJobEnum;
+
+HMODULE hDLL_ADVAPI32;
+typedef int (WINAPI *SF)(unsigned char*, int*, unsigned char*);
+SF sf27;
+SF sf25;
+
+HMODULE hDLL_KERNEL32;
+typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);
+WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
+WOW64DISABLEREDIRECT Wow64RevertWow64FsRedirect;
+
+HMODULE hDLL_DNSAPI;
+typedef int(WINAPI *DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD);
+DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable;
+
+HMODULE hDLL_WINTRUST;
+typedef LONG (WINAPI *WINVERIFYTRUST)(HWND hWnd, GUID *pgActionID, LPVOID pWVTData);
+WINVERIFYTRUST WinVerifyTrust;
+
+HMODULE hDLL_IPHLPAPI;
+typedef DWORD (WINAPI TypeGetExtendedTcpTable)(PVOID, PDWORD, BOOL, ULONG, TCP_TABLE_CLASS, ULONG);
+typedef DWORD (WINAPI TypeGetExtendedUdpTable)(PVOID, PDWORD, BOOL, ULONG, UDP_TABLE_CLASS, ULONG);
+typedef DWORD (WINAPI *GETIPFORWARDTABLE)(PMIB_IPFORWARDTABLE pIpForwardTable, PULONG pdwSize, BOOL bOrder);
+TypeGetExtendedTcpTable *MyGetExtendedTcpTable;
+TypeGetExtendedUdpTable *MyGetExtendedUdpTable;
+GETIPFORWARDTABLE MyGetIpForwardTable;
+
+HMODULE hDLL_VSSAPI;
+
+HMODULE hDLL_VERSION;
+typedef BOOL (WINAPI * GETFILEVERSIONINFO)(LPCTSTR lptstrFilename, DWORD dwHandle, DWORD dwLen, LPVOID lpData);
+typedef BOOL (WINAPI * VERQUERYVALUE)(LPCVOID pBlock, LPCTSTR lpSubBlock, LPVOID *lplpBuffer, PUINT puLen);
+GETFILEVERSIONINFO MyGetFileVersionInfo;
+VERQUERYVALUE MyVerQueryValue;
+
+//------------------------------------------------------------------------------
 //SQLITE functions
 void ExtractSQLITE_DB();
 char *convertStringToSQL(char *data, unsigned int size_max);
@@ -1132,6 +1313,8 @@ void addFiletoDB(char *path, char *file, char *extension,
                   char *Hidden, char *System, char *Archive, char *Encrypted, char *Tempory,
                   char *ADS, char *SAH256, char *VirusTotal, char *Description, unsigned int session_id, sqlite3 *db);
 void GetColumnInfo(unsigned int id);
+
+void EndSession(DWORD id, sqlite3 *db);
 
 //save function
 char *GenerateNameToSave(char *name, DWORD name_max_size, char *ext);
@@ -1171,6 +1354,8 @@ char *extractDirectoryFromPath(char *path);
 char *extractExtFromFile(char *file, char *ext, unsigned int ext_size_max);
 char *extractFileFromPath(char *path, char *file, unsigned int file_size_max);
 BOOL isDirectory(char *path);
+void LoadAllDLLAndFunction();
+void FreeAllDLLAndFunction();
 
 //init functions
 void UpdateRtCA();
@@ -1269,8 +1454,11 @@ void ReadKeyUpdate(HKEY ENTETE,char *chemin, char *date, DWORD size_date);
 DWORD ReadValue(HKEY hk,char *path,char *value,char *data, DWORD data_size);
 long int ReadDwordValue(HKEY hk,char *path,char *value);
 void ReadFILETIMEValue(HKEY hk,char *path,char *value, FILETIME *ft);
+void Scan_HCU_files_ALL(DWORD session, sqlite3 *db, int CMDScanNum);
 
 //registry function for raw files
+int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char **azColName);
+
 void AddToLVRegBin(HANDLE hlv, LINE_ITEM *item, unsigned short nb_colonne);
 BOOL registry_syskey_local(char*sk, unsigned int sk_size);
 BOOL registry_users_extract(sqlite3 *db, unsigned int session_id);
@@ -1297,6 +1485,10 @@ DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk
 void ReadLNKInfos(char *file, unsigned int session_id, sqlite3 *db);
 void GetRecoveryRegFile(char *reg_file, HTREEITEM hparent, char *parent, HANDLE hlv, HANDLE htv);
 void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsigned int path_size_max, char *parent, char *sid, unsigned int sid_size_max);
+void registry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite3 *db);
+void Scan_registry_ShellBags_file(HK_F_OPEN *hks, char *ckey, char *pathcmd, unsigned int session_id, sqlite3 *db, BOOL first);
+void Scan_registry_deletedKey_file(char *reg_file,unsigned int session_id,sqlite3 *db);
+BOOL GetStorageInfos(char *infos, char *vendor, char*product, char *id, char* GUID, char *path_t, unsigned int sz_max);
 
 //haxe
 void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_size_max);
@@ -1317,6 +1509,9 @@ char *CheckNameAndDescription(char *name, unsigned int name_size_max);
 
 //reg file explorer
 void InitDlgRegfile();
+
+//network
+BOOL GetMACAdresseFromGUID_CARD(char *GUID, char *mac, unsigned int mac_size);
 
 //virustotal
 DWORD WINAPI CheckAllFileToVirusTotal(LPVOID lParam);

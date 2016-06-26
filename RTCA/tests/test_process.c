@@ -26,50 +26,49 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
   #endif
 }
 //------------------------------------------------------------------------------
+typedef struct _PEB
+{
+  BYTE Reserved1[2];
+  BYTE BeingDebugged;
+  BYTE Reserved2[229];
+  PVOID Reserved3[59];
+  ULONG SessionId;
+} *PPEB;
+
+typedef struct _PROCESS_BASIC_INFORMATION
+{
+  PVOID Reserved1;
+  PPEB PebBaseAddress;
+  PVOID Reserved2[2];
+  ULONG_PTR UniqueProcessId;
+  PVOID Reserved3;
+}PROCESS_BASIC_INFORMATION;
+
+typedef enum _PROCESSINFOCLASS
+{
+  ProcessBasicInformation
+}PROCESSINFOCLASS;
+
+typedef LONG (WINAPI LPNTQUERYINFOPROCESS)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
+
+typedef struct ___PEB
+{
+  DWORD dwFiller[4];
+  DWORD dwInfoBlockAddress;
+}__PEB;
+
+typedef struct ___INFOBLOCK
+{
+  DWORD dwFiller[16];
+  WORD wLength;
+  WORD wMaxLength;
+  DWORD dwCmdLineAddress;
+}__INFOBLOCK;
+//------------------------------------------------------------------------------
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
 {
   arg[0]=0;
   BOOL ret = FALSE;
-
-  typedef struct _PEB
-  {
-    BYTE Reserved1[2];
-    BYTE BeingDebugged;
-    BYTE Reserved2[229];
-    PVOID Reserved3[59];
-    ULONG SessionId;
-  } *PPEB;
-
-  typedef struct _PROCESS_BASIC_INFORMATION
-  {
-    PVOID Reserved1;
-    PPEB PebBaseAddress;
-    PVOID Reserved2[2];
-    ULONG_PTR UniqueProcessId;
-    PVOID Reserved3;
-  }PROCESS_BASIC_INFORMATION;
-
-  typedef enum _PROCESSINFOCLASS
-  {
-    ProcessBasicInformation
-  }PROCESSINFOCLASS;
-
-  typedef LONG (WINAPI LPNTQUERYINFOPROCESS)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
-
-  typedef struct ___PEB
-  {
-    DWORD dwFiller[4];
-    DWORD dwInfoBlockAddress;
-  }__PEB;
-
-  typedef struct ___INFOBLOCK
-  {
-    DWORD dwFiller[16];
-    WORD wLength;
-    WORD wMaxLength;
-    DWORD dwCmdLineAddress;
-  }__INFOBLOCK;
-
 
   PROCESS_BASIC_INFORMATION pbi;
   LPNTQUERYINFOPROCESS *lpfnNtQueryInformationProcess;
@@ -80,34 +79,36 @@ BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
   HMODULE hDLL = GetModuleHandle("ntdll.dll");
   if (hDLL == NULL)return ret;
 
-    lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "NtQueryInformationProcess");
-    if (lpfnNtQueryInformationProcess == NULL)lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "ZwQueryInformationProcess");
+   wchar_t *cmd = NULL;
 
-    if (lpfnNtQueryInformationProcess != NULL)
+  lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "NtQueryInformationProcess");
+  if (lpfnNtQueryInformationProcess == NULL)lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "ZwQueryInformationProcess");
+
+  if (lpfnNtQueryInformationProcess != NULL)
+  {
+    DWORD dwSize=0;
+    if(lpfnNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &dwSize) == 0)
     {
-      DWORD dwSize=0;
-      if(lpfnNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &dwSize) == 0)
+      //lecture de la mémoire
+      if (ReadProcessMemory(hProcess, pbi.PebBaseAddress, &PEB, sizeof(PEB), &dwSize) != 0)
       {
-        //lecture de la mémoire
-        if (ReadProcessMemory(hProcess, pbi.PebBaseAddress, &PEB, sizeof(PEB), &dwSize) != 0)
+        if (ReadProcessMemory(hProcess, (LPVOID)PEB.dwInfoBlockAddress, &Block, sizeof(Block), &dwSize) != 0)
         {
-          if (ReadProcessMemory(hProcess, (LPVOID)PEB.dwInfoBlockAddress, &Block, sizeof(Block), &dwSize) != 0)
+          cmd = NULL;
+          cmd = (wchar_t*)malloc(Block.wMaxLength+1 * sizeof(wchar_t));
+          if (cmd!=NULL)
           {
-            wchar_t *cmd = NULL;
-            cmd = (wchar_t*)malloc(Block.wMaxLength+1 * sizeof(wchar_t));
-            if (cmd!=NULL)
+            if (ReadProcessMemory(hProcess, (LPVOID)Block.dwCmdLineAddress, cmd, Block.wMaxLength, &dwSize) != 0)
             {
-              if (ReadProcessMemory(hProcess, (LPVOID)Block.dwCmdLineAddress, cmd, Block.wMaxLength, &dwSize) != 0)
-              {
-                snprintf(arg,size,"%S",cmd);
-                ret = TRUE;
-              }
-              free(cmd);
+              snprintf(arg,size,"%S",cmd);
+              ret = TRUE;
             }
+            free(cmd);
           }
         }
       }
     }
+  }
 
   FreeLibrary(hDLL);
   return ret;
@@ -165,39 +166,10 @@ BOOL GetNameFromIP(char *ip, char *ip_name, unsigned int name_sz_max)
 //------------------------------------------------------------------------------
 DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item_max,unsigned int taille_max_line)
 {
-  HMODULE hLibrary = LoadLibrary( "IPHLPAPI.DLL" );
-  if (hLibrary == NULL)return 0;
-
   DWORD nb_item = 0;
-
-  //load function
-  typedef enum  {
-    TCP_TABLE_BASIC_LISTENER,
-    TCP_TABLE_BASIC_CONNECTIONS,
-    TCP_TABLE_BASIC_ALL,
-    TCP_TABLE_OWNER_PID_LISTENER,
-    TCP_TABLE_OWNER_PID_CONNECTIONS,
-    TCP_TABLE_OWNER_PID_ALL,
-    TCP_TABLE_OWNER_MODULE_LISTENER,
-    TCP_TABLE_OWNER_MODULE_CONNECTIONS,
-    TCP_TABLE_OWNER_MODULE_ALL
-  }TCP_TABLE_CLASS, *PTCP_TABLE_CLASS;
-
-  typedef enum  {
-    UDP_TABLE_BASIC,
-    UDP_TABLE_OWNER_PID,
-    UDP_TABLE_OWNER_MODULE
-  }UDP_TABLE_CLASS, *PUDP_TABLE_CLASS;
-
-  typedef DWORD (WINAPI TypeGetExtendedTcpTable)(PVOID, PDWORD, BOOL, ULONG, TCP_TABLE_CLASS, ULONG);
-  TypeGetExtendedTcpTable *MyGetExtendedTcpTable = (TypeGetExtendedTcpTable *)GetProcAddress(hLibrary, "GetExtendedTcpTable");
-
-  typedef DWORD (WINAPI TypeGetExtendedUdpTable)(PVOID, PDWORD, BOOL, ULONG, UDP_TABLE_CLASS, ULONG);
-  TypeGetExtendedUdpTable *MyGetExtendedUdpTable = (TypeGetExtendedUdpTable *)GetProcAddress(hLibrary, "GetExtendedUdpTable");
 
   if (MyGetExtendedTcpTable ==NULL || MyGetExtendedUdpTable ==NULL)
   {
-    FreeLibrary(hLibrary);
     return 0;
   }
 
@@ -206,27 +178,6 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
   DWORD i, size = 0;
   if (MyGetExtendedTcpTable(pTCPTable, &size, TRUE, AF_INET, TCP_TABLE_OWNER_MODULE_ALL, 0) == ERROR_INSUFFICIENT_BUFFER)
   {
-    //struct
-    #define TCPIP_OWNING_MODULE_SIZE 16
-    typedef struct _MIB_TCPROW_OWNER_MODULE
-    {
-      DWORD         dwState;
-      DWORD         dwLocalAddr;
-      DWORD         dwLocalPort;
-      DWORD         dwRemoteAddr;
-      DWORD         dwRemotePort;
-      DWORD         dwOwningPid;
-      LARGE_INTEGER liCreateTimestamp;
-      ULONGLONG     OwningModuleInfo[TCPIP_OWNING_MODULE_SIZE];
-    }MIB_TCPROW_OWNER_MODULE, *PMIB_TCPROW_OWNER_MODULE;
-
-    typedef struct {
-    DWORD                   dwNumEntries;
-    MIB_TCPROW_OWNER_MODULE table[ANY_SIZE];
-    }MIB_TCPTABLE_OWNER_MODULE, *PMIB_TCPTABLE_OWNER_MODULE;
-
-    //char ip_tmp[SIZE_ITEMS_PORT_MAX];
-
     pTCPTable = malloc(size+1);
     if (pTCPTable != NULL)
     {
@@ -277,18 +228,6 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
   size = 0;
   if (MyGetExtendedUdpTable(pUDPTable, &size, TRUE, AF_INET, UDP_TABLE_OWNER_PID, 0) == ERROR_INSUFFICIENT_BUFFER)
   {
-    typedef struct _MIB_UDPROW_EX {
-       DWORD dwLocalAddr;
-       DWORD dwLocalPort;
-       DWORD dwProcessId;
-    }MIB_UDPROW_EX, *PMIB_UDPROW_EX;
-
-    typedef struct _MIB_UDPTABLE_EX
-    {
-       DWORD dwNumEntries;
-       MIB_UDPROW_EX table[1];
-    }MIB_UDPTABLE_EX, *PMIB_UDPTABLE_EX;
-
     pUDPTable = malloc(size+1);
     if(pUDPTable != NULL)
     {
@@ -312,7 +251,6 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
       free(pUDPTable);
     }
   }
-  FreeLibrary(hLibrary);
   return nb_item;
 }
 //------------------------------------------------------------------------------

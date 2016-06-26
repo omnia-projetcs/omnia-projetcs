@@ -170,15 +170,6 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
 int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max)
 {
   int ret = -1;
-
-  typedef struct WINTRUST_FILE_INFO_
-  {
-      DWORD   cbStruct;
-      LPCWSTR pcwszFilePath;
-      HANDLE  hFile;
-      GUID*   pgKnownSubject;
-  } WINTRUST_FILE_INFO, *PWINTRUST_FILE_INFO;
-
   //convert file path
   WCHAR wfile[4096];
 	MultiByteToWideChar((UINT)CP_ACP,(DWORD)MB_PRECOMPOSED,(LPSTR)file,(int)-1,(LPWSTR)wfile,(int)4096);
@@ -190,56 +181,7 @@ int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max)
   FileData.hFile          = NULL;
   FileData.pgKnownSubject = NULL;
 
-  #define WINTRUST_ACTION_GENERIC_VERIFY_V2   { 0xaac56b, 0xcd44, 0x11d0, { 0x8c,0xc2,0x00,0xc0,0x4f,0xc2,0x95,0xee }}
   GUID WVTPolicyGUID = WINTRUST_ACTION_GENERIC_VERIFY_V2;
-
-  typedef struct _CERT_STRONG_SIGN_SERIALIZED_INFO {
-    DWORD  dwFlags;
-    LPWSTR pwszCNGSignHashAlgids;
-    LPWSTR pwszCNGPubKeyMinBitLengths;
-  } CERT_STRONG_SIGN_SERIALIZED_INFO, *PCERT_STRONG_SIGN_SERIALIZED_INFO;
-
-  typedef struct _CERT_STRONG_SIGN_PARA {
-    DWORD cbSize;
-    DWORD dwInfoChoice;
-    union {
-      void                              *pvInfo;
-      PCERT_STRONG_SIGN_SERIALIZED_INFO pSerializedInfo;
-      LPSTR                             pszOID;
-    } DUMMYUNIONNAME;
-  } CERT_STRONG_SIGN_PARA, *PCERT_STRONG_SIGN_PARA;
-
-  typedef struct WINTRUST_SIGNATURE_SETTINGS_ {
-    DWORD                  cbStruct;
-    DWORD                  dwIndex;
-    DWORD                  dwFlags;
-    DWORD                  cSecondarySigs;
-    DWORD                  dwVerifiedSigIndex;
-    PCERT_STRONG_SIGN_PARA pCryptoPolicy;
-  } WINTRUST_SIGNATURE_SETTINGS, *PWINTRUST_SIGNATURE_SETTINGS;
-
-  typedef struct _WINTRUST_DATA {
-    DWORD                       cbStruct;
-    LPVOID                      pPolicyCallbackData;
-    LPVOID                      pSIPClientData;
-    DWORD                       dwUIChoice;
-    DWORD                       fdwRevocationChecks;
-    DWORD                       dwUnionChoice;
-    union
-    {
-      struct WINTRUST_FILE_INFO_  *pFile;
-      struct WINTRUST_CATALOG_INFO_  *pCatalog;
-      struct WINTRUST_BLOB_INFO_  *pBlob;
-      struct WINTRUST_SGNR_INFO_  *pSgnr;
-      struct WINTRUST_CERT_INFO_  *pCert;
-    };
-    DWORD                       dwStateAction;
-    HANDLE                      hWVTStateData;
-    WCHAR                       *pwszURLReference;
-    DWORD                       dwProvFlags;
-    DWORD                       dwUIContext;
-    WINTRUST_SIGNATURE_SETTINGS *pSignatureSettings;
-  } WINTRUST_DATA, *PWINTRUST_DATA;
 
   //init struct
   WINTRUST_DATA WinTrustData;
@@ -256,47 +198,30 @@ int VerifySignFile(char *file, char *msg, unsigned int msg_sz_max)
   WinTrustData.dwUIContext          = 0;
   WinTrustData.pFile                = &FileData;
 
-  //load dll
-  HMODULE hDll;
-  if ((hDll = LoadLibrary( "Wintrust.dll"))!=NULL)
+  if (WinVerifyTrust != NULL)
   {
-    typedef LONG (WINAPI *WINVERIFYTRUST)(HWND hWnd, GUID *pgActionID, LPVOID pWVTData);
-    WINVERIFYTRUST WinVerifyTrust = (WINVERIFYTRUST) GetProcAddress(hDll,"WinVerifyTrust");
+    ret = 0;
+    DWORD dwLastError;
 
-    #define TRUST_E_NOSIGNATURE                                _HRESULT_TYPEDEF_(0x800B0100L)
-    #define TRUST_E_SUBJECT_FORM_UNKNOWN                       _HRESULT_TYPEDEF_(0x800B0003L)
-    #define TRUST_E_EXPLICIT_DISTRUST                          _HRESULT_TYPEDEF_(0X800B0111)
-    #define TRUST_E_SUBJECT_NOT_TRUSTED                        _HRESULT_TYPEDEF_(0x800B0004L)
-    #define CRYPT_E_SECURITY_SETTINGS                          _HRESULT_TYPEDEF_(0x80092026L)
-    #define TRUST_E_PROVIDER_UNKNOWN                           _HRESULT_TYPEDEF_(0x800B0001L)
-
-    if (WinVerifyTrust != NULL)
+    switch(WinVerifyTrust(NULL, &WVTPolicyGUID, &WinTrustData))
     {
-      ret = 0;
-      DWORD dwLastError;
-
-      switch(WinVerifyTrust(NULL, &WVTPolicyGUID, &WinTrustData))
-      {
-        case ERROR_SUCCESS:
-          ret = 1;
-          snprintf(msg,msg_sz_max, "WINTRUST_ACTION_GENERIC_VERIFY_V2  OK");
-        break;
-        case TRUST_E_NOSIGNATURE:
-          dwLastError = GetLastError();
-          if (TRUST_E_NOSIGNATURE == dwLastError || TRUST_E_SUBJECT_FORM_UNKNOWN == dwLastError || TRUST_E_PROVIDER_UNKNOWN == dwLastError)
-            snprintf(msg,msg_sz_max, "File not signed!");
-          else
-            snprintf(msg,msg_sz_max, "ERROR in verify the signature!");
-        break;
-        case TRUST_E_EXPLICIT_DISTRUST:snprintf(msg,msg_sz_max, "The signature is present, but disallowed!");break;
-        case TRUST_E_SUBJECT_NOT_TRUSTED:snprintf(msg,msg_sz_max, "The signature is present, but not trusted!");break;
-        case CRYPT_E_SECURITY_SETTINGS:snprintf(msg,msg_sz_max, "The signature is present, but toe subject or publisher are disallowed!");break;
-        default:snprintf(msg,msg_sz_max, "ERROR in verify the signature!");break;
-      }
+      case ERROR_SUCCESS:
+        ret = 1;
+        snprintf(msg,msg_sz_max, "WINTRUST_ACTION_GENERIC_VERIFY_V2  OK");
+      break;
+      case TRUST_E_NOSIGNATURE:
+        dwLastError = GetLastError();
+        if (TRUST_E_NOSIGNATURE == dwLastError || TRUST_E_SUBJECT_FORM_UNKNOWN == dwLastError || TRUST_E_PROVIDER_UNKNOWN == dwLastError)
+          snprintf(msg,msg_sz_max, "File not signed!");
+        else
+          snprintf(msg,msg_sz_max, "ERROR in verify the signature!");
+      break;
+      case TRUST_E_EXPLICIT_DISTRUST:snprintf(msg,msg_sz_max, "The signature is present, but disallowed!");break;
+      case TRUST_E_SUBJECT_NOT_TRUSTED:snprintf(msg,msg_sz_max, "The signature is present, but not trusted!");break;
+      case CRYPT_E_SECURITY_SETTINGS:snprintf(msg,msg_sz_max, "The signature is present, but toe subject or publisher are disallowed!");break;
+      default:snprintf(msg,msg_sz_max, "ERROR in verify the signature!");break;
     }
-    FreeLibrary(hDll);
   }
-
   return ret;
 }
 //------------------------------------------------------------------------------

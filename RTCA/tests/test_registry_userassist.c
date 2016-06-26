@@ -536,7 +536,7 @@ void resgistry_userassist_local(unsigned int session_id, sqlite3 *db)
 //------------------------------------------------------------------------------
 //file registry part
 //------------------------------------------------------------------------------
-void resgistry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite3 *db)
+void registry_userassist_file(HK_F_OPEN *hks, char *ckey, unsigned int session_id, sqlite3 *db)
 {
   //exist or not in the file ?
   HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, ckey);
@@ -635,7 +635,7 @@ DWORD WINAPI Scan_registry_userassist(LPVOID lParam)
         //open file + verify
         if(OpenRegFiletoMem(&hks, file))
         {
-          resgistry_userassist_file(&hks,"software\\microsoft\\windows\\currentversion\\explorer\\userassist",session_id,db);
+          registry_userassist_file(&hks,"software\\microsoft\\windows\\currentversion\\explorer\\userassist",session_id,db);
           CloseRegFiletoMem(&hks);
         }
       }

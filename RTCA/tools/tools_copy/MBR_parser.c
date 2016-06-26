@@ -8,7 +8,9 @@
 //------------------------------------------------------------------------------
 BOOL ReadPartInfos(char *raw_datas, unsigned int raw_datas_sz, MBRINFOS_STRUCT*infos, unsigned int index)
 {
-  BOOL ret            = FALSE;
+  //add size control : raw_datas_sz
+
+
   NTFS_BPB *bpb       = (NTFS_BPB *)(raw_datas+3);
   char *BootSignature = (char *)(raw_datas+510);
 

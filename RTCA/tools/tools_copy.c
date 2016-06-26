@@ -149,7 +149,7 @@ char *GenerateNameToSave(char *name, DWORD name_max_size, char *ext)
   struct tm *today = localtime(&date);
   char date_today[DATE_SIZE_MAX];
   strftime(date_today, DATE_SIZE_MAX,"%Y-%m-%d_%H.%M.%S",today);
-  snprintf(name,MAX_PATH,"[%s]_%s_%s",computername,date_today,ext);
+  snprintf(name,name_max_size,"[%s]_%s_%s",computername,date_today,ext);
   return name;
 }
 //------------------------------------------------------------------------------
@@ -261,8 +261,7 @@ BOOL VSSFileCopyFilefromPath(char *path_src, char *path_dst)
 {
   BOOL Ok=FALSE;
   //load dll to verify if funtion exist
-  HMODULE hDLL;
-  if ((hDLL = LoadLibrary( "VssApi.dll"))!=NULL)
+  if (hDLL_VSSAPI!=NULL)
   {
     char cmd_vssadmin[MAX_PATH]="", path_src_VSS[MAX_PATH]="";
     //create a snapshot of lecteur 2003r2/2008/2012 only
@@ -282,7 +281,6 @@ BOOL VSSFileCopyFilefromPath(char *path_src, char *path_dst)
     //delete snapshot
     //snprintf(cmd_vssadmin,MAX_PATH,"vssadmin delete shadows /for=%c: /shadow=%s",path_src[0],snapshoot_id);
     //system(cmd_vssadmin);
-    FreeLibrary(hDLL);
   }
   return Ok;
 }
@@ -448,9 +446,35 @@ DWORD WINAPI BackupRegFile(LPVOID lParam)
       //Default
       snprintf(cmd,MAX_PATH*2,"SAVE HKU\\.DEFAULT \"%s\\DEFAULT\"",tmp);
       ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
-      //Current user
+
       snprintf(cmd,MAX_PATH*2,"SAVE HKCU \"%s\\HKCU_NTUSER.DAT\"",tmp);
       ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
+
+      //Read current users loaded
+      HKEY CleTmp;
+      if (RegOpenKey(HKEY_USERS,"",&CleTmp)==ERROR_SUCCESS)
+      {
+        DWORD nbSubKey = 0;
+        if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+        {
+          DWORD i, key_size;
+          char key[MAX_PATH];
+          for (i=0;i<nbSubKey;i++)
+          {
+            key_size  = MAX_PATH;
+            key[0]    = 0;
+            if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+            {
+              if (key_size > 20 && Contient(key,"_Classes") == 0)
+              {
+                snprintf(cmd,MAX_PATH*2,"SAVE HKU\\%s \"%s\\HKU_%s_NTUSER.DAT\"",key,tmp,key);
+                ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
+              }
+            }
+          }
+        }
+        RegCloseKey(CleTmp);
+      }
 
       //current users & users
       CopyRegistryUSER(tmp, "C:\\Documents and Settings\\*.*", "C:\\Documents and Settings");
@@ -1061,6 +1085,54 @@ void CopyRegistryUSERToZIP(void *hz, char*local_path,char*computername,HANDLE My
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "C:\\Users\\*.*", "C:\\Users");
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "D:\\Users\\*.*", "D:\\Users");
   CopyRegistryUSERmToZIP(hz, local_path,computername,MyhFile, "E:\\Users\\*.*", "E:\\Users");
+
+  //hives loaded
+  //Read current users loaded
+  HKEY CleTmp;
+  if (RegOpenKey(HKEY_USERS,"",&CleTmp)==ERROR_SUCCESS)
+  {
+    DWORD nbSubKey = 0;
+    if (RegQueryInfoKey (CleTmp,0,0,0,&nbSubKey,0,0,0,0,0,0,0)==ERROR_SUCCESS)
+    {
+      DWORD i, key_size, copiee;
+      char key[MAX_PATH];
+      char tmp_path_dst[MAX_PATH], cmd[MAX_PATH];
+      for (i=0;i<nbSubKey;i++)
+      {
+        key_size  = MAX_PATH;
+        key[0]    = 0;
+        if (RegEnumKeyEx (CleTmp,i,key,&key_size,0,0,0,0)==ERROR_SUCCESS)
+        {
+          if (key_size > 20 && Contient(key,"_Classes") == 0)
+          {
+            snprintf(cmd,MAX_PATH*2,"SAVE HKU\\%s \"%s\\HKU_%s_NTUSER.DAT\"",key,local_path,key);
+            MessageBox(NULL,cmd,"test",MB_OK|MB_TOPMOST);
+            ShellExecute(h_main, "open","REG",cmd,NULL,SW_HIDE);
+
+            //add to ZIP
+            snprintf(cmd,MAX_PATH,"%s\\HKU_%s_NTUSER.DAT",local_path,key);
+            snprintf(tmp_path_dst,MAX_PATH,"%s\\Registry\\HKU_%s_NTUSER.DAT",computername,key);
+
+            MessageBox(NULL,cmd,tmp_path_dst,MB_OK|MB_TOPMOST);
+
+            addSrc((TZIP *)hz,  (void *)tmp_path_dst, (void *)cmd,0, 2);
+            if (MyhFile != INVALID_HANDLE_VALUE)
+            {
+              snprintf(tmp_path_dst,MAX_PATH*2,"REG SAVE HKU\\%s \"%s\\HKU_%s_NTUSER.DAT\"",key,local_path,key);
+              WriteFile(MyhFile,tmp_path_dst,strlen(tmp_path_dst),&copiee,0);
+              SendMessage(hstatus_bar,SB_SETTEXT,1, (LPARAM)tmp_path_dst);
+              WriteFile(MyhFile,"\r\n",2,&copiee,0);
+            }
+
+            //REMOVE
+            DeleteFile(cmd);
+          }
+        }
+      }
+    }
+    RegCloseKey(CleTmp);
+  }
+
 }
 //------------------------------------------------------------------------------
 void CopyMBRToZip(void *hz, char*local_path,char*computername,HANDLE MyhFile)
@@ -1312,7 +1384,6 @@ void CopyNavigatorHistoryCustomPathToZIP(void *hz, char*local_path,char*computer
   //search
   char tmp_path2[MAX_PATH], tmp_path3[MAX_PATH],tmp_path_dst[MAX_PATH],tmp_path_src[MAX_PATH];
   WIN32_FIND_DATA data, wfd0, wfd1;
-  DWORD copiee;
   HANDLE hfic = FindFirstFile(tmp_path, &data);
   if (hfic != INVALID_HANDLE_VALUE)
   {

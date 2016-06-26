@@ -5,8 +5,189 @@
 // Licence              : GPL V3
 //------------------------------------------------------------------------------
 #include "RtCA.h"
+//------------------------------------------------------------------------------
+void LoadAllDLLAndFunction()
+{
+  hDLL_NETAPI32 = NULL;
+  hDLL_NETAPI32 = LoadLibrary( "NETAPI32.dll");
 
-#define DNS_MALWARE_MIN_SIZE  4
+  MyNetApiBufferFree      = NULL;
+  MyNetLocalGroupEnum     = NULL;
+  MyNetUserEnum           = NULL;
+  MyNetUserGetInfo        = NULL;
+  MyNetUserGetLocalGroups = NULL;
+
+  if (hDLL_NETAPI32 != NULL)
+  {
+    MyNetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL_NETAPI32,"NetApiBufferFree");
+    MyNetLocalGroupEnum = (NETGROUPENUM) GetProcAddress(hDLL_NETAPI32,"NetLocalGroupEnum");
+    MyNetUserEnum = (NETUSERENUM) GetProcAddress(hDLL_NETAPI32,"NetUserEnum");
+    MyNetUserGetInfo = (NETUSERGETINFO) GetProcAddress(hDLL_NETAPI32,"NetUserGetInfo");
+    MyNetUserGetLocalGroups = (NETUSERGETLOCALGROUPS) GetProcAddress(hDLL_NETAPI32,"NetUserGetLocalGroups");
+    MyNetShareEnum = (NETSHAREENUM) GetProcAddress(hDLL_NETAPI32,"NetShareEnum");
+    MyNetScheduleJobEnum = (NETSCHEDULEJOBENUM) GetProcAddress(hDLL_NETAPI32,"NetScheduleJobEnum");
+  }
+
+
+  hDLL_ADVAPI32 = NULL;
+  hDLL_ADVAPI32 = LoadLibrary( "ADVAPI32.dll");
+
+  sf25 = NULL;
+  sf27 = NULL;
+
+  if (hDLL_ADVAPI32 != NULL)
+  {
+    sf25 = (SF) GetProcAddress(hDLL_ADVAPI32, "SystemFunction025" );
+    sf27 = (SF) GetProcAddress(hDLL_ADVAPI32, "SystemFunction027" );
+  }
+
+
+  hDLL_KERNEL32 = NULL;
+  hDLL_KERNEL32 = LoadLibrary( "KERNEL32.dll");
+
+  Wow64DisableWow64FsRedirect = NULL;
+  Wow64RevertWow64FsRedirect = NULL;
+
+  if (hDLL_KERNEL32 != NULL)
+  {
+    Wow64DisableWow64FsRedirect = (WOW64DISABLEREDIRECT) GetProcAddress(hDLL_KERNEL32, "Wow64DisableWow64FsRedirection" );
+    Wow64RevertWow64FsRedirect = (WOW64DISABLEREDIRECT) GetProcAddress(hDLL_KERNEL32, "Wow64RevertWow64FsRedirection" );
+  }
+
+
+  hDLL_DNSAPI = NULL;
+  hDLL_DNSAPI = LoadLibrary( "DNSAPI.dll");
+
+  DnsGetCacheDataTable = NULL;
+
+  if (hDLL_DNSAPI != NULL)
+  {
+    DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE) GetProcAddress(hDLL_DNSAPI, "DnsGetCacheDataTable" );
+  }
+
+
+  hDLL_WINTRUST = NULL;
+  hDLL_WINTRUST = LoadLibrary( "WINTRUST.dll");
+
+  WinVerifyTrust = NULL;
+
+  if (hDLL_WINTRUST != NULL)
+  {
+    WinVerifyTrust = (WINVERIFYTRUST) GetProcAddress(hDLL_WINTRUST, "WinVerifyTrust" );
+  }
+
+
+  hDLL_IPHLPAPI= NULL;
+  hDLL_IPHLPAPI = LoadLibrary( "IPHLPAPI.dll");
+
+  MyGetExtendedTcpTable = NULL;
+  MyGetExtendedUdpTable = NULL;
+  MyGetIpForwardTable   = NULL;
+
+  if (hDLL_IPHLPAPI != NULL)
+  {
+    MyGetExtendedTcpTable = (TypeGetExtendedTcpTable *)GetProcAddress(hDLL_IPHLPAPI, "GetExtendedTcpTable");
+    MyGetExtendedUdpTable = (TypeGetExtendedUdpTable *)GetProcAddress(hDLL_IPHLPAPI, "GetExtendedUdpTable");
+    MyGetIpForwardTable   = (GETIPFORWARDTABLE) GetProcAddress(hDLL_IPHLPAPI,"GetIpForwardTable");
+  }
+
+
+  hDLL_VSSAPI= NULL;
+  hDLL_VSSAPI = LoadLibrary( "VSSAPI.dll");
+
+  if (hDLL_VSSAPI != NULL)
+  {
+  }
+
+
+  hDLL_VERSION= NULL;
+  hDLL_VERSION = LoadLibrary( "VERSION.dll");
+
+  MyGetFileVersionInfo = NULL;
+  MyVerQueryValue = NULL;
+
+  if (hDLL_VERSION != NULL)
+  {
+    MyGetFileVersionInfo    = (GETFILEVERSIONINFO)   GetProcAddress(hDLL_VERSION , "GetFileVersionInfoA");
+    MyVerQueryValue         = (VERQUERYVALUE)   GetProcAddress(hDLL_VERSION , "VerQueryValueA");
+  }
+}
+//------------------------------------------------------------------------------
+void FreeAllDLLAndFunction()
+{
+  if (hDLL_NETAPI32 != NULL)
+  {
+    MyNetApiBufferFree      = NULL;
+    MyNetLocalGroupEnum     = NULL;
+    MyNetUserEnum           = NULL;
+    MyNetUserGetInfo        = NULL;
+    MyNetUserGetLocalGroups = NULL;
+    MyNetShareEnum          = NULL;
+    MyNetScheduleJobEnum    = NULL;
+
+    FreeLibrary(hDLL_NETAPI32);
+    hDLL_NETAPI32 = NULL;
+  }
+
+  if (hDLL_ADVAPI32 != NULL)
+  {
+    sf25      = NULL;
+    sf27      = NULL;
+
+    FreeLibrary(hDLL_ADVAPI32);
+    hDLL_ADVAPI32 = NULL;
+  }
+
+  if (hDLL_KERNEL32 != NULL)
+  {
+    Wow64DisableWow64FsRedirect    = NULL;
+    Wow64RevertWow64FsRedirect     = NULL;
+
+    FreeLibrary(hDLL_KERNEL32);
+    hDLL_KERNEL32 = NULL;
+  }
+
+  if (hDLL_DNSAPI != NULL)
+  {
+    DnsGetCacheDataTable    = NULL;
+
+    FreeLibrary(hDLL_DNSAPI);
+    hDLL_DNSAPI = NULL;
+  }
+
+  if (hDLL_WINTRUST != NULL)
+  {
+    WinVerifyTrust    = NULL;
+
+    FreeLibrary(hDLL_WINTRUST);
+    hDLL_WINTRUST = NULL;
+  }
+
+  if (hDLL_IPHLPAPI != NULL)
+  {
+    MyGetExtendedTcpTable = NULL;
+    MyGetExtendedUdpTable = NULL;
+    MyGetIpForwardTable   = NULL;
+
+    FreeLibrary(hDLL_IPHLPAPI);
+    hDLL_IPHLPAPI = NULL;
+  }
+
+  if (hDLL_VSSAPI != NULL)
+  {
+    FreeLibrary(hDLL_VSSAPI);
+    hDLL_VSSAPI = NULL;
+  }
+
+  if (hDLL_VERSION != NULL)
+  {
+    MyGetFileVersionInfo = NULL;
+    MyVerQueryValue = NULL;
+
+    FreeLibrary(hDLL_VERSION);
+    hDLL_VERSION = NULL;
+  }
+}
 //------------------------------------------------------------------------------
 DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 {
@@ -267,21 +448,12 @@ BOOL FileExist(char *file)
 //------------------------------------------------------------------------------
 void ReviewWOW64Redirect(PVOID OldValue_W64b)
 {
-  typedef BOOL (WINAPI *WOW64DISABLEREDIRECT)(PVOID *OldValue);
-
-  HMODULE hDLL = LoadLibrary( "KERNEL32.dll");
-  if (hDLL != NULL)
+  if (OldValue_W64b == FALSE)
   {
-    if (OldValue_W64b == FALSE)
-    {
-      WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect = (BOOL (WINAPI *)(PVOID *OldValue)) GetProcAddress(hDLL, "Wow64DisableWow64FsRedirection");
-      if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
-    }else
-    {
-      WOW64DISABLEREDIRECT Wow64RevertWow64FsRedirect  = (BOOL (WINAPI *)(PVOID *OldValue)) GetProcAddress(hDLL, "Wow64RevertWow64FsRedirection");
-      if (Wow64RevertWow64FsRedirect)Wow64RevertWow64FsRedirect(&OldValue_W64b);
-    }
-    FreeLibrary(hDLL);
+    if (Wow64DisableWow64FsRedirect)Wow64DisableWow64FsRedirect(&OldValue_W64b);
+  }else
+  {
+    if (Wow64RevertWow64FsRedirect)Wow64RevertWow64FsRedirect(&OldValue_W64b);
   }
 }
 //------------------------------------------------------------------------------

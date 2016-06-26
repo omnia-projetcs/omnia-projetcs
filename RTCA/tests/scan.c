@@ -15,6 +15,81 @@ DWORD WINAPI StopGUIScan(LPVOID lParam)
   return 0;
 }
 //------------------------------------------------------------------------------
+void Scan_HCU_files(DWORD session, sqlite3 *db, char *userpathsearch, char *userpath, int CMDScanNum)
+{
+  //chek tests
+  BOOL buserassist  = Ischeck_treeview(htrv_test, H_tests[22]) || (CMDScanNum == INDEX_REG_USERASSIST)? TRUE:FALSE;
+  BOOL bMRU         = Ischeck_treeview(htrv_test, H_tests[23]) || (CMDScanNum == INDEX_REG_MRU)? TRUE:FALSE;
+  BOOL bShellbags   = Ischeck_treeview(htrv_test, H_tests[24]) || (CMDScanNum == INDEX_REG_SHELLBAGS)? TRUE:FALSE;
+  BOOL bDeletedKeys = Ischeck_treeview(htrv_test, H_tests[28]) || (CMDScanNum == INDEX_REG_DELETED_KEY)? TRUE:FALSE;
+
+  //search files !
+  WIN32_FIND_DATA data;
+  HANDLE hfic = FindFirstFile(userpathsearch, &data);
+  if (hfic != INVALID_HANDLE_VALUE)
+  {
+    char tmp_path_ntuserdat[MAX_PATH];
+
+    do
+    {
+      if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
+      else
+      {
+        snprintf(tmp_path_ntuserdat,MAX_PATH,"%s\\%s\\NTUSER.DAT",userpath,data.cFileName);
+        if (FileExist(tmp_path_ntuserdat))
+        {
+          if (buserassist || bMRU || bShellbags)
+          {
+            //HK_F_OPEN hks;
+            //open file + verify
+            if(OpenRegFiletoMem(&hks_mru2, tmp_path_ntuserdat))
+            {
+              //userassist
+              if(start_scan && buserassist) registry_userassist_file(&hks_mru2,"software\\microsoft\\windows\\currentversion\\explorer\\userassist",session,db);
+
+              //MRU
+              if (start_scan && bMRU)
+              {
+                FORMAT_CALBAK_READ_INFO fcri;
+                fcri.type = SQLITE_REGISTRY_TYPE_MRU2;
+                sqlite3_exec(db, "SELECT hkey,search_key,value,value_type,type_id,description_id FROM extract_registry_mru_request;", callback_sqlite_registry_mru_file, &fcri, NULL);
+              }
+
+              //Shellbags
+              if(start_scan && bShellbags)
+              {
+                Scan_registry_ShellBags_file(&hks_mru2,"Software\\Microsoft\\Windows\\Shell\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+                Scan_registry_ShellBags_file(&hks_mru2,"Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+                Scan_registry_ShellBags_file(&hks_mru2,"Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+                Scan_registry_ShellBags_file(&hks_mru2,"Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+                Scan_registry_ShellBags_file(&hks_mru2,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\Shell\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+                Scan_registry_ShellBags_file(&hks_mru2,"Wow6432Node\\Local Settings\\Software\\Microsoft\\Windows\\ShellNoRoam\\BagMRU",tmp_path_ntuserdat,session,db,TRUE);
+              }
+
+              CloseRegFiletoMem(&hks_mru2);
+            }
+
+            //deleted keys
+            if(start_scan && bDeletedKeys) Scan_registry_deletedKey_file(tmp_path_ntuserdat, session, db);
+          }
+        }
+      }
+    }while(FindNextFile (hfic,&data) && start_scan);
+    FindClose(hfic);
+  }
+}
+//------------------------------------------------------------------------------
+void Scan_HCU_files_ALL(DWORD session, sqlite3 *db, int CMDScanNum)
+{
+  Scan_HCU_files(session, db, "C:\\Documents and Settings\\*.*", "C:\\Documents and Settings", CMDScanNum);
+  Scan_HCU_files(session, db, "D:\\Documents and Settings\\*.*", "D:\\Documents and Settings", CMDScanNum);
+  Scan_HCU_files(session, db, "E:\\Documents and Settings\\*.*", "E:\\Documents and Settings", CMDScanNum);
+
+  Scan_HCU_files(session, db, "C:\\Users\\*.*", "C:\\Users", CMDScanNum);
+  Scan_HCU_files(session, db, "D:\\Users\\*.*", "D:\\Users", CMDScanNum);
+  Scan_HCU_files(session, db, "E:\\Users\\*.*", "E:\\Users", CMDScanNum);
+}
+//------------------------------------------------------------------------------
 DWORD WINAPI GUIScan(LPVOID lParam)
 {
   //init session
@@ -62,6 +137,9 @@ DWORD WINAPI GUIScan(LPVOID lParam)
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_ie_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_android_history,(void*)nb_current_test,0,0); nb_current_test++;
   if (start_scan && Ischeck_treeview(htrv_test, H_tests[nb_current_test]))h_thread_test[nb_current_test] = CreateThread(NULL,0,Scan_ldap,(void*)nb_current_test,0,0); nb_current_test++;
+
+  //get files not open of users on the computer
+  Scan_HCU_files_ALL(current_session_id, db_scan, -1);
 
   //wait !
   for (j=0;j<nb_current_test;j++)WaitForSingleObject(h_thread_test[j],INFINITE);
@@ -117,6 +195,7 @@ DWORD WINAPI CMDScan(LPVOID lParam)
   CMDScanNum((LPVOID)INDEX_REG_PASSWORD);
   CMDScanNum((LPVOID)INDEX_REG_PATH);
   CMDScanNum((LPVOID)INDEX_REG_GUIDE);
+  CMDScanNum((LPVOID)INDEX_REG_DELETED_KEY);
   CMDScanNum((LPVOID)INDEX_ANTIVIRUS);
   CMDScanNum((LPVOID)INDEX_REG_FIREWALL);
   CMDScanNum((LPVOID)INDEX_NAV_FIREFOX);
@@ -166,13 +245,13 @@ DWORD WINAPI CMDScanNum(LPVOID lParam)
     case INDEX_REG_UPDATE     :Scan_registry_update(0);break;
     case INDEX_REG_START      :Scan_registry_start(0);break;
     case INDEX_REG_USERS      :Scan_registry_user(0);break;
-    case INDEX_REG_USERASSIST :Scan_registry_userassist(0);break;
-    case INDEX_REG_MRU        :Scan_registry_mru(0);break;
-    case INDEX_REG_SHELLBAGS  :Scan_registry_ShellBags(0);break;
+    case INDEX_REG_USERASSIST :Scan_registry_userassist(0); Scan_HCU_files_ALL(current_session_id, db_scan, test);break;
+    case INDEX_REG_MRU        :Scan_registry_mru(0);        Scan_HCU_files_ALL(current_session_id, db_scan, test);break;
+    case INDEX_REG_SHELLBAGS  :Scan_registry_ShellBags(0);  Scan_HCU_files_ALL(current_session_id, db_scan, test);break;
     case INDEX_REG_PASSWORD   :Scan_registry_password(0);break;
     case INDEX_REG_PATH       :Scan_registry_path(0);break;
     case INDEX_REG_GUIDE      :Scan_guide(0);break;
-    case INDEX_REG_DELETED_KEY:Scan_registry_deletedKey(0);break;
+    case INDEX_REG_DELETED_KEY:Scan_registry_deletedKey(0); Scan_HCU_files_ALL(current_session_id, db_scan, test);break;
     case INDEX_ANTIVIRUS      :Scan_antivirus(0);break;
     case INDEX_REG_FIREWALL   :Scan_firewall(0);break;
     case INDEX_NAV_FIREFOX    :Scan_firefox_history(0);break;

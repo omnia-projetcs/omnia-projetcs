@@ -72,7 +72,7 @@ DWORD GetBinaryValueData(char *buffer, DWORD taille_fic, HBIN_CELL_NK_HEADER *nk
           }
 
           //get data
-          if (data!=NULL && data_size > 0)
+          if (data!=NULL && data_size > NULL)
           {
             DWORD type = GetBinaryRegistryData(vk_h, taille_fic, buffer, pos_fhbin, data, data_size);
             if (data[0] != 0)return type;

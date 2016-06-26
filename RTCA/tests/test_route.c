@@ -39,14 +39,8 @@ DWORD WINAPI Scan_route(LPVOID lParam)
   unsigned int session_id = current_session_id;
 
   //load route table);
-  HANDLE hDLL = LoadLibrary( "IPHLPAPI.DLL" );
-  if (!hDLL) return 0;
-
-  //declaration load function
-  typedef DWORD (WINAPI *GETIPFORWARDTABLE)(PMIB_IPFORWARDTABLE pIpForwardTable, PULONG pdwSize, BOOL bOrder);
-  GETIPFORWARDTABLE GetIpForwardTable = (GETIPFORWARDTABLE) GetProcAddress(hDLL,"GetIpForwardTable");
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
-  if (GetIpForwardTable!= NULL)
+  if (MyGetIpForwardTable!= NULL)
   {
     //load all table
     PMIB_IPFORWARDTABLE pIpForwardTable = (MIB_IPFORWARDTABLE*) HeapAlloc(GetProcessHeap(), 0, (sizeof(MIB_IPFORWARDTABLE)));
@@ -54,20 +48,19 @@ DWORD WINAPI Scan_route(LPVOID lParam)
     {
       //alloc memory
       DWORD i, dwSize = 0;
-      if (GetIpForwardTable(pIpForwardTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER)
+      if (MyGetIpForwardTable(pIpForwardTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER)
       {
         HeapFree(GetProcessHeap(), 0,pIpForwardTable);
         pIpForwardTable = (MIB_IPFORWARDTABLE*) HeapAlloc(GetProcessHeap(), 0,dwSize);
 
         if (pIpForwardTable == NULL)
         {
-          FreeLibrary(hDLL);
           return 0;
         }
       }
 
       //get datas
-      if (GetIpForwardTable(pIpForwardTable, &dwSize, 0) == NO_ERROR)
+      if (MyGetIpForwardTable(pIpForwardTable, &dwSize, 0) == NO_ERROR)
       {
         struct in_addr IpAddr_dst;
         struct in_addr IpAddr_msk;
@@ -97,8 +90,6 @@ DWORD WINAPI Scan_route(LPVOID lParam)
       HeapFree(GetProcessHeap(), 0,pIpForwardTable);
     }
   }
-  //free
-  FreeLibrary(hDLL);
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan

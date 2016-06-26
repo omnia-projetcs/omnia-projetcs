@@ -710,11 +710,12 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
         MoveWindow(GetDlgItem(hwnd,GRP_CONF),mWidth/2+2,mHeight-165,(mWidth/2)-2,98,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,BT_ACL_FILE_CHK),mWidth/2+20,mHeight-148,(mWidth/4)-40,17,TRUE);
-        MoveWindow(GetDlgItem(hwnd,BT_ADS_FILE_CHK),mWidth/2+20,mHeight-128,(mWidth/2)-40,17,TRUE);
-        MoveWindow(GetDlgItem(hwnd,BT_SHA_FILE_CHK),mWidth/2+20,mHeight-108,(mWidth/2)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_ADS_FILE_CHK),mWidth/2+20,mHeight-128,(mWidth/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,BT_SHA_FILE_CHK),mWidth/2+20,mHeight-108,(mWidth/4)-40,17,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_UTC_CHK),mWidth/2+20,mHeight-88,(mWidth/4)-40,17,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,EDT_NAME_SESSION),mWidth*3/4+20,mHeight-148,(mWidth/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,ST_NAME_SESSION),mWidth*3/4+20,mHeight-148,(mWidth/4)-40,17,TRUE);
+        MoveWindow(GetDlgItem(hwnd,EDT_NAME_SESSION),mWidth*3/4+20,mHeight-128,(mWidth/4)-40,17,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,BT_RA_CHK),mWidth*3/4+20,mHeight-108,(mWidth/4)-40,17,TRUE);
         MoveWindow(GetDlgItem(hwnd,BT_MAGIC_CHK),mWidth*3/4+20,mHeight-88,(mWidth/4)-40,17,TRUE);

@@ -170,7 +170,7 @@ int callback_sqlite(void *datas, int argc, char **argv, char **azColName)
   return 0;
 }
 //------------------------------------------------------------------------------
-BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file, DWORD flag)
+BOOL SQLITE_Data(FORMAT_CALBAK_READ_INFO *datas, char *sqlite_file/*not used*/, DWORD flag/*not used*/)
 {
   sqlite3 *db = db_scan;
   BOOL ret = TRUE;

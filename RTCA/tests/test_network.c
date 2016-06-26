@@ -169,6 +169,43 @@ void SearchNetworkGUID(HKEY hk,char *path,char *guid, char *card, DWORD size_car
   }
 }
 //------------------------------------------------------------------------------
+BOOL GetMACAdresseFromGUID_CARD(char *GUID, char *mac, unsigned int mac_size)
+{
+  mac[0] = 0;
+
+  DWORD ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+  PIP_ADAPTER_INFO pAdapter, pAdapterInfo = malloc(ulOutBufLen);
+  if (pAdapterInfo == NULL)return FALSE;
+
+  DWORD ret = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
+  if (ret == ERROR_BUFFER_OVERFLOW)
+  {
+    pAdapterInfo = realloc(pAdapterInfo,ulOutBufLen);
+    if (pAdapterInfo == NULL)return FALSE;
+    else ret = GetAdaptersInfo(pAdapterInfo, &ulOutBufLen);
+  }
+
+  BOOL bret = FALSE;
+  if (ret == NO_ERROR)
+  {
+    pAdapter = pAdapterInfo;
+    while (pAdapter)
+    {
+      if (!strcmp(pAdapter->AdapterName,GUID))
+      {
+        snprintf(mac,mac_size,"%02X-%02X-%02X-%02X-%02X-%02X",pAdapter->Address[0] & 0xFF,pAdapter->Address[1] & 0xFF
+                                                             ,pAdapter->Address[2] & 0xFF,pAdapter->Address[3] & 0xFF
+                                                             ,pAdapter->Address[4] & 0xFF,pAdapter->Address[5] & 0xFF);
+        bret = TRUE;
+        break;
+      }else pAdapter = pAdapter->Next;
+    }
+  }
+
+  free(pAdapterInfo);
+  return bret;
+}
+//------------------------------------------------------------------------------
 void Scan_network_local(sqlite3 *db, unsigned int session_id)
 {
   char ip[DEFAULT_TMP_SIZE]       ="",
@@ -187,7 +224,7 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
   //if wine
   if (WINE_OS)
   {
-    DWORD i,ulOutBufLen = sizeof (IP_ADAPTER_INFO);
+    DWORD ulOutBufLen = sizeof (IP_ADAPTER_INFO);
     PIP_ADAPTER_INFO pAdapter, pAdapterInfo = malloc(ulOutBufLen);
     if (pAdapterInfo == NULL)return;
 
@@ -212,9 +249,9 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
       pAdapter = pAdapterInfo;
       while (pAdapter)
       {
-        card[0]         = 0;
+        guid[0]         = 0;
         description[0]  = 0;
-        strncpy(card,pAdapter->AdapterName,DEFAULT_TMP_SIZE);
+        strncpy(guid,pAdapter->AdapterName,DEFAULT_TMP_SIZE);
         strncpy(description,pAdapter->Description,DEFAULT_TMP_SIZE);
 
         ip[0]           = 0;
@@ -227,20 +264,16 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
         if (pAdapter->DhcpEnabled)strncpy(dhcp_server,pAdapter->DhcpServer.IpAddress.String,DEFAULT_TMP_SIZE);
         else dhcp_server[0] = 0;
 
-        guid[0]         = 0;
-        for (i=0;i<pAdapter->AddressLength;i++)
-        {
-          if (i != (pAdapter->AddressLength - 1))
-            snprintf(guid+strlen(guid)+1,DEFAULT_TMP_SIZE-strlen(guid),"%.2X-",(int) pAdapter->Address[i]);
-          else snprintf(guid+strlen(guid)+1,DEFAULT_TMP_SIZE-strlen(guid),"%.2X",(int) pAdapter->Address[i]);
-        }
-
+        card[0]         = 0;
+        snprintf(card,DEFAULT_TMP_SIZE,"[%02X-%02X-%02X-%02X-%02X-%02X]",pAdapter->Address[0] & 0xFF,pAdapter->Address[1] & 0xFF
+                                                                ,pAdapter->Address[2] & 0xFF,pAdapter->Address[3] & 0xFF
+                                                                ,pAdapter->Address[4] & 0xFF,pAdapter->Address[5] & 0xFF);
         //dns
         if (pAdapter->HaveWins) snprintf(dns,DEFAULT_TMP_SIZE,"%s %s",pAdapter->PrimaryWinsServer.IpAddress.String, pAdapter->SecondaryWinsServer.IpAddress.String);
         else dns[0]=0;
 
         //add only if a card
-        if (description[0]!=0 || card[0]!=0 || dns[0]!=0)
+        if (description[0]!=0 || guid[0]!=0 || dns[0]!=0)
         {
           convertStringToSQL(description, DEFAULT_TMP_SIZE);
           addNetworktoDB("API ADAPTER_INFO",card, description, guid, ip, netmask, gw, dns, domain, dhcp_server,pAdapter->DhcpEnabled?"X":"",wifi_cache,lastupdate, session_id, db);
@@ -339,7 +372,13 @@ void Scan_network_local(sqlite3 *db, unsigned int session_id)
           {
             convertStringToSQL(description, DEFAULT_TMP_SIZE);
             snprintf(key_path2, MAX_PATH,"HKEY_LOCAL_MACHINE\\%s",key_path);
-            addNetworktoDB(key_path2,card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+
+            char mac[MAX_PATH] = "", tmpmac[MAX_PATH] = "";
+            if(GetMACAdresseFromGUID_CARD(tmp_key, mac, MAX_PATH))
+            {
+              snprintf(tmpmac,MAX_PATH,"%s [%s]",card,mac);
+              addNetworktoDB(key_path2,tmpmac, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
+            }else addNetworktoDB(key_path2,card, description, tmp_key,ip, netmask, gw, dns, domain, dhcp_server,dhcp_mode?"X":"",wifi_cache,lastupdate, session_id, db);
           }
 
           //check if history !!!

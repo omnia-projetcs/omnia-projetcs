@@ -137,7 +137,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
   user[DEFAULT_TMP_SIZE]="", rid[DEFAULT_TMP_SIZE]="", sid[DEFAULT_TMP_SIZE]="",
   state[DEFAULT_TMP_SIZE]="", critical[DEFAULT_TMP_SIZE]="";
 
-  DWORD id=0;
+  //DWORD id=0;
 
   //test de validité
   if (h_dheader->RecordSize <= size
@@ -191,6 +191,8 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
       }M_ID;
       M_ID * mid;
 
+      //unsigned short id;
+
       while(pos<h_dheader->RecordSize-10)
       {
         if (*c == 0x21 && *(c+1) == 0x00)
@@ -198,7 +200,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
           //id identifié ^^
           mid = (M_ID *)c;
           snprintf(log_id,DEFAULT_TMP_SIZE,"%08lu",(DWORD) mid->id);
-          id = mid->id;
+          //id = mid->id;
 
           //Type
           switch(mid->type)

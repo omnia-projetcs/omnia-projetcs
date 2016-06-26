@@ -147,6 +147,7 @@ BOOL GetMultiMessageString(DWORD MessageId, HANDLE ddl_handle, char *msg, DWORD 
     if (!FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_FROM_HMODULE, ddl_handle,MessageId,0,msg,msg_max_size,(va_list*)pArgs))return FALSE;
     else return TRUE;
   }
+  return FALSE;
 }
 //------------------------------------------------------------------------------
 BOOL GetEventDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *description, unsigned int description_max_sz, DWORD dwRead)
@@ -199,7 +200,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
 
   pevlr = (EVENTLOGRECORD *) &bBuffer;
   DWORD status = ERROR_SUCCESS;
-  unsigned long int i=1, z;
+  unsigned long int i=1;//, z;
   DWORD dwRead, dwNeeded;
 
   memset(bBuffer,0,cbBuffer);

@@ -516,7 +516,6 @@ int callback_sqlite_registry_mru_local(void *datas, int argc, char **argv, char 
 //------------------------------------------------------------------------------
 //file registry part
 //------------------------------------------------------------------------------
-HK_F_OPEN hks_mru;
 //------------------------------------------------------------------------------
 int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char **azColName)
 {
@@ -835,6 +834,323 @@ int callback_sqlite_registry_mru_file(void *datas, int argc, char **argv, char *
                   convertStringToSQL(value, MAX_PATH);
                   convertStringToSQL(tmp, MAX_LINE_SIZE);
                   addRegistryMRUtoDB(hks_mru.file,"",key_path,value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                }
+              }
+            }
+          }
+        }
+        break;
+      }
+    }break;
+    case SQLITE_REGISTRY_TYPE_MRU2:
+    {
+      switch(atoi(argv[3]))//value_type
+      {
+        case TYPE_VALUE_STRING:
+        case TYPE_VALUE_WSTRING:
+          if (Readnk_Value(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,
+                           argv[1], NULL, argv[2], tmp, MAX_LINE_SIZE))
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+            Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                         argv[1], NULL, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+            //save
+            convertStringToSQL(tmp, MAX_LINE_SIZE);
+            addRegistryMRUtoDB(hks_mru2.file,"",argv[1],argv[2],tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+          }
+        break;
+        case TYPE_ENUM_STRING_RVALUE://all string under one key
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h!=NULL)
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+            Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+            //get values
+            char value[MAX_PATH];
+            DWORD i, nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+
+            for (i=0;i<nbSubValue && start_scan;i++)
+            {
+              if (GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
+              {
+                //if (strcmp(charToLowChar(value),argv[2]) != 0)
+                {
+                  //save
+                  convertStringToSQL(value, MAX_PATH);
+                  convertStringToSQL(tmp, MAX_LINE_SIZE);
+                  addRegistryMRUtoDB(hks_mru2.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_ENUM_STRING_VALUE://list of all string in a directory and exclude "value"
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h!=NULL)
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+            Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+            //get values
+            char value[MAX_PATH];
+            DWORD i, nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+            for (i=0;i<nbSubValue && start_scan;i++)
+            {
+              if (GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
+              {
+                //if (strcmp(charToLowChar(value),argv[2]) != 0)
+                {
+                  //save
+                  convertStringToSQL(value, MAX_PATH);
+                  convertStringToSQL(tmp, MAX_LINE_SIZE);
+                  addRegistryMRUtoDB(hks_mru2.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_ENUM_STRING_NVALUE://list of all string in a directory with "value"
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h!=NULL)
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+            Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+            //get values
+            char value[MAX_PATH];
+            DWORD i, nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+            for (i=0;i<nbSubValue && start_scan;i++)
+            {
+              if (GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,MAX_LINE_SIZE))
+              {
+                if (Contient(charToLowChar(value),argv[2]))
+                {
+                  //save
+                  convertStringToSQL(value, MAX_PATH);
+                  convertStringToSQL(tmp, MAX_LINE_SIZE);
+                  addRegistryMRUtoDB(hks_mru2.file,"",argv[1],value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_ENUM_STRING_WVALUE:
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h!=NULL)
+          {
+            //key update
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+            Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                         NULL, nk_h, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+            //get values
+            char value[MAX_PATH],data[MAX_LINE_SIZE];
+            DWORD i, nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+            DWORD sz_value = MAX_LINE_SIZE;
+            for (i=0;i<nbSubValue && start_scan;i++)
+            {
+              sz_value = MAX_LINE_SIZE;
+              if (GetBinaryValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i,value,MAX_PATH,tmp,&sz_value))
+              {
+                //save
+                convertStringToSQL(value, MAX_PATH);
+                snprintf(data,MAX_LINE_SIZE,"%S",tmp);
+                convertStringToSQL(tmp, MAX_LINE_SIZE);
+                addRegistryMRUtoDB(hks_mru2.file,"",argv[1],value,data,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+              }
+            }
+          }
+        }
+        break;
+
+        case TYPE_ENUM_SUBNK_DATE:
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h!=NULL)
+          {
+            char parent_key_update[DATE_SIZE_MAX]="";
+            char RID[MAX_PATH]="", sid[MAX_PATH]="";
+
+            //get values
+            char value[MAX_PATH], tmp_key[MAX_PATH];
+            DWORD i, nbSubnk = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
+
+            for (i=0;i<nbSubnk && start_scan;i++)
+            {
+              if (GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i, value, MAX_PATH))
+              {
+                snprintf(tmp_key,MAX_PATH,"%s\\%s",argv[1],value);
+                HBIN_CELL_NK_HEADER *nk_ht = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,tmp_key);
+
+                if (nk_ht!=NULL)
+                {
+                  //key update
+                  Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                               NULL, nk_ht, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+                  //save
+                  convertStringToSQL(tmp_key, MAX_PATH);
+                  addRegistryMRUtoDB(hks_mru2.file,"",tmp_key,"","",argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_DBL_ENUM_VALUE:
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h==NULL)break;
+
+          char parent_key_update[DATE_SIZE_MAX]="";
+          char RID[MAX_PATH]="", sid[MAX_PATH]="", data[MAX_PATH];
+          HBIN_CELL_NK_HEADER *nk_ht, *nk_ht2;
+
+          //get values
+          char value2[MAX_PATH],value[MAX_PATH], tmp_key2[MAX_PATH], tmp_key[MAX_PATH];
+          DWORD i,j, nbSubnk2, nbSubnk = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
+          for (i=0;i<nbSubnk && start_scan;i++)
+          {
+            if (GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, i, value, MAX_PATH))
+            {
+              snprintf(tmp_key,MAX_PATH,"%s\\%s\\AVGeneral\\cRecentFiles",argv[1],value);
+              nk_ht = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,tmp_key);
+
+              nbSubnk2 = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_ht, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0);
+              for (j=0;j<nbSubnk2 && start_scan;j++)
+              {
+                if (GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_ht, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, j, value2, MAX_PATH))
+                {
+                  snprintf(tmp_key2,MAX_PATH,"%s\\%s",tmp_key,value2);
+                  nk_ht2 = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,tmp_key2);
+
+                  //datas
+                  if(Readnk_Value(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position, NULL, nk_ht2, argv[2],
+                                  data, MAX_PATH))
+                  {
+                    //key update
+                    Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                                 NULL, nk_ht2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+                    //save
+                    convertStringToSQL(data, MAX_PATH);
+                    addRegistryMRUtoDB(hks_mru2.file,"",tmp_key2,argv[2],data,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                  }
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_ENUM_STRING_RRVALUE://all string under thow key + key
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h == NULL)return 0;
+
+          char parent_key_update[DATE_SIZE_MAX]="";
+          char RID[MAX_PATH]="", sid[MAX_PATH]="";
+          char value[MAX_PATH];
+
+          char tmp_key[MAX_PATH], tmp_key2[MAX_PATH], key_path[MAX_PATH];
+          HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
+          DWORD i,j,k, nbSubValue,nbSubKey2,nbSubKey = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, 0, NULL, 0);
+          for (i=0;i<nbSubKey && start_scan;i++)
+          {
+            if(GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, i, tmp_key, MAX_PATH))
+            {
+              //get nk of key :)
+              nk_h_tmp = GetSubNKtonk(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, i);
+              if (nk_h_tmp == NULL)continue;
+
+              nbSubKey2 = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h_tmp, hks_mru2.position, 0, NULL, 0);
+              for (j=0;j<nbSubKey2 && start_scan;j++)
+              {
+                if(GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h_tmp, hks_mru2.position, j, tmp_key2, MAX_PATH))
+                {
+                  //get nk of key :)
+                  snprintf(key_path,MAX_PATH,"%s\\%s\\%s\\%s",argv[1],tmp_key,tmp_key2,argv[2]);
+                  nk_h_tmp2 = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,key_path);
+                  if (nk_h_tmp2 == NULL)continue;
+
+                  //key update
+                  Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                               NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+                  //get values
+                  nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h_tmp2, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+                  for (k=0;k<nbSubValue;k++)
+                  {
+                    if (GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h_tmp2, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,tmp,MAX_LINE_SIZE))
+                    {
+                      //save
+                      convertStringToSQL(value, MAX_PATH);
+                      convertStringToSQL(tmp, MAX_LINE_SIZE);
+                      addRegistryMRUtoDB(hks_mru2.file,"",key_path,value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        break;
+        case TYPE_ENUM_STRING_R_VALUE://all string under one key + key
+        {
+          HBIN_CELL_NK_HEADER *nk_h = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,argv[1]);
+          if (nk_h == NULL)return 0;
+
+          char parent_key_update[DATE_SIZE_MAX]="";
+          char RID[MAX_PATH]="", sid[MAX_PATH]="";
+          char value[MAX_PATH];
+
+          char tmp_key[MAX_PATH], key_path[MAX_PATH];
+          HBIN_CELL_NK_HEADER *nk_h_tmp, *nk_h_tmp2;
+          DWORD i,k, nbSubValue,nbSubKey = GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, 0, NULL, 0);
+          for (i=0;i<nbSubKey && start_scan;i++)
+          {
+            if(GetSubNK(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, i, tmp_key, MAX_PATH))
+            {
+              //get nk of key :)
+              nk_h_tmp = GetSubNKtonk(hks_mru2.buffer, hks_mru2.taille_fic, nk_h, hks_mru2.position, i);
+              if (nk_h_tmp == NULL)continue;
+
+              snprintf(key_path,MAX_PATH,"%s\\%s\\%s",argv[1],tmp_key,argv[2]);
+              nk_h_tmp2 = GetRegistryNK(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, hks_mru2.position,key_path);
+              if (nk_h_tmp2 == NULL)continue;
+
+              //key update
+              Readnk_Infos(hks_mru2.buffer,hks_mru2.taille_fic, (hks_mru2.pos_fhbin), hks_mru2.position,
+                           NULL, nk_h_tmp2, parent_key_update, DATE_SIZE_MAX, RID, MAX_PATH,sid, MAX_PATH);
+
+              //get values
+              nbSubValue = GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h_tmp2, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, 0, NULL, 0, NULL, 0);
+              for (k=0;k<nbSubValue;k++)
+              {
+                if (GetValueData(hks_mru2.buffer,hks_mru2.taille_fic, nk_h_tmp2, (hks_mru2.pos_fhbin)+HBIN_HEADER_SIZE, k,value,MAX_PATH,tmp,MAX_LINE_SIZE))
+                {
+                  //save
+                  convertStringToSQL(value, MAX_PATH);
+                  convertStringToSQL(tmp, MAX_LINE_SIZE);
+                  addRegistryMRUtoDB(hks_mru2.file,"",key_path,value,tmp,argv[5],"",RID,sid,parent_key_update,session_id,db_scan);
                 }
               }
             }

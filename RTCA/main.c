@@ -1335,7 +1335,10 @@ int CmdLine(int argc, char* argv[])
         for (++i;i<argc;i++)
         {
           if (argv[i][0] == '-'){i--;break;}
-          CMDScanNum((LPVOID)atoi(argv[i]));
+          int test = atoi(argv[i]);
+          CMDScanNum((LPVOID)test);
+
+          if (test == INDEX_REG_USERASSIST || test == INDEX_REG_MRU || test == INDEX_REG_SHELLBAGS || test == INDEX_REG_DELETED_KEY) Scan_HCU_files_ALL(current_session_id, db_scan, test);break;
         }
         start_scan = FALSE;
         EndSession(0, db_scan);
@@ -1413,7 +1416,7 @@ int CmdLine(int argc, char* argv[])
                "\t-S  Disable SQLITE FULL SPEED.\n"
                "\n"
                "\t-a  Start all tests (without LDAP extract and Registry deleted keys).\n"
-               "\t-A  Start all tests in safe mode with no Files, no Logs and no LDAP AD extraction test and no Registry deleted keys.\n"
+               "\t-A  Start all tests in safe mode with no Files, no Logs and no LDAP AD extraction test.\n"
                "\t-s  Select test to start.\n\t    Exemple: -s 0 1 2 3 4 5 6\n"
                "\n"
                "\t-o  Export all data to path (after -F option if specify. CSV by default).\n\t    Exemples: -F XML -o c:\\ or in local directory -o . or in network share -o \\\\Server\\Share\\\n"
@@ -1444,6 +1447,9 @@ int main(int argc, char* argv[])
   snprintf(SQLITE_LOCAL_BDD,MAX_PATH,"%s\\%s",local_path,DEFAULT_SQLITE_FILE);
   session[0] = 0;
   session_name_ch[0] = 0;
+
+  //load DLL
+  LoadAllDLLAndFunction();
 
   //init name
   snprintf(NOM_FULL_APPLI,DEFAULT_TMP_SIZE,"%s %s%s - %s",NOM_APPLI,FULLVERSION_STRING,STATUS_SHORT,URL_APPLI);
@@ -1932,6 +1938,10 @@ int main(int argc, char* argv[])
         }
       }
     }
+
+    //clean DLL
+    FreeAllDLLAndFunction();
+
     return msg.wParam;
 
   }else return CmdLine(argc, argv);

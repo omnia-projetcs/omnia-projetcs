@@ -72,17 +72,7 @@ DWORD WINAPI Scan_share(LPVOID lParam)
     }
   }else
   {
-    //init
-    HMODULE hDLL = LoadLibrary("NETAPI32.dll");
-    if (hDLL == NULL)return 0;
-
-    typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
-    NETAPIBUFFERFREE NetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL,"NetApiBufferFree");
-
-    typedef NET_API_STATUS (WINAPI *NETSHAREENUM)(LPWSTR servername, DWORD level, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
-    NETSHAREENUM NetShareEnum = (NETSHAREENUM) GetProcAddress(hDLL,"NetShareEnum");
-
-    if (NetApiBufferFree != NULL && NetShareEnum != NULL )
+    if (MyNetApiBufferFree != NULL && MyNetShareEnum != NULL )
     {
       NET_API_STATUS res;
       PSHARE_INFO_502 buffer,p;
@@ -91,7 +81,7 @@ DWORD WINAPI Scan_share(LPVOID lParam)
 
       do
       {
-        res = NetShareEnum (0, 502, (LPBYTE *) &buffer,MAX_PREFERRED_LENGTH, &nb, &tr,0);
+        res = MyNetShareEnum (0, 502, (LPBYTE *) &buffer,MAX_PREFERRED_LENGTH, &nb, &tr,0);
         if(res != ERROR_SUCCESS && res != ERROR_MORE_DATA)break;
 
         for(i=1,p=buffer;i<=nb;i++,p++)
@@ -121,8 +111,8 @@ DWORD WINAPI Scan_share(LPVOID lParam)
           addSharetoDB("",share, path, description, type, connexion, session_id, db);
         }
       }while(res==ERROR_MORE_DATA);
+      MyNetApiBufferFree(buffer);
     }
-    FreeLibrary(hDLL);
   }
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

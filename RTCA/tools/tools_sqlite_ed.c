@@ -455,6 +455,8 @@ char* GetCurrentTableChamps(int id_exclude, char *champs_only, char *champs_full
 
   if (champs_full[strlen(champs_full)-1] == ',')champs_full[strlen(champs_full)-1] = 0;
   if (champs_only[strlen(champs_only)-1] == ',')champs_only[strlen(champs_only)-1] = 0;
+
+  return champs_full;
 }
 //------------------------------------------------------------------------------
 void ReloadTable(HWND hwnd)
@@ -747,7 +749,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             case POPUP_SQLITE_REMOVE:
               {
                 HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
-                long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+                long index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
                 if (index > -1)
                 {
                   char request[MAX_LINE_SIZE]="";
@@ -947,9 +949,9 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                 {
                   snprintf(request,MAX_PATH,"PRAGMA table_info (%s);",tmp_table);
                   FORMAT_CALBAK_READ_INFO fcri2;
-                  fcri.type = TYPE_SQLITE_LOAD_TABLE_HEADER;
+                  fcri2.type = TYPE_SQLITE_LOAD_TABLE_HEADER;
                   nb_column_view_sqlite = 0;
-                  sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri, NULL);
+                  sqlite3_exec(db_sqlite_test,request, callback_sqlite_sqlite_ed, &fcri2, NULL);
 
                   //set auto header size
                   int i = 0;

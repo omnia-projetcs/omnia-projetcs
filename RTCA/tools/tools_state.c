@@ -543,10 +543,35 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       ListView_SetItemText(hlv,ref_item,7,session_state);//Session
     }
     break;
-    /*
-    Disable:
-    INDEX_REG_SERVICES:services
-    */
+    case INDEX_REG_SERVICES://services
+    {
+      //SELECT file,hk,key,name,ts1.string,path,description,ts2.string,last_update
+      HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
+      LVITEM lvi;
+      lvi.mask       = LVIF_TEXT|LVIF_PARAM;
+      lvi.iSubItem   = 0;
+      lvi.lParam     = LVM_SORTITEMS;
+      lvi.pszText    = "";
+      lvi.iItem      = ListView_GetItemCount(hlv);
+      DWORD ref_item = ListView_InsertItem(hlv, &lvi);
+
+      //set text
+      char src[MAX_LINE_SIZE];
+      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2]);
+
+      char description[MAX_LINE_SIZE];
+      snprintf(description,MAX_LINE_SIZE,"%s=%s, ",argv[7],argv[4],argv[6]);
+
+      ListView_SetItemText(hlv,ref_item,0,argv[8]);     //date
+      ListView_SetItemText(hlv,ref_item,1,azColName[8]);//Origine
+      ListView_SetItemText(hlv,ref_item,2,src);         //Source
+      ListView_SetItemText(hlv,ref_item,3,argv[5]);     //desc
+      ListView_SetItemText(hlv,ref_item,4,description); //description
+      //ListView_SetItemText(hlv,ref_item,5,argv[4]);     //Owner
+      //ListView_SetItemText(hlv,ref_item,6,argv[6]);     //SID
+      ListView_SetItemText(hlv,ref_item,7,session_state);//Session
+    }
+    break;
     case INDEX_REG_USB: //USB
     {
       if (strlen(argv[9]) < 9)break;
@@ -676,6 +701,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
     break;
     case INDEX_REG_USERS: //users
     {
+      //SELECT source,name,RID,SID,grp,description,last_logon,last_password_change,nb_connexion,type,tests_string.string
       HANDLE hlv     = GetDlgItem(h_state,DLG_STATE_LV_ALL);
       LVITEM lvi;
       lvi.mask       = LVIF_TEXT|LVIF_PARAM;
@@ -690,9 +716,9 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       char user[MAX_LINE_SIZE];
       snprintf(src,MAX_LINE_SIZE,"%s (%s)",argv[1],argv[4]);
 
-      if (strlen(argv[6]) > 8)
+      if (strlen(argv[6]) > 18) // 19 time size
       {
-        if (argv[6][4] == '\\')
+        if (argv[6][4] == '\\' || argv[6][4] == '/')
         {
           lvi.iItem= ListView_GetItemCount(hlv);
           ref_item = ListView_InsertItem(hlv, &lvi);
@@ -720,8 +746,8 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
         }
       }
 
-      if (strlen(argv[7]) > 8)
-        if (argv[7][4] == '\\')
+      if (strlen(argv[7]) > 18) //19 time size
+        if (argv[7][4] == '\\' || argv[7][4] == '/')
         {
           lvi.iItem= ListView_GetItemCount(hlv);
           ref_item = ListView_InsertItem(hlv, &lvi);
@@ -759,7 +785,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
       lvi.lParam     = LVM_SORTITEMS;
       lvi.pszText    = "";
 
-      if (argv[9][4] == '\\')
+      if (argv[9][4] == '\\' || argv[9][4] == '/')
       {
         lvi.iItem      = ListView_GetItemCount(hlv);
         DWORD ref_item = ListView_InsertItem(hlv, &lvi);
@@ -806,7 +832,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
 
       //set text
       char src[MAX_LINE_SIZE];
-      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2]);
+      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s:%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2],argv[3]);
 
       ListView_SetItemText(hlv,ref_item,0,argv[6]);     //date
       ListView_SetItemText(hlv,ref_item,1,azColName[6]);//Origine
@@ -864,7 +890,7 @@ int callback_sqlite_state(void *datas, int argc, char **argv, char **azColName)
 
       //set text
       char src[MAX_LINE_SIZE];
-      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2]);
+      snprintf(src,MAX_LINE_SIZE,"%s:%s\\%s:%s",src_name,strlen(argv[1])?argv[1]:argv[0],argv[2],argv[3]);
 
       ListView_SetItemText(hlv,ref_item,0,argv[8]);     //date
       ListView_SetItemText(hlv,ref_item,1,azColName[8]);//Origine
@@ -1052,7 +1078,7 @@ DWORD WINAPI Load_state(LPVOID lParam)
   FORMAT_CALBAK_READ_INFO fcri;
   char request[MAX_LINE_SIZE], request2[MAX_LINE_SIZE];
 
-  for (i=0;i<nb_items;i++)
+  for (i=0;i<nb_items && h_load_th !=0;i++)
   {
     if (SendDlgItemMessage(h_state,DLG_STATE_LB_TEST,LB_GETSEL,i,(LPARAM)0)>0)
     {
@@ -1069,7 +1095,7 @@ DWORD WINAPI Load_state(LPVOID lParam)
       sqlite3_exec(db_scan, request, callback_sqlite_state, &fcri, NULL);
 
       //load datas for each selected session
-      for (s=0;s<nb_sessions;s++)
+      for (s=0;s<nb_sessions && h_load_th!=0;s++)
       {
         if (SendDlgItemMessage(h_state,DLG_STATE_LB_SESSION,LB_GETSEL,s,(LPARAM)0)>0)
         {
@@ -1121,8 +1147,18 @@ DWORD WINAPI Load_state(LPVOID lParam)
     }
   }
 
-  h_load_th = 0;
+  if (h_load_th == 0)EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOAD),TRUE);
   EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),TRUE);
+  h_load_th = 0;
+  return 0;
+}
+//------------------------------------------------------------------------------
+DWORD WINAPI Load_state_stop(LPVOID lParam)
+{
+  SendDlgItemMessage(h_state,DLG_STATE_SB,SB_SETTEXT,0, (LPARAM)"STOP QUERY...");
+
+  h_load_th = 0;
+  sqlite3_interrupt(db_scan); //stop current sqlite pending : not safe if close database !
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -1149,12 +1185,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
                 h_load_th = CreateThread(NULL,0,Load_state,0,0,0);
               }else //stop
               {
-                DWORD IDThread;
-                GetExitCodeThread(h_load_th,&IDThread);
-                TerminateThread(h_load_th,IDThread);
+                EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),FALSE);
+                EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOAD),FALSE);
                 SetWindowText(GetDlgItem(h_state,DLG_STATE_BT_LOAD),"Load");
-                h_load_th = 0;
-                EnableWindow(GetDlgItem(h_state,DLG_STATE_BT_LOG_STATE),TRUE);
+
+                CreateThread(NULL,0,Load_state_stop,0,0,0);
               }
             break;
             //tabl
@@ -1214,7 +1249,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
             break;
               case POPUP_S_VIEW:
               {
-                char file[MAX_PATH]="";
+                char file[MAX_PATH]="GlobalTimeline";
                 OPENFILENAME ofn;
                 ZeroMemory(&ofn, sizeof(OPENFILENAME));
                 ofn.lStructSize = sizeof(OPENFILENAME);
@@ -1238,7 +1273,7 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               //-----------------------------------------------------
               case POPUP_S_SELECTION:
               {
-                char file[MAX_PATH]="";
+                char file[MAX_PATH]="GlobalTimeline";
                 OPENFILENAME ofn;
                 ZeroMemory(&ofn, sizeof(OPENFILENAME));
                 ofn.lStructSize = sizeof(OPENFILENAME);

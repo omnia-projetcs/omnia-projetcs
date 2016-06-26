@@ -170,38 +170,22 @@ int set_userkeys_security( HKEY start, const char *path, SECURITY_DESCRIPTOR *ps
 //------------------------------------------------------------------------------
 BOOL AdministratorGroupName(char *group_name, unsigned short gn_max_size)
 {
-  //loading DLL
-  HMODULE hDLL;
   BOOL ret = FALSE;
-  typedef NET_API_STATUS (WINAPI *NETAPIBUFFERFREE)(LPVOID Buffer);
-  NETAPIBUFFERFREE NetApiBufferFree;
-
-  typedef NET_API_STATUS (WINAPI *NETGROUPENUM)(LPCWSTR servername, DWORD level, LPBYTE* bufptr, DWORD prefmaxlen, LPDWORD entriesread, LPDWORD totalentries, LPDWORD resume_handle);
-  NETGROUPENUM NetLocalGroupEnum;
-
-  if ((hDLL = LoadLibrary( "NETAPI32.dll"))!=NULL)
+  if (MyNetApiBufferFree && MyNetLocalGroupEnum)
   {
-    NetApiBufferFree = (NETAPIBUFFERFREE) GetProcAddress(hDLL,"NetApiBufferFree");
-    NetLocalGroupEnum = (NETGROUPENUM) GetProcAddress(hDLL,"NetLocalGroupEnum");
+    //Enumerate group to find Administrator group
+    LPLOCALGROUP_INFO_0 pBuf = 0;
+    DWORD nb = 0, total=0;
 
-    if (NetApiBufferFree && NetLocalGroupEnum)
+    NET_API_STATUS nStatus = MyNetLocalGroupEnum(0,0,(LPBYTE*)&pBuf,2048,&nb,&total,0);
+    if (((nStatus == 0/*NERR_Success*/) || (nStatus == ERROR_MORE_DATA)) && ((pBuf) != 0) && (nb>0))
     {
-      //Enumerate group to find Administrator group
-      LPLOCALGROUP_INFO_0 pBuf = 0;
-      DWORD nb = 0, total=0;
-
-      NET_API_STATUS nStatus = NetLocalGroupEnum(0,0,(LPBYTE*)&pBuf,2048,&nb,&total,0);
-      if (((nStatus == 0/*NERR_Success*/) || (nStatus == ERROR_MORE_DATA)) && ((pBuf) != 0) && (nb>0))
-      {
-          //le 1er compte est toujour l'administrateur, ils sont chargés dans l'ordre de rid!
-          snprintf(group_name,gn_max_size,"%S",pBuf->lgrpi0_name);
-          ret = TRUE;
-      }
-      NetApiBufferFree(pBuf);
+        //le 1er compte est toujour l'administrateur, ils sont chargés dans l'ordre de rid!
+        snprintf(group_name,gn_max_size,"%S",pBuf->lgrpi0_name);
+        ret = TRUE;
     }
-    FreeLibrary(hDLL);
+    MyNetApiBufferFree(pBuf);
   }
-
   return ret;
 }
 //------------------------------------------------------------------------------
@@ -468,15 +452,7 @@ void DecodeSAMHashXP(char *sk,char *datas_hs, int rid, char *user, BYTE *b_f)
   if (b_f != NULL)
   {
     //chargement des fonctions pour l'exploitation DES
-    typedef int (WINAPI *SF)(unsigned char*, int*, unsigned char*);
-
-    HINSTANCE hDLL;
-    SF sf27;
-    SF sf25;
-
-    if((hDLL = LoadLibrary("ADVAPI32.DLL" ))== NULL) return;
-    sf27 = (SF) GetProcAddress( hDLL, "SystemFunction027" );
-    sf25 = (SF) GetProcAddress( hDLL, "SystemFunction025" );
+    if (sf25 == NULL || sf27 == NULL)return;
 
     //transcodage en byte de la sysley
     BYTE b_sk[16];
@@ -595,8 +571,6 @@ void DecodeSAMHashXP(char *sk,char *datas_hs, int rid, char *user, BYTE *b_f)
 
       strncat(datas_hs,":::\0",MAX_LINE_SIZE);
     }else strncat(datas_hs,"NO PASSWORD*********************:::\0",MAX_LINE_SIZE);
-
-    FreeLibrary(hDLL);
   }
 }
 //------------------------------------------------------------------------------

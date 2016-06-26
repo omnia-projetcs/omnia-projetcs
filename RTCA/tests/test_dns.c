@@ -147,14 +147,6 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
   }
 
   //get cache
-  HMODULE hDLL = LoadLibrary( "DNSAPI.DLL" );
-  if (!hDLL) return 0;
-
-  //function
-  //typedef int(*DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD*);
-  typedef int(WINAPI *DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD);
-  DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE)GetProcAddress(hDLL,"DnsGetCacheDataTable");
-
   if (DnsGetCacheDataTable != NULL)
   {
     PDNS_RECORD pcache = NULL;
@@ -194,7 +186,6 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
       }
     }
   }
-  FreeLibrary(hDLL);
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
   check_treeview(htrv_test, H_tests[local_id], TRV_STATE_UNCHECK);//db_scan
