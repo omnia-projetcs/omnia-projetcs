@@ -240,10 +240,10 @@ DWORD  WINAPI AutoSearchFiles(LPVOID lParam)
     {
       switch(GetDriveType(&tmp[i]))
       {
+        case DRIVE_REMOVABLE: if(disable_USB_SHARE)break;
+        case DRIVE_REMOTE:    if(disable_USB_SHARE)break;
         case DRIVE_FIXED:
-        case DRIVE_REMOTE:
         case DRIVE_RAMDISK:
-        case DRIVE_REMOVABLE:
           tmp_l[0] = tmp[i];
           AddItemTreeView(htrv_files,tmp_l, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
           scan_file(tmp_l, htrv_files);

@@ -192,6 +192,7 @@ HANDLE h_process, h_sniff, h_reg_file, h_reg, h_date, h_state, h_sqlite_ed, h_he
 BOOL disable_m_context, disable_p_context, enable_magic, enable_remote;
 
 BOOL enable_LNK;
+BOOL disable_USB_SHARE;
 
 #define DEFAULT_MODE_SEARCH_HX  0
 #define UNICODE_MODE_SEARCH_HX  1
@@ -231,8 +232,11 @@ HANDLE h_Hexa;
 #define BT_SEARCH_MATCH_CASE     3007
 #define BT_SQLITE_FULL_SPEED     3008
 #define BT_DISABLE_GRID          3009
+#define BT_ENABLE_DATE_NO_UPDATE 3010
+#define BT_DISABLE_USB_SHARE_LIST 3011
 BOOL DISABLE_GRID_LV_ALL;
 BOOL SQLITE_FULL_SPEED;
+BOOL enable_DATE_NO_UPDATE;
 
 #define DLG_PROCESS              4000
 unsigned int nb_column_process_view;
@@ -342,6 +346,9 @@ DWORD last_bt;
 #define MSG_SCREENSHOT              9010
 //#define MSG_SCREENSHOT_WINDOW       9011
 #define DLG_SQL_ED_BT_MODELS        9012
+#define DLG_SQL_ED_BT_INFO          9013
+#define DLG_SQL_ED_ED_SEARCH        9014
+#define DLG_SQL_ED_BT_SEARCH        9015
 
 #define POPUP_SQLITE_REQUEST        9020
 
@@ -1072,7 +1079,7 @@ int current_item_selected;
 unsigned long int current_session_id;
 unsigned long int nb_session, session[NB_MAX_SESSION];
 
-DWORD pos_search,pos_search_reg;
+DWORD pos_search,pos_search_reg,pos_search_sqlite;
 char session_name_ch[MAX_PATH];
 char malware_check[MAX_PATH];
 //------------------------------------------------------------------------------

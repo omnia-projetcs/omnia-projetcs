@@ -261,6 +261,28 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   SQLITE_FULL_SPEED = TRUE;
                 }
               break;
+              case BT_ENABLE_DATE_NO_UPDATE:
+                if (enable_DATE_NO_UPDATE)
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_ENABLE_DATE_NO_UPDATE,MF_BYCOMMAND|MF_CHECKED);
+                  enable_DATE_NO_UPDATE = FALSE;
+                }else
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_ENABLE_DATE_NO_UPDATE,MF_BYCOMMAND|MF_UNCHECKED);
+                  enable_DATE_NO_UPDATE = TRUE;
+                }
+              break;
+              case BT_DISABLE_USB_SHARE_LIST:
+                if (disable_USB_SHARE)
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_DISABLE_USB_SHARE_LIST,MF_BYCOMMAND|MF_UNCHECKED);
+                  disable_USB_SHARE = FALSE;
+                }else
+                {
+                  CheckMenuItem(GetMenu(h_main),BT_DISABLE_USB_SHARE_LIST,MF_BYCOMMAND|MF_CHECKED);
+                  disable_USB_SHARE = TRUE;
+                }
+              break;
               case IDM_ABOUT:MessageBox(h_main,"to Read to Catch All :\n"
                                             "Licensed under the terms of the GNU\n"
                                             "General Public License version 3.\n\n"
@@ -1264,6 +1286,8 @@ int CmdLine(int argc, char* argv[])
       //enable SHA hashes for tests files
       case '2': FILE_SHA = TRUE;break;
       case '3': enable_magic = TRUE;break;
+      case '4': enable_DATE_NO_UPDATE = FALSE;break;
+      case '5': disable_USB_SHARE = TRUE;break;
       case 'S': sqlite3_exec(db_scan,"PRAGMA journal_mode = ON;", NULL, NULL, NULL);SQLITE_FULL_SPEED = FALSE;break;
       //------------------------------------------------------------------------------
       case 'o'://save alls data session to path
@@ -1390,7 +1414,7 @@ int CmdLine(int argc, char* argv[])
                "SYNOPSIS\n"
                "\tRtCA.exe [Options] [Tests] [Save]\n"
                "\t         [-l|-L|-t]\n"
-               "\t         [-0][-1][-2][-3][-c][-S][-T]\n"
+               "\t         [-0][-1][-2][-3][-4][-c][-S][-T]\n"
                "\t         [-f \"...\"]\n"
                "\t         [-p \"...\"]\n"
                "\t         [-a|-A|[-s [1-34]]]\n"
@@ -1411,12 +1435,14 @@ int CmdLine(int argc, char* argv[])
                "\t-1  Enable ADS check in files test.\n"
                "\t-2  Enable SHA in files test.\n"
                "\t-3  Enable MagicNumber in files test.\n"
+               "\t-4  Disable update time access/modify with files test.\n"
+               "\t-5  Disable list files of USB and Networks shares.\n"
                "\t-c  Set String to session name : -c ma_session\n"
                "\t-T  Export in UTC time.\n"
                "\t-S  Disable SQLITE FULL SPEED.\n"
                "\n"
                "\t-a  Start all tests (without LDAP extract and Registry deleted keys).\n"
-               "\t-A  Start all tests in safe mode with no Files, no Logs and no LDAP AD extraction test.\n"
+               "\t-A  Start all tests in safe mode with no Files, no Logs and no LDAP AD extraction.\n"
                "\t-s  Select test to start.\n\t    Exemple: -s 0 1 2 3 4 5 6\n"
                "\n"
                "\t-o  Export all data to path (after -F option if specify. CSV by default).\n\t    Exemples: -F XML -o c:\\ or in local directory -o . or in network share -o \\\\Server\\Share\\\n"
@@ -1447,6 +1473,9 @@ int main(int argc, char* argv[])
   snprintf(SQLITE_LOCAL_BDD,MAX_PATH,"%s\\%s",local_path,DEFAULT_SQLITE_FILE);
   session[0] = 0;
   session_name_ch[0] = 0;
+
+  enable_DATE_NO_UPDATE = TRUE;
+  disable_USB_SHARE = FALSE;
 
   //load DLL
   LoadAllDLLAndFunction();

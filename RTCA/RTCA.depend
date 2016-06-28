@@ -412,7 +412,7 @@
 1466849677 source:e:\git\omnia-projetcs\rtca\configuration\gui_conf.c
 	"../RtCA.h"
 
-1466867217 e:\git\omnia-projetcs\rtca\rtca.h
+1467144187 e:\git\omnia-projetcs\rtca\rtca.h
 	<time.h>
 	<stdio.h>
 	<stdlib.h>
@@ -443,7 +443,7 @@
 	"crypt/rc4.h"
 	"crypt/opensslv.h"
 
-1466932554 e:\git\omnia-projetcs\rtca\version.h
+1467144190 e:\git\omnia-projetcs\rtca\version.h
 
 1431789186 e:\git\omnia-projetcs\rtca\sqlite\sqlite3.h
 	<stdarg.h>
@@ -545,7 +545,7 @@
 1431789186 e:\git\omnia-projetcs\rtca\crypt\sha2.h
 	<limits.h>
 
-1446298820 source:e:\git\omnia-projetcs\rtca\crypt\windows_users_hashs_registry.c
+1466948234 source:e:\git\omnia-projetcs\rtca\crypt\windows_users_hashs_registry.c
 	"../RtCA.h"
 
 1463659812 source:e:\git\omnia-projetcs\rtca\export.c
@@ -555,10 +555,10 @@
 	<windows.h>
 	"LiteZip.h"
 
-1461176726 source:e:\git\omnia-projetcs\rtca\files\proc_files.c
+1467142502 source:e:\git\omnia-projetcs\rtca\files\proc_files.c
 	"../RtCA.h"
 
-1461501816 source:e:\git\omnia-projetcs\rtca\files\proc_registry_files.c
+1466935494 source:e:\git\omnia-projetcs\rtca\files\proc_registry_files.c
 	"../RtCA.h"
 
 1447594884 source:e:\git\omnia-projetcs\rtca\files\rootkit.c
@@ -567,7 +567,7 @@
 1463669862 source:e:\git\omnia-projetcs\rtca\import.c
 	"RtCA.h"
 
-1446298820 source:e:\git\omnia-projetcs\rtca\proc.c
+1466951094 source:e:\git\omnia-projetcs\rtca\proc.c
 	"RtCA.h"
 
 1463670976 source:e:\git\omnia-projetcs\rtca\proc_cmd.c
@@ -579,10 +579,10 @@
 1446298824 source:e:\git\omnia-projetcs\rtca\proc_registry.c
 	"RtCA.h"
 
-1466849431 source:e:\git\omnia-projetcs\rtca\rtca.rc
+1467143439 source:e:\git\omnia-projetcs\rtca\rtca.rc
 	"RtCA.h"
 
-1461599590 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
+1466935724 source:e:\git\omnia-projetcs\rtca\sqlite\interface.c
 	"../RtCA.h"
 
 1446298824 source:e:\git\omnia-projetcs\rtca\sqlite\load_save.c
@@ -635,7 +635,7 @@
 	<unicode/ubrk.h>
 	<unicode/utf16.h>
 
-1466867375 source:e:\git\omnia-projetcs\rtca\tests\scan.c
+1466935934 source:e:\git\omnia-projetcs\rtca\tests\scan.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_android.c
@@ -656,13 +656,13 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_disk.c
 	"../RtCA.h"
 
-1447599236 source:e:\git\omnia-projetcs\rtca\tests\test_dns.c
+1466949175 source:e:\git\omnia-projetcs\rtca\tests\test_dns.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_env.c
 	"../RtCA.h"
 
-1448189744 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
+1467142439 source:e:\git\omnia-projetcs\rtca\tests\test_file.c
 	"../RtCA.h"
 	"../crypt/sha2.h"
 
@@ -684,7 +684,7 @@
 1461866148 source:e:\git\omnia-projetcs\rtca\tests\test_ldap.c
 	"../RtCA.h"
 
-1464624006 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
+1466936569 source:e:\git\omnia-projetcs\rtca\tests\test_log.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files.c
@@ -693,10 +693,10 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evt.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evtx.c
+1466937498 source:e:\git\omnia-projetcs\rtca\tests\test_log_files_evtx.c
 	"../RtCA.h"
 
-1466849050 source:e:\git\omnia-projetcs\rtca\tests\test_network.c
+1466936644 source:e:\git\omnia-projetcs\rtca\tests\test_network.c
 	"../RtCA.h"
 
 1448189908 source:e:\git\omnia-projetcs\rtca\tests\test_pipe.c
@@ -705,7 +705,7 @@
 1461092560 source:e:\git\omnia-projetcs\rtca\tests\test_prefetch.c
 	"../RtCA.h"
 
-1447595968 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
+1466950311 source:e:\git\omnia-projetcs\rtca\tests\test_process.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_deleted_keys.c
@@ -723,7 +723,7 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_service.c
 	"../RtCA.h"
 
-1462020446 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
+1466936730 source:e:\git\omnia-projetcs\rtca\tests\test_registry_shellbags.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_software.c
@@ -738,25 +738,25 @@
 1461359408 source:e:\git\omnia-projetcs\rtca\tests\test_registry_usb.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_registry_userassist.c
+1466935934 source:e:\git\omnia-projetcs\rtca\tests\test_registry_userassist.c
 	"../RtCA.h"
 
-1446298824 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
+1466947949 source:e:\git\omnia-projetcs\rtca\tests\test_registry_users.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_route.c
+1466950537 source:e:\git\omnia-projetcs\rtca\tests\test_route.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
+1466948016 source:e:\git\omnia-projetcs\rtca\tests\test_share.c
 	"../RtCA.h"
 
-1448189924 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
+1466948044 source:e:\git\omnia-projetcs\rtca\tests\test_task.c
 	"../RtCA.h"
 
 1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_clean.c
 	"../RtCA.h"
 
-1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
+1466937026 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mbr_parser.c
 	"../../RtCA.h"
 
 1446298824 source:e:\git\omnia-projetcs\rtca\tools\tools_copy\mft_parser.c
@@ -786,7 +786,7 @@
 
 1446298822 e:\git\omnia-projetcs\rtca\tools\tools_network\_entetes.h
 
-1448210764 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
+1466951117 source:e:\git\omnia-projetcs\rtca\tools\tools_process.c
 	"../RtCA.h"
 
 1461500696 source:e:\git\omnia-projetcs\rtca\tools\tools_registry.c
@@ -801,22 +801,22 @@
 1446298822 source:e:\git\omnia-projetcs\rtca\tools\tools_screenshot.c
 	"../RtCA.h"
 
-1464334946 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
+1466937256 source:e:\git\omnia-projetcs\rtca\tools\tools_sqlite_ed.c
 	"../RtCA.h"
 
-1466932551 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
+1466933629 source:e:\git\omnia-projetcs\rtca\tools\tools_state.c
 	"../RtCA.h"
 
 1447590404 source:e:\git\omnia-projetcs\rtca\tools\tools_virustotal.c
 	"../RtCA.h"
 
-1466857571 source:e:\git\omnia-projetcs\rtca\main.c
+1467142689 source:e:\git\omnia-projetcs\rtca\main.c
 	"RtCA.h"
 
 1458936342 source:e:\git\omnia-projetcs\rtca\tests\test_registry_settings.c
 	"../RtCA.h"
 
-1466355385 source:e:\git\omnia-projetcs\rtca\tools\tools_copy.c
+1466950786 source:e:\git\omnia-projetcs\rtca\tools\tools_copy.c
 	"../RtCA.h"
 
 1459527407 source:c:\users\g570165\documents\_dev\rtca\configuration\gui_conf.c

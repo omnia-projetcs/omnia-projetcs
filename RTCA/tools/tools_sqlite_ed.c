@@ -270,6 +270,7 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
               }
             break;
             case DLG_SQL_ED_BT_SEND: //add
+            case DLG_SQL_ED_BT_INFO: //info
              {
                 char request[MAX_LINE_SIZE]="";
                 char table[MAX_LINE_SIZE]="";
@@ -297,7 +298,14 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
                 GetWindowText(hwnd,table,MAX_LINE_SIZE);
                 snprintf(request,MAX_LINE_SIZE, "INSERT INTO %s VALUES (%s);",table, params);
 
-                //MessageBox(NULL,request,request,MB_OK|MB_TOPMOST);
+                if (LOWORD(wParam) == DLG_SQL_ED_BT_INFO)
+                {
+                  MessageBox(NULL,request,"REQUEST INFORMATION",MB_OK|MB_TOPMOST);
+                  //copy to clipboard
+                  CopyStringToClipboard(request);
+                  break;
+                }
+
                 //run request
                 char *error_msg = 0;
                 if(sqlite3_exec(db_sqlite_test,request, NULL, NULL, &error_msg)!= SQLITE_OK)
@@ -610,6 +618,26 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
         case BN_CLICKED:
           switch(LOWORD(wParam))
           {
+            case DLG_SQL_ED_BT_SEARCH:
+            {
+              char tmp[MAX_PATH];
+              HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
+
+              //select lstv
+              SetFocus(hlstv);
+              SendDlgItemMessage(hwnd, DLG_SQL_ED_ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
+
+              if (GetMenuState(GetMenu(h_main),BT_SEARCH_MATCH_CASE,MF_BYCOMMAND) == MF_CHECKED)pos_search_sqlite = LVSearch(hlstv, nb_current_col_sqlite, tmp, pos_search_sqlite);
+              else pos_search_sqlite = LVSearchNoCass(hlstv, nb_current_col_sqlite, tmp, pos_search_sqlite);
+            }
+            break;
+            case POPUP_A_SEARCH:
+            {
+              char tmp[MAX_PATH];
+              SendDlgItemMessage(hwnd,DLG_SQL_ED_ED_SEARCH,WM_GETTEXT ,(WPARAM)MAX_PATH, (LPARAM)tmp);
+              LVAllSearch(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE), nb_current_col_sqlite, tmp);
+            }
+            break;
             case DLG_SQL_ED_BT_LOAD:
             {
               OPENFILENAME ofn;
@@ -921,6 +949,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             case DLG_SQL_ED_LB_TABLE:
             {
               //init LV
+              pos_search_sqlite = 0;
               TRI_SQLITE_ED = FALSE;
               SendDlgItemMessage(hwnd,DLG_SQL_ED_STATE_SB,SB_SETTEXT,0, (LPARAM)"");
               SendDlgItemMessage(hwnd,DLG_SQL_ED_LV_RESPONSE,LVM_DELETEALLITEMS,0, (LPARAM)"");
@@ -1014,6 +1043,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
     break;
     case WM_CLOSE :
       ShowWindow(hwnd, SW_HIDE);
+      pos_search_sqlite = 0;
     break;
     case WM_SIZE:
     {
@@ -1032,12 +1062,15 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_LOAD)          ,2,mHeight-55,95,30,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_CLOSE)         ,97,mHeight-55,95,30,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_ED_REQUEST)       ,200,0,mWidth-245,200,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_ED_REQUEST)       ,200,0,mWidth-245,180,TRUE);
+
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_ED_SEARCH)        ,202,182,200,19,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_SEARCH)        ,404,182,60,19,TRUE);
 
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_SEND)          ,mWidth-43,0,41,160,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_BT_MODELS)          ,mWidth-43,162,41,38,TRUE);
 
-        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE)      ,200,202,mWidth-205,mHeight-228,TRUE);
+        MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE)      ,200,204,mWidth-205,mHeight-230,TRUE);
         MoveWindow(GetDlgItem(hwnd,DLG_SQL_ED_STATE_SB)         ,0,mHeight-22,mWidth,22,TRUE);
       }
       InvalidateRect(hwnd, NULL, TRUE);

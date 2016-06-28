@@ -229,6 +229,10 @@ BEGIN
   CONTROL "Load"                                      ,DLG_SQL_ED_BT_LOAD,"Button",0x50010000,2,245,60,19
   CONTROL "Close"                                     ,DLG_SQL_ED_BT_CLOSE,"Button",0x50010000,64,245,60,19
   CONTROL "SELECT * FROM table;"                      ,DLG_SQL_ED_ED_REQUEST,"Edit",0x50210004,128,1,402,91,0x00000200
+
+  CONTROL ""                                          ,DLG_SQL_ED_ED_SEARCH,"Edit",0x50010000,128,400,80,19,0x00000200
+  CONTROL "Search"                                    ,DLG_SQL_ED_BT_SEARCH,"Button",0x50010000,200,400,20,19
+
   CONTROL "Send"                                      ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,532,1,20,61
   CONTROL "Models"                                    ,DLG_SQL_ED_BT_MODELS,"Button",0x50010000,532,1,22,28
   CONTROL ""                                          ,DLG_SQL_ED_LV_RESPONSE,"SysListView32",0x50810089,128,94,422,170,0x00000200
@@ -242,6 +246,7 @@ EXSTYLE 0x00000010
 BEGIN
   CONTROL "Update"                                    ,DLG_SQL_ED_ED_REQUEST,"Button",0x50010000,5,5,50,18
   CONTROL "Add"                                       ,DLG_SQL_ED_BT_SEND,"Button",0x50010000,100,5,50,18
+  CONTROL "Infos"                                     ,DLG_SQL_ED_BT_INFO,"Button",0x50010000,205,5,50,18
   CONTROL ""                                          ,DLG_SQL_ED_STATE_SB,"msctls_statusbar32",0x50000000,0,265,554,12
 END
 //------------------------------------------------------------------------------
@@ -331,6 +336,8 @@ BEGIN
     MENUITEM "Proxy"                      ,BT_PROXY
     MENUITEM SEPARATOR
     MENUITEM "SQLite FULL SPEED"          ,BT_SQLITE_FULL_SPEED
+    MENUITEM "Disable File auto update Time"    ,BT_ENABLE_DATE_NO_UPDATE
+    MENUITEM "Disable File list on USB & Share" ,BT_DISABLE_USB_SHARE_LIST
   END
   POPUP "Tools"     //2
   BEGIN
@@ -669,6 +676,8 @@ BEGIN
     BEGIN
       MENUITEM "Save view"                 ,POPUP_S_VIEW
       MENUITEM "Save Selection"            ,POPUP_S_SELECTION
+      MENUITEM SEPARATOR
+      MENUITEM "Select all line in search" ,POPUP_A_SEARCH
       MENUITEM SEPARATOR
       MENUITEM "Auto resize all columns"  , POPUP_SQLITE_HDR_RESIZE
       MENUITEM "All line datas"           , POPUP_SQLITE_INFOS

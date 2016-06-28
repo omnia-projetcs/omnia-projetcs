@@ -274,21 +274,30 @@ BOOL GetSHAandVerifyFromPathFile(char *path, char *sha256, char *verified, unsig
   if (real_path[0] != 0 && real_path[0] != 'P' && strlen(real_path) > 2)
   {
     BOOL OKW = FALSE;
-    HANDLE Hficw = CreateFile(real_path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+    HANDLE Hficw;
     FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
-    if (Hficw != INVALID_HANDLE_VALUE)
+
+    if (enable_DATE_NO_UPDATE)
     {
-      if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+      Hficw = CreateFile(real_path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+      if (Hficw != INVALID_HANDLE_VALUE)
+      {
+        if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+      }
     }
+
 
     FileToSHA256(real_path, sha256);
     VerifySignFile(real_path, verified, buffer_max_sz);
 
-    if (OKW)
+    if (enable_DATE_NO_UPDATE)
     {
-      SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      if (OKW)
+      {
+        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      }
+      CloseHandle(Hficw);
     }
-    CloseHandle(Hficw);
 
     return TRUE;
   }
@@ -448,7 +457,8 @@ void FileToSHA256_noTM(char *path, char *csha256)
 
       BOOL OKW = FALSE;
       FILETIME lpCreationTime, lpLastAccessTime, lpLastWriteTime;
-      if (GetFileTime(Hfic, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+      if (enable_DATE_NO_UPDATE)
+        if (GetFileTime(Hfic, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
 
       //lecture du fichier
       DWORD copiee, position = 0, increm = 0;
@@ -477,7 +487,7 @@ void FileToSHA256_noTM(char *path, char *csha256)
       csha256[64]=0;
       HeapFree(GetProcessHeap(), 0,buffer);
 
-      if (OKW)
+      if (OKW && enable_DATE_NO_UPDATE)
       {
         SetFileTime(Hfic, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
       }
@@ -744,10 +754,13 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
         snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
         OKW = FALSE;
-        Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-        if (Hficw != INVALID_HANDLE_VALUE)
+        if (enable_DATE_NO_UPDATE)
         {
-          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+          if (Hficw != INVALID_HANDLE_VALUE)
+          {
+            if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          }
         }
 
         if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
@@ -776,10 +789,13 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
         snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
 
         OKW = FALSE;
-        Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-        if (Hficw != INVALID_HANDLE_VALUE)
+        if (enable_DATE_NO_UPDATE)
         {
-          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+          if (Hficw != INVALID_HANDLE_VALUE)
+          {
+            if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          }
         }
 
         //size
@@ -830,11 +846,14 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
                     data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
                     s_ads, s_sha, "", magi_number,session_id,db);
       }
-      if (OKW)
+      if (enable_DATE_NO_UPDATE)
       {
-        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+        if (OKW)
+        {
+          SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+        }
+        CloseHandle(Hficw);
       }
-      CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
   FindClose(hfic);
@@ -882,10 +901,13 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
         snprintf(path_ex,MAX_PATH,"%s%s\\",path,data.cFileName);
 
         OKW = FALSE;
-        Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-        if (Hficw != INVALID_HANDLE_VALUE)
+        if (enable_DATE_NO_UPDATE)
         {
-          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          Hficw = CreateFile(path_ex,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+          if (Hficw != INVALID_HANDLE_VALUE)
+          {
+            if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          }
         }
 
         if (!sha && !CONSOL_ONLY)SendMessage(GetDlgItem(h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)path_ex);
@@ -915,10 +937,13 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
         snprintf(file,MAX_PATH,"%s%s",path,data.cFileName);
 
         OKW = FALSE;
-        Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-        if (Hficw != INVALID_HANDLE_VALUE)
+        if (enable_DATE_NO_UPDATE)
         {
-          if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          Hficw = CreateFile(file,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+          if (Hficw != INVALID_HANDLE_VALUE)
+          {
+            if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+          }
         }
 
         //size
@@ -970,11 +995,14 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
                     data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
                     s_ads, s_sha, "", magi_number,session_id,db);
       }
-      if (OKW)
+      if (enable_DATE_NO_UPDATE)
       {
-        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+        if (OKW)
+        {
+          SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+        }
+        CloseHandle(Hficw);
       }
-      CloseHandle(Hficw);
     }
   }while(FindNextFile (hfic,&data) && start_scan);
   FindClose(hfic);
@@ -1008,10 +1036,13 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
     filetimeToString_GMT(data.ftLastAccessTime, LastAccessTime, DATE_SIZE_MAX);
 
     OKW = FALSE;
-    Hficw = CreateFile(path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
-    if (Hficw != INVALID_HANDLE_VALUE)
+    if (enable_DATE_NO_UPDATE)
     {
-      if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+      Hficw = CreateFile(path,GENERIC_WRITE|GENERIC_READ,FILE_SHARE_WRITE|FILE_SHARE_READ,0,OPEN_EXISTING,FILE_FLAG_SEQUENTIAL_SCAN,0);
+      if (Hficw != INVALID_HANDLE_VALUE)
+      {
+        if (GetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime))OKW = TRUE;
+      }
     }
 
     if (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
@@ -1079,12 +1110,14 @@ void scan_file_uniq(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessi
                   data.dwFileAttributes & FILE_ATTRIBUTE_TEMPORARY?"T":"",
                   s_ads, s_sha, "", magi_number,session_id,db);
     }
-
-    if (OKW)
+    if (enable_DATE_NO_UPDATE)
     {
-      SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      if (OKW)
+      {
+        SetFileTime(Hficw, &lpCreationTime, &lpLastAccessTime, &lpLastWriteTime);
+      }
+      CloseHandle(Hficw);
     }
-    CloseHandle(Hficw);
   }
   FindClose(hfic);
 }
@@ -1164,10 +1197,10 @@ DWORD WINAPI Scan_files(LPVOID lParam)
     {
       switch(GetDriveType(&tmp[i]))
       {
+        case DRIVE_REMOTE:    if(disable_USB_SHARE)break;
+        case DRIVE_REMOVABLE: if(disable_USB_SHARE)break;
         case DRIVE_FIXED:
-        case DRIVE_REMOTE:
         case DRIVE_RAMDISK:
-        case DRIVE_REMOVABLE:
           //for each scan it
           scan_file_exF(&tmp[i], FILE_ACL, FILE_ADS, FILE_SHA, session_id,db);
         break;
