@@ -629,11 +629,11 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
       tmp2[0] = 0;
       if (SendMessage(hlstv_process,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
       {
-        if (strlen(tmp)>0)
+        if (*tmp != '\0')
         {
           ListView_GetItemText(hlstv_process,index,i,tmp2,MAX_LINE_SIZE);
 
-          if (strlen(tmp2)>0)
+          if (*tmp2 != '\0')
           {
             RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
             RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
@@ -689,7 +689,7 @@ DWORD WINAPI ThreadGetProcessInfos(LPVOID lParam)
     {
       strncpy(path,tmp+1,MAX_PATH); //passe le '\\'
       ReplaceEnv("SystemROOT", path, MAX_PATH);
-    }else strncpy(path,tmp,MAX_PATH);
+    }else snprintf(path,MAX_PATH,"%s",tmp);
 
     //get pid
     tmp[0] = 0;
@@ -898,8 +898,8 @@ BOOL CALLBACK DialogProc_info(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
                     strncpy(tmp_path,path,MAX_PATH);
                     tmp_path[i]= '%';
                     tmp_path[i+1]= 0;
-                    strncat(tmp_path,c,MAX_PATH);
-                    strncat(tmp_path,"\0",MAX_PATH);
+                    strncat(tmp_path,c,MAX_PATH-strlen(tmp_path));
+                    strncat(tmp_path,"\0",MAX_PATH-strlen(tmp_path));
                     ShellExecute(h_process, "explore", ReplaceEnv("systemroot", tmp_path, MAX_PATH), NULL,NULL,SW_SHOW);
                   }
                 }else ShellExecute(h_process, "explore", path, NULL,NULL,SW_SHOW);

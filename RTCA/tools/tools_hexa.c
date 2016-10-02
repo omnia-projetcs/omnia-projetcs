@@ -257,9 +257,9 @@ DWORD Hex_search_unicode(HANDLE hlv, char *search_unicode, DWORD start_id)
     for (k=i-1;(k<nb_item-1) && (k<i+2);k++)
     {
       ListView_GetItemText(hlv,k,HEXA_READER_TXT_COLUMN,tmp2,MAX_LINE_SIZE);
-      strncat(tmp,tmp2,MAX_LINE_SIZE);
+      strncat(tmp,tmp2,MAX_LINE_SIZE-strlen(tmp));
+      strncat(tmp,"\0",MAX_LINE_SIZE-strlen(tmp));
     }
-    strncat(tmp,"\0",MAX_LINE_SIZE);
 
     //test si la recherche est présente dedans
     pos = ContientNoCass(tmp,search);
@@ -307,10 +307,10 @@ DWORD Hex_search_hexa(HANDLE hlv, char *search, DWORD start_id)
       {
         tmp2[0] = 0;
         ListView_GetItemText(hlv,k,j,tmp2,9);
-        strncat(tmp,tmp2,MAX_LINE_SIZE);
+        strncat(tmp,tmp2,MAX_LINE_SIZE-strlen(tmp));
+        strncat(tmp,"\0",MAX_LINE_SIZE-strlen(tmp));
       }
     }
-    strncat(tmp,"\0",MAX_LINE_SIZE);
 
     //test si la recherche est présente dedans
     pos = ContientNoCass(tmp,search);
@@ -353,9 +353,9 @@ DWORD Hex_search_ansi(HANDLE hlv, char *search, DWORD start_id)
     for (k=i-1;(k<nb_item-1) && (k<i+2);k++)
     {
       ListView_GetItemText(hlv,k,HEXA_READER_TXT_COLUMN,tmp2,MAX_LINE_SIZE);
-      strncat(tmp,tmp2,MAX_LINE_SIZE);
+      strncat(tmp,tmp2,MAX_LINE_SIZE-strlen(tmp));
+      strncat(tmp,"\0",MAX_LINE_SIZE-strlen(tmp));
     }
-    strncat(tmp,"\0",MAX_LINE_SIZE);
 
     //test si la recherche est présente dedans
     pos = ContientNoCass(tmp,search);
@@ -544,7 +544,7 @@ BOOL CALLBACK DialogProc_hexa(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
               {
                 tmp[0] = 0;
                 ListView_GetItemText(hlstv,index,i,tmp,MAX_LINE_SIZE);
-                if (strlen(tmp)>0)
+                if (*tmp != '\0')
                 {
                   strncat(tmp," \0",MAX_LINE_SIZE);
                   RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);

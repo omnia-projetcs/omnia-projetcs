@@ -35,12 +35,12 @@ void addRegistryUsertoDB(char *source, char *name, char *RID, char *SID, char *g
 //------------------------------------------------------------------------------
 void GetSIDFromUser(char *user, char* rid, char *sid, unsigned int max_size)
 {
-  BYTE BSid[MAX_PATH];
+  BYTE BSid[MAX_PATH]="";
   PSID psid       = (PSID)BSid;
   DWORD sid_size  = MAX_PATH;
   SID_NAME_USE TypeSid;
 
-  char domain[MAX_PATH];
+  char domain[MAX_PATH]="";
   DWORD domain_size = MAX_PATH;
 
   if(LookupAccountName(NULL,(LPCTSTR)user,psid,(LPDWORD)&sid_size,(LPTSTR)domain,(LPDWORD)&domain_size,(PSID_NAME_USE)&TypeSid))

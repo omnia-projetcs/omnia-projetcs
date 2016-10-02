@@ -67,10 +67,10 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
       if (ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\ORL\\WinVNC3","Password",password, MAX_PATH) == FALSE)
       {
         ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\ORL\\WinVNC3\\Default","Password",password, MAX_PATH);
-        strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3\\Default");
-      }else strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3");
-    }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3\\Default");
-  }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3");
+        strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3\\Default\0");
+      }else strcpy(source,"HKEY_LOCAL_MACHINE\\SOFTWARE\\ORL\\WinVNC3\0");
+    }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3\\Default\0");
+  }else strcpy(source,"HKEY_CURRENT_USER\\SOFTWARE\\ORL\\WinVNC3\0");
 
 
 
@@ -90,8 +90,8 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
   if (ReadValue(HKEY_CURRENT_USER,".DEFAULT\\CONTROL PANEL\\DESKTOP","ScreenSave_Data",tmp, MAX_PATH) == FALSE)
   {
     ReadValue(HKEY_USERS,".DEFAULT\\CONTROL PANEL\\DESKTOP","ScreenSave_Data",tmp, MAX_PATH);
-    strcpy(source,"HKEY_USERS\\.DEFAULT\\CONTROL PANEL\\DESKTOP");
-  }else strcpy(source,"HKEY_CURRENT_USER\\.DEFAULT\\CONTROL PANEL\\DESKTOP");
+    strcpy(source,"HKEY_USERS\\.DEFAULT\\CONTROL PANEL\\DESKTOP\0");
+  }else strcpy(source,"HKEY_CURRENT_USER\\.DEFAULT\\CONTROL PANEL\\DESKTOP\0");
 
 
   if (tmp[0] != 0)
@@ -142,9 +142,9 @@ void Scan_registry_password_local(sqlite3 *db,unsigned int session_id)
     if (ReadValue(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\Console","password",raw_password, MAX_PATH) == FALSE)
     {
       ReadValue(HKEY_LOCAL_MACHINE,"SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp","password",raw_password, MAX_PATH);
-      strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp");
-    }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\Console");
-  }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\DefaultUserConfiguration");
+      strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\RDP-Tcp\0");
+    }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\WinStations\\Console\0");
+  }else strcpy(source,"HKEY_LOCAL_MACHINE\\SYSTEM\\CurrentControlSet\\Control\\Terminal Server\\DefaultUserConfiguration\0");
 
   if (raw_password[0] != 0)
   {

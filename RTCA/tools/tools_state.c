@@ -1491,7 +1491,8 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
         case NM_DBLCLK:
         {
           HANDLE hlstv = GetDlgItem(hwnd,LOWORD(wParam));
-          long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+          long index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+          int i;
 
           if (index > -1)
           {
@@ -1509,11 +1510,11 @@ BOOL CALLBACK DialogProc_state(HWND hwnd, UINT message, WPARAM wParam, LPARAM lP
               tmp2[0] = 0;
               if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
               {
-                if (strlen(tmp)>0)
+                if (*tmp !='\0')
                 {
                   ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 
-                  if (strlen(tmp2)>0)
+                  if (*tmp2 !='\0')
                   {
                     RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
                     RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);

@@ -38,11 +38,11 @@ void EventRecordGo(BYTE *buffer, DWORD mem_read, char*eventname, char *eventfile
   //Type
   switch(pevlr->EventType)
   {
-    case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR"); break;        //0x01
-    case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING"); break;      //0x02
-    case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION"); break;  //0x04
-    case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS"); break;//0x08
-    case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE"); break;//0x10
+    case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR\0"); break;        //0x01
+    case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING\0"); break;      //0x02
+    case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION\0"); break;  //0x04
+    case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS\0"); break;//0x08
+    case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE\0"); break;//0x10
     default :state[0]=0;break;
   }
 

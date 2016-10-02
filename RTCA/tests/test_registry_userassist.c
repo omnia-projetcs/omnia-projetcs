@@ -159,13 +159,13 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
     if (*c == '}')
     {
       c++;
-      strncpy(path,c,path_size);
+      snprintf(path,path_size,"%s",c);
       *c = 0;
     }
   }else if (c[1] == ':' && c[2] == '\\') //path type
   {
     type_id = 311;
-    strncpy(path,raw_type,path_size);
+    snprintf(path,path_size,"%s",raw_type);
     raw_type[0] = 0;
   }else //normal
   {
@@ -174,7 +174,7 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
     {
       *c = 0;
       c++;
-      strncpy(path,c,path_size);
+      snprintf(path,path_size,"%s",c);
     }
   }
 
@@ -190,18 +190,18 @@ DWORD ReadUserassistDatas(char *value, DWORD value_size, char *data, DWORD data_
   else if (strcmp(raw_type,"UEME_UITOOLBAR") == 0)
   {
     type_id = 319;
-    strncpy(tmp,path,value_size);
+    snprintf(tmp,value_size,"%s",path);
 
-          if (strcmp(path,"0x1120") == 0)snprintf(path,value_size,"%s (Back)",path);
-    else  if (strcmp(path,"0x1121") == 0)snprintf(path,value_size,"%s (Forward)",path);
-    else  if (strcmp(path,"0x1123") == 0)snprintf(path,value_size,"%s (Search)",path);
-    else  if (strcmp(path,"0x1130") == 0)snprintf(path,value_size,"%s (Up)",path);
-    else  if (strcmp(path,"0x1133") == 0)snprintf(path,value_size,"%s (Folders)",path);
-    else  if (strcmp(path,"0x47031") == 0)snprintf(path,value_size,"%s (Views)",path);
-    else  if (strcmp(path,"0x17011") == 0 || strcmp(path,"0x47011") == 0)snprintf(path,value_size,"%s (Delete)",path);
-    else  if (strcmp(path,"0x1701b") == 0 || strcmp(path,"0x4701b") == 0)snprintf(path,value_size,"%s (Undo)",path);
-    else  if (strcmp(path,"0x1701e") == 0 || strcmp(path,"0x4701e") == 0)snprintf(path,value_size,"%s (Copy To)",path);
-    else  if (strcmp(path,"0x1701f") == 0 || strcmp(path,"0x4701f") == 0)snprintf(path,value_size,"%s (Move To)",path);
+          if (strcmp(path,"0x1120") == 0)snprintf(path,path_size,"%s (Back)",tmp);
+    else  if (strcmp(path,"0x1121") == 0)snprintf(path,path_size,"%s (Forward)",tmp);
+    else  if (strcmp(path,"0x1123") == 0)snprintf(path,path_size,"%s (Search)",tmp);
+    else  if (strcmp(path,"0x1130") == 0)snprintf(path,path_size,"%s (Up)",tmp);
+    else  if (strcmp(path,"0x1133") == 0)snprintf(path,path_size,"%s (Folders)",tmp);
+    else  if (strcmp(path,"0x47031") == 0)snprintf(path,path_size,"%s (Views)",tmp);
+    else  if (strcmp(path,"0x17011") == 0 || strcmp(path,"0x47011") == 0)snprintf(path,path_size,"%s (Delete)",tmp);
+    else  if (strcmp(path,"0x1701b") == 0 || strcmp(path,"0x4701b") == 0)snprintf(path,path_size,"%s (Undo)",tmp);
+    else  if (strcmp(path,"0x1701e") == 0 || strcmp(path,"0x4701e") == 0)snprintf(path,path_size,"%s (Copy To)",tmp);
+    else  if (strcmp(path,"0x1701f") == 0 || strcmp(path,"0x4701f") == 0)snprintf(path,path_size,"%s (Move To)",tmp);
   //source http://msdn.microsoft.com/en-us/library/bb882665.aspx
   }else if (strcmp(raw_type,"{0139D44E-6AFE-49F2-8690-3DAFCAE6FFB8}") == 0)
   {

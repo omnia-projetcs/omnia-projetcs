@@ -53,7 +53,7 @@ DWORD WINAPI Scan_pipe(LPVOID lParam)
     GetOwner(pipe,owner,rid,sid,DEFAULT_TMP_SIZE);
 
     addPipetoDB(pipe, owner, rid, sid, session_id, db);
-  }while(FindNextFile (hfic,&data));
+  }while(FindNextFile (hfic,&data) !=0);
   FindClose(hfic);
 
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

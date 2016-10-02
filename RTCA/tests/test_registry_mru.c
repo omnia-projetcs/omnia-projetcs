@@ -171,7 +171,7 @@ void reg_read_enum_MRUWvalues(HKEY hk,char *chkey,char *key,char *exclu,char* de
   GetRegistryKeyOwner(CleTmp, user, RID, sid, MAX_PATH);
 
   //enum values
-  char value[MAX_PATH], data[MAX_PATH], data_s[MAX_PATH];
+  char value[MAX_PATH], data[MAX_PATH], data_s[MAX_LINE_SIZE];
   DWORD valueSize,dataSize,type;
   for (i=0;i<nbValue && start_scan;i++)
   {

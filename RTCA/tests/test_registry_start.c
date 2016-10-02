@@ -10,7 +10,7 @@ void addRegistryStarttoDB(char *file, char *hk, char *key,
                char *value, char *data, char *last_parent_key_update, DWORD session_id, sqlite3 *db)
 {
   #ifndef CMD_LINE_ONLY_NO_DB
-  if (strlen(value) == 0 && strlen(data) == 0)return;
+  if (*value == '\0' && *data == '\0')return;
 
   char request[REQUEST_MAX_SIZE];
   snprintf(request,REQUEST_MAX_SIZE,

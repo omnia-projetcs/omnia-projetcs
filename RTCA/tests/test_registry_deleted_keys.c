@@ -132,8 +132,8 @@ DWORD Traiter_RegBin_nk_deleted(char *fic, DWORD position, DWORD taille_fic, cha
                     do
                     {
                       snprintf(tmp,MAX_LINE_SIZE,"%S",(wchar_t *)&buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+2*strlen(data)]);
-                      strncat (data,tmp,MAX_LINE_SIZE);
-                      strncat (data," \0",MAX_LINE_SIZE);
+                      strncat (data,tmp,MAX_LINE_SIZE-strlen(data));
+                      strncat (data," \0",MAX_LINE_SIZE-strlen(data));
                     }while (strlen(data)*2 < (vk_h->data_size));
                   }
                 }
@@ -147,17 +147,17 @@ DWORD Traiter_RegBin_nk_deleted(char *fic, DWORD position, DWORD taille_fic, cha
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",vk_h->cdata_offset[k]&0xff);
-                      strncat(data,tmp,MAX_LINE_SIZE);
+                      strncat(data,tmp,MAX_LINE_SIZE-strlen(data));
                     }
-                    strncat(data,"\0",MAX_LINE_SIZE);
+                    strncat(data,"\0",MAX_LINE_SIZE-strlen(data));
                   }else
                   {
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-                      strncat(data,tmp,MAX_LINE_SIZE);
+                      strncat(data,tmp,MAX_LINE_SIZE-strlen(data));
                     }
-                    strncat(data,"\0",MAX_LINE_SIZE);
+                    strncat(data,"\0",MAX_LINE_SIZE-strlen(data));
                   }
                 }
                 strcpy(type,"REG_BINARY\0");
@@ -170,17 +170,17 @@ DWORD Traiter_RegBin_nk_deleted(char *fic, DWORD position, DWORD taille_fic, cha
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",vk_h->cdata_offset[k]&0xff);
-                      strncat(data,tmp,MAX_LINE_SIZE);
+                      strncat(data,tmp,MAX_LINE_SIZE-strlen(data));
                     }
-                    strncat(data,"\0",MAX_LINE_SIZE);
+                    strncat(data,"\0",MAX_LINE_SIZE-strlen(data));
                   }else
                   {
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-                      strncat(data,tmp,MAX_LINE_SIZE);
+                      strncat(data,tmp,MAX_LINE_SIZE-strlen(data));
                     }
-                    strncat(data,"\0",MAX_LINE_SIZE);
+                    strncat(data,"\0",MAX_LINE_SIZE-strlen(data));
                   }
                 }
                 strcpy(type,"REG_RESSOURCE_REQUIREMENT_LIST\0");

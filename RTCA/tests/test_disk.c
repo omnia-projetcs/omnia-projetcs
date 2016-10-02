@@ -40,8 +40,8 @@ void DisktoDB(char *drive, char *type, unsigned int session_id, sqlite3 *db)
   //size
   if (GetDiskFreeSpace(drive,&cluster,&secteur,&Cluster_libre,&Total_Cluster)!=0)
   {
-    snprintf(freespace,MAX_PATH,"%1.2f Go",((Cluster_libre * cluster)/1024.0*secteur)/(1024.0*1024.0));
-    snprintf(globalspace,MAX_PATH,"%1.2f Go",((Total_Cluster * cluster)/1024.0*secteur)/(1024.0*1024.0));
+    snprintf(freespace,DEFAULT_TMP_SIZE,"%1.2f Go",((Cluster_libre * cluster)/1024.0*secteur)/(1024.0*1024.0));
+    snprintf(globalspace,DEFAULT_TMP_SIZE,"%1.2f Go",((Total_Cluster * cluster)/1024.0*secteur)/(1024.0*1024.0));
   }
 
   convertStringToSQL(volumeName, DEFAULT_TMP_SIZE);

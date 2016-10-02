@@ -198,7 +198,7 @@ int restore_sam_tree_access(HKEY start, char *pth)
 	SECURITY_DESCRIPTOR sd;
 	DWORD admin_mask;
 
-  strncpy(path,pth,MAX_PATH);
+  snprintf(path,MAX_PATH,"%s",pth);
 	admin_mask = WRITE_DAC | READ_CONTROL;
 
   char group_name[256];
@@ -247,7 +247,7 @@ int set_sam_tree_access( HKEY start, char *pth)
 	DWORD admin_mask;
 	BOOL finished = FALSE;
 
-	strncpy(path,pth,MAX_PATH);
+	snprintf(path,MAX_PATH,"%s",pth);
 	admin_mask = WRITE_DAC | READ_CONTROL | KEY_QUERY_VALUE | KEY_ENUMERATE_SUB_KEYS;
 
   //lecture du group d'administrateur
@@ -561,16 +561,16 @@ void DecodeSAMHashXP(char *sk,char *datas_hs, int rid, char *user, BYTE *b_f)
       for (j=0;j<0x10;j++)
       {
         snprintf(tmp,10,"%.2X",fb[j]);
-        strncat(result,tmp,MAX_PATH);
+        strncat(result,tmp,MAX_PATH-strlen(result));
       }
-      strncat(result,"\0",MAX_PATH);
+      strncat(result,"\0",MAX_PATH-strlen(result));
 
       if (!strcmp(result,"31D6CFE0D16AE931B73C59D7E0C089C0"))
-        strncat(datas_hs,"NO PASSWORD*********************\0",MAX_LINE_SIZE);
-      else strncat(datas_hs,result,MAX_LINE_SIZE);
+        strncat(datas_hs,"NO PASSWORD*********************\0",MAX_LINE_SIZE-strlen(datas_hs));
+      else strncat(datas_hs,result,MAX_LINE_SIZE-strlen(datas_hs));
 
-      strncat(datas_hs,":::\0",MAX_LINE_SIZE);
-    }else strncat(datas_hs,"NO PASSWORD*********************:::\0",MAX_LINE_SIZE);
+      strncat(datas_hs,":::\0",MAX_LINE_SIZE-strlen(datas_hs));
+    }else strncat(datas_hs,"NO PASSWORD*********************:::\0",MAX_LINE_SIZE-strlen(datas_hs));
   }
 }
 //------------------------------------------------------------------------------
@@ -766,7 +766,7 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
   //fin : 0000
   //SID = col3
   tmp3[0] = 0;
-  unsigned long int type_id = 0, type_id2=0, last_id=0;
+  unsigned int type_id = 0, type_id2=0, last_id=0;
   unsigned long int i = Contient(buffer,"2400440002000105000000000005"); // 1500 0000 = 21 le SID de début
   if ((i>0) && (i<(strlen(buffer)-40)))
   {
@@ -774,28 +774,25 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+6],buffer[i+7],buffer[i+4],buffer[i+5],buffer[i+2],buffer[i+3],buffer[i],buffer[i+1]);
     type_id = HTD(tmp);
     snprintf(tmp2,MAX_PATH,"S-1-5-%lu",type_id);
-    strcpy(tmp3,tmp2);
+    snprintf(tmp3,MAX_PATH,"%s",tmp2);
 
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+14],buffer[i+15],buffer[i+12],buffer[i+13],buffer[i+10],buffer[i+11],buffer[i+8],buffer[i+9]);
     type_id2 = HTD(tmp);
     snprintf(tmp2,MAX_PATH,"-%lu",type_id2);
-    strncat(tmp3,tmp2,MAX_PATH);
+    strncat(tmp3,tmp2,MAX_PATH-strlen(tmp3));
 
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+22],buffer[i+23],buffer[i+20],buffer[i+21],buffer[i+18],buffer[i+19],buffer[i+16],buffer[i+17]);
     snprintf(tmp2,MAX_PATH,"-%lu",HTD(tmp));
-    strncat(tmp3,tmp2,MAX_PATH);
+    strncat(tmp3,tmp2,MAX_PATH-strlen(tmp3));
 
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+30],buffer[i+31],buffer[i+28],buffer[i+29],buffer[i+26],buffer[i+27],buffer[i+24],buffer[i+25]);
     snprintf(tmp2,MAX_PATH,"-%lu",HTD(tmp));
-    strncat(tmp3,tmp2,MAX_PATH);
+    strncat(tmp3,tmp2,MAX_PATH-strlen(tmp3));
 
     sprintf(tmp,"%c%c%c%c%c%c%c%c",buffer[i+38],buffer[i+39],buffer[i+36],buffer[i+37],buffer[i+34],buffer[i+35],buffer[i+32],buffer[i+33]);
     last_id = HTD(tmp);
-    snprintf(tmp2,MAX_PATH,"-%lu",last_id);
-    strncat(tmp3,tmp2,MAX_PATH);
-    strncat(tmp3,"\0",MAX_PATH);
 
-    strncpy(User_infos->SID,tmp3,MAX_PATH);
+    snprintf(User_infos->SID,MAX_PATH,"%s-%lu",tmp3,last_id);
     snprintf(User_infos->RID,MAX_PATH,"%05lu",last_id);
 
     //descriptions infos +
@@ -880,13 +877,13 @@ BOOL TestUserDataFromSAM_V(USERS_INFOS *User_infos, char *buffer, char *computer
     {
       strncpy(tmp2,buffer+of_lmpw+8,MAX_PATH);
       tmp2[32]=0;
-    }else strcpy(tmp2,"NO PASSWORD*********************");//LM
+    }else strcpy(tmp2,"NO PASSWORD*********************\0");//LM
 
     if ((taille_ntpw > 8) && (of_ntpw>0) && ((of_ntpw + taille_ntpw)<=size_total))
     {
       strncpy(tmp3,buffer+(of_ntpw+8),MAX_PATH);
       tmp3[32]=0;
-    }else strcpy(tmp3,"NO PASSWORD*********************");//NT
+    }else strcpy(tmp3,"NO PASSWORD*********************\0");//NT
 
     if ((tmp2[0]!=0) && (tmp3[0]!=0))
     {

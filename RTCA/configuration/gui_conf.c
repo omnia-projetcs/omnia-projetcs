@@ -163,7 +163,7 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
             {
               //firt is path
               char path[MAX_PATH],totalpath[MAX_PATH];
-              strncpy(path,files,MAX_PATH);
+              snprintf(path,MAX_PATH,"%s",files);
 
               //after file name
               char *p = files+strlen(files)+1;
@@ -627,12 +627,12 @@ BOOL CALLBACK DialogProc_conf(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPa
     {
       if (B_AUTOSEARCH)break;
       HDROP H_DropInfo=(HDROP)wParam;
-      char tmp[MAX_PATH];
-      DWORD i,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, tmp, MAX_PATH);
+      char tmp[MAX_LINE_SIZE];
+      DWORD i,nb_path = DragQueryFile(H_DropInfo, 0xFFFFFFFF, tmp, MAX_LINE_SIZE);
       for (i=0;i<nb_path;i++)
       {
         //get data
-        DragQueryFile(H_DropInfo, i, tmp, MAX_PATH);
+        DragQueryFile(H_DropInfo, i, tmp, MAX_LINE_SIZE);
         //add
         FileToTreeView(tmp);
       }

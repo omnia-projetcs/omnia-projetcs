@@ -16,7 +16,7 @@ void addIEdtoDB(char *file, char *parameter, char *data, char *date, DWORD id_la
            file,parameter,date,id_language_description,session_id,data);
 
   //if datas too long
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
@@ -178,7 +178,7 @@ void SearchAndWorkIEFiles(char *path, char *file, DWORD id, unsigned int session
           ReadDATFile(path_tmp_next, id, session_id, db);
         }
       }
-    }while(FindNextFile (hfic,&wfd) && start_scan);
+    }while(FindNextFile (hfic,&wfd) !=0 && start_scan);
     FindClose(hfic);
   }
 }
@@ -339,10 +339,10 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                         ReadDATFile(tmp_path2, 15, session_id, db);
                         sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                       }
-                    }while(FindNextFile (hfic2,&wfd1) && start_scan);
+                    }while(FindNextFile (hfic2,&wfd1) !=0 && start_scan);
                     FindClose(hfic2);
                   }
-                }while(FindNextFile (hfic,&wfd0));
+                }while(FindNextFile (hfic,&wfd0) !=0);
                 FindClose(hfic);
               }
 
@@ -379,10 +379,10 @@ DWORD WINAPI Scan_ie_history(LPVOID lParam)
                         ReadDATFile(tmp_path2, 15, session_id, db);
                         sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
                       }
-                    }while(FindNextFile (hfic2,&wfd1) && start_scan);
+                    }while(FindNextFile (hfic2,&wfd1) !=0 && start_scan);
                     FindClose(hfic2);
                   }
-                }while(FindNextFile (hfic,&wfd0));
+                }while(FindNextFile (hfic,&wfd0) !=0);
                 FindClose(hfic);
               }
             }

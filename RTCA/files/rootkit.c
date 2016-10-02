@@ -27,7 +27,7 @@ void addNewRootkitToDB(HANDLE hlstv, char *filename, char*sha256, char* descript
            "VALUES(\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d);",
             filename, sha256, description, source, update_time, params);
 
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
 
@@ -50,7 +50,7 @@ void addNewRootkitToDB(HANDLE hlstv, char *filename, char*sha256, char* descript
   ListView_SetItemText(hlstv,ref_item,5,request);
 
   #else
-  printf(\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",filename, sha256, description, source, update_time, params);)
+  printf(\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%d\";\r\n",filename, sha256, description, source, update_time, params);
   #endif
 }
 //------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ void checkLstvItemId(HANDLE hlstv, HANDLE hlstv_rootkit, DWORD item_id, DWORD co
       char tmp_hidden[MAX_PATH]="", hidden[MAX_LINE_SIZE];
       ListView_GetItemText(hlstv,item_id,col_ref,tmp_hidden,MAX_PATH);
 
-      if (strlen(tmp_hidden)>0)snprintf(hidden,MAX_LINE_SIZE,"%s, %s (%s) %s", tmp_hidden,description,source,update_time);
+      if (*tmp_hidden != '\0')snprintf(hidden,MAX_LINE_SIZE,"%s, %s (%s) %s", tmp_hidden,description,source,update_time);
       else snprintf(hidden,MAX_LINE_SIZE,"%s (%s) %s", description,source,update_time);
 
       //already added !

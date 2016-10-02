@@ -19,7 +19,7 @@ void addLogtoDB(  char *event, char *indx, char *log_id,
            event,indx,log_id,send_date,write_date,source,user,rid,sid,state,critical,session_id,description);
 
   //if description too long
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
@@ -155,7 +155,7 @@ BOOL GetEventDatas(EVENTLOGRECORD *pevlr, char *eventname, char *source, char *d
   if (description == NULL || description_max_sz <2 )return FALSE;
   description[0] = 0;
   BOOL ret = FALSE;
-  unsigned int lvl = 0;
+  //unsigned int lvl = 0;
 
   //get
   //get DLL resource
@@ -241,11 +241,11 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
           //Type
           switch(pevlr->EventType)
           {
-            case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR"); break;        //0x01
-            case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING"); break;      //0x02
-            case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION"); break;  //0x04
-            case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS"); break;//0x08
-            case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE"); break;//0x10
+            case EVENTLOG_ERROR_TYPE       : strcpy(state,"ERROR\0"); break;        //0x01
+            case EVENTLOG_WARNING_TYPE     : strcpy(state,"WARNING\0"); break;      //0x02
+            case EVENTLOG_INFORMATION_TYPE : strcpy(state,"INFORMATION\0"); break;  //0x04
+            case EVENTLOG_AUDIT_SUCCESS    : strcpy(state,"AUDIT_SUCCESS\0"); break;//0x08
+            case EVENTLOG_AUDIT_FAILURE    : strcpy(state,"AUDIT_FAILURE\0"); break;//0x10
             default :snprintf(state,DEFAULT_TMP_SIZE,"UNKNOW:%d",pevlr->EventType);break;
           }
 
@@ -299,7 +299,7 @@ void LireEvent(HANDLE Heventlog, char *eventname, sqlite3 *db, unsigned int sess
       }
     }
   }
-  if (bBuffer != NULL) free(bBuffer);
+  free(bBuffer);
 }
 //------------------------------------------------------------------------------
 void OpenDirectEventLog(char *eventname, sqlite3 *db, unsigned int session_id)
@@ -356,9 +356,9 @@ DWORD WINAPI Scan_log(LPVOID lParam)
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
       ext[0] = 0;
       extractExtFromFile(tmp, ext, 10);
-      if (strcmp("evt",ext) == 0)TraiterEventlogFileEvt(tmp, db, session_id);
-      else if (strcmp("evtx",ext) == 0)TraiterEventlogFileEvtx(tmp, db, session_id);
-      else if (strcmp("log",ext) == 0)TraiterEventlogFileLog(tmp, db, session_id);
+      if (strcmp("evt",ext) == 0){SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)tmp);TraiterEventlogFileEvt(tmp, db, session_id);}
+      else if (strcmp("evtx",ext) == 0){SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)tmp);TraiterEventlogFileEvtx(tmp, db, session_id);}
+      else if (strcmp("log",ext) == 0){SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)tmp);TraiterEventlogFileLog(tmp, db, session_id);}
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
 
       hitem = (HTREEITEM)SendMessage(htrv_files, TVM_GETNEXTITEM,(WPARAM)TVGN_NEXT, (LPARAM)hitem);
@@ -391,6 +391,7 @@ DWORD WINAPI Scan_log(LPVOID lParam)
             {
               ok=TRUE;
               if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"BEGIN TRANSACTION;", NULL, NULL, NULL);
+              SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)eventname);
               OpenDirectEventLog(eventname,db,session_id);
               if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
             }
@@ -438,6 +439,8 @@ DWORD WINAPI Scan_log(LPVOID lParam)
       if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);
     }
   }
+
+  SendMessage(GetDlgItem((HWND)h_conf,DLG_CONF_SB),SB_SETTEXT,0, (LPARAM)"");
 
   check_treeview(htrv_test, H_tests[(unsigned int)lParam], TRV_STATE_UNCHECK);//db_scan
   h_thread_test[(unsigned int)lParam] = 0;

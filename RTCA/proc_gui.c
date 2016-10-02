@@ -172,7 +172,7 @@ void FileToTreeView(char *c_path)
   if(isDirectory(c_path))
   {
     char path[MAX_PATH];
-    if (c_path[strlen(c_path)-1]=='\\')strncpy(path,c_path,MAX_PATH);
+    if (c_path[strlen(c_path)-1]=='\\')snprintf(path,MAX_PATH,"%s",c_path);
     else snprintf(path,MAX_PATH,"%s\\",c_path);
     AddItemTreeView(htrv_files,path, TRV_HTREEITEM_CONF[FILES_TITLE_FILES]);
     check_treeview(htrv_test, H_tests[INDEX_FILE], TRV_STATE_CHECK);

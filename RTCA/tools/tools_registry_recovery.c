@@ -167,10 +167,10 @@ void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsign
       if (nk_h->key_name_size>MAX_LINE_SIZE)tmp[MAX_LINE_SIZE-1]=0;
       else tmp[nk_h->key_name_size]=0;
 
-      strncat(tmp,"\\",MAX_LINE_SIZE);
-      strncat(tmp,path,MAX_LINE_SIZE);
-      strncat(tmp,"\0",MAX_LINE_SIZE);
-      strncpy(path,tmp,path_size_max);
+      strncat(tmp,"\\\0",MAX_LINE_SIZE-strlen(tmp));
+      strncat(tmp,path,MAX_LINE_SIZE-strlen(tmp));
+      strncat(tmp,"\0",MAX_LINE_SIZE-strlen(tmp));
+      snprintf(path,path_size_max,"%s",tmp);
     }
 
     pos = 0x1000+nk_h->parent_key;
@@ -190,7 +190,7 @@ void ReadPath(char *buffer, DWORD taille_fic, DWORD position, char *path, unsign
   //add parent in first case
   if (parent != NULL)
   {
-    strncpy(tmp,path,MAX_LINE_SIZE);
+    snprintf(tmp,MAX_LINE_SIZE,"%s",path);
     char *c = tmp;
     while (*c && *c != '\\')c++;
     if (*c == '\\')
@@ -219,7 +219,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
 
       //lecture du path complet + SID ^^
       ReadPath(buffer, taille_fic, position, lv_line[1].c,MAX_LINE_SIZE,parent,Owner_SID,MAX_PATH);
-      if (deleted)strcpy(lv_line[7].c,"X");
+      if (deleted)strcpy(lv_line[7].c,"X\0");
       else lv_line[7].c[0]=0;
 
       lv_line[8].c[0]=0;
@@ -292,7 +292,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                   snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                 }
               }
-              strcpy(lv_line[4].c,"REG_SZ");
+              strcpy(lv_line[4].c,"REG_SZ\0");
             break;
             case 0x00000002 : //REG_EXPAND_SZ, chaine ASCII et Unicodes, contient des path type %path%
               lv_line[3].c[0] = 0;
@@ -315,7 +315,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                   snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                 }
               }
-              strcpy(lv_line[4].c,"REG_EXPAND_SZ");
+              strcpy(lv_line[4].c,"REG_EXPAND_SZ\0");
             break;
             case 0x00000006 : //REG_LINK, chaine ASCII et Unicodes, lien lien
               lv_line[3].c[0] = 0;
@@ -338,7 +338,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                   snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                 }
               }
-              strcpy(lv_line[4].c,"REG_LINK");
+              strcpy(lv_line[4].c,"REG_LINK\0");
             break;
             case 0x00000007 : //REG_MULTI_SZ, multiples chaine ASCII et Unicodes, lien
                 lv_line[3].c[0] = 0;
@@ -355,8 +355,8 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     do
                     {
                       snprintf(tmp,MAX_LINE_SIZE,"%S",(wchar_t *)&buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+2*strlen(lv_line[3].c)]);
-                      strncat (lv_line[3].c,tmp,MAX_LINE_SIZE);
-                      strncat (lv_line[3].c," \0",MAX_LINE_SIZE);
+                      strncat (lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
+                      strncat (lv_line[3].c," \0",MAX_LINE_SIZE-strlen(lv_line[3].c));
                     }while (strlen(lv_line[3].c)*2 < (vk_h->data_size));
                   }
 
@@ -371,7 +371,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                   }
                 }
-                strcpy(lv_line[4].c,"REG_MULTI_SZ");
+                strcpy(lv_line[4].c,"REG_MULTI_SZ\0");
               break;
               case 0x00000003 : //REG_BINARY, données binaires
                 lv_line[3].c[0] = 0;
@@ -382,17 +382,17 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",vk_h->cdata_offset[k]&0xff);
-                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
                     }
-                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE-strlen(lv_line[3].c));
                   }else
                   {
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
                     }
-                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE-strlen(lv_line[3].c));
                   }
                   snprintf(tmp,MAX_LINE_SIZE,"%s=%s",lv_line[2].c,lv_line[3].c);
                 }else
@@ -405,7 +405,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                   }
                 }
-                strcpy(lv_line[4].c,"REG_BINARY");
+                strcpy(lv_line[4].c,"REG_BINARY\0");
               break;
               case 0x0000000A : //REG_RESSOURCE_REQUIREMENT_LIST, données binaires
                 lv_line[3].c[0] = 0;
@@ -416,17 +416,17 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",vk_h->cdata_offset[k]&0xff);
-                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
                     }
-                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE-strlen(lv_line[3].c));
                   }else
                   {
                     for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                     {
                       snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                      strncat(lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
                     }
-                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                    strncat(lv_line[3].c,"\0",MAX_LINE_SIZE-strlen(lv_line[3].c));
                   }
                   snprintf(tmp,MAX_LINE_SIZE,"%s=%s",lv_line[2].c,lv_line[3].c);
                 }else
@@ -439,7 +439,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                   }
                 }
-                strcpy(lv_line[4].c,"REG_RESSOURCE_REQUIREMENT_LIST");
+                strcpy(lv_line[4].c,"REG_RESSOURCE_REQUIREMENT_LIST\0");
               break;
               case 0x00000004 : //REG_DWORD, données numériques 32bitschar
               case 0x00000005 : //REG_DWORD, données numériques 32bits signées
@@ -452,7 +452,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                 {
                   snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(data:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                 }
-                strcpy(lv_line[4].c,"REG_DWORD");
+                strcpy(lv_line[4].c,"REG_DWORD\0");
               break;
               case 0x0000000b : //REG_QWORD, données numériques 64bits signées
                 lv_line[3].c[0] = 0;
@@ -472,7 +472,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                     snprintf(tmp,MAX_LINE_SIZE,"%s=(len:%d)(off:%lu)<DATA ERROR>",lv_line[2].c,vk_h->data_size,vk_h->data_offset);
                   }
                 }
-                strcpy(lv_line[4].c,"REG_QWORD");
+                strcpy(lv_line[4].c,"REG_QWORD\0");
               break;
               default :
                 if (deleted)val_ok = FALSE;
@@ -483,11 +483,11 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                   for (k=0;k<vk_h->data_size && k/2<MAX_LINE_SIZE;k++)
                   {
                     snprintf(tmp,10,"%02X",buffer[0x1000+vk_h->data_offset+HBIN_CELL_VK_DATA_PADDING_SIZE+k]&0xff);
-                    strncat(lv_line[3].c,tmp,MAX_LINE_SIZE);
+                    strncat(lv_line[3].c,tmp,MAX_LINE_SIZE-strlen(lv_line[3].c));
                   }
-                  strncat(lv_line[3].c,"\0",MAX_LINE_SIZE);
+                  strncat(lv_line[3].c,"\0",MAX_LINE_SIZE-strlen(lv_line[3].c));
 
-                  if (vk_h->data_type == 0x00000000)strcpy(lv_line[4].c,"REG_NONE");
+                  if (vk_h->data_type == 0x00000000)strcpy(lv_line[4].c,"REG_NONE\0");
                   else
                   {
                     val_ok = FALSE;
@@ -497,7 +497,7 @@ DWORD Traiter_RegBin_nk(char *fic, HTREEITEM hparent, char *parent, DWORD positi
                   snprintf(tmp,MAX_LINE_SIZE,"%s=(type:0x%08X)%s",lv_line[2].c,(unsigned int)(vk_h->data_type & 0xFFFFFFFF),lv_line[3].c);
                 }else
                 {
-                  if (vk_h->data_type == 0x00000000)strcpy(lv_line[4].c,"REG_NONE");
+                  if (vk_h->data_type == 0x00000000)strcpy(lv_line[4].c,"REG_NONE\0");
                   else
                   {
                     val_ok = FALSE;

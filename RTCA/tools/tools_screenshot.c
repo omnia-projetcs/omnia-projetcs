@@ -28,7 +28,7 @@ DWORD WINAPI ImpEcran(LPVOID lParam)
 
   snprintf(fic,MAX_PATH,"%s\\%s",GetLocalPath(local_path, MAX_PATH),(char *)ctime(&date));
   fic[strlen(fic)-1] = 0;
-  strncat(fic,".bmp\0",MAX_PATH);
+  strncat(fic,".bmp\0",MAX_PATH-strlen(fic));
   fic[strlen(fic)-15]= 'h';
   fic[strlen(fic)-12]= 'm';
 
@@ -61,7 +61,7 @@ DWORD WINAPI ImpEcran(LPVOID lParam)
     }
   }*/
 
-  DWORD Height=0,Width=0;
+  unsigned int Height=0,Width=0;
 
   //get datas :)
   HDC memDC,hDC;

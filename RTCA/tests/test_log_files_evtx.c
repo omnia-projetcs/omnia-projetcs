@@ -211,7 +211,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
             case 0x04 : strcpy(state,"CRITICAL"); break;
             case 0x08 : strcpy(state,"AUDIT_SUCCESS"); break;
             case 0x10 : strcpy(state,"AUDIT_FAILURE"); break;
-            default :snprintf(state,MAX_LINE_SIZE,"UNKNOW (%d)",mid->type);break;
+            default :snprintf(state,DEFAULT_TMP_SIZE,"UNKNOW (%d)",mid->type);break;
           }
         }
         c++;pos++;
@@ -227,7 +227,7 @@ unsigned int ReadRecord(char *buffer, DWORD size, STRING_TABLE *my_s_table, char
           if (*(c+2) != 0x00 && *(c+3)==0x00)
           //if (*c == 0x05)
           {
-            snprintf(source,MAX_LINE_SIZE,"%S",c);
+            snprintf(source,MAX_PATH,"%S",c);
             break;
           }
         c++;

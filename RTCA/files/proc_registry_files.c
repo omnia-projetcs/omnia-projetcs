@@ -205,7 +205,7 @@ HBIN_CELL_NK_HEADER *GetRegistryNK(char *buffer, DWORD taille_fic, DWORD positio
   {
     //Search
     char tmp_reg_path[MAX_PATH],tmp[MAX_PATH],tmpkey[MAX_PATH];
-    strncpy(tmp_reg_path,reg_path,MAX_PATH);
+    snprintf(tmp_reg_path,MAX_PATH,"%s",reg_path);
     charToLowChar(tmp_reg_path);
 
     //bypass first item = ruche name or
@@ -454,7 +454,7 @@ BOOL Readnk_Infos(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
           SK_SID *sk_owner = (SK_SID *)&buffer[pos_fhbin-HBIN_HEADER_SIZE+nk_h->sk_offset+sk->owner_offset+SK_HEADER_DATA_SIZE];
           if (sk_owner->nb_ID > 0 && sk_owner->nb_ID < 0xff)
           {
-            unsigned int i, nb = sk_owner->nb_ID;
+            unsigned char i, nb = sk_owner->nb_ID;
             if (nb > 6)nb = 6;
 
             //rid
@@ -507,12 +507,12 @@ BOOL Readnk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD pos_fhbi
                   char *read_value, char *data, unsigned int data_size)
 {
   //reads data to search
-  unsigned int i;
+  DWORD i;
   char tmp_read_value[MAX_PATH]="",tmpvalue[MAX_PATH];
   if (data!=NULL)data[0] = 0;
   if (read_value!=NULL)
   {
-    strncpy(tmp_read_value,read_value,MAX_PATH);
+    snprintf(tmp_read_value,MAX_PATH,"%s",read_value);
     charToLowChar(tmp_read_value);
   }
 
@@ -566,13 +566,13 @@ DWORD ReadBinarynk_Value(char *buffer, DWORD taille_fic, DWORD position, DWORD p
                          char *read_value, void *d, DWORD *data_size)
 {
   //reads data to search
-  unsigned int i;
+  DWORD i;
   char *data = d;
   char tmp_read_value[MAX_PATH]="",tmpvalue[MAX_PATH];
   if (data!=NULL)data[0] = 0;
   if (read_value!=NULL)
   {
-    strncpy(tmp_read_value,read_value,MAX_PATH);
+    snprintf(tmp_read_value,MAX_PATH,"%s",read_value);
     charToLowChar(tmp_read_value);
   }
 

@@ -750,7 +750,7 @@ typedef struct line_proc_item
 typedef struct
 {
   DWORD pid;
-  char args[MAX_PATH];
+  char args[MAX_LINE_SIZE];
 }PROCESS_INFOS_ARGS;
 //------------------------------------------------------------------------------
 //struct
@@ -1279,7 +1279,7 @@ WOW64DISABLEREDIRECT Wow64DisableWow64FsRedirect;
 WOW64DISABLEREDIRECT Wow64RevertWow64FsRedirect;
 
 HMODULE hDLL_DNSAPI;
-typedef int(WINAPI *DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD);
+typedef int(WINAPI *DNS_GET_CACHE_DATA_TABLE)(PDNS_RECORD*);
 DNS_GET_CACHE_DATA_TABLE DnsGetCacheDataTable;
 
 HMODULE hDLL_WINTRUST;
@@ -1302,6 +1302,46 @@ typedef BOOL (WINAPI * VERQUERYVALUE)(LPCVOID pBlock, LPCTSTR lpSubBlock, LPVOID
 GETFILEVERSIONINFO MyGetFileVersionInfo;
 VERQUERYVALUE MyVerQueryValue;
 
+typedef struct _PEB
+{
+  BYTE Reserved1[2];
+  BYTE BeingDebugged;
+  BYTE Reserved2[229];
+  PVOID Reserved3[59];
+  ULONG SessionId;
+} *PPEB;
+
+typedef struct _PROCESS_BASIC_INFORMATION
+{
+  PVOID Reserved1;
+  PPEB PebBaseAddress;
+  PVOID Reserved2[2];
+  ULONG_PTR UniqueProcessId;
+  PVOID Reserved3;
+}PROCESS_BASIC_INFORMATION;
+
+typedef enum _PROCESSINFOCLASS
+{
+  ProcessBasicInformation
+}PROCESSINFOCLASS;
+
+typedef struct ___PEB
+{
+  DWORD dwFiller[4];
+  DWORD dwInfoBlockAddress;
+}__PEB;
+
+typedef struct ___INFOBLOCK
+{
+  DWORD dwFiller[16];
+  WORD wLength;
+  WORD wMaxLength;
+  DWORD dwCmdLineAddress;
+}__INFOBLOCK;
+
+HMODULE hDLL_NTDLL;
+typedef LONG (WINAPI * LPNTQUERYINFOPROCESS)(HANDLE h, PROCESSINFOCLASS p, PVOID pv, ULONG u, PULONG pu);
+LPNTQUERYINFOPROCESS MyNtQueryInformationProcess;
 //------------------------------------------------------------------------------
 //SQLITE functions
 void ExtractSQLITE_DB();
@@ -1324,6 +1364,7 @@ void GetColumnInfo(unsigned int id);
 void EndSession(DWORD id, sqlite3 *db);
 
 //save function
+BOOL customAddSrc(register TZIP *tzip, const void *destname, const void *src, DWORD len, DWORD flags);
 char *GenerateNameToSave(char *name, DWORD name_max_size, char *ext);
 BOOL SaveLSTV(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
 BOOL SaveLSTVSelectedItems(HANDLE hlv, char *file, unsigned int type, unsigned int nb_column);
@@ -1334,13 +1375,14 @@ DWORD WINAPI ChoiceSaveAll(LPVOID lParam);
 void CopyDataToClipboard(HANDLE hlv, DWORD line, unsigned short column);
 void CopyAllDataToClipboard(HANDLE hlv, DWORD line, unsigned short nbcolumn);
 void CopyColumnDataToClipboard(HANDLE hlv, DWORD nline, unsigned short nbcolumn, unsigned short startcolumn);
-void SaveALL(char*filetosave, char*computername);
+void SaveALL(char*filetosave, char*computername, BOOL local);
 
 //import function
 DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam);
 
 //usuals functions
 unsigned int ExtractTextFromPathNb(char *path);
+void CopyStringToClipboard(char *s);
 char *ExtractTextFromPath(char *path, char *txt, unsigned int txt_size_max, unsigned int index);
 void ReviewWOW64Redirect(PVOID OldValue_W64b);
 unsigned long int Contient(char*data,char*chaine);

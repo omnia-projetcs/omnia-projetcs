@@ -78,26 +78,24 @@ void JobCheck(unsigned int session_id, sqlite3 *db, char *file)
                        stj->hour,stj->minute,stj->second);
 
               //state
-              if (stj->enable)strcpy(type,"ENABLE");
-              else strcpy(type,"DISABLE");
+              if (stj->enable)strcpy(type,"ENABLE\0");
+              else strcpy(type,"DISABLE\0");
 
               //0xffff
               //TASK_FLAG_RUN_ONLY_IF_LOGGED_ON = 0x2000
-              if (stj->flags & 0x2000)strncat(type,",TASK_FLAG_RUN_ONLY_IF_LOGGED_ON",MAX_PATH);
+              if (stj->flags & 0x2000)strncat(type,",TASK_FLAG_RUN_ONLY_IF_LOGGED_ON\0",MAX_PATH-strlen(type));
               //TASK_FLAG_SYSTEM_REQUIRED       = 0x1000
-              if (stj->flags & 0x1000)strncat(type,",TASK_FLAG_SYSTEM_REQUIRED",MAX_PATH);
+              if (stj->flags & 0x1000)strncat(type,",TASK_FLAG_SYSTEM_REQUIRED\0",MAX_PATH-strlen(type));
               //TASK_FLAG_HIDDEN                = 0x0200
-              if (stj->flags & 0x0200)strncat(type,",TASK_FLAG_HIDDEN",MAX_PATH);
+              if (stj->flags & 0x0200)strncat(type,",TASK_FLAG_HIDDEN\0",MAX_PATH-strlen(type));
               //TASK_FLAG_START_ONLY_IF_IDLE    = 0x0010
-              if (stj->flags & 0x0010)strncat(type,",TASK_FLAG_START_ONLY_IF_IDLE",MAX_PATH);
+              if (stj->flags & 0x0010)strncat(type,",TASK_FLAG_START_ONLY_IF_IDLE\0",MAX_PATH-strlen(type));
               //TASK_FLAG_DISABLED              = 0x0004
-              if (stj->flags & 0x0004)strncat(type,",TASK_FLAG_DISABLED",MAX_PATH);
+              if (stj->flags & 0x0004)strncat(type,",TASK_FLAG_DISABLED\0",MAX_PATH-strlen(type));
               //TASK_FLAG_DELETE_WHEN_DONE      = 0x0002
-              if (stj->flags & 0x0002)strncat(type,",TASK_FLAG_DELETE_WHEN_DONE",MAX_PATH);
+              if (stj->flags & 0x0002)strncat(type,",TASK_FLAG_DELETE_WHEN_DONE\0",MAX_PATH-strlen(type));
               //TASK_FLAG_INTERACTIVE           = 0x0001
-              if (stj->flags & 0x0001)strncat(type,",TASK_FLAG_INTERACTIVE",MAX_PATH);
-
-              strncat(type,"\0",MAX_PATH);
+              if (stj->flags & 0x0001)strncat(type,",TASK_FLAG_INTERACTIVE\0",MAX_PATH-strlen(type));
             }
 
             //description
@@ -209,15 +207,15 @@ DWORD WINAPI Scan_task(LPVOID lParam)
         if((data.cFileName[0] == '.' && ((data.cFileName[1] == 0) || (data.cFileName[1] == '.'))) || (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){}
         else
         {
-          strncpy(tmp_file_job,path,MAX_PATH);
+          snprintf(tmp_file_job,MAX_PATH,"%s",path);
           tmp_file_job[strlen(tmp_file_job)-5]=0;
-          strncat(tmp_file_job,data.cFileName,MAX_PATH);
-          strncat(tmp_file_job,"\0",MAX_PATH);
+          strncat(tmp_file_job,data.cFileName,MAX_PATH-strlen(tmp_file_job));
+          strncat(tmp_file_job,"\0",MAX_PATH-strlen(tmp_file_job));
 
           JobCheck(session_id, db, tmp_file_job);
           nb_ok++;
         }
-      }while(FindNextFile (hfic,&data) && start_scan);
+      }while(FindNextFile (hfic,&data) !=0 && start_scan);
       FindClose(hfic);
     }
 

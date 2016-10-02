@@ -73,87 +73,87 @@ void ReadMagicNumber(char *file, char *magicnumber, unsigned short magicnumber_s
             }*s_datas = datas;
 
             //movies
-            if (s_datas->uli == 0x7079746614000000) strcpy(magicnumber,"Movie (MOV/MP4)");
-            else if (datas[0] == 0x00 && datas[1] == 0x00 && datas[2] == 0x01 && (datas[3]&0xB0) == 0xB0) strcpy(magicnumber,"Movie (MPG, MPEG, VOB/DVD)");
-            else if (s_datas->ui == 0x464D522E) strcpy(magicnumber,"Movie (RMVB/RA)");
-            else if (s_datas->ui == 0x01564C46) strcpy(magicnumber,"Movie (FLV)");
-            //else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Movie (AVI)");
-            else if (s_datas->ui == 0x766F6F6D) strcpy(magicnumber,"Movie (MOV)");
-            else if (s_datas->ulli == 0x616B736F7274616D88824293A3DF451A) strcpy(magicnumber,"Movie (MKV)");
+            if (s_datas->uli == 0x7079746614000000) strcpy(magicnumber,"Movie (MOV/MP4)\0");
+            else if (datas[0] == 0x00 && datas[1] == 0x00 && datas[2] == 0x01 && (datas[3]&0xB0) == 0xB0) strcpy(magicnumber,"Movie (MPG, MPEG, VOB/DVD)\0");
+            else if (s_datas->ui == 0x464D522E) strcpy(magicnumber,"Movie (RMVB/RA)\0");
+            else if (s_datas->ui == 0x01564C46) strcpy(magicnumber,"Movie (FLV)\0");
+            //else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Movie (AVI)\0");
+            else if (s_datas->ui == 0x766F6F6D) strcpy(magicnumber,"Movie (MOV)\0");
+            else if (s_datas->ulli == 0x616B736F7274616D88824293A3DF451A) strcpy(magicnumber,"Movie (MKV)\0");
 
             //audio
-            else if (s_datas->uli == 0x11CF668E75B22630) strcpy(magicnumber,"Audio (ASF, WMA, WMV)");
-            else if (datas[0] == 0x49 && datas[1] == 0x44 && datas[2] == 0x33) strcpy(magicnumber,"Audio (MP3)");
-            else if (s_datas->ui == 0x6468544D) strcpy(magicnumber,"Audio (MID/MIDI)");
-            else if (s_datas->uli == 0x000002005367674F) strcpy(magicnumber,"Audio (OGG)");
-            else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Audio/Movie (WAV/AVI)");
+            else if (s_datas->uli == 0x11CF668E75B22630) strcpy(magicnumber,"Audio (ASF, WMA, WMV)\0");
+            else if (datas[0] == 0x49 && datas[1] == 0x44 && datas[2] == 0x33) strcpy(magicnumber,"Audio (MP3)\0");
+            else if (s_datas->ui == 0x6468544D) strcpy(magicnumber,"Audio (MID/MIDI)\0");
+            else if (s_datas->uli == 0x000002005367674F) strcpy(magicnumber,"Audio (OGG)\0");
+            else if (s_datas->ui == 0x46464952) strcpy(magicnumber,"Audio/Movie (WAV/AVI)\0");
 
             //image
-            else if (s_datas->us == 0x4D42) strcpy(magicnumber,"Image (BMP)");
-            else if (s_datas->ui == 0x38464947) strcpy(magicnumber,"Image (GIF)");
-            else if (s_datas->ui == 0x474E5089) strcpy(magicnumber,"Image (PNG)");
-            else if (s_datas->ui == 0x00010000) strcpy(magicnumber,"Image (ICO)");
-            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0xE0FFD8FF) strcpy(magicnumber,"Image (JPG)");
-            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0x00020000) strcpy(magicnumber,"Image (CUR)");
-            else if (s_datas->ui == 0x6D783F3C) strcpy(magicnumber,"Image (SVG)");
+            else if (s_datas->us == 0x4D42) strcpy(magicnumber,"Image (BMP)\0");
+            else if (s_datas->ui == 0x38464947) strcpy(magicnumber,"Image (GIF)\0");
+            else if (s_datas->ui == 0x474E5089) strcpy(magicnumber,"Image (PNG)\0");
+            else if (s_datas->ui == 0x00010000) strcpy(magicnumber,"Image (ICO)\0");
+            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0xE0FFD8FF) strcpy(magicnumber,"Image (JPG)\0");
+            else if (s_datas->ui == 0xE1FFD8FF || s_datas->ui == 0x00020000) strcpy(magicnumber,"Image (CUR)\0");
+            else if (s_datas->ui == 0x6D783F3C) strcpy(magicnumber,"Image (SVG)\0");
 
             //office
-            else if (s_datas->uli == 0x000560000008190) strcpy(magicnumber,"Office MS (XLS)");
-            else if (s_datas->ui == 0x434F440D || s_datas->ui == 0x002DA5DB || s_datas->ui == 0x00C1A5EC || s_datas->uli == 0x00E11AB1A1E011CF) strcpy(magicnumber,"Office MS (DOC)");
-            else if (s_datas->ui == 0x03E8000F ||s_datas->ui == 0x0F1D46A0) strcpy(magicnumber,"Office MS (PPT)");
-            else if (s_datas->ui == 0x46445025) strcpy(magicnumber,"Office (PDF)");
-            else if (s_datas->uli == 0x0006001404034B50) strcpy(magicnumber,"Office (DOCX, PPTX, XLSX)");
-            else if (s_datas->uli == 0xE11AB1A1E011CFD0) strcpy(magicnumber,"Office (DOC, PPT, XLS)");
-            else if (s_datas->ui == 0x00000100) strcpy(magicnumber,"Font (TTF)");
-            else if (s_datas->ui == 0x74725C7B) strcpy(magicnumber,"Office (RTF)");
+            else if (s_datas->uli == 0x000560000008190) strcpy(magicnumber,"Office MS (XLS)\0");
+            else if (s_datas->ui == 0x434F440D || s_datas->ui == 0x002DA5DB || s_datas->ui == 0x00C1A5EC || s_datas->uli == 0x00E11AB1A1E011CF) strcpy(magicnumber,"Office MS (DOC)\0");
+            else if (s_datas->ui == 0x03E8000F ||s_datas->ui == 0x0F1D46A0) strcpy(magicnumber,"Office MS (PPT)\0");
+            else if (s_datas->ui == 0x46445025) strcpy(magicnumber,"Office (PDF)\0");
+            else if (s_datas->uli == 0x0006001404034B50) strcpy(magicnumber,"Office (DOCX, PPTX, XLSX)\0");
+            else if (s_datas->uli == 0xE11AB1A1E011CFD0) strcpy(magicnumber,"Office (DOC, PPT, XLS)\0");
+            else if (s_datas->ui == 0x00000100) strcpy(magicnumber,"Font (TTF)\0");
+            else if (s_datas->ui == 0x74725C7B) strcpy(magicnumber,"Office (RTF)\0");
 
             //compressé
-            else if (s_datas->us == 0x8B1F) strcpy(magicnumber,"Archive (GZ, TGZ, GZIP)");
-            else if (s_datas->us == 0x9D1F || s_datas->us == 0xA01F) strcpy(magicnumber,"Archive (TAR.GZ)");
-            else if (s_datas->us == 0x6C2D) strcpy(magicnumber,"Archive (LHA, LZH)");
-            else if (s_datas->ui == 0xAFBC7A37) strcpy(magicnumber,"Archive (7zip)");
-            else if (s_datas->us == 0x5A42) strcpy(magicnumber,"Archive (BZ2, TAR.BZ2, TBZ2, TB2)");
-            else if (s_datas->ui == 0x30304443) strcpy(magicnumber,"Archive (ISO)");
-            else if (s_datas->ui == 0x4F534943) strcpy(magicnumber,"Archive (Compresed ISO : CSO)");
-            else if (s_datas->ui == 0x28635349) strcpy(magicnumber,"Archive (CAB, HDR)");
-            else if (s_datas->ui == 0x04034B50 || s_datas->ui == 0x5A6E6957 || s_datas->us == 0x4B50) strcpy(magicnumber,"Archive (ZIP)");
-            else if (s_datas->ui == 0x21726152) strcpy(magicnumber,"Archive (RAR/ZIP)");
-            else if (s_datas->us == 0xEA60) strcpy(magicnumber,"Archive (JAR)");
-            else if (s_datas->ui == 0x61747375) strcpy(magicnumber,"Archive (TAR)");
-            else if (s_datas->ui == 0x4643534D) strcpy(magicnumber,"Archive (CAB)");
+            else if (s_datas->us == 0x8B1F) strcpy(magicnumber,"Archive (GZ, TGZ, GZIP)\0");
+            else if (s_datas->us == 0x9D1F || s_datas->us == 0xA01F) strcpy(magicnumber,"Archive (TAR.GZ)\0");
+            else if (s_datas->us == 0x6C2D) strcpy(magicnumber,"Archive (LHA, LZH)\0");
+            else if (s_datas->ui == 0xAFBC7A37) strcpy(magicnumber,"Archive (7zip)\0");
+            else if (s_datas->us == 0x5A42) strcpy(magicnumber,"Archive (BZ2, TAR.BZ2, TBZ2, TB2)\0");
+            else if (s_datas->ui == 0x30304443) strcpy(magicnumber,"Archive (ISO)\0");
+            else if (s_datas->ui == 0x4F534943) strcpy(magicnumber,"Archive (Compresed ISO : CSO)\0");
+            else if (s_datas->ui == 0x28635349) strcpy(magicnumber,"Archive (CAB, HDR)\0");
+            else if (s_datas->ui == 0x04034B50 || s_datas->ui == 0x5A6E6957 || s_datas->us == 0x4B50) strcpy(magicnumber,"Archive (ZIP)\0");
+            else if (s_datas->ui == 0x21726152) strcpy(magicnumber,"Archive (RAR/ZIP)\0");
+            else if (s_datas->us == 0xEA60) strcpy(magicnumber,"Archive (JAR)\0");
+            else if (s_datas->ui == 0x61747375) strcpy(magicnumber,"Archive (TAR)\0");
+            else if (s_datas->ui == 0x4643534D) strcpy(magicnumber,"Archive (CAB)\0");
 
             //crypt
-            else if (datas[0] == 0x41 && datas[1] == 0x45 &&  datas[2] == 0x53) strcpy(magicnumber,"Crypt (AES)");
-            else if (s_datas->uc == 0x99) strcpy(magicnumber,"Crypt (GPG)");
+            else if (datas[0] == 0x41 && datas[1] == 0x45 &&  datas[2] == 0x53) strcpy(magicnumber,"Crypt (AES)\0");
+            else if (s_datas->uc == 0x99) strcpy(magicnumber,"Crypt (GPG)\0");
 
             //special
-            else if (s_datas->ui == 0x00000011 || s_datas->ui == 0x00000017 ) strcpy(magicnumber,"System Windows prefetch (PF)");
-            else if (s_datas->uli == 0x654C664C00000030) strcpy(magicnumber,"System Windows log (EVT)");
-            else if (s_datas->ui == 0x46666C45) strcpy(magicnumber,"System Windows log (EVTX)");
-            else if (s_datas->ui == 0x00035F3F || s_datas->ui == 0x00024E4C) strcpy(magicnumber,"System Windows help (HLP)");
-            else if (s_datas->ui == 0x46535449) strcpy(magicnumber,"System Windows help (CHM)");
-            else if (s_datas->ui == 0x65696C43) strcpy(magicnumber,"Navigateur IE history (DAT)");
-            else if (s_datas->ui == 0x45474552) strcpy(magicnumber,"System Windows Registre (REG)");
-            else if (s_datas->ui == 0x66676572) strcpy(magicnumber,"System Windows Registre (DAT)");
-            else if (s_datas->ui == 0xFFFFFFFD) strcpy(magicnumber,"System Windows (Thumbs.db)");
-            else if (s_datas->ui == 0x6974227B) strcpy(magicnumber,"Navigateur bookmark Firefox (JSON)");
-            else if (s_datas->ui == 0x0000004C) strcpy(magicnumber,"System Windows link (LNK)");
+            else if (s_datas->ui == 0x00000011 || s_datas->ui == 0x00000017 ) strcpy(magicnumber,"System Windows prefetch (PF)\0");
+            else if (s_datas->uli == 0x654C664C00000030) strcpy(magicnumber,"System Windows log (EVT)\0");
+            else if (s_datas->ui == 0x46666C45) strcpy(magicnumber,"System Windows log (EVTX)\0");
+            else if (s_datas->ui == 0x00035F3F || s_datas->ui == 0x00024E4C) strcpy(magicnumber,"System Windows help (HLP)\0");
+            else if (s_datas->ui == 0x46535449) strcpy(magicnumber,"System Windows help (CHM)\0");
+            else if (s_datas->ui == 0x65696C43) strcpy(magicnumber,"Navigateur IE history (DAT)\0");
+            else if (s_datas->ui == 0x45474552) strcpy(magicnumber,"System Windows Registre (REG)\0");
+            else if (s_datas->ui == 0x66676572) strcpy(magicnumber,"System Windows Registre (DAT)\0");
+            else if (s_datas->ui == 0xFFFFFFFD) strcpy(magicnumber,"System Windows (Thumbs.db)\0");
+            else if (s_datas->ui == 0x6974227B) strcpy(magicnumber,"Navigateur bookmark Firefox (JSON)\0");
+            else if (s_datas->ui == 0x0000004C) strcpy(magicnumber,"System Windows link (LNK)\0");
             else if (s_datas->ui == 0x68532E5B || s_datas->ui == 0x000DFEFF ||
-                     s_datas->ui == 0x003BFEFF || s_datas->ui == 0x005BFEFF) strcpy(magicnumber,"System Windows config file (INI/INF)");
-            else if (s_datas->ui == 0x00020101) strcpy(magicnumber,"System Windows config file (PNF)");
+                     s_datas->ui == 0x003BFEFF || s_datas->ui == 0x005BFEFF) strcpy(magicnumber,"System Windows config file (INI/INF)\0");
+            else if (s_datas->ui == 0x00020101) strcpy(magicnumber,"System Windows config file (PNF)\0");
 
             //bdd
-            else if (s_datas->ui == 0x694C5153) strcpy(magicnumber,"Bdd (SQLITE)");
-            else if (s_datas->ui == 0xF905D5D9) strcpy(magicnumber,"Bdd (sqlite-journal)");
+            else if (s_datas->ui == 0x694C5153) strcpy(magicnumber,"Bdd (SQLITE)\0");
+            else if (s_datas->ui == 0xF905D5D9) strcpy(magicnumber,"Bdd (sqlite-journal)\0");
 
             //Executable
-            else if (s_datas->ui == 0x4352414A) strcpy(magicnumber,"Executable (JAR)");
-            else if (s_datas->uli == 0x0008001404034B50) strcpy(magicnumber,"Executable (JAR)");
-            else if (s_datas->us == 0x5A4D || s_datas->ui == 0x54202124) strcpy(magicnumber,"Executable (COM, DLL, DRV, EXE, PIF, QTS, QTX, SYS)"); //32bits
+            else if (s_datas->ui == 0x4352414A) strcpy(magicnumber,"Executable (JAR)\0");
+            else if (s_datas->uli == 0x0008001404034B50) strcpy(magicnumber,"Executable (JAR)\0");
+            else if (s_datas->us == 0x5A4D || s_datas->ui == 0x54202124) strcpy(magicnumber,"Executable (COM, DLL, DRV, EXE, PIF, QTS, QTX, SYS)\0"); //32bits
 
             //code
-            else if (s_datas->ui == 0x6D783F3C || s_datas->ui == 0x003CFEFF) strcpy(magicnumber,"Web page (XML)");
-            else if (s_datas->ui == 0x4F44213C || s_datas->ui == 0x44213C0A) strcpy(magicnumber,"Web page (HTML)");
+            else if (s_datas->ui == 0x6D783F3C || s_datas->ui == 0x003CFEFF) strcpy(magicnumber,"Web page (XML)\0");
+            else if (s_datas->ui == 0x4F44213C || s_datas->ui == 0x44213C0A) strcpy(magicnumber,"Web page (HTML)\0");
 
             else snprintf(magicnumber,magicnumber_size_max,"Unknow MagicNumber: %02X%02X%02X%02X",datas[0]&0xff,datas[1]&0xff,datas[2]&0xff,datas[3]&0xff);
             //test
@@ -738,7 +738,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
     // return
     if(data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')){}
     else
-  {
+    {
       //dates
       filetimeToString_GMT(data.ftCreationTime, CreationTime, DATE_SIZE_MAX);
       filetimeToString_GMT(data.ftLastWriteTime, LastWriteTime, DATE_SIZE_MAX);
@@ -855,7 +855,7 @@ void scan_file_ex(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int session
         CloseHandle(Hficw);
       }
     }
-  }while(FindNextFile (hfic,&data) && start_scan);
+  }while(FindNextFile (hfic,&data) !=0 && start_scan);
   FindClose(hfic);
 }
 //------------------------------------------------------------------------------
@@ -1004,7 +1004,7 @@ void scan_file_exF(char *path, BOOL acl, BOOL ads, BOOL sha, unsigned int sessio
         CloseHandle(Hficw);
       }
     }
-  }while(FindNextFile (hfic,&data) && start_scan);
+  }while(FindNextFile (hfic,&data) !=0 && start_scan);
   FindClose(hfic);
 }
 //------------------------------------------------------------------------------

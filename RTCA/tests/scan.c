@@ -74,7 +74,7 @@ void Scan_HCU_files(DWORD session, sqlite3 *db, char *userpathsearch, char *user
           }
         }
       }
-    }while(FindNextFile (hfic,&data) && start_scan);
+    }while(FindNextFile (hfic,&data) !=0 && start_scan);
     FindClose(hfic);
   }
 }

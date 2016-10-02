@@ -163,7 +163,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
             while (*l && *l!='\t')l++;l++;
 
             //description (datas+source)
-            strncpy(source,l,MAX_PATH);
+            snprintf(source,MAX_PATH,"%s",l);
             c = source;
             while(c-source <MAX_PATH && *c && *c!='\t')c++;
             if (*c == '\t')
@@ -197,14 +197,14 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
             while (*l && *l!='\t')l++;l++;
 
             //source
-            strncpy(source,l,MAX_PATH);
+            snprintf(source,MAX_PATH,"%s",l);
             c = source;
             while (*c && *c!=' ' && *c!='\t')c++;
             *c=0;
 
             //state
             while (*l && *l!=' ' && *l!='\t')l++;l++;
-            strncpy(state,l,MAX_PATH);
+            snprintf(state,MAX_PATH,"%s",l);
             c = state;
             while (*c && *c!=' ' && *c!='\t')c++;
             *c=0;
@@ -387,7 +387,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
               while (*l && *l!='\t')l++;l++;
 
               //description (datas+source)
-              strncpy(source,l,MAX_PATH);
+              snprintf(source,MAX_PATH,"%s",l);
               c = source;
               while(c-source <MAX_PATH && *c && *c!='\t')c++;
               if (*c == '\t')
@@ -405,7 +405,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
               l = line;
               while (*l && *l!=' ' && *l!='\t')l++;
               l++;
-              strncpy(send_date,l,DATE_SIZE_MAX);
+              snprintf(send_date,MAX_PATH,"%s",l);
               send_date[DATE_SIZE_MAX-1]  = 0;
               send_date[4]                = '/';
               send_date[7]                = '/';
@@ -421,14 +421,14 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
               while (*l && *l!='\t')l++;l++;
 
               //source
-              strncpy(source,l,MAX_PATH);
+              snprintf(source,MAX_PATH,"%s",l);
               c = source;
               while (*c && *c!=' ' && *c!='\t')c++;
               *c=0;
 
               //state
               while (*l && *l!=' ' && *l!='\t')l++;l++;
-              strncpy(state,l,MAX_PATH);
+              snprintf(state,MAX_PATH,"%s",l);
               c = state;
               while (*c && *c!=' ' && *c!='\t')c++;
               *c=0;
@@ -436,7 +436,7 @@ void TraiterEventlogFileLog(char * eventfile, sqlite3 *db, unsigned int session_
               //description
               while (*l && *l!=' ' && *l!='\t')l++;l++;
               //description (datas)
-              strncpy(description,l,MAX_LINE_SIZE);
+              snprintf(description,MAX_LINE_SIZE,"%s",l);
             break;
             case DATE_FORMAT_UNIX:
               //date

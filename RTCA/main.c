@@ -8,12 +8,12 @@
 //------------------------------------------------------------------------------
 //subclass of hdbclk_info
 //------------------------------------------------------------------------------
-LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+/*LRESULT APIENTRY subclass_hdbclk_info(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
   if (uMsg == WM_CLOSE)ShowWindow (hwnd, SW_HIDE);
   else return CallWindowProc(wndproc_hdbclk_info, hwnd, uMsg, wParam, lParam);
   return 0;
-}
+}*/
 //------------------------------------------------------------------------------
 BOOL CALLBACK DialogProc_infos (HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -664,8 +664,8 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                     if (file[0] == 0)path[0] = 0;
                     else
                     {
-                      strncat(path,file,MAX_PATH);
-                      strncat(path,"\0",MAX_PATH);
+                      strncat(path,file,MAX_PATH-strlen(path));
+                      strncat(path,"\0",MAX_PATH-strlen(path));
                     }
                   }
                   break;
@@ -785,11 +785,11 @@ LRESULT CALLBACK WindowProcedure (HWND hwnd, UINT message, WPARAM wParam, LPARAM
                   tmp2[0] = 0;
                   if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
                   {
-                    if (strlen(tmp)>0)
+                    if (*tmp != '\0')
                     {
                       ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 
-                      if (strlen(tmp2)>0)
+                      if (*tmp2 != '\0')
                       {
                         RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
                         RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
@@ -1329,7 +1329,7 @@ int CmdLine(int argc, char* argv[])
           {
             char file[MAX_PATH]="";
             GenerateNameToSave(file, MAX_PATH, ".zip");
-            SaveALL(argv[i],file);
+            SaveALL(argv[i],file, TRUE);
           }
          }
       break;

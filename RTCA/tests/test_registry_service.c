@@ -18,7 +18,7 @@ void addRegistryServicetoDB(char *file, char *hk, char *key, char*name,
            file,hk,key,CheckNameAndDescription(name,MAX_PATH),state_id,path,type_id,last_update,session_id,CheckNameAndDescription(description,MAX_PATH));
 
   //if description too long
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
@@ -102,7 +102,7 @@ void Scan_registry_service_local(char *ckey, sqlite3 *db, unsigned int session_i
           {
             if (ReadValue(HKEY_LOCAL_MACHINE,key_path,"Group",name, MAX_PATH) == 0)continue;
 
-            strncpy(name,key,MAX_PATH);
+            snprintf(name,MAX_PATH,"%s",key);
           }
 
           //state id
@@ -176,7 +176,7 @@ void Scan_registry_service_file(HK_F_OPEN *hks, char *ckey, unsigned int session
       {
         if (Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Group", name, MAX_PATH)==FALSE)continue;
 
-        strncpy(name,tmp_key,MAX_PATH);
+        snprintf(name,MAX_PATH,"%s",tmp_key);
       }
 
       if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"Start", state, MAX_PATH))

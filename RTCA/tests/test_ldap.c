@@ -181,7 +181,9 @@ BOOL GetLdapValues(char *dc, char *filter, unsigned int session_id, sqlite3 *db)
             //error
             if(pEntry == NULL)
             {
+              #ifdef DEV_DEBUG_MODE
               printf("[LDAP] failed with 0x%0lx\n", LdapGetLastError());
+              #endif
               break;
             }
 

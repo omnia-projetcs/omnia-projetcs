@@ -115,7 +115,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           //transform if unicode, utf16 or utf8 !!!
           if (!isValideANSIChar(line,strlen(line)))
           {
-            strncpy(line_t,line,MAX_LINE_SIZE);
+            snprintf(line_t,MAX_LINE_SIZE,"%s",line);
             convertUTF8toUTF16toChar(line_t, strlen(line_t), line, MAX_LINE_SIZE);
           }
 
@@ -136,7 +136,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
               p = l;
               while (*l && *l !=';' && (*l !='"' || !separator))l++;
               *l = 0;
-              if (strlen(p)>0)
+              if (*p != '\0')
               {
                 ListView_SetItemText(hlstv,pos,increm,p);
               }
@@ -174,7 +174,7 @@ DWORD WINAPI ImportCVSorSHA256deep(LPVOID lParam)
           //transform if unicode, utf16 or utf8 !!!
           if (!isValideANSIChar(line,strlen(line)))
           {
-            strncpy(line_t,line,MAX_LINE_SIZE);
+            snprintf(line_t,MAX_LINE_SIZE,"%s",line);
             convertUTF8toUTF16toChar(line_t, strlen(line_t), line, MAX_LINE_SIZE);
           }
 

@@ -85,7 +85,7 @@ DWORD WINAPI Scan_env(LPVOID lParam)
     while (*c)
     {
       str[0]=0;
-      strncpy(str,c,MAX_LINE_SIZE);
+      snprintf(str,MAX_LINE_SIZE,"%s",c);
 
       if (str[0]!=0)
       {

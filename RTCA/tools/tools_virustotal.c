@@ -96,9 +96,8 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
     InternetCloseHandle(M_connexion);
     return;
   }
-  char request[MAX_PATH] = "/file/upload/?sha256=";
-  strncat(request,vts->sha256,MAX_PATH);
-  strncat(request,"\0",MAX_PATH);
+  char request[MAX_PATH]="";
+  snprintf(request,MAX_PATH,"/file/upload/?sha256=%s",vts->sha256);
 
   //connexion
   HINTERNET M_requete = HttpOpenRequest(M_session,"GET",request,NULL,"https://www.virustotal.com/",NULL,
@@ -112,9 +111,8 @@ void GetSHA256Info(VIRUSTOTAL_STR *vts)
   }
 
   //Création du paramètre
-  char cookie[MAX_PATH]="Cookie: csrftoken=";
-  strncat(cookie,vts->token,MAX_PATH);
-  strncat(cookie,"\0",MAX_PATH);
+  char cookie[MAX_PATH]="";
+  snprintf(cookie,MAX_PATH,"Cookie: csrftoken=%s",vts->token);
 
   if (M_requete==NULL)
   {
@@ -241,8 +239,8 @@ BOOL CheckItemToVirusTotal(HANDLE hlv, DWORD item, unsigned int column_sha256, u
   char resultats[MAX_LINE_SIZE];
   switch(vts.exist)
   {
-    case -1:strcpy(resultats,"Connection error");vt_error++;break;
-    case -2:strcpy(resultats,"Unkown datas");break;
+    case -1:strcpy(resultats,"Connection error\0");vt_error++;break;
+    case -2:strcpy(resultats,"Unkown datas\0");break;
     case 0:
       ret = TRUE;
       if (vts.last_analysis_date[0] != 0 && vts.detection_ratio[0] != 0)

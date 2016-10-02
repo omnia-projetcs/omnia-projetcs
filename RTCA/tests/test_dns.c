@@ -112,7 +112,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
           {
             //read line
             memset(lines,0,MAX_PATH);
-            strncpy(lines,r,MAX_PATH);
+            snprintf(lines,MAX_PATH,"%s",r);
             s = lines;
             while (*s && *s != '\r')s++;
             *s = 0;
@@ -122,7 +122,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
             if (lines[0]!='#' && strlen(lines) > 8)
             {
               //get IP
-              strncpy(ip,lines,IPV6_SIZE_MAX);
+              snprintf(ip,IPV6_SIZE_MAX,"%s",lines);
               c = ip;
 
               while (*c && *c != ' ' && *c!= '\t' && (*c == '.' || *c == ':' || (*c<='9' && *c>='0')))c++;
@@ -134,7 +134,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
                 while (*c && (*c == ' ' || *c == '\t'))c++;
 
                 memset(name,0,MAX_PATH);
-                strncpy(name,c,MAX_PATH);
+                snprintf(name,MAX_PATH,"%s",c);
                 addHosttoDB(file, ip, name, last_file_update,session_id,db);
               }
             }
@@ -145,8 +145,7 @@ DWORD WINAPI Scan_dns(LPVOID lParam)
     }
     CloseHandle(Hfic);
   }
-
-  //get cache
+  //get cache (Only ok bifore lats W7 update)
   if (DnsGetCacheDataTable != NULL)
   {
     PDNS_RECORD pcache = NULL;

@@ -26,68 +26,21 @@ void addProcesstoDB(char *process, char *pid, char *path, char *cmd,
   #endif
 }
 //------------------------------------------------------------------------------
-typedef struct _PEB
-{
-  BYTE Reserved1[2];
-  BYTE BeingDebugged;
-  BYTE Reserved2[229];
-  PVOID Reserved3[59];
-  ULONG SessionId;
-} *PPEB;
-
-typedef struct _PROCESS_BASIC_INFORMATION
-{
-  PVOID Reserved1;
-  PPEB PebBaseAddress;
-  PVOID Reserved2[2];
-  ULONG_PTR UniqueProcessId;
-  PVOID Reserved3;
-}PROCESS_BASIC_INFORMATION;
-
-typedef enum _PROCESSINFOCLASS
-{
-  ProcessBasicInformation
-}PROCESSINFOCLASS;
-
-typedef LONG (WINAPI LPNTQUERYINFOPROCESS)(HANDLE, PROCESSINFOCLASS, PVOID, ULONG, PULONG);
-
-typedef struct ___PEB
-{
-  DWORD dwFiller[4];
-  DWORD dwInfoBlockAddress;
-}__PEB;
-
-typedef struct ___INFOBLOCK
-{
-  DWORD dwFiller[16];
-  WORD wLength;
-  WORD wMaxLength;
-  DWORD dwCmdLineAddress;
-}__INFOBLOCK;
-//------------------------------------------------------------------------------
 BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
 {
   arg[0]=0;
   BOOL ret = FALSE;
 
   PROCESS_BASIC_INFORMATION pbi;
-  LPNTQUERYINFOPROCESS *lpfnNtQueryInformationProcess;
   __PEB PEB;
   __INFOBLOCK Block;
 
-  //load de la ddl
-  HMODULE hDLL = GetModuleHandle("ntdll.dll");
-  if (hDLL == NULL)return ret;
+  wchar_t *cmd = NULL;
 
-   wchar_t *cmd = NULL;
-
-  lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "NtQueryInformationProcess");
-  if (lpfnNtQueryInformationProcess == NULL)lpfnNtQueryInformationProcess = (LPNTQUERYINFOPROCESS *)GetProcAddress(hDLL, "ZwQueryInformationProcess");
-
-  if (lpfnNtQueryInformationProcess != NULL)
+  if (MyNtQueryInformationProcess != NULL)
   {
     DWORD dwSize=0;
-    if(lpfnNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &dwSize) == 0)
+    if(MyNtQueryInformationProcess(hProcess, ProcessBasicInformation, &pbi, sizeof(pbi), &dwSize) == 0)
     {
       //lecture de la mémoire
       if (ReadProcessMemory(hProcess, pbi.PebBaseAddress, &PEB, sizeof(PEB), &dwSize) != 0)
@@ -110,7 +63,6 @@ BOOL GetProcessArg(HANDLE hProcess, char* arg, unsigned int size)
     }
   }
 
-  FreeLibrary(hDLL);
   return ret;
 }
 //------------------------------------------------------------------------------
@@ -193,8 +145,22 @@ DWORD GetPortsFromPID(DWORD pid, LINE_PROC_ITEM *port_line, unsigned int nb_item
             snprintf(port_line[nb_item].IP_src,taille_max_line,"%s",inet_ntoa(*(struct in_addr *)&module.dwLocalAddr));
             snprintf(port_line[nb_item].IP_dst,taille_max_line,"%s",inet_ntoa(*(struct in_addr *)&module.dwRemoteAddr));
 
-            GetNameFromIP(port_line[nb_item].IP_src, port_line[nb_item].name_src, SIZE_ITEMS_PORT_MAX);
-            GetNameFromIP(port_line[nb_item].IP_dst, port_line[nb_item].name_dst, SIZE_ITEMS_PORT_MAX);
+            if (nb_item>0) //optimize perf !!!
+            {
+              if (!strcmp(port_line[nb_item].IP_src,port_line[nb_item-1].IP_src))
+              {
+               snprintf(port_line[nb_item].name_src,SIZE_ITEMS_PORT_MAX,"%s",port_line[nb_item-1].name_src);
+              }else GetNameFromIP(port_line[nb_item].IP_src, port_line[nb_item].name_src, SIZE_ITEMS_PORT_MAX);
+
+              if (!strcmp(port_line[nb_item].IP_dst,port_line[nb_item-1].IP_dst))
+              {
+               snprintf(port_line[nb_item].name_dst,SIZE_ITEMS_PORT_MAX,"%s",port_line[nb_item-1].name_dst);
+              }else GetNameFromIP(port_line[nb_item].IP_dst, port_line[nb_item].name_dst, SIZE_ITEMS_PORT_MAX);
+            }else
+            {
+              GetNameFromIP(port_line[nb_item].IP_src, port_line[nb_item].name_src, SIZE_ITEMS_PORT_MAX);
+              GetNameFromIP(port_line[nb_item].IP_dst, port_line[nb_item].name_dst, SIZE_ITEMS_PORT_MAX);
+            }
 
             snprintf(port_line[nb_item].Port_src,taille_max_line,"%d",htons((u_short) module.dwLocalPort));
             snprintf(port_line[nb_item].Port_dst,taille_max_line,"%d",htons((u_short) module.dwRemotePort));
@@ -408,7 +374,8 @@ DWORD WINAPI Scan_process(LPVOID lParam)
   char src_name[MAX_LINE_SIZE];
   char dst_name[MAX_LINE_SIZE];
 
-  PROCESS_INFOS_ARGS process_infos[MAX_PATH];
+  PROCESS_INFOS_ARGS *process_infos;
+  process_infos = (PROCESS_INFOS_ARGS *)malloc(sizeof(PROCESS_INFOS_ARGS)*MAX_PATH);
 
   port_line = (LINE_PROC_ITEM *) malloc(sizeof(LINE_PROC_ITEM)*MAX_LINE_SIZE);
   if (port_line == NULL)return 0;
@@ -421,8 +388,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     if (hProcess == NULL)continue;
 
     //process
-    process[0] = 0;
-    strncpy(process,pe.szExeFile,DEFAULT_TMP_SIZE);
+    snprintf(process,DEFAULT_TMP_SIZE,"%s",pe.szExeFile);
 
     //pid
     snprintf(pid,DEFAULT_TMP_SIZE,"%05lu",pe.th32ProcessID);
@@ -471,7 +437,7 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     j=GetPortsFromPID(pe.th32ProcessID, port_line, MAX_LINE_SIZE, SIZE_ITEMS_PORT_MAX);
 
     //update list of process
-    if (nb_process<MAX_PATH)
+    if (nb_process<MAX_PATH && process_infos != NULL)
     {
       process_infos[nb_process].pid = pe.th32ProcessID;
       snprintf(process_infos[nb_process].args,MAX_LINE_SIZE,"%s",cmd);
@@ -502,10 +468,11 @@ DWORD WINAPI Scan_process(LPVOID lParam)
     }
     CloseHandle(hProcess);
   }
+  free(process_infos);
   free(port_line);
 
   //verify shadow process !!!
-  EnumProcessAndThread(nb_process, process_infos,session_id,db);
+  if(process_infos != NULL) EnumProcessAndThread(nb_process, process_infos,session_id,db);
 
   CloseHandle(hCT);
   if(!SQLITE_FULL_SPEED)sqlite3_exec(db_scan,"END TRANSACTION;", NULL, NULL, NULL);

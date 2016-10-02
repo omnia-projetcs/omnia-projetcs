@@ -264,36 +264,36 @@ DWORD WINAPI AddIp(LPVOID lParam)
           case IPPROTO_TCP:
             if (!Contient(buffer,TXT_TCP_IPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_TCP_IPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_TCP_IPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_UDP:
             if (!Contient(buffer,TXT_UDP_IPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_UDP_IPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_UDP_IPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_ICMP:
             if (!Contient(buffer,TXT_ICMPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_ICMPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_ICMPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_IGMP:
             if (!Contient(buffer,TXT_IGMP))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_IGMP,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_IGMP,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
@@ -315,36 +315,36 @@ DWORD WINAPI AddIp(LPVOID lParam)
           case IPPROTO_TCP:
             if (!Contient(buffer,TXT_TCP_IPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_TCP_IPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_TCP_IPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_UDP:
             if (!Contient(buffer,TXT_UDP_IPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_UDP_IPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_UDP_IPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_ICMP:
             if (!Contient(buffer,TXT_ICMPV4))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_ICMPV4,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_ICMPV4,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
           case IPPROTO_IGMP:
             if (!Contient(buffer,TXT_IGMP))
             {
-              strncat(buffer,",",DEFAULT_TMP_SIZE);
-              strncat(buffer,TXT_IGMP,DEFAULT_TMP_SIZE);
-              strncat(buffer,"\0",DEFAULT_TMP_SIZE);
+              strncat(buffer,",",DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,TXT_IGMP,DEFAULT_TMP_SIZE-strlen(buffer));
+              strncat(buffer,"\0",DEFAULT_TMP_SIZE-strlen(buffer));
               ListView_SetItemText(hlstv,i,4,buffer);
             }
           break;
@@ -907,20 +907,20 @@ void chartohexstring(char *src, unsigned int src_size, char *result, unsigned in
       {
         if (k != 7)snprintf(tmp,4,"%02X ",src[r+k]&255);
         else snprintf(tmp,5,"%02X  ",src[r+k]&255);
-        strncat(line,tmp,DEFAULT_TMP_SIZE);
+        strncat(line,tmp,DEFAULT_TMP_SIZE-strlen(line));
       }
       for(;j<16;j++)
       {
-        if (j != 7)strncat(line,"   \0",DEFAULT_TMP_SIZE);
-        else strncat(line,"    \0",DEFAULT_TMP_SIZE);
+        if (j != 7)strncat(line,"   \0",DEFAULT_TMP_SIZE-strlen(line));
+        else strncat(line,"    \0",DEFAULT_TMP_SIZE-strlen(line));
       }
-      strncat(line," |  \0",DEFAULT_TMP_SIZE);
-      strncat(line,string_line,DEFAULT_TMP_SIZE);
-      strncat(line,"\r\n\0",DEFAULT_TMP_SIZE);
+      strncat(line," |  \0",DEFAULT_TMP_SIZE-strlen(line));
+      strncat(line,string_line,DEFAULT_TMP_SIZE-strlen(line));
+      strncat(line,"\r\n\0",DEFAULT_TMP_SIZE-strlen(line));
     }
-    strncat(result,line,result_size_max);
+    strncat(result,line,result_size_max-strlen(line));
   }
-  strncat(result,"\0",result_size_max);
+  strncat(result,"\0",result_size_max-strlen(line));
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
@@ -944,7 +944,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
   //unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) >> 4)*4;
   unsigned int iphdr_size = ((ipv4_hdr->ip_header_len_version) & 0x0F)*4;
 
-  snprintf(buffer_ipv4,REQUEST_MAX_SIZE,
+  snprintf(buffer_ipv4,MAX_LINE_SIZE,
                "[%s:%d->%s:%d]%08lu\r\n"
                "[IPV4 HEADER]\r\n"
                "ip_header_len:\t%d\r\n"
@@ -983,7 +983,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
     case IPPROTO_TCP:
     {
       TCP_HDR *tcpheader = (TCP_HDR*)(unsigned char *)(b+(iphdr_size));
-      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+      snprintf(buffer_hdr,MAX_LINE_SIZE,
                "[TCP]\r\n"
                "source_port:\t%d\r\n"
                "dest_port:\t%d\r\n"
@@ -1000,22 +1000,22 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
                tcpheader->data_offset & 0x80,
                tcpheader->data_offset & 0x70,
                tcpheader->data_offset & 0x0F);
-      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",MAX_LINE_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",MAX_LINE_SIZE-strlen(buffer_hdr));
 
       char tmp[10]="";
-      strncat(buffer_hdr,"\r\nwindow:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nwindow:\t\0",MAX_LINE_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),MAX_LINE_SIZE-strlen(buffer_hdr));
       tmp[0]=0;
-      strncat(buffer_hdr,"\r\nchecksum:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->checksum,tmp,10),REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nchecksum:\t\0",MAX_LINE_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->checksum,tmp,10),MAX_LINE_SIZE-strlen(buffer_hdr));
       tmp[0]=0;
-      strncat(buffer_hdr,"\r\nurgent_pointer:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->urgent_pointer,tmp,10),REQUEST_MAX_SIZE);
-      strncat(buffer_hdr,"\r\n\r\n\0",REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nurgent_pointer:\t\0",MAX_LINE_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->urgent_pointer,tmp,10),MAX_LINE_SIZE-strlen(buffer_hdr));
+      strncat(buffer_hdr,"\r\n\r\n\0",MAX_LINE_SIZE-strlen(buffer_hdr));
 
       //datas in hexa
       snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+TCP_HDR_SIZE);
@@ -1026,7 +1026,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
     case IPPROTO_UDP:
     {
       UDP_HDR *udpheader = (UDP_HDR*)(unsigned char *)(b+(iphdr_size));
-      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+      snprintf(buffer_hdr,MAX_LINE_SIZE,
                "[UDP]\r\n"
                "source_port:\t%d\r\n"
                "dest_port:\t%d\r\n"
@@ -1046,7 +1046,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
     case IPPROTO_ICMP:
     {
       ICMP_HDR *icmp_hdr = (ICMP_HDR*)(unsigned char *)(b+(iphdr_size));
-      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+      snprintf(buffer_hdr,MAX_LINE_SIZE,
                "[ICMP]\r\n"
                "type:\t%d\r\n"
                "code:\t%d\r\n"
@@ -1066,7 +1066,7 @@ DWORD WINAPI LoadTrame_sniff(LPVOID lParam)
     case IPPROTO_IGMP:
     {
       IGMP_HDR *igmp_hdr = (IGMP_HDR*)(unsigned char *)(b+(iphdr_size));
-      snprintf(buffer_hdr,REQUEST_MAX_SIZE,
+      snprintf(buffer_hdr,MAX_LINE_SIZE,
                "[IGMP]\r\n"
                "type:\t%d\r\n"
                "ttl:\t%d\r\n"
@@ -1173,7 +1173,7 @@ DWORD WINAPI follow_stream(LPVOID lParam)
 void LoadTrame_datas(char *buffer, unsigned int buffer_sz_max, long int index)
 {
   buffer[0] = 0;
-  char buffer_ipv4[MAX_LINE_SIZE]="", buffer_hdr[MAX_LINE_SIZE]="", buffer_datas[MAX_LINE_SIZE]="", buffer_datas_hexa[MAX_LINE_SIZE]="";
+  char buffer_ipv4[REQUEST_MAX_SIZE]="", buffer_hdr[REQUEST_MAX_SIZE]="", buffer_datas[REQUEST_MAX_SIZE]="", buffer_datas_hexa[REQUEST_MAX_SIZE]="";
 
   //ipv4
   IPV4_HDR *ipv4_hdr = (IPV4_HDR *)Trame_buffer[index].buffer;
@@ -1236,22 +1236,22 @@ void LoadTrame_datas(char *buffer, unsigned int buffer_sz_max, long int index)
                tcpheader->data_offset & 0x80,
                tcpheader->data_offset & 0x70,
                tcpheader->data_offset & 0x0F);
-      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE);
-      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE);
+      if (tcpheader->flags & 0x80)strncat(buffer_hdr,"FIN,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x40)strncat(buffer_hdr,"SYN,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x20)strncat(buffer_hdr,"RST,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x10)strncat(buffer_hdr,"PSH,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x08)strncat(buffer_hdr,"ACK,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x04)strncat(buffer_hdr,"URG,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x02)strncat(buffer_hdr,"ECN,\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      if (tcpheader->flags & 0x01)strncat(buffer_hdr,"CWR\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
 
       char tmp[10]="";
-      strncat(buffer_hdr,"\r\nwindow:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nwindow:\t\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->window,tmp,10),REQUEST_MAX_SIZE-strlen(buffer_hdr));
       tmp[0]=0;
-      strncat(buffer_hdr,"\r\nchecksum:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->checksum,tmp,10),REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nchecksum:\t\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->checksum,tmp,10),REQUEST_MAX_SIZE-strlen(buffer_hdr));
       tmp[0]=0;
-      strncat(buffer_hdr,"\r\nurgent_pointer:\t\0",REQUEST_MAX_SIZE);strncat(buffer_hdr,itoa(tcpheader->urgent_pointer,tmp,10),REQUEST_MAX_SIZE);
-      strncat(buffer_hdr,"\r\n\r\n\0",REQUEST_MAX_SIZE);
+      strncat(buffer_hdr,"\r\nurgent_pointer:\t\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));strncat(buffer_hdr,itoa(tcpheader->urgent_pointer,tmp,10),REQUEST_MAX_SIZE-strlen(buffer_hdr));
+      strncat(buffer_hdr,"\r\n\r\n\0",REQUEST_MAX_SIZE-strlen(buffer_hdr));
 
       //datas in hexa
       snprintf(buffer_datas,MAX_LINE_SIZE,"[DATAS-STRING]\r\n%s\r\n\r\n[DATAS-HEXA]\r\n",b+iphdr_size+TCP_HDR_SIZE);
@@ -1352,7 +1352,7 @@ BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelecte
     for (i=0;i<nb_column;i++)
     {
       if (!SendMessage(hlv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc))break;
-      if (strlen(buffer)>0)
+      if (*buffer != '\0')
         snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"  <th>%s</th>",buffer);
 
       buffer[0]=0;
@@ -1360,7 +1360,7 @@ BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelecte
       lvc.cchTextMax = MAX_LINE_SIZE;
       lvc.pszText = buffer;
     }
-    strncat(lines,"  <th>RAW</th>\r\n  </tr>\r\n\0",MAX_LINE_SIZE);
+    strncat(lines,"  <th>RAW</th>\r\n  </tr>\r\n\0",MAX_LINE_SIZE-strlen(lines));
     copiee = 0;
     WriteFile(hfile,lines,strlen(lines),&copiee,0);
 
@@ -1368,14 +1368,14 @@ BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelecte
     {
       for (j=0;j<nb_items;j++)
       {
-        if (j%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
-        else strcpy(lines,"  <tr>");
+        if (j%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">\0");
+        else strcpy(lines,"  <tr>\0");
 
         for (i=0;i<nb_column;i++)
         {
           buffer[0]=0;
           ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-          if ((buffer != NULL) && (strlen(buffer)>0))
+          if (*buffer != '\0')
           {
             snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
           }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");
@@ -1397,14 +1397,14 @@ BOOL SaveNetRaw(HANDLE hlv, char *file, unsigned int nb_column, BOOL OnlySelecte
         if (SendMessage(hlv,LVM_GETITEMSTATE,(WPARAM)j,(LPARAM)LVIS_SELECTED) != LVIS_SELECTED)continue;
         z++;
 
-        if (z%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">");
-        else strcpy(lines,"  <tr>");
+        if (z%2==1)strcpy(lines,"  <tr bgcolor=\"#ddddff\">\0");
+        else strcpy(lines,"  <tr>\0");
 
         for (i=0;i<nb_column;i++)
         {
           buffer[0]=0;
           ListView_GetItemText(hlv,j,i,buffer,MAX_LINE_SIZE);
-          if ((buffer != NULL) && (strlen(buffer)>0))
+          if (*buffer != '\0')
           {
             snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td>%s</td>",buffer);
           }else snprintf(lines+strlen(lines),MAX_LINE_SIZE-strlen(lines),"<td></td>");

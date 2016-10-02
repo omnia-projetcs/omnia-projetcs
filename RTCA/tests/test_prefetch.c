@@ -54,7 +54,7 @@ void addPrefetchtoDB(char *file, char *create_time, char *last_update, char*last
            file,path_application,create_time,last_update,last_access,count,exec,session_id,depend);
 
   //if data too long
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
@@ -221,14 +221,14 @@ DWORD WINAPI Scan_prefetch(LPVOID lParam)
       if((data.cFileName[0] == '.' && (data.cFileName[1] == 0 || data.cFileName[1] == '.')) || (data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){}
       else
       {
-        strncpy(path_f,path,MAX_PATH);
+        snprintf(path_f,MAX_PATH,"%s",path);
         path_f[strlen(path_f)-4]=0;
-        strncat(path_f,data.cFileName,MAX_PATH);
-        strncat(path_f,"\0",MAX_PATH);
+        strncat(path_f,data.cFileName,MAX_PATH-strlen(path_f));
+        strncat(path_f,"\0",MAX_PATH-strlen(path_f));
 
         PfCheck(session_id, db, path_f);
       }
-    }while(FindNextFile (hfic,&data) && start_scan);
+    }while(FindNextFile (hfic,&data) !=0 && start_scan);
     FindClose(hfic);
   }
 

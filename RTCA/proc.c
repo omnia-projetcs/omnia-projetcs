@@ -65,7 +65,6 @@ void LoadAllDLLAndFunction()
     DnsGetCacheDataTable = (DNS_GET_CACHE_DATA_TABLE) GetProcAddress(hDLL_DNSAPI, "DnsGetCacheDataTable" );
   }
 
-
   hDLL_WINTRUST = NULL;
   hDLL_WINTRUST = LoadLibrary( "WINTRUST.dll");
 
@@ -77,7 +76,7 @@ void LoadAllDLLAndFunction()
   }
 
 
-  hDLL_IPHLPAPI= NULL;
+  hDLL_IPHLPAPI = NULL;
   hDLL_IPHLPAPI = LoadLibrary( "IPHLPAPI.dll");
 
   MyGetExtendedTcpTable = NULL;
@@ -92,7 +91,7 @@ void LoadAllDLLAndFunction()
   }
 
 
-  hDLL_VSSAPI= NULL;
+  hDLL_VSSAPI = NULL;
   hDLL_VSSAPI = LoadLibrary( "VSSAPI.dll");
 
   if (hDLL_VSSAPI != NULL)
@@ -100,7 +99,7 @@ void LoadAllDLLAndFunction()
   }
 
 
-  hDLL_VERSION= NULL;
+  hDLL_VERSION = NULL;
   hDLL_VERSION = LoadLibrary( "VERSION.dll");
 
   MyGetFileVersionInfo = NULL;
@@ -110,6 +109,16 @@ void LoadAllDLLAndFunction()
   {
     MyGetFileVersionInfo    = (GETFILEVERSIONINFO)   GetProcAddress(hDLL_VERSION , "GetFileVersionInfoA");
     MyVerQueryValue         = (VERQUERYVALUE)   GetProcAddress(hDLL_VERSION , "VerQueryValueA");
+  }
+
+  hDLL_NTDLL = NULL;
+  hDLL_NTDLL = LoadLibrary( "NTDLL.dll");
+
+  MyNtQueryInformationProcess = NULL;
+
+  if (hDLL_NTDLL != NULL)
+  {
+    MyNtQueryInformationProcess =(LPNTQUERYINFOPROCESS)GetProcAddress(hDLL_NTDLL, "NtQueryInformationProcess");
   }
 }
 //------------------------------------------------------------------------------
@@ -187,6 +196,14 @@ void FreeAllDLLAndFunction()
     FreeLibrary(hDLL_VERSION);
     hDLL_VERSION = NULL;
   }
+
+  if (hDLL_NTDLL != NULL)
+  {
+    MyNtQueryInformationProcess = NULL;
+
+    FreeLibrary(hDLL_NTDLL);
+    hDLL_NTDLL = NULL;
+  }
 }
 //------------------------------------------------------------------------------
 DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
@@ -251,7 +268,7 @@ DWORD WINAPI UpdateRtCA_Thread(LPVOID lParam)
 
         if(InternetReadFileEx(M_requete,&ib,IRF_NO_WAIT,0))
         {
-          if (strlen(res)>0)
+          if (*res != '\0')
           {
             //working with file and update
             char request[MAX_LINE_SIZE], domain[MAX_PATH], *c = res, *d;
@@ -468,7 +485,7 @@ void replace_one_char(char *buffer, unsigned long int taille, char chtoreplace, 
   }
 }
 //------------------------------------------------------------------------------
-void replace_to_char(char *buffer, unsigned long int taille, char a)
+/*void replace_to_char(char *buffer, unsigned long int taille, char a)
 {
   char *c = buffer;
 
@@ -478,19 +495,19 @@ void replace_to_char(char *buffer, unsigned long int taille, char a)
     else if (*c==0x00 && *(c+1)==0x00) *c = a;
     c++;
   }
-}
+}*/
 //------------------------------------------------------------------------------
 char *convertStringToSQL(char *data, unsigned int size_max)
 {
-  char tmp[MAX_PATH];
+  char tmp[size_max+1];
   char *s = data;
   char *d = tmp;
   unsigned int i=0, j=0;
-  for (;j<size_max && i<MAX_PATH;i++,j++,d++,s++)
+  for (;j<size_max && i<size_max-1;i++,j++,d++,s++)
   {
     if (*s == '"')
     {
-      if (j+2 < MAX_PATH)
+      if (j+2 < size_max-1)
       {
         *d++ = '"';j++;
         *d = '"';

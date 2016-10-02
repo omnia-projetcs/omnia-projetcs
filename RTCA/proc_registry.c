@@ -102,7 +102,10 @@ DWORD ReadValue(HKEY hk,char *path,char *value,char *data, DWORD data_size)
 
   //read value
   if (RegQueryValueEx(CleTmp, value, 0, 0, (LPBYTE)c, &data_size_read)!=ERROR_SUCCESS)
+  {
+    free(c);
     return FALSE;
+  }
 
   if (data_size_read<data_size) memcpy(data,c,data_size_read);
   else memcpy(data,c,data_size);

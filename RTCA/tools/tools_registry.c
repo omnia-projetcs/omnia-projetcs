@@ -58,54 +58,54 @@ void ReadArboRawRegFile(HK_F_OPEN *hks, HBIN_CELL_NK_HEADER *nk_h, char *reg_fil
     switch(type)
     {
       case 0x00000001:
-        strcpy(lv_line[4].c,"REG_SZ");
+        strcpy(lv_line[4].c,"REG_SZ\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_TXT_REG);
       break;
       case 0x00000002:
-        strcpy(lv_line[4].c,"REG_EXPAND_SZ");
+        strcpy(lv_line[4].c,"REG_EXPAND_SZ\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_TXT_REG);
       break;
       case 0x00000003:
-        strcpy(lv_line[4].c,"REG_BINARY");
+        strcpy(lv_line[4].c,"REG_BINARY\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_BIN_REG);
       break;
       case 0x00000004:
       case 0x00000005:
-        strcpy(lv_line[4].c,"REG_DWORD");
+        strcpy(lv_line[4].c,"REG_DWORD\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_DWORD_REG);
       break;
       case 0x00000006:
-        strcpy(lv_line[4].c,"REG_LINK");
+        strcpy(lv_line[4].c,"REG_LINK\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_BIN_REG);
       break;
       case 0x00000007:
-        strcpy(lv_line[4].c,"REG_MULTI_SZ");
+        strcpy(lv_line[4].c,"REG_MULTI_SZ\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_TXT_REG);
       break;
       case 0x0000000A:
-        strcpy(lv_line[4].c,"REG_RESOURCE_REQUIREMENTS_LIST");
+        strcpy(lv_line[4].c,"REG_RESOURCE_REQUIREMENTS_LIST\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_BIN_REG);
       break;
       case 0x0000000b:
-        strcpy(lv_line[4].c,"REG_QWORD");
+        strcpy(lv_line[4].c,"REG_QWORD\0");
         snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_DWORD_REG);
       break;
       default:
         if (type == 0x00000000)
         {
-          strcpy(lv_line[4].c,"REG_NONE");
+          strcpy(lv_line[4].c,"REG_NONE\0");
           snprintf(tmp_value_trv,MAX_PATH,"%s=%s",lv_line[2].c,lv_line[3].c);
         }else
         {
-          strcpy(lv_line[4].c,"UNKNOW");
+          strcpy(lv_line[4].c,"UNKNOW\0");
           snprintf(tmp_value_trv,MAX_PATH,"%s=(type:0x%08X)%s",lv_line[2].c,type,lv_line[3].c);
         }
         AddItemTreeViewImg(htv,tmp_value_trv, hparent,ICON_FILE_UNKNOW_REG);
@@ -472,7 +472,8 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
         case NM_DBLCLK:
           if (LOWORD(wParam) == LV_VIEW)
           {
-            long i, index = SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            long index = SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            int i;
             if (index > -1)
             {
               char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
@@ -490,10 +491,10 @@ BOOL CALLBACK DialogProc_reg(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPar
                 tmp2[0] = 0;
                 if (SendDlgItemMessage(hwnd,LV_VIEW,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
                 {
-                  if (strlen(tmp)>0)
+                  if (*tmp != '\0')
                   {
                     ListView_GetItemText(GetDlgItem(h_reg,LV_VIEW),index,i,tmp2,MAX_LINE_SIZE);
-                    if (strlen(tmp2)>0)
+                    if (*tmp2 != '\0')
                     {
                       RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
                       RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);

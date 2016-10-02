@@ -360,7 +360,7 @@ void Scan_antivirus_local(sqlite3 *db, unsigned int session_id)
     strncpy(editor,"Rising",DEFAULT_TMP_SIZE);
 
     ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\rising\\RAV","Version",engine, DEFAULT_TMP_SIZE);
-    strncpy(bdd,engine,DEFAULT_TMP_SIZE);
+    snprintf(bdd,DEFAULT_TMP_SIZE,"%s",engine);
 
     char tmp_path[MAX_PATH];
     snprintf(tmp_path,MAX_PATH,"%s\\CompsVer.inf",path);
@@ -518,7 +518,7 @@ void Scan_antivirus_local(sqlite3 *db, unsigned int session_id)
 
             if(ReadValue(HKEY_LOCAL_MACHINE,key_path,"szEngineVer",url_update, DEFAULT_TMP_SIZE))
             {
-              strncpy(engine,url_update,DEFAULT_TMP_SIZE);
+              snprintf(engine,DEFAULT_TMP_SIZE,"%s",url_update);
               url_update[0] = 0;
             }
           }
@@ -531,6 +531,25 @@ void Scan_antivirus_local(sqlite3 *db, unsigned int session_id)
   {
     strncpy(editor,"McAfee",DEFAULT_TMP_SIZE);
     addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
+  }
+
+  //other
+  path        [0]=0;
+  name        [0]=0;
+  editor      [0]=0;
+  engine      [0]=0;
+  url_update  [0]=0;
+  bdd         [0]=0;
+  last_update [0]=0;
+  if(ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\AVEngine","szInstallDir32",path, DEFAULT_TMP_SIZE))
+  {
+    ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\DesktopProtection","Product",name, DEFAULT_TMP_SIZE);
+    ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\DesktopProtection","szProductVer",engine, DEFAULT_TMP_SIZE);
+
+    snprintf(bdd,DEFAULT_TMP_SIZE,"%d.%d",ReadDwordValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\AVEngine","AVDatVersion"),
+                                          ReadDwordValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\AVEngine","AVDatVersionMinor"));
+    ReadValue(HKEY_LOCAL_MACHINE,"SOFTWARE\\Wow6432Node\\McAfee\\AVEngine","AVDatDate",last_update, DEFAULT_TMP_SIZE);
+    addCAntivirustoDB(path,name,"McAfee/Intel",engine,"",bdd,last_update,"?",session_id,db);
   }
 
   //F-SECURE
@@ -774,7 +793,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "rising\\RAV", NULL,"name", name, DEFAULT_TMP_SIZE);
     strncpy(editor,"Rising",DEFAULT_TMP_SIZE);
     Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "rising\\RAV", NULL,"Version", engine, DEFAULT_TMP_SIZE);
-    strncpy(bdd,engine,DEFAULT_TMP_SIZE);
+    snprintf(bdd,DEFAULT_TMP_SIZE,"%s",engine);
     addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
   }
 
@@ -1032,7 +1051,7 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
 
         if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, NULL, nk_h_tmp,"szEngineVer", url_update, DEFAULT_TMP_SIZE) == FALSE)
         {
-            strncpy(engine,url_update,DEFAULT_TMP_SIZE);
+            snprintf(engine,DEFAULT_TMP_SIZE,"%s",url_update);
             url_update[0] = 0;
         }
       }
@@ -1043,6 +1062,28 @@ void Scan_antivirus_file(HK_F_OPEN *hks, sqlite3 *db, unsigned int session_id)
   {
     strncpy(editor,"McAfee",DEFAULT_TMP_SIZE);
     addCAntivirustoDB(path,name,editor,engine,url_update,bdd,last_update,"?",session_id,db);
+  }
+
+  path        [0]=0;
+  name        [0]=0;
+  editor      [0]=0;
+  url_update  [0]=0;
+  bdd         [0]=0;
+  last_update [0]=0;
+  if(Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"szInstallDir32", path, DEFAULT_TMP_SIZE))
+  {
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\DesktopProtection", NULL,"Product", name, DEFAULT_TMP_SIZE);
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\DesktopProtection", NULL,"szProductVer", engine, DEFAULT_TMP_SIZE);
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"AVDatDate", last_update, DEFAULT_TMP_SIZE);
+
+    /*DWORD a=0, b=0, sz_a=4, sz_b = 4;
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"AVDatVersion", &a, 4);
+    Readnk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"AVDatVersionMinor", &b, 4);
+    //ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"AVDatVersion", &a, &sz_a);
+    //ReadBinarynk_Value(hks->buffer, hks->taille_fic, (hks->pos_fhbin)+HBIN_HEADER_SIZE, hks->position, "McAfee\\AVEngine", NULL,"AVDatVersionMinor", &b, &sz_b);
+    snprintf(bdd,DEFAULT_TMP_SIZE,"%d.%d",a,b);*/
+
+    addCAntivirustoDB(path,name,"McAfee/Intel",engine,"",bdd,last_update,"?",session_id,db);
   }
 }
 //------------------------------------------------------------------------------

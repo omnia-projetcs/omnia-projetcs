@@ -154,14 +154,14 @@ int callback_sqlite_sqlite_ed(void *datas, int argc, char **argv, char **azColNa
   return 0;
 }
 //------------------------------------------------------------------------------
-BOOL stringIsANumber(char *s)
+/*BOOL stringIsANumber(char *s)
 {
   char *c = s;
   while (*c && *c > 57 && *c < 48)c++;
   if (*c != 0) return FALSE;
 
   return TRUE;
-}
+}*/
 //------------------------------------------------------------------------------
 void MoveAllComponentLineS(unsigned int pos)
 {
@@ -239,15 +239,15 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
                   GetWindowText(ssqlite.h_exctext[i],tcondition,MAX_LINE_SIZE);
 
                   //string standard
-                  strncat(params,tparam,MAX_LINE_SIZE);
-                  strncat(params," = \"",MAX_LINE_SIZE);
-                  strncat(params,tvalue,MAX_LINE_SIZE);
-                  strncat(params,"\",\0",MAX_LINE_SIZE);
+                  strncat(params,tparam,MAX_LINE_SIZE-strlen(params));
+                  strncat(params," = \"\0",MAX_LINE_SIZE-strlen(params));
+                  strncat(params,tvalue,MAX_LINE_SIZE-strlen(params));
+                  strncat(params,"\",\0",MAX_LINE_SIZE-strlen(params));
 
-                  strncat(conditions,tparam,MAX_LINE_SIZE);
-                  strncat(conditions,"= \"",MAX_LINE_SIZE);
-                  strncat(conditions,tcondition,MAX_LINE_SIZE);
-                  strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
+                  strncat(conditions,tparam,MAX_LINE_SIZE-strlen(conditions));
+                  strncat(conditions,"= \"\0",MAX_LINE_SIZE-strlen(conditions));
+                  strncat(conditions,tcondition,MAX_LINE_SIZE-strlen(conditions));
+                  strncat(conditions,"\" AND \0",MAX_LINE_SIZE-strlen(conditions));
                 }
 
                 //remove last , and AND ...
@@ -286,9 +286,9 @@ BOOL CALLBACK DialogProc_sqlite_ed_req(HWND hwnd, UINT message, WPARAM wParam, L
                   GetWindowText(ssqlite.h_ctext[i],tvalue,MAX_LINE_SIZE);
 
                   //string standard
-                  strncat(params,"\"",MAX_LINE_SIZE);
-                  strncat(params,tvalue,MAX_LINE_SIZE);
-                  strncat(params,"\",\0",MAX_LINE_SIZE);
+                  strncat(params,"\"\0",MAX_LINE_SIZE-strlen(params));
+                  strncat(params,tvalue,MAX_LINE_SIZE-strlen(params));
+                  strncat(params,"\",\0",MAX_LINE_SIZE-strlen(params));
                 }
 
                 //remove last , and AND ...
@@ -441,20 +441,20 @@ char* GetCurrentTableChamps(int id_exclude, char *champs_only, char *champs_full
       if (Button_GetCheck(ssqlitee.h_pkey) == BST_CHECKED)PK = TRUE; else PK = FALSE; //PRIMARY KEY + NOT NULL
 
       //header only
-      strncat(champs_only,"\"",sz_max);
-      strncat(champs_only,tmp_name,sz_max);
-      if (i == ssqlitee.nb_items-1)strncat(champs_only,"\"\0",sz_max);
-      else strncat(champs_only,"\",\0",sz_max);
+      strncat(champs_only,"\"\0",sz_max-strlen(champs_only));
+      strncat(champs_only,tmp_name,sz_max-strlen(champs_only));
+      if (i == ssqlitee.nb_items-1)strncat(champs_only,"\"\0",sz_max-strlen(champs_only));
+      else strncat(champs_only,"\",\0",sz_max-strlen(champs_only));
 
       //ALL
       GetWindowText(ssqlitee.h_cname[i],tmp_name,MAX_LINE_SIZE);                     //name
-      strncat(champs_full,"\"",sz_max);
-      strncat(champs_full,tmp_name,sz_max);
-      strncat(champs_full,"\" ",sz_max);
-      strncat(champs_full,tmp_type,sz_max);
+      strncat(champs_full,"\"\0",sz_max-strlen(champs_full));
+      strncat(champs_full,tmp_name,sz_max-strlen(champs_full));
+      strncat(champs_full,"\" \0",sz_max-strlen(champs_full));
+      strncat(champs_full,tmp_type,sz_max-strlen(champs_full));
       if(PK)
       {
-        strncat(champs_full," NOT NULL PRIMARY KEY",sz_max);
+        strncat(champs_full," NOT NULL PRIMARY KEY\0",sz_max);
       }
       if (i == ssqlitee.nb_items-1)strncat(champs_full,"\0",sz_max);
       else strncat(champs_full,",\0",sz_max);
@@ -733,7 +733,8 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
             case POPUP_SQLITE_INFOS:
               {
                 HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
-                long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+                long index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+                int i;
                 if (index > -1)
                 {
                   char tmp[MAX_LINE_SIZE+1], tmp2[MAX_LINE_SIZE+1];
@@ -749,11 +750,11 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                     tmp2[0] = 0;
                     if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
                     {
-                      if (strlen(tmp)>0)
+                      if (*tmp !='\0')
                       {
                         ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 
-                        if (strlen(tmp2)>0)
+                        if (*tmp2 !='\0')
                         {
                           RichEditCouleur(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,"\r\n[");
                           RichEditCouleurGras(GetDlgItem(h_info,DLG_INFO_TXT),NOIR,tmp);
@@ -816,15 +817,15 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                       tcondition[0] = 0;
                       if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
                       {
-                        if (strlen(tparam)>0)
+                        if (*tparam !='\0')
                         {
                           ListView_GetItemText(hlstv,index,i,tcondition,MAX_LINE_SIZE);
-                          if (strlen(tcondition)>0)
+                          if (*tcondition !='\0')
                           {
-                            strncat(conditions,tparam,MAX_LINE_SIZE);
-                            strncat(conditions,"= \"",MAX_LINE_SIZE);
-                            strncat(conditions,tcondition,MAX_LINE_SIZE);
-                            strncat(conditions,"\" AND \0",MAX_LINE_SIZE);
+                            strncat(conditions,tparam,MAX_LINE_SIZE-strlen(conditions));
+                            strncat(conditions,"= \"\0",MAX_LINE_SIZE-strlen(conditions));
+                            strncat(conditions,tcondition,MAX_LINE_SIZE-strlen(conditions));
+                            strncat(conditions,"\" AND \0",MAX_LINE_SIZE-strlen(conditions));
                           }
                         }
                       }
@@ -1093,7 +1094,8 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
           {
             //current line
             HANDLE hlstv = GetDlgItem(hwnd,DLG_SQL_ED_LV_RESPONSE);
-            long i, index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            long index = SendMessage(hlstv,LVM_GETNEXTITEM,-1,LVNI_FOCUSED);
+            int i;
             if (index > -1)
             {
               ssqlite.nb_column = nb_current_col_sqlite;
@@ -1126,7 +1128,7 @@ BOOL CALLBACK DialogProc_sqlite_ed(HWND hwnd, UINT message, WPARAM wParam, LPARA
                 tmp2[0] = 0;
                 if (SendMessage(hlstv,LVM_GETCOLUMN,(WPARAM)i,(LPARAM)&lvc) != 0)
                 {
-                  if (strlen(tmp)>0)
+                  if (*tmp !='\0')
                   {
                     ListView_GetItemText(hlstv,index,i,tmp2,MAX_LINE_SIZE);
 

@@ -16,7 +16,7 @@ void ConsoleDirectory_sha256deep(char *tmp_path)
     //extract separators : "
     snprintf(path,strlen(tmp_path)-2,"%s",tmp_path+1);
     path[strlen(path)] = 0;
-  }else strncpy(path,tmp_path,MAX_PATH);
+  }else snprintf(path,MAX_PATH,"%s",tmp_path);
 
   printf("[%s]\n",path);
 
@@ -46,7 +46,7 @@ void ConsoleDirectory_sha256deep(char *tmp_path)
         if (s_sha[0] != 0)printf("%s  %s\n",s_sha,path_ex);
       }
     }
-  }while(FindNextFile (hfic,&data));
+  }while(FindNextFile (hfic,&data) !=0);
   FindClose(hfic);
 }
 //------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ void scan_file(char *path, HANDLE htv)
       strncpy(file,data.cFileName,MAX_PATH);
       AddItemFiletoTreeView(htv, charToLowChar(file), path, NULL);
     }
-  }while(FindNextFile (hfic,&data));
+  }while(FindNextFile (hfic,&data) !=0);
   FindClose(hfic);
 }
 //------------------------------------------------------------------------------

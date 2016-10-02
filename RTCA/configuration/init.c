@@ -584,7 +584,6 @@ void EndGUIConfig(HANDLE hwnd)
     UnhookWindowsHookEx(HHook);
   }
 
-
   sqlite3_close(db_scan);
   #ifndef _WIN64_VERSION_
   ReviewWOW64Redirect(OldValue_W64b);
@@ -596,14 +595,14 @@ void EndGUIConfig(HANDLE hwnd)
   DeleteObject(Hb_pink);
   DeleteObject(Hb_violet);
 
-  if (Trame_buffer != NULL) free(Trame_buffer);
+  free(Trame_buffer);
   CloseHandle(hMutex_TRAME_BUFFER);
 
   //save current language if not 1
   //get current path
   char path[MAX_PATH]="";
   GetLocalPath(path, MAX_PATH);
-  strncat(path,DEFAULT_INI_FILE,MAX_PATH);
+  strncat(path,DEFAULT_INI_FILE,MAX_PATH-strlen(path));
 
   //set value
   char default_lang_id[DEFAULT_TMP_SIZE];

@@ -119,7 +119,7 @@ void read_datas_lnk(unsigned char *buffer, DWORD taille_fic,
     }else if ((p->data_flag & 0x04) == 0x04 || (p->data_flag & 0x08) == 0x08/* || (p->data_flag & 0x10) == 0x10*/)
     {
       //other
-      if (!strlen(local_path) && !strlen(to) && b-buffer < taille_fic)
+      if (*local_path == '\0' && *to == '\0' && b-buffer < taille_fic)
       {
         DWORD tmp_size;
 
@@ -286,7 +286,7 @@ void read_datas_lnk(unsigned char *buffer, DWORD taille_fic,
       }
     }
 
-    if (!strlen(local_path) && !strlen(to) && b-buffer < taille_fic)
+    if (*local_path == '\0' && *to == '\0' && b-buffer < taille_fic)
     {
       if ((p->data_flag & 0x01) == 0x01)
       {

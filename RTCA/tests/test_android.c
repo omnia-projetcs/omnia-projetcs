@@ -17,7 +17,7 @@ void addAndroidtoDB(char *file, char *parameter, char *data, char *date, DWORD i
            file,parameter,date,id_language_description,session_id,data);
 
   //if datas too long
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else

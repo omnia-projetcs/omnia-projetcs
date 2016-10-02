@@ -16,7 +16,7 @@ void addClipboardtoDB(char *format, unsigned int code, char*description, char *d
            "VALUES(\"%s\",\"%05d\",\"%s\",\"%s\",%d,\"%s\");",
            format,code,description,user,session_id,data);
 
-  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4);
+  if (request[strlen(request)-1]!=';')strncat(request,"\");\0",REQUEST_MAX_SIZE+4-strlen(request));
 
   sqlite3_exec(db,request, NULL, NULL, NULL);
   #else
