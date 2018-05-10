@@ -8,3 +8,5 @@ Actuals projects :
     NS : Network Scanner for check remote discovery file and registry.
     OFD : PDF/Latex french security datasheet.
     Digital Forensic Helper : Freemind map for help forensic investigators.
+
+For news update see the project root :)
