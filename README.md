@@ -10,3 +10,5 @@ Actuals projects :
     Digital Forensic Helper : Freemind map for help forensic investigators.
 
 For news update see the project root :)
+
+Nicolas Hanteville
